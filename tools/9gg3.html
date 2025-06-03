@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>诗歌九宫格生成器</title>
+  <style>
+    /* 加载新字体 FZJZXF */
+    @font-face {
+      font-family: "FZJZXF";
+      src: url("font/FZJZXF.woff2") format("woff2"),
+           url("font/FZJZXF.woff") format("woff"),
+           url("font/FZJZXF.TTF") format("truetype");
+      font-weight: normal;
+      font-style: normal;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 400px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      position: relative;
+    }
+    /* 随机诗词区域 */
+    #random-poem {
+      margin-bottom: 10px;
+      font-size: 16px;
+      text-align: center;
+    }
+    /* 使用 contenteditable 模拟文本输入框，并设置左对齐 */
+    #poemInput {
+      width: 100%;
+      height: 150px;
+      font-size: 16px;
+      padding: 10px 5px 10px 10px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    /* 当内容为空时显示提示文字 */
+    #poemInput:empty:before {
+      content: attr(data-placeholder);
+      color: #aaa;
+    }
+    /* 新增水印：文本框为空时，在提示下两行右对齐显示 */
+    #poemInput:empty:after {
+      content: "\A\A yumumao@medu.cc";
+      white-space: pre;
+      display: block;
+      text-align: right;
+      font-family: "微软雅黑", Arial, sans-serif;
+      color: rgba(211,211,211,0.5);
+    }
+    /* 生成九宫格和清空按钮的容器 */
+    #generateButtonsContainer {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    #generateBtn {
+      flex: 4;
+      background-color: #FF69B4;
+      color: #fff;
+      font-size: 16px;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #clearBtn {
+      flex: 1;
+      background-color: #fc6159;
+      color: #fff;
+      font-size: 16px;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    /* 顶部按钮区域 */
+    #top-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    /* “每周一首”容器 */
+    #weeklyContainer {
+      text-align: left;
+      flex: 1;
+      position: relative;
+    }
+    #weeklyContainer button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #9370DB;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    /* 二级菜单：包含年级、册别、周次（空值显示“周次”）、随机上册、随机下册 */
+    #submenu {
+      display: none;
+      position: fixed;
+      padding: 5px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      z-index: 1000;
+      flex-direction: row;
+      gap: 5px;
+    }
+    #submenu button,
+    #submenu select {
+      padding: 5px 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: none;
+      background-color: #9370DB;
+      color: #fff;
+      cursor: pointer;
+    }
+    /* 从左侧缩放展开动画 */
+    @keyframes expandScale {
+      0% { transform: scaleX(0); opacity: 0; }
+      100% { transform: scaleX(1); opacity: 1; }
+    }
+    #submenu.open {
+      animation: expandScale 0.15s ease-out forwards;
+      transform-origin: left;
+    }
+    /* 右侧“随机诗词”按钮 */
+    #fillContainer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #fillContainer button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #9370DB;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+    }
+    /* 九宫格文本区域 */
+    #gridText {
+      display: none;
+      max-width: 300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
+    }
+    .grid-cell {
+      border: 1px solid #ccc;
+      background-color: #FFEEEE;
+      text-align: center;
+      font-size: 36px;
+      padding: 15px 0;
+      cursor: pointer;
+    }
+    .cell-letter {
+      transition: opacity 0.5s ease;
+      opacity: 1;
+    }
+    /* 答案、搜索、刷新、返回按钮区域 */
+    #answer-buttons {
+      display: none;
+      max-width: 300px;
+      margin: 0 auto 10px;
+      justify-content: space-between;
+      gap: 5px;
+    }
+    #answer-buttons button {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      background-color: #9370DB;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    /* 完整诗文显示区域 */
+    #poemAnswer {
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #fafafa;
+      text-align: center;
+      white-space: pre-wrap;
+      font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- SDK加载的随机诗词 -->
+    <div id="random-poem">
+      <span id="jinrishici-sentence">正在加载今日诗词....</span>
+      <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+    </div>
+    <!-- 文本输入框 -->
+    <div id="poemInput" contenteditable="true" data-placeholder="请输入或在下方选择诗词"></div>
+    <!-- 生成九宫格和清空按钮 -->
+    <div id="generateButtonsContainer">
+      <button id="generateBtn">生成九宫格</button>
+      <button id="clearBtn">清空</button>
+    </div>
+    <!-- 顶部区域 -->
+    <div id="top-buttons">
+      <div id="weeklyContainer">
+        <button id="weeklyBtn">每周一首</button>
+        <!-- 二级菜单：选择年级、册别、周次及随机上册/下册按钮 -->
+        <div id="submenu">
+          <select id="gradeSelect">
+            <option value="1">一年级</option>
+            <option value="2">二年级</option>
+            <option value="3" selected>三年级</option>
+            <option value="4">四年级</option>
+            <option value="5">五年级</option>
+            <option value="6">六年级</option>
+          </select>
+          <select id="volumeSelect">
+            <option value="上册">上册</option>
+            <option value="下册" selected>下册</option>
+          </select>
+          <select id="weekSelect">
+            <!-- 第一项空值显示“周次”，后续选项将转换显示为“一”、“二”… -->
+          </select>
+          <button id="randomUpperBtn">随机上册</button>
+          <button id="randomLowerBtn">随机下册</button>
+        </div>
+      </div>
+      <div id="fillContainer">
+        <button id="fillRandomBtn">随机诗词</button>
+      </div>
+    </div>
+    <!-- 九宫格显示区域 -->
+    <div id="gridText"></div>
+    <br>
+    <!-- 答案、搜索、刷新、返回按钮区域 -->
+    <div id="answer-buttons">
+      <button id="showAnswerBtn">答案</button>
+      <button id="searchBtn">搜索</button>
+      <button id="refreshBtn">刷新</button>
+      <button id="backBtn">返回</button>
+    </div>
+    <!-- 完整诗文显示区域 -->
+    <div id="poemAnswer" style="display: none;"></div>
+  </div>
+  
+  <script>
+    var currentLoadId = 0;
+    var randomPoemData = null;
+    var weeklyPoemSelected = null;
+    var savedPoem = "";
+
+    // ========== 数据嵌入 ==========
+
+    // ---------- 一年级 ----------
+    var gradeOneUpperPoems = [
+      { week: "第一周", title: "山村咏怀", author: "[宋] 邵雍", content: "一去二三里，烟村四五家。\n亭台六七座，八九十枝花。", volume: "上册" },
+      { week: "第二周", title: "鹅赠鹤", author: "[唐] 白居易", content: "草铺横野六七里，笛弄晚风三四声。\n归来饱饭黄昏后，不脱蓑衣卧月明。", volume: "上册" },
+      { week: "第三周", title: "画鸭", author: "[元] 揭傒斯", content: "春草细还生，春雏养渐成。\n茸茸毛色起，应解自呼名。", volume: "上册" },
+      { week: "第四周", title: "秋浦歌（其十五）", author: "[唐] 李白", content: "白发三千丈，愁似个长。\n不知明镜里，何处得秋霜。", volume: "上册" },
+      { week: "第五周", title: "咏华山", author: "[宋] 寇准", content: "只有天在上，更无山与齐。\n举头红日近，回首白云低。", volume: "上册" },
+      { week: "第六周", title: "登乐游原", author: "[唐] 李商隐", content: "向晚意不适，驱车登古原。\n夕阳无限好，只是近黄昏。", volume: "上册" },
+      { week: "第七周", title: "采莲童曲（节选）", author: "南朝民歌", content: "泛舟采菱叶，过摘芙蓉花。\n扣楫命童侣，齐声采莲歌。", volume: "上册" },
+      { week: "第八周", title: "山中送别", author: "[唐] 王维", content: "山中相送罢，日暮掩柴扉。\n春草明年绿，王孙归不归？", volume: "上册" },
+      { week: "第九周", title: "题秋江独钓图", author: "[清] 王士祯", content: "一扁舟，丈丝纶；一寸钩。\n一曲高歌，一人独钓一江秋。", volume: "上册" },
+      { week: "第十周", title: "幼女词", author: "[唐] 施肩吾", content: "幼女才六岁，未知巧与拙。\n向夜在堂前，学人拜新月。", volume: "上册" },
+      { week: "第十一周", title: "观刈麦", author: "[唐] 白居易", content: "田家少闲月，五月人倍忙。\n夜来南风起，小麦覆陇黄。", volume: "上册" },
+      { week: "第十二周", title: "越女词", author: "[唐] 李白", content: "耶溪采莲女，见客棹歌回。\n笑入荷花去，佯羞不出来。", volume: "上册" },
+      { week: "第十三周", title: "江行无题", author: "[唐] 钱珝", content: "万木已清霜，江边村事忙。\n故溪黄稻熟，一夜梦中香。", volume: "上册" },
+      { week: "第十四周", title: "秋风引", author: "[唐] 刘禹锡", content: "何处秋风至？萧萧送雁群。\n朝来入庭树，孤客最先闻。", volume: "上册" },
+      { week: "第十五周", title: "古朗月行（节选）", author: "[唐] 李白", content: "仙人垂两足，桂树何团团。\n白兔捣药成，问言与谁餐？", volume: "上册" },
+      { week: "第十六周", title: "三字经（节选）", author: "佚名", content: "为人子，方少时。亲师友，习礼仪。\n香九龄，能温席。孝于亲，所当执。", volume: "上册" }
+    ];
+    var gradeOneLowerPoems = [
+      { week: "第一周", title: "春游曲", author: "[唐] 王涯", content: "万树江边杏，新开一夜风。\n满园深浅色，照在绿波中。", volume: "下册" },
+      { week: "第二周", title: "春雪", author: "[唐] 韩愈", content: "新年都未有芳华，二月初惊见草芽。\n白雪却嫌春色晚，故穿庭树作飞花。", volume: "下册" },
+      { week: "第三周", title: "杂诗", author: "[唐] 王维", content: "君自故乡来，应知故乡事。\n来日绮窗前，寒梅著花未？", volume: "下册" },
+      { week: "第四周", title: "三字经（节选）", author: "佚名", content: "地所生，有草木。此植物，遍水陆。\n有虫鱼，有鸟兽。此动物，能飞走。", volume: "下册" },
+      { week: "第五周", title: "相思", author: "[唐] 王维", content: "红豆生南国，春来发几枝。\n愿君多采撷，此物最相思。", volume: "下册" },
+      { week: "第六周", title: "春晴", author: "[唐] 王驾", content: "雨前初见花间蕊，雨后全无叶底花。\n蜂蝶纷纷过墙去，却疑春色在邻家。", volume: "下册" },
+      { week: "第七周", title: "八阵图", author: "[唐] 杜甫", content: "功盖三分国，名成八阵图。\n江流石不转，遗恨失吞吴。", volume: "下册" },
+      { week: "第八周", title: "笠翁对韵（节选）", author: "[清] 李渔", content: "晨对午，夏对冬。下饷对高舂。\n青春对白昼，古柏对苍松。", volume: "下册" },
+      { week: "第九周", title: "长干行四首（其二）", author: "[唐] 崔颢", content: "家临九江水，来去九江侧。\n同是长干人，生小不相识。", volume: "下册" },
+      { week: "第十周", title: "拜新月", author: "[唐] 李端", content: "开帘见新月，便即下阶拜。\n细语人不闻，北风吹裙带。", volume: "下册" },
+      { week: "第十一周", title: "观游鱼", author: "[唐] 白居易", content: "绕池闲步看鱼游，正值儿童弄钓舟。\n一种爱鱼心各异，我来施食尔垂钩。", volume: "下册" },
+      { week: "第十二周", title: "苔", author: "[清] 袁枚", content: "白日不到处，青春恰自来。\n苔花如米小，也学牡丹开。", volume: "下册" },
+      { week: "第十三周", title: "中秋夜", author: "[唐] 李峤", content: "圆魄上寒空，皆言四海同。\n安知千里外，不有雨兼风？", volume: "下册" },
+      { week: "第十四周", title: "击壤歌", author: "上古歌谣", content: "日出而作，日入而息。\n凿井而饮，耕田而食。", volume: "下册" },
+      { week: "第十五周", title: "答人", author: "[唐] 太上隐者", content: "偶来松树下，高枕石头眠。\n山中无历日，寒尽不知年。", volume: "下册" },
+      { week: "第十六周", title: "剑客", author: "[唐] 贾岛", content: "十年磨一剑，霜刃未曾试。\n今日把示君，谁有不平事？", volume: "下册" }
+    ];
+
+    // ---------- 二年级 ----------
+    var gradeTwoUpperPoems = [
+      { week: "第一周", title: "早梅", author: "[明] 道源", content: "万树寒无色，南枝独有花。\n香闻流水处，影落野人家。", volume: "上册" },
+      { week: "第二周", title: "牧童", author: "[唐] 吕岩", content: "草铺横野六七里，笛弄晚风三四声。\n归来饱饭黄昏后，不脱蓑衣卧月明。", volume: "上册" },
+      { week: "第三周", title: "晚春田园杂兴", author: "[宋] 范成大", content: "蝴蝶双双入菜花，日长无客到田家。\n鸡飞过篱犬吠窦，知有行商来买茶。", volume: "上册" },
+      { week: "第四周", title: "山亭", author: "[唐] 高骈", content: "绿树阴浓夏日长，楼台倒影入池塘。\n水晶帘动微风起，满架蔷薇一院香。", volume: "上册" },
+      { week: "第五周", title: "山中", author: "[唐] 王维", content: "荆溪白石出，天寒红叶稀。\n山路元无雨，空翠湿人衣。", volume: "上册" },
+      { week: "第六周", title: "逢雪宿芙蓉山主人", author: "[唐] 刘长卿", content: "日暮苍山远，天寒白屋贫。\n柴门闻犬吠，风雪夜归人。", volume: "上册" },
+      { week: "第七周", title: "金缕衣", author: "[唐] 杜秋娘", content: "劝君莫惜金缕衣，劝君惜取少年时。\n花开堪折直须折，莫待无花空折枝。", volume: "上册" },
+      { week: "第八周", title: "赠范晔", author: "[北魏] 陆凯", content: "折花逢驿使，寄与陇头人。\n江南无所有，聊赠一枝春。", volume: "上册" },
+      { week: "第九周", title: "菊花", author: "[唐] 元稹", content: "秋丛绕舍似陶家，遍绕篱边日渐斜。\n不是花中偏爱菊，此花开尽更无花。", volume: "上册" },
+      { week: "第十周", title: "陶者", author: "[宋] 梅尧臣", content: "陶尽门前土，屋上无片瓦。\n十指不沾泥，鳞鳞居大厦。", volume: "上册" },
+      { week: "第十一周", title: "题乌江亭", author: "[唐] 杜牧", content: "胜败兵家事不期，包羞忍耻是男儿。\n江东子弟多才俊，卷土重来未可知。", volume: "上册" },
+      { week: "第十二周", title: "登幽州台歌", author: "[唐] 陈子昂", content: "前不见古人，后不见来者。\n念天地之悠悠，独怆然而涕下！", volume: "上册" },
+      { week: "第十三周", title: "遗爱寺", author: "[唐] 白居易", content: "弄石临溪坐，寻花绕寺行。\n时时间鸟语，处处是泉声。", volume: "上册" },
+      { week: "第十四周", title: "山中问答", author: "[唐] 李白", content: "问余何事栖碧山，笑而不答心自闲。\n桃花流水窅然去，别有天地非人间。", volume: "上册" },
+      { week: "第十五周", title: "山中杂诗", author: "[南北朝] 吴均", content: "山际见来烟，竹中窥落日。\n鸟向檐上飞，云从窗里出。", volume: "上册" },
+      { week: "第十六周", title: "竹里馆", author: "[唐] 王维", content: "独坐幽篁里，弹琴复长啸。\n深林人不知，明月来相照。", volume: "上册" }
+    ];
+    var gradeTwoLowerPoems = [
+      { week: "第一周", title: "夜月", author: "[唐] 刘方平", content: "更深月色半人家，北斗阑干南斗斜。\n今夜偏知春气暖，虫声渐透绿窗纱。", volume: "下册" },
+      { week: "第二周", title: "柳", author: "[宋] 陆游", content: "春来无处不春风，偏在湖桥柳色中。\n看得浅黄成嫩绿，始知道物有全功。", volume: "下册" },
+      { week: "第三周", title: "立春", author: "[宋] 王镒", content: "泥牛鞭散六街尘，生菜挑来叶叶春。\n从此雪消风自软，梅花合让柳条新。", volume: "下册" },
+      { week: "第四周", title: "惠州一绝", author: "[宋] 苏轼", content: "罗浮山下四时春，卢橘杨梅次第新。\n日啖荔枝三百颗，不辞长作岭南人。", volume: "下册" },
+      { week: "第五周", title: "月夜忆舍弟（节选）", author: "[唐] 杜甫", content: "戍鼓断人行，边秋一雁声。\n露从今夜白，月是故乡明。", volume: "下册" },
+      { week: "第六周", title: "乌衣巷", author: "[唐] 刘禹锡", content: "朱雀桥边野草花，乌衣巷口夕阳斜。\n旧时王谢堂前燕，飞入寻常百姓家。", volume: "下册" },
+      { week: "第七周", title: "清明", author: "[宋] 王禹偁", content: "无花无酒过清明，兴味萧然似野僧。\n昨日邻家乞新火，晓窗分与读书灯。", volume: "下册" },
+      { week: "第八周", title: "端午", author: "[唐] 文秀", content: "节分端午自谁言，万古传闻为屈原。\n堪笑楚江空渺渺，不能洗得直臣冤。", volume: "下册" },
+      { week: "第九周", title: "蔽月山房", author: "[明] 王阳明", content: "山近月远觉月小，便道此山大于月。\n若有人眼大如天，当见山高月更阔。", volume: "下册" },
+      { week: "第十周", title: "龟虽寿（节选）", author: "[东汉] 曹操", content: "老骥伏枥，志在千里。\n烈士暮年，壮心不已。", volume: "下册" },
+      { week: "第十一周", title: "五月十九日大雨", author: "[明] 刘基", content: "风驱急雨洒高城，云压轻雷殷地声。\n雨过不知龙去处，一池草色万蛙鸣。", volume: "下册" },
+      { week: "第十二周", title: "新雷", author: "[清] 张维屏", content: "造物无言却有情，每于寒尽觉春生。\n千红万紫安排著，只待新雷第一声。", volume: "下册" },
+      { week: "第十三周", title: "劝学（节选）", author: "[战国] 荀子", content: "不积跬步，无以至千里；\n不积小流，无以成江海。", volume: "下册" },
+      { week: "第十四周", title: "道德经（节选）", author: "[春秋] 老子", content: "合抱之木，生于毫末；\n九层之台，起于累土；\n千里之行，始于足下。", volume: "下册" },
+      { week: "第十五周", title: "题都城南庄", author: "[唐] 崔护", content: "去年今日此门中，人面桃花相映红。\n人面不知何处去，桃花依旧笑春风。", volume: "下册" },
+      { week: "第十六周", title: "劳劳亭", author: "[唐] 李白", content: "天下伤心处，劳劳送客亭。\n春风知别苦，不遣柳条青。", volume: "下册" }
+    ];
+
+    // ---------- 三年级 ----------
+    var gradeThreeUpperPoems = [
+      { week: "第一周", title: "勤学", author: "[北宋] 汪洙", content: "学向勤中得，萤窗万卷书。\n三冬今足用，谁笑腹空虚", volume: "上册" },
+      { week: "第二周", title: "牧童", author: "[唐] 卢肇", content: "谁人得似牧童心，牛上横眠秋听深。\n时复往来吹一曲，何愁南北不知音。", volume: "上册" },
+      { week: "第三周", title: "秋月", author: "[南宋] 朱熹", content: "清溪流过碧山头，空水澄鲜一色秋。\n隔断红尘三十里，白云红叶两悠悠。", volume: "上册" },
+      { week: "第四周", title: "秋凉晚步", author: "[南宋] 杨万里", content: "秋气堪悲未必然，轻寒正是可人天。\n绿池落尽红蕖却，荷叶犹开最小钱。", volume: "上册" },
+      { week: "第五周", title: "不第后赋菊", author: "[唐] 黄巢", content: "待到秋来九月八，我花开后百花杀。\n冲天香阵透长安，满城尽带黄金甲。", volume: "上册" },
+      { week: "第六周", title: "无题", author: "[唐] 李商隐", content: "相见时难别亦难，东风无力百花残。\n春蚕到死丝方尽，蜡炬成灰泪始干。", volume: "上册" },
+      { week: "第七周", title: "花影", author: "[北宋] 苏轼", content: "重重叠叠上瑶台，几度呼童扫不开。\n刚被太阳收拾去，却教明月送将来。", volume: "上册" },
+      { week: "第八周", title: "孔融让梨", author: "", content: "融四岁，与诸兄共食梨，融辄引小者。大人问其故，答曰：我小儿，法当取小者。", volume: "上册" },
+      { week: "第九周", title: "赠花卿", author: "[唐] 杜甫", content: "锦城丝管日纷纷，半入江风半入云。\n此曲只应天上有，人间能得几回闻？", volume: "上册" },
+      { week: "第十周", title: "书事", author: "[唐] 王维", content: "轻阴阁小雨，深院昼慵开。\n坐看苍苔色，欲上人衣来。", volume: "上册" },
+      { week: "第十一周", title: "赠少年", author: "[唐] 温庭筠", content: "江海相逢客恨多，秋风叶下洞庭波。\n酒酣夜别淮阴市，月照高楼一曲歌。", volume: "上册" },
+      { week: "第十二周", title: "长安秋望", author: "[唐] 杜牧", content: "楼倚霜树外，镜天无一毫。\n南山与秋色，气势两相高。", volume: "上册" },
+      { week: "第十三周", title: "春雪", author: "[唐] 刘方平", content: "飞雪带春风，徘徊乱绕空。\n君看似花处，偏在洛城东。", volume: "上册" },
+      { week: "第十四周", title: "题君山", author: "[唐] 雍陶", content: "烟波不动影沉沉，碧色全无翠色深。\n疑是水仙梳洗处，一螺青黛镜中心。", volume: "上册" },
+      { week: "第十五周", title: "秋夕", author: "[唐] 杜牧", content: "银烛秋光冷画屏，轻罗小扇扑流萤。\n天阶夜色凉如水，坐看牵牛织女星。", volume: "上册" },
+      { week: "第十六周", title: "虚怀若谷", author: "[唐] 佚名", content: "青松绕石立，白云伴我行。\n岁月留芳迹，初心映天明。", volume: "上册" }
+    ];
+    var gradeThreeLowerPoems = [
+      { week: "第一周", title: "舟夜书所见", author: "[清] 查慎行", content: "月黑见渔灯，孤光一点萤。\n微微风簇浪，散作满河星。", volume: "下册" },
+      { week: "第二周", title: "梅花", author: "[宋] 王安石", content: "白玉堂前一树梅，为谁零落为谁开。\n唯有春风最相惜，一年一度一归来。", volume: "下册" },
+      { week: "第三周", title: "紫薇花", author: "[唐] 杜牧", content: "晓迎秋露一枝新，不占园中最上春。\n桃李无言又何在，向风偏笑艳阳人。", volume: "下册" },
+      { week: "第四周", title: "偶步", author: "[清] 袁枚", content: "西廊下，幽兰一朵开。\n是谁先报信，便有蜜蜂来。", volume: "下册" },
+      { week: "第五周", title: "春风", author: "[唐] 白居易", content: "春风先发苑中梅，樱杏桃梨次第开。\n荠花榆荚深村里，亦道春风为我来。", volume: "下册" },
+      { week: "第六周", title: "渡汉江", author: "[唐] 宋之问", content: "岭外音书断，经冬复历春。\n近乡情更怯，不敢问来人。", volume: "下册" },
+      { week: "第七周", title: "盘古传说（一）", author: "", content: "天地混沌如鸡子,盘古生其中。万八千岁,天地开辟,阳清为天,阴浊为地。", volume: "下册" },
+      { week: "第八周", title: "秋夜寄邱员外", author: "[唐] 韦应物", content: "怀君属秋夜,散步咏凉天。\n空山松子落,幽人应未眠。", volume: "下册" },
+      { week: "第九周", title: "白石滩", author: "[唐] 王维", content: "清浅白石滩,绿蒲向堪把。\n家住水东西,浣纱明月下。", volume: "下册" },
+      { week: "第十周", title: "龟虽寿（节选）", author: "[东汉] 曹操", content: "老骥伏枥，志在千里。\n烈士暮年，壮心不已。", volume: "下册" },
+      { week: "第十一周", title: "五月十九日大雨", author: "[明] 刘基", content: "风驱急雨洒高城，云压轻雷殷地声。\n雨过不知龙去处，一池草色万蛙鸣。", volume: "下册" },
+      { week: "第十二周", title: "新雷", author: "[清] 张维屏", content: "造物无言却有情，每于寒尽觉春生。\n千红万紫安排著，只待新雷第一声。", volume: "下册" },
+      { week: "第十三周", title: "劝学（节选）", author: "[战国] 荀子", content: "不积跬步，无以至千里；\n不积小流，无以成江海。", volume: "下册" },
+      { week: "第十四周", title: "道德经（节选）", author: "[春秋] 老子", content: "合抱之木，生于毫末；\n九层之台，起于累土；\n千里之行，始于足下。", volume: "下册" },
+      { week: "第十五周", title: "题都城南庄", author: "[唐] 崔护", content: "去年今日此门中，人面桃花相映红。\n人面不知何处去，桃花依旧笑春风。", volume: "下册" },
+      { week: "第十六周", title: "劳劳亭", author: "[唐] 李白", content: "天下伤心处，劳劳送客亭。\n春风知别苦，不遣柳条青。", volume: "下册" }
+    ];
+
+    // ---------- 四年级 ----------
+    var grade4UpperPoems = [
+      { "week": "第一周", "title": "过华清宫绝句·其一", "author": "[唐] 杜牧", "content": "长安回望绣成堆，山顶千门次第开。\n一骑红尘妃子笑，无人知是荔枝来。", "volume": "上册" },
+      { "week": "第二周", "title": "木棉", "author": "[清] 张维屏", "content": "攀枝一树艳东风，日在珊瑚顶上红。\n春到岭南花不小，众芳丛里识英雄。", "volume": "上册" },
+      { "week": "第三周", "title": "碛中作", "author": "[唐] 岑参", "content": "走马西来欲到天，辞家见月两回圆。\n今夜不知何处宿，平沙万里绝人烟。", "volume": "上册" },
+      { "week": "第四周", "title": "蜀道后期", "author": "[唐] 张说", "content": "客心争日月，来往预期程。\n秋风不相待，先至洛阳城。", "volume": "上册" },
+      { "week": "第五周", "title": "何满子", "author": "[唐] 张祜", "content": "故国三千里，深宫二十年。\n一声何满子，双泪落君前。", "volume": "上册" },
+      { "week": "第六周", "title": "问刘十九", "author": "[唐] 白居易", "content": "绿蚁新醅酒，红泥小火炉。\n晚来天欲雪，能饮一杯无？", "volume": "上册" },
+      { "week": "第七周", "title": "终南望余雪", "author": "[唐] 祖咏", "content": "终南阴岭秀，积雪浮云端。\n林表明霁色，城中增暮寒。", "volume": "上册" },
+      { "week": "第八周", "title": "雪梅", "author": "[宋] 卢梅坡", "content": "梅雪争春未肯降，骚人阁笔费评章。\n梅须逊雪三分白，雪却输梅一段香。", "volume": "上册" },
+      { "week": "第九周", "title": "题诗后", "author": "[唐] 贾岛", "content": "两句三年得，一吟双泪流。\n知音如不赏，归卧故山秋。", "volume": "上册" },
+      { "week": "第十周", "title": "离思·其四", "author": "[唐] 元稹", "content": "曾经沧海难为水，除却巫山不是云。\n取次花丛懒回顾，半缘修道半缘君。", "volume": "上册" },
+      { "week": "第十一周", "title": "望月怀远", "author": "[唐] 张九龄", "content": "海上生明月，天涯共此时。\n情人怨遥夜，竟夕起相思。\n灭烛怜光满，披衣觉露滋。\n不堪盈手赠，还寝梦佳期。", "volume": "上册" },
+      { "week": "第十二周", "title": "城东早春", "author": "[唐] 杨巨源", "content": "诗家清景在新春，绿柳才黄半未匀。\n若待上林花似锦，出门俱是看花人。", "volume": "上册" },
+      { "week": "第十三周", "title": "贾生", "author": "[唐] 李商隐", "content": "宣室求贤访逐臣，贾生才调更无伦。\n可怜夜半虚前席，不问苍生问鬼神。", "volume": "上册" },
+      { "week": "第十四周", "title": "喜见外弟又言别", "author": "[唐] 李益", "content": "十年离乱后，长大一相逢。\n问姓惊初见，称名忆旧容。\n别来沧海事，语罢暮天钟。\n明日巴陵道，秋山又几重。", "volume": "上册" },
+      { "week": "第十五周", "title": "莫如树人", "author": "[春秋] 管仲", "content": "一年之计，莫如树谷；\n十年之计，莫如树木；\n终身之计，莫如树人。\n一树一获者，谷也；\n一树十获者，木也；\n一树百获者，人也。", "volume": "上册" },
+      { "week": "第十六周", "title": "读书出入法", "author": "[南宋] 陈善", "content": "读书须知出入法。\n始当所以入，终当所以出。\n见得亲切，此是入书法；\n用得透脱，此是出书法。\n盖不能入得书，则不知古人用心处；\n不能出得书，则又死在言下。", "volume": "上册" }
+    ];
+    var grade4LowerPoems = [
+      { "week": "第一周", "title": "小雨", "author": "[宋] 杨万里", "content": "雨来细细复疏疏，纵不能多不肯无。\n似妒诗人山入眼，千峰故隔一帘珠。", "volume": "下册" },
+      { "week": "第二周", "title": "鹧鸪天", "author": "[宋] 晏几道", "content": "彩袖殷勤捧玉钟，当年拚却醉颜红。\n舞低杨柳楼心月，歌尽桃花扇底风。\n从别后，忆相逢，几回魂梦与君同。\n今宵剩把银釭照，犹恐相逢是梦中。", "volume": "下册" },
+      { "week": "第三周", "title": "雨后田间杂纪·其二", "author": "[宋] 杨万里", "content": "田水高低各斗鸣，溪流奔放更欢声。\n小儿倒捻青梅朵，独立茅檐看客行。", "volume": "下册" },
+      { "week": "第四周", "title": "舟过安仁·其三", "author": "[宋] 杨万里", "content": "一叶渔船两小童，收篙停棹坐船中。\n怪生无雨都张伞，不是遮头是使风。", "volume": "下册" },
+      { "week": "第五周", "title": "南溪弄水回望山园梅花", "author": "[宋] 杨万里", "content": "梅山未到未教休，到得梅山始欲愁。\n知道望乡看不见，也须一步一回头。", "volume": "下册" },
+      { "week": "第六周", "title": "咏兰花", "author": "[明] 张羽", "content": "能白更兼黄，无人亦自芳。\n寸心原不大，容得许多香。", "volume": "下册" },
+      { "week": "第七周", "title": "约客", "author": "[宋] 赵师秀", "content": "黄梅时节家家雨，青草池塘处处蛙。\n有约不来过夜半，闲敲棋子落灯花。", "volume": "下册" },
+      { "week": "第八周", "title": "秋词", "author": "[唐] 刘禹锡", "content": "自古逢秋悲寂寥，我言秋日胜春朝。\n晴空一鹤排云上，便引诗情到碧霄。", "volume": "下册" },
+      { "week": "第九周", "title": "桃花溪", "author": "[唐] 张旭", "content": "隐隐飞桥隔野烟，石矶西畔问渔船。\n桃花尽日随流水，洞在清溪何处边？", "volume": "下册" },
+      { "week": "第十周", "title": "终南山", "author": "[唐] 王维", "content": "太乙近天都，连山接海隅。\n白云回望合，青霭入看无。\n分野中峰变，阴晴众壑殊。\n欲投人处宿，隔水问樵夫。", "volume": "下册" },
+      { "week": "第十一周", "title": "海棠", "author": "[宋] 苏轼", "content": "东风袅袅泛崇光，香雾空蒙月转廊。\n只恐夜深花睡去，故烧高烛照红妆。", "volume": "下册" },
+      { "week": "第十二周", "title": "赤壁", "author": "[唐] 杜牧", "content": "折戟沉沙铁未销，自将磨洗认前朝。\n东风不与周郎便，铜雀春深锁二乔。", "volume": "下册" },
+      { "week": "第十三周", "title": "赠别二首·其一", "author": "[唐] 杜牧", "content": "娉娉袅袅十三余，豆蔻梢头二月初。\n春风十里扬州路，卷上珠帘总不如。", "volume": "下册" },
+      { "week": "第十四周", "title": "长干行二首·其一", "author": "[唐] 李白", "content": "妾发初覆额，折花门前剧。\n郎骑竹马来，绕床弄青梅。\n同居长干里，两小无嫌猜。", "volume": "下册" },
+      { "week": "第十五周", "title": "上善若水", "author": "[春秋] 老子", "content": "上善若水，水善利万物而不争。\n处众人之所恶，故几于道。", "volume": "下册" },
+      { "week": "第十六周", "title": "卧薪尝胆", "author": "[西汉] 司马迁", "content": "吴既赦越，越王勾践反国，\n乃苦身焦思，置胆于坐，\n坐卧即仰胆，饮食亦尝胆也。\n曰：“女忘会稽之耻邪？”\n身自耕作，夫人自织；\n食不加肉，衣不重采；\n折节下贤人，厚遇宾客；\n振贫吊死，与百姓同其劳。", "volume": "下册" }
+    ];
+
+    // ---------- 五年级 ----------
+    var grade5UpperPoems = [
+      { "week": "第一周", "title": "感遇·其一", "author": "[唐] 张九龄", "content": "兰叶春葳蕤，桂华秋皎洁。\n欣欣此生意，自尔为佳节。\n谁知林栖者，闻风坐相悦。\n草木有本心，何求美人折？", "volume": "上册" },
+      { "week": "第二周", "title": "登飞来峰", "author": "[宋] 王安石", "content": "飞来山上千寻塔，闻说鸡鸣见日升。\n不畏浮云遮望眼，自缘身在最高层。", "volume": "上册" },
+      { "week": "第三周", "title": "醉花阴", "author": "[宋] 李清照", "content": "薄雾浓云愁永昼，瑞脑销金兽。\n佳节又重阳，玉枕纱厨，半夜凉初透。\n东篱把酒黄昏后，有暗香盈袖。\n莫道不销魂，帘卷西风，人比黄花瘦。", "volume": "上册" },
+      { "week": "第四周", "title": "新年作", "author": "[唐] 刘长卿", "content": "乡心新岁切，天畔独潸然。\n老至居人下，春归在客先。\n岭猿同旦暮，江柳共风烟。\n已似长沙傅，从今又几年。", "volume": "上册" },
+      { "week": "第五周", "title": "陇西行", "author": "[唐] 王维", "content": "十里一走马，五里一扬鞭。\n都护军书至，匈奴围酒泉。\n关山正飞雪，烽戍断无烟。", "volume": "上册" },
+      { "week": "第六周", "title": "春望", "author": "[唐] 杜甫", "content": "国破山河在，城春草木深。\n感时花溅泪，恨别鸟惊心。\n烽火连三月，家书抵万金。\n白头搔更短，浑欲不胜簪。", "volume": "上册" },
+      { "week": "第七周", "title": "山坡羊·潼关怀古", "author": "[元] 张养浩", "content": "峰峦如聚，波涛如怒，山河表里潼关路。\n望西都，意踌躇。\n伤心秦汉经行处，宫阙万间都做了土。\n兴，百姓苦；亡，百姓苦！", "volume": "上册" },
+      { "week": "第八周", "title": "水调歌头", "author": "[宋] 苏轼", "content": "明月几时有？把酒问青天。\n不知天上宫阙，今夕是何年。\n我欲乘风归去，又恐琼楼玉宇，高处不胜寒。\n起舞弄清影，何似在人间。\n转朱阁，低绮户，照无眠。\n不应有恨，何事长向别时圆？\n人有悲欢离合，月有阴晴圆缺，此事古难全。\n但愿人长久，千里共婵娟。", "volume": "上册" },
+      { "week": "第九周", "title": "观书有感", "author": "[宋] 朱熹", "content": "半亩方塘一鉴开，天光云影共徘徊。\n问渠那得清如许？为有源头活水来。", "volume": "上册" },
+      { "week": "第十周", "title": "春夜", "author": "[宋] 王安石", "content": "金炉香烬漏声残，翦翦轻风阵阵寒。\n春色恼人眠不得，月移花影上栏杆。", "volume": "上册" },
+      { "week": "第十一周", "title": "题义公禅房", "author": "[唐] 孟浩然", "content": "义公习禅寂，结宇依空林。\n户外一峰秀，阶前众壑深。\n夕阳连雨足，空翠落庭阴。\n看取莲花净，应知不染心。", "volume": "上册" },
+      { "week": "第十二周", "title": "寒食书事", "author": "[宋] 赵鼎", "content": "寂寂柴门村落里，也教插柳记年华。\n禁烟不到粤人国，上冢亦携庞老家。\n汉寝唐陵无麦饭，山溪野径有梨花。\n一樽径籍青苔卧，莫管城头奏暮笳。", "volume": "上册" },
+      { "week": "第十三周", "title": "苏幕遮·怀旧", "author": "[宋] 范仲淹", "content": "碧云天，黄叶地，秋色连波，波上寒烟翠。\n山映斜阳天接水，芳草无情，更在斜阳外。\n黯乡魂，追旅思，夜夜除非，好梦留人睡。\n明月楼高休独倚，酒入愁肠，化作相思泪。", "volume": "上册" },
+      { "week": "第十四周", "title": "渔家傲", "author": "[宋] 范仲淹", "content": "塞下秋来风景异，衡阳雁去无留意。\n四面边声连角起，千嶂里，长烟落日孤城闭。\n浊酒一杯家万里，燕然未勒归无计。\n羌管悠悠霜满地，人不寐，将军白发征夫泪。", "volume": "上册" },
+      { "week": "第十五周", "title": "青玉案·元夕", "author": "[宋] 辛弃疾", "content": "东风夜放花千树，更吹落、星如雨。\n宝马雕车香满路，凤箫声动，玉壶光转，一夜鱼龙舞。\n蛾儿雪柳黄金缕，笑语盈盈暗香去。\n众里寻他千百度，蓦然回首，那人却在，灯火阑珊处。", "volume": "上册" },
+      { "week": "第十六周", "title": "《论语》三章", "author": "[春秋] 孔子", "content": "学而时习之，不亦说乎？\n温故而知新，可以为师矣。\n三人行，必有我师焉。", "volume": "上册" }
+    ];
+    var grade5LowerPoems = [
+      { "week": "第一周", "title": "秋夜曲", "author": "[唐] 王维", "content": "桂魄初生秋露微，轻罗已薄未更衣。\n银筝夜久殷勤弄，心怯空房不忍归。", "volume": "下册" },
+      { "week": "第二周", "title": "画眉鸟", "author": "[宋] 欧阳修", "content": "百啭千声随意移，山花红紫树高低。\n始知锁向金笼听，不及林间自在啼。", "volume": "下册" },
+      { "week": "第三周", "title": "清平乐·春归何处", "author": "[宋] 黄庭坚", "content": "春归何处？寂寞无行路。\n若有人知春去处，唤取归来同住。\n春无踪迹谁知？除非问取黄鹂。\n百啭无人能解，因风飞过蔷薇。", "volume": "下册" },
+      { "week": "第四周", "title": "鄂州南楼书事", "author": "[宋] 黄庭坚", "content": "四顾山光接水光，凭栏十里芰荷香。\n清风明月无人管，并作南楼一味凉。", "volume": "下册" },
+      { "week": "第五周", "title": "江村晚眺", "author": "[宋] 戴复古", "content": "江头落日照平沙，潮退渔船阁岸斜。\n白鸟一双临水立，见人惊起入芦花。", "volume": "下册" },
+      { "week": "第六周", "title": "菩萨蛮", "author": "[唐] 李白", "content": "平林漠漠烟如织，寒山一带伤心碧。\n暝色入高楼，有人楼上愁。\n玉阶空伫立，宿鸟归飞急。\n何处是归程？长亭更短亭。", "volume": "下册" },
+      { "week": "第七周", "title": "忆秦娥", "author": "[唐] 李白", "content": "箫声咽，秦娥梦断秦楼月。\n秦楼月，年年柳色，灞陵伤别。\n乐游原上清秋节，咸阳古道音尘绝。\n音尘绝，西风残照，汉家陵阙。", "volume": "下册" },
+      { "week": "第八周", "title": "饮酒·其五", "author": "[晋] 陶渊明", "content": "结庐在人境，而无车马喧。\n问君何能尔？心远地自偏。\n采菊东篱下，悠然见南山。\n山气日夕佳，飞鸟相与还。\n此中有真意，欲辨已忘言。", "volume": "下册" },
+      { "week": "第九周", "title": "无题", "author": "[唐] 李商隐", "content": "相见时难别亦难，东风无力百花残。\n春蚕到死丝方尽，蜡炬成灰泪始干。\n晓镜但愁云鬓改，夜吟应觉月光寒。\n蓬山此去无多路，青鸟殷勤为探看。", "volume": "下册" },
+      { "week": "第十周", "title": "峨眉山月歌", "author": "[唐] 李白", "content": "峨眉山月半轮秋，影入平羌江水流。\n夜发清溪向三峡，思君不见下渝州。", "volume": "下册" },
+      { "week": "第十一周", "title": "春晴", "author": "[唐] 王驾", "content": "雨前初见花间蕊，雨后全无叶底花。\n蜂蝶纷纷过墙去，却疑春色在邻家。", "volume": "下册" },
+      { "week": "第十二周", "title": "商山早行", "author": "[唐] 温庭筠", "content": "晨起动征铎，客行悲故乡。\n鸡声茅店月，人迹板桥霜。\n槲叶落山路，枳花明驿墙。\n因思杜陵梦，凫雁满回塘。", "volume": "下册" },
+      { "week": "第十三周", "title": "听弹琴", "author": "[唐] 刘长卿", "content": "泠泠七弦上，静听松风寒。\n古调虽自爱，今人多不弹。", "volume": "下册" },
+      { "week": "第十四周", "title": "金陵酒肆留别", "author": "[唐] 李白", "content": "风吹柳花满店香，吴姬压酒唤客尝。\n金陵子弟来相送，欲行不行各尽觞。\n请君试问东流水，别意与之谁短长？", "volume": "下册" },
+      { "week": "第十五周", "title": "春日寻芳", "author": "[宋] 朱熹", "content": "胜日寻芳泗水滨，无边光景一时新。\n等闲识得东风面，万紫千红总是春。", "volume": "下册" },
+      { "week": "第十六周", "title": "乡村", "author": "[宋] 翁卷", "content": "绿遍山原白满川，子规声里雨如烟。\n乡村四月闲人少，才了蚕桑又插田。", "volume": "下册" }
+    ];
+
+    // ---------- 六年级 ----------
+    var grade6UpperPoems = [
+      { "week": "第一周", "title": "江城子·乙卯正月二十日记梦", "author": "[宋] 苏轼", "content": "十年生死两茫茫，不思量，自难忘。\n千里孤坟，无处话凄凉。\n纵使相逢应不识，尘满面，鬓如霜。\n夜来幽梦忽还乡，小轩窗，正梳妆。\n相顾无言，惟有泪千行。\n料得年年肠断处，明月夜，短松冈。", "volume": "上册" },
+      { "week": "第二周", "title": "送杜少府之任蜀川", "author": "[唐] 王勃", "content": "城阙辅三秦，风烟望五津。\n与君离别意，同是宦游人。\n海内存知己，天涯若比邻。\n无为在歧路，儿女共沾巾。", "volume": "上册" },
+      { "week": "第三周", "title": "青玉案", "author": "[宋] 贺铸", "content": "凌波不过横塘路，但目送、芳尘去。\n锦瑟华年谁与度？月桥花院，琐窗朱户，只有春知处。\n飞云冉冉蘅皋暮，彩笔新题断肠句。\n试问闲愁都几许？一川烟草，满城风絮，梅子黄时雨。", "volume": "上册" },
+      { "week": "第四周", "title": "菩萨蛮·书江西造口壁", "author": "[宋] 辛弃疾", "content": "郁孤台下清江水，中间多少行人泪。\n西北望长安，可怜无数山。\n青山遮不住，毕竟东流去。\n江晚正愁余，山深闻鹧鸪。", "volume": "上册" },
+      { "week": "第五周", "title": "如梦令", "author": "[宋] 李清照", "content": "常记溪亭日暮，沉醉不知归路。\n兴尽晚回舟，误入藕花深处。\n争渡，争渡，惊起一滩鸥鹭。", "volume": "上册" },
+      { "week": "第六周", "title": "宣州谢朓楼饯别校书叔云", "author": "[唐] 李白", "content": "弃我去者，昨日之日不可留；\n乱我心者，今日之日多烦忧。\n长风万里送秋雁，对此可以酣高楼。\n蓬莱文章建安骨，中间小谢又清发。\n俱怀逸兴壮思飞，欲上青天揽明月。\n抽刀断水水更流，举杯消愁愁更愁。\n人生在世不称意，明朝散发弄扁舟。", "volume": "上册" },
+      { "week": "第七周", "title": "望岳", "author": "[唐] 杜甫", "content": "岱宗夫如何？齐鲁青未了。\n造化钟神秀，阴阳割昏晓。\n荡胸生曾云，决眦入归鸟。\n会当凌绝顶，一览众山小。", "volume": "上册" },
+      { "week": "第八周", "title": "民为贵章", "author": "[战国] 孟子", "content": "民为贵，社稷次之，君为轻。", "volume": "上册" },
+      { "week": "第九周", "title": "大风歌", "author": "[汉] 刘邦", "content": "大风起兮云飞扬，威加海内兮归故乡，安得猛士兮守四方！", "volume": "上册" },
+      { "week": "第十周", "title": "玄都观桃花", "author": "[唐] 刘禹锡", "content": "紫陌红尘拂面来，无人不道看花回。\n玄都观里桃千树，尽是刘郎去后栽。", "volume": "上册" },
+      { "week": "第十一周", "title": "旅夜书怀", "author": "[唐] 杜甫", "content": "细草微风岸，危樯独夜舟。\n星垂平野阔，月涌大江流。\n名岂文章著，官应老病休。\n飘飘何所似？天地一沙鸥。", "volume": "上册" },
+      { "week": "第十二周", "title": "罢相作", "author": "[唐] 李适之", "content": "避贤初罢相，乐圣且衔杯。\n为问门前客，今朝几个来？", "volume": "上册" },
+      { "week": "第十三周", "title": "湖上", "author": "[宋] 徐元杰", "content": "花开红树乱莺啼，草长平湖白鹭飞。\n风日晴和人意好，夕阳箫鼓几船归。", "volume": "上册" },
+      { "week": "第十四周", "title": "中秋月", "author": "[宋] 苏轼", "content": "暮云收尽溢清寒，银汉无声转玉盘。\n此生此夜不长好，明月明年何处看？", "volume": "上册" },
+      { "week": "第十五周", "title": "生查子", "author": "[宋] 欧阳修", "content": "去年元夜时，花市灯如昼。\n月上柳梢头，人约黄昏后。\n今年元夜时，月与灯依旧。\n不见去年人，泪湿春衫袖。", "volume": "上册" },
+      { "week": "第十六周", "title": "道德经（第十三章）", "author": "[春秋] 老子", "content": "宠辱若惊，贵大患若身。\n何谓宠辱若惊？宠为下，得之若惊，失之若惊，是谓宠辱若惊。\n何谓贵大患若身？吾所以有大患者，为吾有身，及吾无身，吾有何患？\n故贵以身为天下，若可寄天下；爱以身为天下，若可托天下。", "volume": "上册" }
+    ];
+    var grade6LowerPoems = [
+      { "week": "第一周", "title": "终南别业", "author": "[唐] 王维", "content": "中岁颇好道，晚家南山陲。\n兴来每独往，胜事空自知。\n行到水穷处，坐看云起时。\n偶然值林叟，谈笑无还期。", "volume": "下册" },
+      { "week": "第二周", "title": "登高", "author": "[唐] 杜甫", "content": "风急天高猿啸哀，渚清沙白鸟飞回。\n无边落木萧萧下，不尽长江滚滚来。\n万里悲秋常作客，百年多病独登台。\n艰难苦恨繁霜鬓，潦倒新停浊酒杯。", "volume": "下册" },
+      { "week": "第三周", "title": "关山月", "author": "[唐] 李白", "content": "明月出天山，苍茫云海间。\n长风几万里，吹度玉门关。\n汉下白登道，胡窥青海湾。\n由来征战地，不见有人还。\n戍客望边邑，思归多苦颜。\n高楼当此夜，叹息未应闲。", "volume": "下册" },
+      { "week": "第四周", "title": "菊花", "author": "[唐] 元稹", "content": "秋丛绕舍似陶家，遍绕篱边日渐斜。\n不是花中偏爱菊，此花开尽更无花。", "volume": "下册" },
+      { "week": "第五周", "title": "蝉", "author": "[唐] 虞世南", "content": "垂緌饮清露，流响出疏桐。\n居高声自远，非是藉秋风。", "volume": "下册" },
+      { "week": "第六周", "title": "西江月·梅花", "author": "[宋] 苏轼", "content": "玉骨那愁瘴雾，冰姿自有仙风。\n海仙时遣探芳丛，倒挂绿毛幺凤。\n素面翻嫌粉涴，洗妆不褪唇红。\n高情已逐晓云空，不与梨花同梦。", "volume": "下册" },
+      { "week": "第七周", "title": "送友人", "author": "[唐] 李白", "content": "青山横北郭，白水绕东城。\n此地一为别，孤蓬万里征。\n浮云游子意，落日故人情。\n挥手自兹去，萧萧班马鸣。", "volume": "下册" },
+      { "week": "第八周", "title": "读书须有疑", "author": "[宋] 朱熹", "content": "读书无疑者，须教有疑；\n有疑者，却要无疑，到这里方是长进。", "volume": "下册" },
+      { "week": "第九周", "title": "定风波", "author": "[宋] 苏轼", "content": "莫听穿林打叶声，何妨吟啸且徐行。\n竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。\n料峭春风吹酒醒，微冷，山头斜照却相迎。\n回首向来萧瑟处，归去，也无风雨也无晴。", "volume": "下册" },
+      { "week": "第十周", "title": "行路难·其一", "author": "[唐] 李白", "content": "金樽清酒斗十千，玉盘珍羞直万钱。\n停杯投箸不能食，拔剑四顾心茫然。\n欲渡黄河冰塞川，将登太行雪满山。\n闲来垂钓碧溪上，忽复乘舟梦日边。\n行路难，行路难，多歧路，今安在？\n长风破浪会有时，直挂云帆济沧海。", "volume": "下册" },
+      { week: "第十一周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
+      { week: "第十二周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
+      { week: "第十三周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
+      { week: "第十四周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
+      { week: "第十五周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
+      { week: "第十六周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" }
+    ];
+
+    // ========== 功能函数 ==========
+    // 根据下拉选择获取当前古诗数组
+    function getCurrentPoemArray() {
+      var grade = document.getElementById('gradeSelect').value;
+      var volume = document.getElementById('volumeSelect').value;
+      var poemArr;
+      if (grade === "1") {
+        poemArr = (volume === "上册") ? gradeOneUpperPoems : gradeOneLowerPoems;
+      } else if (grade === "2") {
+        poemArr = (volume === "上册") ? gradeTwoUpperPoems : gradeTwoLowerPoems;
+      } else if (grade === "3") {
+        poemArr = (volume === "上册") ? gradeThreeUpperPoems : gradeThreeLowerPoems;
+      } else if (grade === "4") {
+        poemArr = (volume === "上册") ? grade4UpperPoems : grade4LowerPoems;
+      } else if (grade === "5") {
+        poemArr = (volume === "上册") ? grade5UpperPoems : grade5LowerPoems;
+      } else if (grade === "6") {
+        poemArr = (volume === "上册") ? grade6UpperPoems : grade6LowerPoems;
+      }
+      return poemArr;
+    }
+
+    // 根据当前古诗数组更新周下拉菜单选项，添加空值提示“周次”，后续选项显示为“一”、“二”、…
+    function updateWeekSelect() {
+      var poemArr = getCurrentPoemArray();
+      var weekSelect = document.getElementById('weekSelect');
+      weekSelect.innerHTML = "";
+      // 添加空值选项
+      var emptyOption = document.createElement('option');
+      emptyOption.value = "";
+      emptyOption.text = "周次";
+      weekSelect.appendChild(emptyOption);
+      // 为每个数据项显示去掉“第”和“周”的数字（例如 "第一周" 显示为 "一"）
+      for (var i = 0; i < poemArr.length; i++) {
+        var option = document.createElement('option');
+        option.value = i;
+        option.text = poemArr[i].week.replace(/^第/, "").replace(/周$/, "");
+        weekSelect.appendChild(option);
+      }
+      weekSelect.selectedIndex = 0;
+      // 默认空值时清空文本框
+      if (weekSelect.value === "") {
+        document.getElementById('poemInput').innerText = "";
+        weeklyPoemSelected = null;
+      }
+    }
+
+    // 将所选诗词填入文本框
+    function populatePoemInput(poem) {
+      var fullPoem = poem.week + " " + "《" + poem.title + "》" + "\n" +
+                     "作者：" + poem.author + "\n" + poem.content;
+      document.getElementById('poemInput').innerText = fullPoem;
+      updateClearBtnStyle();
+    }
+
+    // 更新“每周一首”——更新周次选项，并填入诗词（若周次为空则清空文本框）
+    function updateWeeklyPoem() {
+      updateWeekSelect();
+      var weekSelect = document.getElementById('weekSelect');
+      var poemArr = getCurrentPoemArray();
+      if (weekSelect.value === "") {
+        document.getElementById('poemInput').innerText = "";
+        weeklyPoemSelected = null;
+      } else if (poemArr.length > 0) {
+        var selectedIndex = weekSelect.value;
+        var poem = poemArr[selectedIndex];
+        populatePoemInput(poem);
+        weeklyPoemSelected = poem;
+      }
+    }
+
+    // 根据文本框内容更新清空按钮背景色
+    function updateClearBtnStyle() {
+      var poemInput = document.getElementById('poemInput');
+      var clearBtn = document.getElementById('clearBtn');
+      var content = poemInput.innerText.trim();
+      if (!content || content === "暂未提供该年级数据") {
+        clearBtn.style.backgroundColor = "#999";
+      } else {
+        clearBtn.style.backgroundColor = "#fc6159";
+      }
+    }
+
+    // ========== 事件绑定 ==========
+    document.getElementById('gradeSelect').addEventListener('change', updateWeeklyPoem);
+    document.getElementById('volumeSelect').addEventListener('change', updateWeeklyPoem);
+    document.getElementById('weekSelect').addEventListener('change', function() {
+      var weekSelect = document.getElementById('weekSelect');
+      if (weekSelect.value === "") {
+        document.getElementById('poemInput').innerText = "";
+        weeklyPoemSelected = null;
+      } else {
+        var poemArr = getCurrentPoemArray();
+        var selectedIndex = weekSelect.value;
+        populatePoemInput(poemArr[selectedIndex]);
+        weeklyPoemSelected = poemArr[selectedIndex];
+      }
+    });
+
+    // “随机上册”按钮：随机选择当前年级上册诗词，不生成九宫格
+    document.getElementById('randomUpperBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var grade = document.getElementById('gradeSelect').value;
+      var poemArr;
+      if (grade === "1") {
+        poemArr = gradeOneUpperPoems;
+      } else if (grade === "2") {
+        poemArr = gradeTwoUpperPoems;
+      } else if (grade === "3") {
+        poemArr = gradeThreeUpperPoems;
+      } else if (grade === "4") {
+        poemArr = grade4UpperPoems;
+      } else if (grade === "5") {
+        poemArr = grade5UpperPoems;
+      } else if (grade === "6") {
+        poemArr = grade6UpperPoems;
+      }
+      if (poemArr && poemArr.length > 0) {
+        var randomIndex = Math.floor(Math.random() * poemArr.length);
+        var randomPoem = poemArr[randomIndex];
+        populatePoemInput(randomPoem);
+        weeklyPoemSelected = randomPoem;
+        document.getElementById('weekSelect').value = randomIndex;
+      }
+    });
+
+    // “随机下册”按钮：随机选择当前年级下册诗词，不生成九宫格
+    document.getElementById('randomLowerBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      var grade = document.getElementById('gradeSelect').value;
+      var poemArr;
+      if (grade === "1") {
+        poemArr = gradeOneLowerPoems;
+      } else if (grade === "2") {
+        poemArr = gradeTwoLowerPoems;
+      } else if (grade === "3") {
+        poemArr = gradeThreeLowerPoems;
+      } else if (grade === "4") {
+        poemArr = grade4LowerPoems;
+      } else if (grade === "5") {
+        poemArr = grade5LowerPoems;
+      } else if (grade === "6") {
+        poemArr = grade6LowerPoems;
+      }
+      if (poemArr && poemArr.length > 0) {
+        var randomIndex = Math.floor(Math.random() * poemArr.length);
+        var randomPoem = poemArr[randomIndex];
+        populatePoemInput(randomPoem);
+        weeklyPoemSelected = randomPoem;
+        document.getElementById('weekSelect').value = randomIndex;
+      }
+    });
+
+    // “每周一首”按钮点击：展开/收起二级菜单；默认选中三年级下册、周次为空
+    document.getElementById('weeklyBtn').addEventListener('click', function(e) {
+      var submenu = document.getElementById('submenu');
+      var topRect = document.getElementById('top-buttons').getBoundingClientRect();
+      if (submenu.style.display === "none" || submenu.style.display === "") {
+        submenu.style.width = topRect.width + "px";
+        submenu.style.left = topRect.left + "px";
+        submenu.style.top = (topRect.bottom + 5) + "px";
+        submenu.style.display = "flex";
+        submenu.classList.add("open");
+        // 默认设置：三年级、下册、周次为空
+        document.getElementById('gradeSelect').value = "3";
+        document.getElementById('volumeSelect').value = "下册";
+        updateWeeklyPoem(); // 此时周次为空，文本框清空
+      } else {
+        submenu.style.display = "none";
+        submenu.classList.remove("open");
+      }
+      e.stopPropagation();
+    });
+
+    // 点击二级菜单外区域时自动收起二级菜单
+    document.addEventListener('click', function(e) {
+      var weeklyContainer = document.getElementById('weeklyContainer');
+      var submenu = document.getElementById('submenu');
+      if (!weeklyContainer.contains(e.target)) {
+        submenu.style.display = "none";
+        submenu.classList.remove("open");
+      }
+    });
+
+    // “随机诗词”按钮：调用 API 填充诗词（并替换所有半角逗号为白色显示）
+    document.getElementById('fillRandomBtn').addEventListener('click', function() {
+      var btn = this;
+      currentLoadId++;
+      let thisLoadId = currentLoadId;
+      btn.innerText = "正在加载";
+      if (typeof jinrishici !== "undefined" && typeof jinrishici.load === "function") {
+        try {
+          jinrishici.load(function(result) {
+            if (thisLoadId === currentLoadId) {
+              randomPoemData = result.data;
+              btn.innerText = "随机诗词";
+              var fullPoem = "《" + randomPoemData.origin.title + "》\n" +
+                             "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                             randomPoemData.origin.content;
+              fullPoem = fullPoem.replace(/,/g, '<span style="color: white;">,</span>');
+              document.getElementById('poemInput').innerHTML = fullPoem;
+              weeklyPoemSelected = null;
+              updateClearBtnStyle();
+            }
+          });
+        } catch (e) {
+          console.error(e);
+          btn.innerText = "随机诗词";
+          alert("加载诗词时出现错误，请稍后再试");
+        }
+      } else {
+        btn.innerText = "随机诗词";
+        alert("诗词 API 未加载，请检查网络连接");
+      }
+    });
+
+    // “清空”按钮：清空文本框内容
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      document.getElementById('poemInput').innerHTML = "";
+      updateClearBtnStyle();
+    });
+
+    // “生成九宫格”按钮：从文本框中取纯文本生成九宫格（仅提取正文部分汉字）
+    document.getElementById('generateBtn').addEventListener('click', generateGrid);
+    function generateGrid() {
+      var poemInput = document.getElementById('poemInput');
+      var fullText = poemInput.innerText.trim();
+      if (!fullText || fullText === "暂未提供该年级数据") {
+        alert("请输入或在下方选择诗词后，再生成九宫格");
+        return;
+      }
+      document.getElementById('poemAnswer').style.display = 'none';
+      document.getElementById('showAnswerBtn').innerText = '答案';
+      var body = fullText;
+      if (fullText.startsWith("《")) {
+        var parts = fullText.split("\n");
+        if (parts.length >= 3) {
+          body = parts.slice(2).join("\n");
+        }
+      }
+      savedPoem = body;
+      var chars = body.match(/[\u4e00-\u9fa5]/g);
+      if (!chars || chars.length === 0) {
+        alert("未检测到有效汉字");
+        return;
+      }
+      var required = 9;
+      if (chars.length < required) {
+        var times = Math.ceil(required / chars.length);
+        chars = Array(times).fill(chars).flat().slice(0, required);
+      }
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      var selectedChars = chars.slice(0, 9);
+      var gridText = document.getElementById('gridText');
+      gridText.innerHTML = "";
+      for (let i = 0; i < selectedChars.length; i++) {
+        var cell = document.createElement('div');
+        cell.className = "grid-cell";
+        cell.innerHTML = '<span class="cell-letter">' + selectedChars[i] + '</span>';
+        cell.addEventListener("click", function() {
+          var span = this.querySelector(".cell-letter");
+          span.style.opacity = "0";
+          var cellThis = this;
+          setTimeout(function() {
+            var gridCells = document.getElementsByClassName("grid-cell");
+            var otherLetters = [];
+            for (var j = 0; j < gridCells.length; j++) {
+              if (gridCells[j] !== cellThis) {
+                var s = gridCells[j].querySelector(".cell-letter");
+                otherLetters.push(s.innerText);
+              }
+            }
+            var allChars = savedPoem.match(/[\u4e00-\u9fa5]/g) || [];
+            var candidates = allChars.filter(function(ch) {
+              return otherLetters.indexOf(ch) === -1;
+            });
+            if (candidates.length === 0) {
+              alert("没有可替换的新汉字");
+              span.style.opacity = "1";
+              return;
+            }
+            var newChar = candidates[Math.floor(Math.random() * candidates.length)];
+            span.innerText = newChar;
+            span.style.opacity = "1";
+          }, 500);
+        });
+        gridText.appendChild(cell);
+      }
+      poemInput.style.display = 'none';
+      document.getElementById('weeklyContainer').style.display = 'none';
+      document.getElementById('fillContainer').style.display = 'none';
+      document.getElementById('generateButtonsContainer').style.display = 'none';
+      document.getElementById('random-poem').style.display = 'none';
+      document.getElementById('submenu').style.display = 'none';
+      gridText.style.display = 'grid';
+      document.getElementById('answer-buttons').style.display = 'flex';
+    }
+
+    document.getElementById('poemAnswer').style.display = 'none';
+    document.getElementById('showAnswerBtn').innerText = '答案';
+    
+    // 修改处1：显示答案时，如果是每周一首生成的答案，则在首行前加上年级与册别
+    document.getElementById('showAnswerBtn').addEventListener('click', function() {
+      var poemAnswer = document.getElementById('poemAnswer');
+      document.getElementById('random-poem').style.display = 'none';
+      if (poemAnswer.style.display === 'none' || poemAnswer.style.display === '') {
+        var answerText = "";
+        if (weeklyPoemSelected) {
+          // 获取当前选择的年级及其选项文本
+          var gradeSelect = document.getElementById('gradeSelect');
+          var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+          // 获取册别
+          var volumeText = document.getElementById('volumeSelect').value;
+          answerText = gradeText + volumeText + " " + weeklyPoemSelected.week + " 《" + weeklyPoemSelected.title + "》\n" +
+                       "作者：" + weeklyPoemSelected.author + "\n" + weeklyPoemSelected.content;
+        } else if (randomPoemData && !weeklyPoemSelected) {
+          answerText = '《' + randomPoemData.origin.title + '》\n' +
+                       '【' + randomPoemData.origin.dynasty + '】' + randomPoemData.origin.author + '\n' +
+                       randomPoemData.origin.content;
+        } else {
+          answerText = savedPoem;
+        }
+        answerText = answerText.replace(/,/g, '<span style="color: white;">,</span>');
+        poemAnswer.innerHTML = answerText;
+        poemAnswer.style.display = 'block';
+        this.innerText = '隐藏答案';
+      } else {
+        poemAnswer.style.display = 'none';
+        this.innerText = '答案';
+      }
+    });
+
+    // 修改处2：更新答案内容时，同样为每周一首的情况在首行加上年级及册别信息
+    function updateAnswerContent() {
+      var answerText = "";
+      if (weeklyPoemSelected) {
+        var gradeSelect = document.getElementById('gradeSelect');
+        var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+        var volumeText = document.getElementById('volumeSelect').value;
+        answerText = gradeText + volumeText + " " + weeklyPoemSelected.week + " 《" + weeklyPoemSelected.title + "》\n" +
+                     "作者：" + weeklyPoemSelected.author + "\n" + weeklyPoemSelected.content;
+      } else if (randomPoemData && !weeklyPoemSelected) {
+        answerText = '《' + randomPoemData.origin.title + '》\n' +
+                     '【' + randomPoemData.origin.dynasty + '】' + randomPoemData.origin.author + '\n' +
+                     randomPoemData.origin.content;
+      } else {
+        answerText = savedPoem;
+      }
+      answerText = answerText.replace(/,/g, '<span style="color: white;">,</span>');
+      document.getElementById('poemAnswer').innerHTML = answerText;
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', function() {
+      var searchQuery = "";
+      if (weeklyPoemSelected) {
+        searchQuery = weeklyPoemSelected.title + " " + weeklyPoemSelected.author;
+      } else if (randomPoemData && !weeklyPoemSelected && randomPoemData.origin && randomPoemData.origin.title) {
+        searchQuery = randomPoemData.origin.title + " " +
+                      randomPoemData.origin.dynasty + " " +
+                      randomPoemData.origin.author;
+      } else if (savedPoem) {
+        searchQuery = savedPoem;
+      }
+      if (!searchQuery) {
+        alert("没有可搜索的诗句");
+        return;
+      }
+      var url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(searchQuery);
+      window.open(url, '_blank');
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+      if (!savedPoem) {
+        alert("没有可刷新的内容");
+        return;
+      }
+      var poemAnswer = document.getElementById('poemAnswer');
+      var wasVisible = (poemAnswer.style.display === 'block');
+      generateGrid();
+      if (wasVisible) {
+        updateAnswerContent();
+        poemAnswer.style.display = 'block';
+        document.getElementById('showAnswerBtn').innerText = '隐藏答案';
+      }
+    });
+
+    document.getElementById('backBtn').addEventListener('click', function() {
+      weeklyPoemSelected = null;
+      savedPoem = "";
+      document.getElementById('poemInput').style.display = 'block';
+      document.getElementById('poemInput').innerHTML = "";
+      document.getElementById('weeklyContainer').style.display = 'block';
+      document.getElementById('fillContainer').style.display = 'block';
+      document.getElementById('generateButtonsContainer').style.display = 'flex';
+      document.getElementById('random-poem').style.display = 'block';
+      document.getElementById('gridText').style.display = 'none';
+      document.getElementById('poemAnswer').style.display = 'none';
+      document.getElementById('answer-buttons').style.display = 'none';
+      document.getElementById('showAnswerBtn').innerText = '答案';
+      randomPoemData = null;
+    });
+  </script>
+</body>
+</html>

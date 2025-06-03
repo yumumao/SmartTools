@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三年级下学期数学每日练习</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 22px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background-color: #45a049;
+        }
+        
+        .paper {
+            width: 190mm;
+            margin: 0 auto;
+            padding: 6mm;
+            box-sizing: border-box;
+            background: white;
+            position: relative;
+        }
+        
+        .paper + .paper {
+            border-top: 2px solid #333;
+            margin-top: 6px;
+            padding-top: 2mm;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        
+        .header .info {
+            font-size: 16px;
+            white-space: nowrap;
+        }
+        
+        .section {
+            margin-bottom: 8px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .oral-calc {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 15px; /* 题目页增大垂直间距 */
+            margin-bottom: 8px;
+            line-height: 1.6; /* 题目页增大行距 */
+        }
+        
+        .oral-calc.last-row {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .oral-calc.answer-page {
+            gap: 8px 15px; /* 答案页保持原来的垂直间距 */
+            line-height: 1.4; /* 答案页保持原来的行距 */
+        }
+        
+        .calc-item {
+            font-size: 24px;
+            text-align: left;
+            display: flex; /* 确保答案与原算式在同一行 */
+            align-items: baseline; /* 基线对齐 */
+            white-space: nowrap; /* 防止换行 */
+        }
+        
+        .vertical-calc {
+            margin-bottom: 8px;
+        }
+        
+        .vertical-questions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .vertical-item {
+            font-size: 20px;
+            white-space: nowrap;
+            display: flex;
+            align-items: baseline; /* 确保最终答案与原算式对齐 */
+        }
+        
+        .vertical-answers {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            min-height: 70px;
+        }
+        
+        .vertical-space {
+            min-height: 70px;
+        }
+        
+        .multi-step {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        .multi-step-item {
+            font-size: 22px;
+        }
+        
+        .answer-header {
+            color: #1a365d;
+            font-weight: bold;
+        }
+        
+        .answer-item {
+            color: #2d3748;
+            font-weight: bold; /* 答案显示为粗体 */
+        }
+        
+        .oral-answer {
+            color: #2d3748;
+            font-weight: bold;
+            font-size: 20px; /* 与竖式横向答案字体大小一致 */
+        }
+        
+        .answer-question {
+            color: #4a5568;
+            font-size: 18px; /* 进一步减小答案中原题字体大小 */
+        }
+        
+        .vertical-answer {
+            font-family: 'Courier New', monospace;
+            white-space: pre-line;
+            font-size: 20px;
+            line-height: 0.9; /* 减小除法竖式行距 */
+            margin-top: 2px;
+            font-weight: bold;
+        }
+        
+        .vertical-answer table {
+            border-collapse: collapse;
+            margin-top: 2px;
+            line-height: 0.9; /* 减小表格行距 */
+        }
+        
+        .vertical-answer td {
+            width: 18px;
+            text-align: center;
+            padding: 1px; /* 减小单元格内边距 */
+            line-height: 0.9; /* 减小单元格行距 */
+        }
+        
+        .hidden-zero {
+            color: #ffffff !important; /* 确保隐藏的0为纯白色 */
+        }
+        
+        .final-answer {
+            font-weight: bold;
+            color: #1a365d;
+            margin-left: 10px; /* 与原算式保持间距，但在同一行 */
+            white-space: nowrap; /* 防止换行 */
+            font-size: 20px; /* 设置基准字体大小 */
+        }
+        
+        .multi-step-answer {
+            white-space: pre-line;
+            line-height: 1.2;
+            margin-top: 2px;
+            font-weight: bold; /* 脱式答案显示为粗体 */
+        }
+        
+        .random-code {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            align-items: baseline;
+        }
+        
+        .random-code span {
+            font-weight: bold;
+        }
+        
+        .random-code-suffix {
+            color: #666;
+            font-weight: normal;
+            margin-left: 2px;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 6mm;
+            }
+            
+            .controls {
+                display: none !important;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+                font-size: 18px;
+            }
+            
+            .paper:first-child {
+                margin: 0;
+                padding: 2mm 4mm;
+                width: 100%;
+                box-shadow: none;
+                height: 140mm;
+                overflow: visible;
+                page-break-inside: avoid;
+            }
+            
+            .paper + .paper {
+                border-top: 1px solid #333;
+                margin-top: 1mm;
+                padding: 1mm 4mm;
+                page-break-before: avoid;
+                height: 140mm;
+                overflow: visible;
+            }
+            
+            .paper:nth-child(3) {
+                margin-top: 1mm;
+                height: 140mm;
+            }
+            
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1mm;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 1mm;
+            }
+            
+            .header h2 {
+                font-size: 20px;
+                margin: 0;
+            }
+            
+            .header .answer-header {
+                font-size: 16px;
+            }
+            
+            .header .info {
+                font-size: 14px;
+            }
+            
+            .section {
+                margin-bottom: 2mm;
+            }
+            
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 1mm;
+            }
+            
+            .oral-calc {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px 8px; /* 题目页打印时增大垂直间距 */
+                margin-bottom: 2mm;
+                line-height: 1.6; /* 题目页打印时增大行距 */
+            }
+            
+            .oral-calc.last-row {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .oral-calc.answer-page {
+                gap: 2px 8px; /* 答案页打印时保持原来的垂直间距 */
+                line-height: 1.4; /* 答案页打印时保持原来的行距 */
+            }
+            
+            .calc-item {
+                font-size: 20px;
+                display: flex; /* 打印时确保答案与原算式在同一行 */
+                align-items: baseline; /* 打印时基线对齐 */
+                white-space: nowrap; /* 打印时防止换行 */
+            }
+            
+            .answer-question {
+                font-size: 16px; /* 打印时进一步减小答案中原题字体大小 */
+            }
+            
+            .answer-item {
+                font-weight: bold; /* 打印时保持答案粗体 */
+            }
+            
+            .oral-answer {
+                font-weight: bold;
+                font-size: 16px; /* 打印时与竖式横向答案字体大小一致 */
+            }
+            
+            .vertical-calc {
+                margin-bottom: 2mm;
+            }
+            
+            .vertical-questions {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                margin-bottom: 2mm;
+            }
+            
+            .vertical-item {
+                display: flex;
+                align-items: baseline; /* 打印时确保最终答案与原算式对齐 */
+            }
+            
+            .vertical-answers {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                min-height: 35mm;
+            }
+            
+            .vertical-space {
+                min-height: 35mm;
+            }
+            
+            .multi-step {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 15px !important;
+                align-items: start !important;
+                margin-bottom: 1mm;
+            }
+            
+            .multi-step-item {
+                font-size: 19px;
+                display: block !important;
+            }
+            
+            .paper:first-child .multi-step {
+                margin-bottom: 1mm !important;
+            }
+            
+            .vertical-answer {
+                font-size: 16px;
+                line-height: 0.8; /* 打印时进一步减小除法竖式行距 */
+                font-weight: bold;
+            }
+            
+            .vertical-answer table {
+                line-height: 0.8; /* 打印时减小表格行距 */
+            }
+            
+            .vertical-answer td {
+                padding: 0.5px; /* 打印时进一步减小单元格内边距 */
+                line-height: 0.8; /* 打印时减小单元格行距 */
+            }
+            
+            .multi-step-answer {
+                font-size: 16px;
+                line-height: 1.1;
+                font-weight: bold; /* 打印时保持脱式答案粗体 */
+            }
+            
+            .hidden-zero {
+                color: #ffffff !important; /* 打印时确保隐藏的0为纯白色 */
+            }
+            
+            .final-answer {
+                font-size: 16px; /* 打印时竖式横向答案字体大小 */
+                margin-left: 8px; /* 打印时减少间距 */
+                white-space: nowrap; /* 打印时防止换行 */
+            }
+        }
+        
+        @media screen {
+            .paper + .paper {
+                border-top: 2px solid #333;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="btn" onclick="generateProblems()">重新出题</button>
+    </div>
+
+    <div id="papers-container"></div>
+
+    <script>
+        let currentProblems = {
+            oral1: [], oral2: [],
+            vertical1: [], vertical2: [],
+            multiStep1: [], multiStep2: []
+        };
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomDecimal(min, max) {
+            return (Math.random() * (max - min) + min).toFixed(1);
+        }
+
+        function formatVerticalAnswer(expr) {
+            const cleanExpr = expr.replace(' =', '');
+            
+            if (cleanExpr.includes('×')) {
+                const [a, b] = cleanExpr.split(' × ').map(num => parseInt(num));
+                return formatMultiplication(a, b);
+            } else if (cleanExpr.includes('÷')) {
+                const [a, b] = cleanExpr.split(' ÷ ').map(num => parseInt(num));
+                return formatDivision(a, b);
+            } else if (cleanExpr.includes('+')) {
+                const parts = cleanExpr.split(' + ');
+                const a = parseFloat(parts[0]);
+                const b = parseFloat(parts[1]);
+                return formatAddition(a, b);
+            }
+            
+            return '计算错误';
+        }
+
+        function formatMultiplication(a, b) {
+            const aStr = a.toString();
+            const bStr = b.toString();
+            const result = (a * b).toString();
+            const maxDigits = Math.max(aStr.length, bStr.length, result.length);
+            
+            let tableRows = [];
+            tableRows.push(`<tr><td></td>${aStr.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            tableRows.push(`<tr><td>×</td>${bStr.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            tableRows.push(`<tr><td></td>${'-'.repeat(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            
+            if (bStr.length > 1) {
+                let partials = [];
+                for (let i = bStr.length - 1, shift = 0; i >= 0; i--, shift++) {
+                    const digit = parseInt(bStr[i]);
+                    const partial = a * digit * Math.pow(10, shift);
+                    if (partial === 0) continue;
+                    const partialStr = partial.toString();
+                    const aligned = partialStr.padStart(maxDigits);
+                    tableRows.push(`<tr><td></td>${aligned.split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+                    partials.push(partialStr);
+                }
+                
+                if (partials.length > 1) {
+                    tableRows.push(`<tr><td></td>${'-'.repeat(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+                    tableRows.push(`<tr><td></td>${result.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+                }
+            } else {
+                tableRows.push(`<tr><td></td>${result.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            }
+            
+            return `<table>${tableRows.join('')}</table>`;
+        }
+
+        function formatDivision(a, b) {
+            const aStr = a.toString();
+            const n = aStr.length;
+            let quotient = '';
+            let current = 0;
+            let steps = [];
+            let i = 0;
+
+            while (i < n) {
+                current = current * 10 + parseInt(aStr[i]);
+                if (current < b && i < n - 1) {
+                    quotient += '0';
+                    i += 1;
+                    continue;
+                }
+                const q = Math.floor(current / b);
+                const product = q * b;
+                const diff = current - product;
+                steps.push({ position: i, q, product: product.toString(), diff });
+                quotient += q.toString();
+                current = diff;
+                i += 1;
+            }
+
+            const columns = n + 1;
+            let tableRows = [];
+
+            // 处理商的显示，隐藏前导0
+            let quotientRow = Array(columns).fill('');
+            const paddedQuotient = quotient.padStart(n, '0');
+            let leadingZeros = 0;
+            for (let j = 0; j < n; j++) {
+                if (paddedQuotient[j] === '0' && leadingZeros === j) {
+                    quotientRow[j + 1] = `<span class="hidden-zero">${paddedQuotient[j]}</span>`;
+                    leadingZeros++;
+                } else {
+                    quotientRow[j + 1] = paddedQuotient[j];
+                }
+            }
+            tableRows.push(quotientRow);
+
+            let lineRow = Array(columns).fill('');
+            for (let j = 1; j <= n; j++) {
+                lineRow[j] = '-';
+            }
+            tableRows.push(lineRow);
+
+            let dividendRow = Array(columns).fill('');
+            dividendRow[0] = `${b})`;
+            for (let j = 0; j < n; j++) {
+                dividendRow[j + 1] = aStr[j];
+            }
+            tableRows.push(dividendRow);
+
+            let startCol = 0;
+            for (let stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+                const step = steps[stepIndex];
+                const { position, product, diff } = step;
+                let productRow = Array(columns).fill('');
+
+                const digitsUsed = position - startCol + 1;
+                const productStr = product.padStart(digitsUsed, '0');
+                for (let k = 0; k < productStr.length; k++) {
+                    productRow[startCol + k + 1] = productStr[k];
+                }
+                tableRows.push(productRow);
+
+                let subLineRow = Array(columns).fill('');
+                for (let k = 0; k < productStr.length; k++) {
+                    subLineRow[startCol + k + 1] = '-';
+                }
+                tableRows.push(subLineRow);
+
+                let diffRow = Array(columns).fill('');
+                const diffStr = diff.toString();
+                const diffStart = startCol + productStr.length - diffStr.length;
+                
+                // 修改：只有在最后一步且余数为0时才显示0，而不隐藏
+                if (stepIndex === steps.length - 1 && diff === 0) {
+                    diffRow[startCol + productStr.length] = '0'; // 显示最后的0，不隐藏
+                } else if (diffStr === '0' && stepIndex < steps.length - 1) {
+                    diffRow[startCol + productStr.length] = `<span class="hidden-zero">0</span>`;
+                } else {
+                    for (let k = 0; k < diffStr.length; k++) {
+                        if (k === 0 && diffStr[k] === '0' && diffStr.length > 1) {
+                            diffRow[diffStart + k + 1] = `<span class="hidden-zero">0</span>`;
+                        } else {
+                            diffRow[diffStart + k + 1] = diffStr[k];
+                        }
+                    }
+                }
+                if (position + 1 < n) {
+                    diffRow[position + 2] = aStr[position + 1];
+                }
+                tableRows.push(diffRow);
+
+                startCol = position;
+            }
+
+            let htmlRows = tableRows.map(row => 
+                `<tr>${row.map(d => `<td>${d || ''}</td>`).join('')}</tr>`
+            );
+            return `<table>${htmlRows.join('')}</table>`;
+        }
+
+        function formatAddition(a, b) {
+            const result = (a + b).toFixed(1);
+            const aStr = a.toFixed(1);
+            const bStr = b.toFixed(1);
+            const resultStr = result.toString();
+            
+            const maxDigits = Math.max(aStr.length, bStr.length, resultStr.length);
+            let tableRows = [];
+            
+            tableRows.push(`<tr><td></td>${aStr.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            tableRows.push(`<tr><td>+</td>${bStr.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            tableRows.push(`<tr><td></td>${'-'.repeat(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            tableRows.push(`<tr><td></td>${resultStr.padStart(maxDigits).split('').map(d => `<td>${d}</td>`).join('')}</tr>`);
+            
+            return `<table>${tableRows.join('')}</table>`;
+        }
+
+        function formatMultiStepAnswer(expr) {
+            const cleanExpr = expr.replace(' =', '');
+            let steps = [];
+            
+            try {
+                if (cleanExpr.includes('(') && cleanExpr.includes(')')) {
+                    const bracketMatch = cleanExpr.match(/\(([^)]+)\)/);
+                    if (bracketMatch) {
+                        const bracketContent = bracketMatch[1];
+                        const bracketResult = eval(bracketContent.replace(/×/g, '*').replace(/÷/g, '/'));
+                        
+                        steps.push(`= ${cleanExpr.replace(bracketMatch[0], bracketResult)}`);
+                        
+                        const finalExpr = cleanExpr.replace(bracketMatch[0], bracketResult);
+                        const finalResult = eval(finalExpr.replace(/×/g, '*').replace(/÷/g, '/'));
+                        steps.push(`= ${finalResult}`);
+                    }
+                } else {
+                    if (cleanExpr.includes('×') || cleanExpr.includes('÷')) {
+                        let tempExpr = cleanExpr;
+                        
+                        while (tempExpr.includes('×') || tempExpr.includes('÷')) {
+                            const match = tempExpr.match(/(\d+(?:\.\d+)?)\s*([×÷])\s*(\d+(?:\.\d+)?)/);
+                            if (match) {
+                                const a = parseFloat(match[1]);
+                                const op = match[2];
+                                const b = parseFloat(match[3]);
+                                const result = op === '×' ? a * b : a / b;
+                                
+                                tempExpr = tempExpr.replace(match[0], result.toString());
+                                steps.push(`= ${tempExpr}`);
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        const finalResult = eval(tempExpr.replace(/×/g, '*').replace(/÷/g, '/'));
+                        if (tempExpr !== finalResult.toString()) {
+                            steps.push(`= ${finalResult}`);
+                        }
+                    } else {
+                        const result = eval(cleanExpr.replace(/×/g, '*').replace(/÷/g, '/'));
+                        steps.push(`= ${result}`);
+                    }
+                }
+            } catch (e) {
+                steps = ['= 计算错误'];
+            }
+            
+            return steps.join('\n');
+        }
+
+        function calculateExpression(expr) {
+            try {
+                const jsExpr = expr.replace(/×/g, '*').replace(/÷/g, '/');
+                const result = eval(jsExpr);
+                
+                if (result % 1 !== 0) {
+                    return result.toFixed(1);
+                }
+                return result.toString();
+            } catch (e) {
+                return '计算错误';
+            }
+        }
+
+        function generateOralProblems() {
+            const problems = [];
+            
+            for (let i = 0; i < 12; i++) {
+                const operations = ['+', '-', '×', '÷'];
+                const op = operations[randomInt(0, 3)];
+                let a, b, problem;
+                
+                switch(op) {
+                    case '+':
+                        a = randomInt(10, 999);
+                        b = randomInt(10, 999);
+                        problem = `${a} + ${b} =`;
+                        break;
+                    case '-':
+                        a = randomInt(100, 999);
+                        b = randomInt(10, a);
+                        problem = `${a} - ${b} =`;
+                        break;
+                    case '×':
+                        if (Math.random() < 0.6) {
+                            a = randomInt(2, 9);
+                            b = randomInt(2, 9);
+                        } else {
+                            a = randomInt(10, 99);
+                            b = randomInt(2, 9);
+                        }
+                        problem = `${a} × ${b} =`;
+                        break;
+                    case '÷':
+                        b = randomInt(2, 9);
+                        if (Math.random() < 0.6) {
+                            a = b * randomInt(2, 9);
+                        } else {
+                            a = b * randomInt(10, 99);
+                        }
+                        problem = `${a} ÷ ${b} =`;
+                        break;
+                }
+                problems.push(problem);
+            }
+            
+            for (let i = 0; i < 3; i++) {
+                let problem;
+                if (Math.random() < 0.5) {
+                    let a = randomInt(10, 50);
+                    let b = randomInt(5, 20);
+                    let c = randomInt(2, 8);
+                    if (Math.random() < 0.5) {
+                        problem = `(${a} + ${b}) × ${c} =`;
+                    } else {
+                        problem = `(${a} - ${b}) × ${c} =`;
+                    }
+                } else {
+                    let a = randomInt(20, 80);
+                    let b = randomInt(2, 8);
+                    let c = randomInt(2, 8);
+                    let d = b * c;
+                    if (Math.random() < 0.5) {
+                        problem = `${a} + ${d} ÷ ${b} =`;
+                    } else {
+                        problem = `${a} - ${d} ÷ ${b} =`;
+                    }
+                }
+                problems.push(problem);
+            }
+            
+            return problems;
+        }
+
+        function generateVerticalProblems() {
+            const problems = [];
+            
+            let a = randomInt(100, 999);
+            let b = randomInt(2, 9);
+            problems.push(`${a} × ${b} =`);
+            
+            a = randomInt(12, 99);
+            b = randomInt(12, 99);
+            problems.push(`${a} × ${b} =`);
+            
+            b = randomInt(2, 9);
+            a = b * randomInt(12, 99) + randomInt(0, b-1);
+            problems.push(`${a} ÷ ${b} =`);
+            
+            a = parseFloat(randomDecimal(1, 9));
+            b = parseFloat(randomDecimal(1, 9));
+            problems.push(`${a} + ${b} =`);
+            
+            return problems;
+        }
+
+        function generateMultiStepProblems() {
+            const problems = [];
+            
+            let problemType1 = randomInt(1, 4);
+            let a, b, c, d;
+            
+            switch(problemType1) {
+                case 1:
+                    a = randomInt(10, 50);
+                    b = randomInt(5, 30);
+                    c = randomInt(2, 8);
+                    if (Math.random() < 0.5) {
+                        problems.push(`(${a} + ${b}) × ${c} =`);
+                    } else {
+                        problems.push(`(${a} - ${b}) × ${c} =`);
+                    }
+                    break;
+                case 2:
+                    c = randomInt(2, 8);
+                    let sum = c * randomInt(5, 15);
+                    a = randomInt(sum/2, sum - 5);
+                    b = sum - a;
+                    problems.push(`(${a} + ${b}) ÷ ${c} =`);
+                    break;
+                case 3:
+                    a = randomInt(50, 150);
+                    b = randomInt(2, 8);
+                    c = b * randomInt(5, 15);
+                    if (Math.random() < 0.5) {
+                        problems.push(`${a} + ${c} ÷ ${b} =`);
+                    } else {
+                        problems.push(`${a} - ${c} ÷ ${b} =`);
+                    }
+                    break;
+                case 4:
+                    a = randomInt(20, 80);
+                    b = randomInt(2, 8);
+                    c = randomInt(5, 20);
+                    if (Math.random() < 0.5) {
+                        problems.push(`${a} × ${b} + ${c} =`);
+                    } else {
+                        problems.push(`${a} × ${b} - ${c} =`);
+                    }
+                    break;
+            }
+            
+            let problemType2 = randomInt(1, 4);
+            
+            switch(problemType2) {
+                case 1:
+                    a = randomInt(5, 20);
+                    b = randomInt(2, 8);
+                    c = randomInt(10, 50);
+                    if (Math.random() < 0.5) {
+                        problems.push(`${c} + ${a} × ${b} =`);
+                    } else {
+                        d = b * randomInt(3, 10);
+                        problems.push(`${c} - ${d} ÷ ${b} =`);
+                    }
+                    break;
+                case 2:
+                    a = randomInt(15, 60);
+                    b = randomInt(5, 25);
+                    c = randomInt(2, 6);
+                    if (Math.random() < 0.5) {
+                        problems.push(`(${a} + ${b}) × ${c} =`);
+                    } else {
+                        problems.push(`(${a} - ${b}) × ${c} =`);
+                    }
+                    break;
+                case 3:
+                    a = randomInt(100, 200);
+                    b = randomInt(2, 8);
+                    c = randomInt(2, 8);
+                    if (Math.random() < 0.5) {
+                        d = b * randomInt(5, 12);
+                        problems.push(`${a} + ${d} ÷ ${b} =`);
+                    } else {
+                        a = b * Math.floor(a / b);
+                        problems.push(`${a} ÷ ${b} × ${c} =`);
+                    }
+                    break;
+                case 4:
+                    a = randomInt(80, 180);
+                    b = randomInt(10, 30);
+                    c = randomInt(2, 8);
+                    if (Math.random() < 0.5) {
+                        problems.push(`${a} - ${b} × ${c} =`);
+                    } else {
+                        d = c * randomInt(4, 10);
+                        problems.push(`${a} + ${d} ÷ ${c} =`);
+                    }
+                    break;
+            }
+            
+            return problems;
+        }
+
+        function generateRandomCode() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const code = `${year}${month}${day}${hours}${minutes}${seconds}`;
+            const prefix = code.slice(0, -6);
+            const suffix = code.slice(-6);
+            return `${prefix}<span>${suffix}</span>`;
+        }
+
+        function generateOnePaper(paperNum, isAnswer = false) {
+            let oralProblems, verticalProblems, multiStepProblems;
+            
+            if (isAnswer) {
+                if (paperNum === 3) {
+                    oralProblems = currentProblems.oral1;
+                    verticalProblems = currentProblems.vertical1;
+                    multiStepProblems = currentProblems.multiStep1;
+                } else {
+                    oralProblems = currentProblems.oral2;
+                    verticalProblems = currentProblems.vertical2;
+                    multiStepProblems = currentProblems.multiStep2;
+                }
+            } else {
+                oralProblems = generateOralProblems();
+                verticalProblems = generateVerticalProblems();
+                multiStepProblems = generateMultiStepProblems();
+                
+                if (paperNum === 1) {
+                    currentProblems.oral1 = oralProblems;
+                    currentProblems.vertical1 = verticalProblems;
+                    currentProblems.multiStep1 = multiStepProblems;
+                } else {
+                    currentProblems.oral2 = oralProblems;
+                    currentProblems.vertical2 = verticalProblems;
+                    currentProblems.multiStep2 = multiStepProblems;
+                }
+            }
+            
+            const title = isAnswer ? 
+                `<h2 class="answer-header">三年级下学期数学每日练习 - 参考答案</h2>` :
+                `<h2>三年级下学期数学每日练习</h2>`;
+            
+            const info = isAnswer ? 
+                `<div class="info answer-header">第${paperNum - 2}套答案</div>` :
+                `<div class="info">姓名：____________  班级：____________  日期：____________</div>`;
+            
+            const randomCode = generateRandomCode();
+            let randomCodeDisplay = '';
+            if (paperNum === 2) {
+                randomCodeDisplay = `<div class="random-code">${randomCode}</div>`;
+            } else if (paperNum === 3) {
+                randomCodeDisplay = `<div class="random-code">${randomCode}<span class="random-code-suffix">-上</span></div>`;
+            } else if (paperNum === 4) {
+                randomCodeDisplay = `<div class="random-code">${randomCode}<span class="random-code-suffix">-下</span></div>`;
+            }
+            
+            // 为答案页添加特殊类名以区分行距
+            const oralCalcClass1 = isAnswer ? 'oral-calc answer-page' : 'oral-calc';
+            const oralCalcClass2 = isAnswer ? 'oral-calc last-row answer-page' : 'oral-calc last-row';
+            
+            return `
+                <div class="paper">
+                    <div class="header">
+                        ${title}
+                        ${info}
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">一、口算练习</div>
+                        <div class="${oralCalcClass1}">
+                            ${oralProblems.slice(0, 12).map((problem, index) => {
+                                if (isAnswer) {
+                                    const expr = problem.replace(' =', '');
+                                    const answer = calculateExpression(expr);
+                                    return `<div class="calc-item"><span class="answer-question">${problem}</span><span class="oral-answer"> ${answer}</span></div>`;
+                                } else {
+                                    return `<div class="calc-item">${problem}</div>`;
+                                }
+                            }).join('')}
+                        </div>
+                        <div class="${oralCalcClass2}">
+                            ${oralProblems.slice(12).map((problem, index) => {
+                                if (isAnswer) {
+                                    const expr = problem.replace(' =', '');
+                                    const answer = calculateExpression(expr);
+                                    return `<div class="calc-item"><span class="answer-question">${problem}</span><span class="oral-answer"> ${answer}</span></div>`;
+                                } else {
+                                    return `<div class="calc-item">${problem}</div>`;
+                                }
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">二、竖式计算</div>
+                        <div class="vertical-calc">
+                            <div class="vertical-questions">
+                                ${verticalProblems.map(problem => {
+                                    if (isAnswer) {
+                                        const answer = calculateExpression(problem.replace(' =', ''));
+                                        return `<div class="vertical-item"><span class="answer-question">${problem}</span><span class="final-answer">${answer}</span></div>`;
+                                    } else {
+                                        return `<div class="vertical-item">${problem}</div>`;
+                                    }
+                                }).join('')}
+                            </div>
+                            <div class="vertical-answers">
+                                <div class="${isAnswer ? 'vertical-answer answer-item' : 'vertical-space'}">${isAnswer ? formatVerticalAnswer(verticalProblems[0]) : ''}</div>
+                                <div class="${isAnswer ? 'vertical-answer answer-item' : 'vertical-space'}">${isAnswer ? formatVerticalAnswer(verticalProblems[1]) : ''}</div>
+                                <div class="${isAnswer ? 'vertical-answer answer-item' : 'vertical-space'}">${isAnswer ? formatVerticalAnswer(verticalProblems[2]) : ''}</div>
+                                <div class="${isAnswer ? 'vertical-answer answer-item' : 'vertical-space'}">${isAnswer ? formatVerticalAnswer(verticalProblems[3]) : ''}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-title">三、脱式计算</div>
+                        <div class="multi-step">
+                            <div class="multi-step-item">
+                                <span class="${isAnswer ? 'answer-question' : ''}">${multiStepProblems[0]}</span>
+                                ${isAnswer ? `<div class="multi-step-answer answer-item">${formatMultiStepAnswer(multiStepProblems[0])}</div>` : ''}
+                            </div>
+                            <div class="multi-step-item">
+                                <span class="${isAnswer ? 'answer-question' : ''}">${multiStepProblems[1]}</span>
+                                ${isAnswer ? `<div class="multi-step-answer answer-item">${formatMultiStepAnswer(multiStepProblems[1])}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${randomCodeDisplay}
+                </div>
+            `;
+        }
+
+        function generateProblems() {
+            const container = document.getElementById('papers-container');
+            container.innerHTML = 
+                generateOnePaper(1) + 
+                generateOnePaper(2) + 
+                generateOnePaper(3, true) + 
+                generateOnePaper(4, true);
+        }
+
+        window.onload = function() {
+            generateProblems();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <!-- 固定宽度320px -->
+  <meta name="viewport" content="width=320, initial-scale=1.0" />
+  <title>估算计算器</title>
+  <style>
+    /* 全局样式 */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+    .calculator {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      width: 320px;
+    }
+    /* 显示区：高度70px */
+    .display {
+      width: 100%;
+      height: 70px;
+      background: #4E5359;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 2.8em;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      overflow-x: auto;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    /* 统一下移，用于结果显示 */
+    .primaryAns, .separator, .secondaryContainer {
+      position: relative;
+      vertical-align: middle;
+    }
+    .primaryAns, .secondaryContainer {
+      top: 5px;
+    }
+    /* 输入算式时的包装 */
+    .inputExpr {
+      position: relative;
+      top: 5px;
+    }
+    /* 按键区 */
+    .buttons {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    button {
+      padding: 10px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 5px;
+      background: #e0e0e0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #d4d4d4;
+    }
+    /* 功能键 */
+    .operator { background: #ff9500; color: #fff; }
+    .approximate { background: #5856d6; color: #fff; }
+    .approximate.disabled { background: #b0b0b0; color: #888; cursor: not-allowed; }
+    .approximate.disabled:hover { background: #b0b0b0; }
+    .clear { background: #fc6159; color: #fff; }
+    .backspace { background: #ffcc00; color: #fff; }
+    .equals { background: #34c759; color: #fff; }
+    .exponent { background: #e0e0e0; }
+    .paren { background: #e0e0e0; }
+    .span-2 { grid-column: span 2; }
+    .span-4 { grid-column: span 4; }
+    .explanation {
+      margin-top: 20px;
+      font-size: 1em;
+      color: #333;
+      line-height: 1.5;
+      height: 120px;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #fafafa;
+      white-space: pre-wrap;
+    }
+    .explanation.centered {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
+    }
+    .explanation.has-content {
+      display: block;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+    .primaryAns { 
+      font-weight: normal; 
+      color: inherit; 
+      vertical-align: bottom;
+      margin-right: -4px;
+    }
+    .separator { 
+      vertical-align: bottom; 
+      font-size: 0.7em; 
+      margin-left: 10px; 
+      margin-right: 2px; 
+      color: #fff; 
+    }
+    .secondaryContainer {
+      display: inline-block;
+      vertical-align: bottom;
+      min-height: 1.2em;
+    }
+    .secondaryLabel {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translate(-50%, 100%);
+      font-size: 0.27em;
+      color: inherit;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .secondaryAns {
+      font-size: 0.6em;
+      font-weight: normal;
+      color: #2fa9ff;
+    }
+    .parenBtnLeft, .parenBtnRight { 
+      font-size: 0.9em; 
+      margin: 0 5px; 
+    }
+    .exprParen { 
+      position: relative; 
+      top: -0.3em; 
+      font-size: 0.75em; 
+      margin-left: 8px; 
+      margin-right: 8px; 
+    }
+    .answerMinus { 
+      display: inline-block; 
+      font-size: 2em; 
+      position: relative; 
+      top: -2em; 
+    }
+    .estimatePrefix { 
+      font-size: 0.8em; 
+      vertical-align: middle; 
+      margin-right: 1px; 
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <!-- 显示区 -->
+    <div id="display" class="display"></div>
+    <div class="buttons">
+      <!-- 第一行 -->
+      <button class="clear span-2" onclick="clearDisplay()">C</button>
+      <button class="backspace span-2" onclick="backspace()">←</button>
+      <!-- 第二行 -->
+      <button onclick="appendValue('7')">7</button>
+      <button onclick="appendValue('8')">8</button>
+      <button onclick="appendValue('9')">9</button>
+      <button class="operator" onclick="appendValue('÷')">÷</button>
+      <!-- 第三行 -->
+      <button onclick="appendValue('4')">4</button>
+      <button onclick="appendValue('5')">5</button>
+      <button onclick="appendValue('6')">6</button>
+      <button class="operator" onclick="appendValue('×')">×</button>
+      <!-- 第四行 -->
+      <button onclick="appendValue('1')">1</button>
+      <button onclick="appendValue('2')">2</button>
+      <button onclick="appendValue('3')">3</button>
+      <button class="operator" onclick="appendValue('-')">-</button>
+      <!-- 第五行 -->
+      <button onclick="appendValue('.')">.</button>
+      <button onclick="appendValue('0')">0</button>
+      <button id="estimateBtn" class="approximate" onclick="estimate()">≈</button>
+      <button class="operator" onclick="appendValue('+')">+</button>
+      <!-- 第六行 -->
+      <button class="exponent" onclick="exponentOp()">X<sup>y</sup></button>
+      <!-- 括号按钮 -->
+      <button class="paren" onclick="toggleParen()">
+        <span class="parenBtnLeft">(</span><span class="parenBtnRight">)</span>
+      </button>
+      <button class="equals span-2" onclick="equalsPressed()">=</button>
+    </div>
+    <!-- 解释区域 -->
+    <div id="explanation" class="explanation centered">
+      这里是估算解释区域。当使用"≈"按钮时，将显示各规则候选估值及注释。
+    </div>
+  </div>
+
+  <script>
+    //──────────────────────────────
+    // 特殊四舍五入：对正数 x 按个位处理 —— 若余数小于5则舍去；大于5则进位；等于5则不变
+    function specialResultRound(x) {
+      let rem = x % 10;
+      if (rem < 5) return x - rem;
+      else if (rem > 5) return x + (10 - rem);
+      else return x;
+    }
+
+    // 新增：获取尾部特征的函数
+    function getTrailingFeatures(num) {
+      const absNum = Math.abs(Math.round(num));
+      if (absNum === 0) return { trailingZeros: 1, zeroAndFiveCount: 1 };
+
+      const numStr = String(absNum);
+      let trailingZeros = 0;
+      let zeroAndFiveCount = 0;
+
+      // 计算末尾连续零
+      for (let i = numStr.length - 1; i >= 0; i--) {
+        if (numStr[i] === '0') {
+          trailingZeros++;
+        } else {
+          break;
+        }
+      }
+
+      // 统计0和5的总数
+      for (const digit of numStr) {
+        if (digit === '0' || digit === '5') {
+          zeroAndFiveCount++;
+        }
+      }
+
+      return {
+        trailingZeros: Math.min(trailingZeros, 10),
+        zeroAndFiveCount: Math.min(zeroAndFiveCount, 20)
+      };
+    }
+
+    // 新增：统一结果处理函数
+    function processResults(candidates, exactValue) {
+      // 移除精确值候选项
+      let estimatedCandidates = candidates.filter(item => item.method !== "精确值");
+
+      // 计算相对误差并添加到候选项中
+      estimatedCandidates = estimatedCandidates.map(item => ({
+        ...item,
+        relativeError: Math.abs(item.candidate - exactValue) / Math.abs(exactValue) * 100
+      }));
+
+      // 筛选相对误差范围内的候选
+      let workingCandidates = estimatedCandidates.filter(item => item.relativeError <= 10);
+      if (workingCandidates.length <= 1) {
+        workingCandidates = estimatedCandidates.filter(item => item.relativeError <= 20);
+      }
+
+      // 为候选值增加整数部分字段（四舍五入后的整数部分）
+      workingCandidates = workingCandidates.map(item => ({
+        ...item,
+        integerValue: Math.round(item.candidate)
+      }));
+
+      // 去重：仅保留不同整数部分的候选
+      let seen = new Set();
+      workingCandidates = workingCandidates.filter(item => {
+        if (seen.has(item.integerValue)) {
+          return false;
+        }
+        seen.add(item.integerValue);
+        return true;
+      });
+
+      // 重新排序（按与精确值的绝对误差从小到大）
+      workingCandidates.forEach(item => {
+        item.error = Math.abs(item.candidate - exactValue);
+      });
+      workingCandidates.sort((a, b) => a.error - b.error);
+
+      let exactInt = Math.round(exactValue);
+      let sameCandidates = workingCandidates.filter(item => item.integerValue === exactInt);
+      let differentCandidates = workingCandidates.filter(item => item.integerValue !== exactInt);
+
+      let primaryResult = null;
+      let secondaryResult = null;
+
+      // 如果候选值只有两个
+      if (workingCandidates.length === 2) {
+        if (sameCandidates.length === 1 && differentCandidates.length === 1) {
+          // 与精确值相同的作为次选，不同的作为首选
+          primaryResult = differentCandidates[0].candidate;
+          secondaryResult = sameCandidates[0].candidate;
+        } else {
+          primaryResult = workingCandidates[0].candidate;
+          secondaryResult = workingCandidates[1].candidate;
+        }
+      } else {
+        // 多于两个候选值时
+        if (differentCandidates.length > 0) {
+          primaryResult = differentCandidates[0].candidate;
+          if (differentCandidates.length > 1) {
+            secondaryResult = differentCandidates[1].candidate;
+          } else if (sameCandidates.length > 0) {
+            secondaryResult = sameCandidates[0].candidate;
+          }
+        } else if (sameCandidates.length > 0) {
+          primaryResult = sameCandidates[0].candidate;
+        } else {
+          primaryResult = Math.floor(exactValue);
+        }
+
+        // 如果初选结果与精确结果整数部分相同，则重新选一个不同的候选作为主结果
+        if (Math.round(primaryResult) === exactInt && differentCandidates.length > 0) {
+          primaryResult = differentCandidates[0].candidate;
+          let nextCandidate = workingCandidates.find(item => Math.round(item.candidate) !== Math.round(primaryResult));
+          if (nextCandidate) {
+            secondaryResult = nextCandidate.candidate;
+          }
+        }
+      }
+
+      return {
+        primary: primaryResult !== null ? primaryResult : "",
+        secondary: secondaryResult !== null ? secondaryResult : ""
+      };
+    }
+
+    // 新增：检查表达式是否支持估算
+    function canEstimate(expr) {
+      if (!expr || expr.trim() === "") return false;
+      
+      // 支持的估算格式：a+b, a-b, a×b, a÷b
+      const supportedPattern = /^(-?\d+(?:\.\d+)?)([+\-×÷/])(-?\d+(?:\.\d+)?)$/;
+      return supportedPattern.test(expr.replace(/\s/g, ''));
+    }
+
+    // 新增：更新估算按键状态的函数
+    function updateEstimateButtonState() {
+      const estimateBtn = document.getElementById('estimateBtn');
+      const resultType = display.getAttribute("data-type");
+      
+      if (resultType === "estimate") {
+        // 当前显示估算结果，禁用估算按键
+        estimateBtn.classList.add('disabled');
+      } else if (!canEstimate(exprString)) {
+        // 表达式不支持估算，禁用估算按键
+        estimateBtn.classList.add('disabled');
+      } else {
+        // 其他状态，启用估算按键
+        estimateBtn.classList.remove('disabled');
+      }
+    }
+
+    // 新增：设置解释区为默认状态
+    function setExplanationDefault() {
+      explanationDiv.className = "explanation centered";
+      explanationDiv.textContent = '这里是估算解释区域。当使用"≈"按钮时，将显示各规则候选估值及注释。';
+    }
+
+    // 新增：设置解释区为有内容状态
+    function setExplanationContent(content) {
+      explanationDiv.className = "explanation has-content";
+      explanationDiv.innerHTML = content;
+    }
+    //──────────────────────────────
+
+    // 根据数值大小确定精度单位
+    function getPrecision(num) {
+      let absNum = Math.abs(num);
+      if (absNum < 10) return 1;
+      else if (absNum < 100) return 10;
+      else if (absNum < 1000) return 100;
+      else if (absNum < 10000) return 1000;
+      else return Math.pow(10, Math.floor(Math.log10(absNum)));
+    }
+    
+    // 取一个数的首位估算值
+    function floorToMSD(num) {
+      let absNum = Math.abs(num);
+      if (absNum < 10) return num;
+      let scale = Math.pow(10, Math.floor(Math.log10(absNum)));
+      return Math.floor(num / scale) * scale;
+    }
+    
+    const display = document.getElementById('display');
+    const explanationDiv = document.getElementById('explanation');
+    let exprString = "";
+    let lastExpression = "";
+    let equalsPressCount = 0;
+    
+    // 格式化表达式，将括号用 span 包裹
+    function formatExpression(str) {
+      str = str.replace(/\)\(/g, ') (');
+      return str.replace(/([\(\)])/g, '<span class="exprParen">$1</span>');
+    }
+    
+    function appendValue(val) {
+      equalsPressCount = 0;
+      if (display.getAttribute("data-result") === "true") {
+        const resultType = display.getAttribute("data-type") || "";
+        if (resultType === "estimate") { 
+          exprString = ""; 
+        } else if (resultType === "calc") { 
+          if (/^[0-9.]$/.test(val)) { exprString = ""; } 
+        }
+        display.removeAttribute("data-result");
+        display.removeAttribute("data-type");
+      }
+      if (val === '×' || val === '÷') {
+        if (exprString.length > 0 && /[+\-×÷]$/.test(exprString)) {
+          exprString = exprString.slice(0, -1);
+        }
+      }
+      exprString += val;
+      display.innerHTML = '<span class="inputExpr">' + formatExpression(exprString) + '</span>';
+      
+      // 修改：根据表达式内容更新解释区
+      if (exprString.trim() === "") {
+        setExplanationDefault();
+      } else {
+        explanationDiv.className = "explanation has-content";
+        explanationDiv.textContent = exprString;
+      }
+      
+      updateEstimateButtonState(); // 更新按键状态
+    }
+    
+    function clearDisplay() {
+      exprString = "";
+      display.textContent = "";
+      display.removeAttribute("data-result");
+      display.removeAttribute("data-type");
+      setExplanationDefault(); // 设置为默认状态
+      updateEstimateButtonState(); // 更新按键状态
+    }
+    
+    function backspace() {
+      exprString = exprString.slice(0, -1);
+      display.innerHTML = '<span class="inputExpr">' + formatExpression(exprString) + '</span>';
+      
+      // 修改：根据表达式内容更新解释区
+      if (exprString.trim() === "") {
+        setExplanationDefault();
+      } else {
+        explanationDiv.className = "explanation has-content";
+        explanationDiv.textContent = exprString;
+      }
+      
+      updateEstimateButtonState(); // 更新按键状态
+    }
+    
+    // 精确计算，保留原表达式用于后续估算
+    function calculate() {
+      try {
+        let expr = exprString.replace(/÷/g, '/')
+                             .replace(/×/g, '*')
+                             .replace(/\^/g, '**');
+        let result = eval(expr);
+        let resultStr = String(result);
+        display.innerHTML = `<span class="primaryAns">${resultStr}</span>`;
+        setExplanationContent('计算结果为：' + resultStr);
+        display.setAttribute("data-result", "true");
+        display.setAttribute("data-type", "calc");
+        adjustAnswerDisplay();
+        lastExpression = exprString;
+        updateEstimateButtonState(); // 更新按键状态
+      } catch (error) {
+        display.innerHTML = '<span style="font-size:60%;">错误</span>';
+        setExplanationContent('');
+        display.setAttribute("data-result", "true");
+        display.setAttribute("data-type", "calc");
+        updateEstimateButtonState(); // 更新按键状态
+      }
+    }
+    
+    // 约等于计算（除法）
+    function approximateCalculate(expr) {
+      expr = expr.replace(/\s/g, '');
+      const pattern = /^(-?\d+(?:\.\d+)?)([÷/])(-?\d+(?:\.\d+)?)$/;
+      const match = expr.match(pattern);
+      if (!match) return;
+      let dividend = parseFloat(match[1]);
+      let operator = match[2];
+      let divisor = parseFloat(match[3]);
+      if ((operator !== '÷' && operator !== '/') || divisor === 0) return;
+      
+      const exact = dividend / divisor;
+      const exactStr = exact.toFixed(2);
+
+      // 基础候选计算
+      const qRound = Math.round(dividend / divisor);
+      const adjustedDividend = qRound * divisor;
+      const estimatedStandard = qRound;
+      let errorStandard = Math.abs(estimatedStandard - exact);
+      errorStandard = Math.round(errorStandard * 10) / 10;
+      const descStandard = `将 ${dividend} 调整为 ${adjustedDividend}（${adjustedDividend} 是距离 ${dividend} 最近且为 ${divisor} 的倍数），算式变为 ${adjustedDividend} ÷ ${divisor} = ${estimatedStandard}`;
+
+      const estimatedSpecial = Math.floor(exact);
+      let errorSpecial = Math.abs(estimatedSpecial - exact);
+      errorSpecial = Math.round(errorSpecial * 10) / 10;
+      const descSpecial = `直接舍去 ${dividend} ÷ ${divisor} 计算结果的小数部分，最终算式：${dividend} ÷ ${divisor} = ${estimatedSpecial}`;
+
+      const dividendStr = String(Math.floor(dividend));
+      const factorLeading = Math.pow(10, dividendStr.length - 1);
+      const baseCandidateLeading = Math.floor(dividend / factorLeading) * factorLeading;
+      const estimatedLeading = Math.round(baseCandidateLeading / divisor);
+      let errorLeading = Math.abs(estimatedLeading - exact);
+      errorLeading = Math.round(errorLeading * 10) / 10;
+      const descLeading = `只考虑被除数的首位数字，即提取 ${Math.floor(dividend / factorLeading)} 得到基数 ${baseCandidateLeading}，算式变为 ${baseCandidateLeading} ÷ ${divisor} = ${estimatedLeading}`;
+
+      let baseCandidates = [
+        {
+          method: "最小调整法",
+          candidate: estimatedStandard,
+          error: errorStandard,
+          desc: descStandard,
+          priority: 1
+        }
+      ];
+
+      // 只有在被除数除以除数不是整数时，才添加舍余数法
+      if (!Number.isInteger(dividend / divisor)) {
+        baseCandidates.push({
+          method: "舍余数法",
+          candidate: estimatedSpecial,
+          error: errorSpecial,
+          desc: descSpecial,
+          priority: 3
+        });
+      }
+
+      baseCandidates.push({
+        method: "首位估算法",
+        candidate: estimatedLeading,
+        error: errorLeading,
+        desc: descLeading,
+        priority: 4
+      });
+
+      // 整十数法候选
+      let roundedCandidates = [];
+      const digits = dividendStr.length;
+      if (digits <= 3) {
+        const factor = 10;
+        const roundedDividend = Math.floor(dividend / factor) * factor;
+        const estimatedRounded = Math.round(roundedDividend / divisor);
+        const errorRounded = Math.round(Math.abs(estimatedRounded - exact) * 10) / 10;
+        const descRounded = `将 ${dividend} 按因子 ${factor} 舍入，得到 ${roundedDividend}，算式变为 ${roundedDividend} ÷ ${divisor} = ${estimatedRounded}`;
+        roundedCandidates.push({
+          method: "整十数法",
+          candidate: estimatedRounded,
+          error: errorRounded,
+          desc: descRounded,
+          priority: 2
+        });
+      } else if (digits === 4) {
+        const factor1 = 10;
+        const factor2 = 100; 
+        const roundedDividend1 = Math.floor(dividend / factor1) * factor1;
+        const roundedDividend2 = Math.floor(dividend / factor2) * factor2;    
+        const estimatedRounded1 = Math.round(roundedDividend1 / divisor);
+        const estimatedRounded2 = Math.round(roundedDividend2 / divisor);    
+        const errorRounded1 = Math.abs(estimatedRounded1 - exact);
+        const errorRounded2 = Math.abs(estimatedRounded2 - exact);    
+        if (errorRounded1 <= errorRounded2) {
+          roundedCandidates.push({
+            method: "整十数法",
+            candidate: estimatedRounded1,
+            error: Math.round(errorRounded1 * 10) / 10,
+            desc: `将 ${dividend} 按因子 ${factor1} 舍入，得到 ${roundedDividend1}，算式变为 ${roundedDividend1} ÷ ${divisor} = ${estimatedRounded1}`
+          });
+        } else {
+          roundedCandidates.push({
+            method: "整十数法",
+            candidate: estimatedRounded2,
+            error: Math.round(errorRounded2 * 10) / 10,
+            desc: `将 ${dividend} 按因子 ${factor2} 舍入，得到 ${roundedDividend2}，算式变为 ${roundedDividend2} ÷ ${divisor} = ${estimatedRounded2}`
+          });
+        }
+      } else {
+        const factor1 = Math.pow(10, digits - 1);
+        const factor2 = Math.pow(10, digits - 2);
+        const factor3 = Math.pow(10, digits - 3);
+        
+        let arr = [
+          { 
+            factor: factor1, 
+            candidate: Math.round((Math.floor(dividend / factor1) * factor1) / divisor),
+            error: Math.abs(Math.round((Math.floor(dividend / factor1) * factor1) / divisor) - exact)
+          },
+          { 
+            factor: factor2, 
+            candidate: Math.round((Math.floor(dividend / factor2) * factor2) / divisor),
+            error: Math.abs(Math.round((Math.floor(dividend / factor2) * factor2) / divisor) - exact)
+          },
+          { 
+            factor: factor3, 
+            candidate: Math.round((Math.floor(dividend / factor3) * factor3) / divisor),
+            error: Math.abs(Math.round((Math.floor(dividend / factor3) * factor3) / divisor) - exact)
+          }
+        ];
+        
+        arr.sort((a, b) => a.error - b.error);
+        const best = arr[0];
+        const roundedDividend = Math.floor(dividend / best.factor) * best.factor;
+        
+        roundedCandidates.push({
+          method: "整十数法",
+          candidate: best.candidate,
+          error: Math.round(best.error * 10) / 10,
+          desc: `将 ${dividend} 按因子 ${best.factor} 舍入，得到 ${roundedDividend}，算式变为 ${roundedDividend} ÷ ${divisor} = ${best.candidate}`,
+          priority: 2
+        });
+      }
+
+      baseCandidates = baseCandidates.concat(roundedCandidates);
+
+      // 次位取整法候选（仅当被除数 > 100 时激活）
+      if (dividend > 100) {
+        // 定义次位舍入函数
+        function secondDigitRoundDown(num) {
+          if (num < 10) return num;
+          if (num < 100) return Math.floor(num / 10) * 10;
+          let d = Math.floor(Math.log10(num)) + 1;
+          let factor = Math.pow(10, d - 2);
+          return Math.floor(num / factor) * factor;
+        }
+        function secondDigitRoundUp(num) {
+          if (num < 10) return num;
+          if (num < 100) return Math.ceil(num / 10) * 10;
+          let d = Math.floor(Math.log10(num)) + 1;
+          let factor = Math.pow(10, d - 2);
+          return Math.ceil(num / factor) * factor;
+        }
+
+        let s1_dividend = secondDigitRoundDown(dividend);
+        let s1_divisor = secondDigitRoundDown(divisor);
+        let candidate1 = Math.floor(s1_dividend / s1_divisor);
+        let error1 = Math.round(Math.abs(candidate1 - exact) * 10) / 10;
+        let desc1 = `次位取整法1：采用均向下舍入策略，最终算式：${s1_dividend} ÷ ${s1_divisor} = ${candidate1}`;
+
+        let s2a_dividend = secondDigitRoundUp(dividend);
+        let s2a_divisor = secondDigitRoundDown(divisor);
+        let candidate2_A = Math.floor(s2a_dividend / s2a_divisor);
+        let error2_A = Math.abs(candidate2_A - exact);
+
+        let s2b_dividend = secondDigitRoundDown(dividend);
+        let s2b_divisor = secondDigitRoundUp(divisor);
+        let candidate2_B = Math.floor(s2b_dividend / s2b_divisor);
+        let error2_B = Math.abs(candidate2_B - exact);
+
+        let candidate2, error2, desc2;
+        if (error2_A <= error2_B) {
+          candidate2 = candidate2_A;
+          error2 = Math.round(error2_A * 10) / 10;
+          desc2 = `次位取整法2：采用被除数向上舍、除数向下舍，算式：${s2a_dividend} ÷ ${s2a_divisor} = ${candidate2}`;
+        } else {
+          candidate2 = candidate2_B;
+          error2 = Math.round(error2_B * 10) / 10;
+          desc2 = `次位取整法2：采用被除数向下舍、除数向上舍，算式：${s2b_dividend} ÷ ${s2b_divisor} = ${candidate2}`;
+        }
+
+        let s3_dividend = secondDigitRoundUp(dividend);
+        let s3_divisor = secondDigitRoundUp(divisor);
+        let candidate3 = Math.floor(s3_dividend / s3_divisor);
+        let error3 = Math.round(Math.abs(candidate3 - exact) * 10) / 10;
+        let desc3 = `次位取整法3：采用均向上舍入策略，算式：${s3_dividend} ÷ ${s3_divisor} = ${candidate3}`;
+
+        let arr = [
+          { candidate: candidate1, error: error1, desc: desc1 },
+          { candidate: candidate2, error: error2, desc: desc2 },
+          { candidate: candidate3, error: error3, desc: desc3 }
+        ];
+
+        // 当除数 <100 时的四种候选
+        if (divisor < 100) {
+          let divisorDown = secondDigitRoundDown(divisor) || 1;
+          let candidateDivDown = Math.floor(dividend / divisorDown);
+          let errorDivDown = Math.abs(candidateDivDown - exact);
+          let descDivDown = `次位单调整：被除数保持 ${dividend}，除数向下调整为 ${divisorDown}，算式变为 ${dividend} ÷ ${divisorDown} = ${candidateDivDown}`;
+
+          let divisorUp = secondDigitRoundUp(divisor);
+          let candidateDivUp = Math.floor(dividend / divisorUp);
+          let errorDivUp = Math.abs(candidateDivUp - exact);
+          let descDivUp = `次位取整法新增：被除数保持 ${dividend}，除数向上调整为 ${divisorUp}，算式变为 ${dividend} ÷ ${divisorUp} = ${candidateDivUp}`;
+
+          let dividendDown = secondDigitRoundDown(dividend);
+          let candidateDividendDown = Math.floor(dividendDown / divisor);
+          let errorDividendDown = Math.abs(candidateDividendDown - exact);
+          let descDividendDown = `次位单调整：除数保持 ${divisor}，被除数向下调整为 ${dividendDown}，算式变为 ${dividendDown} ÷ ${divisor} = ${candidateDividendDown}`;
+
+          let dividendUp = secondDigitRoundUp(dividend);
+          let candidateDividendUp = Math.floor(dividendUp / divisor);
+          let errorDividendUp = Math.abs(candidateDividendUp - exact);
+          let descDividendUp = `次位单调整：除数保持 ${divisor}，被除数向上调整为 ${dividendUp}，算式变为 ${dividendUp} ÷ ${divisor} = ${candidateDividendUp}`;
+
+          let newCandidates = [
+            { candidate: candidateDivDown, error: errorDivDown, desc: descDivDown },
+            { candidate: candidateDivUp, error: errorDivUp, desc: descDivUp },
+            { candidate: candidateDividendDown, error: errorDividendDown, desc: descDividendDown },
+            { candidate: candidateDividendUp, error: errorDividendUp, desc: descDividendUp }
+          ];
+
+          newCandidates.sort((a, b) => a.error - b.error);
+          
+          // 特征排序逻辑
+          const dividendDigits = dividend === 0 ? 1 : String(Math.floor(Math.abs(dividend))).length;
+          const threshold = dividendDigits;
+          const hasEnoughCandidates = newCandidates.length >= 2;
+          let topCandidates = hasEnoughCandidates ? [newCandidates[0], newCandidates[1]] : [...newCandidates];
+          const otherCandidates = hasEnoughCandidates ? newCandidates.slice(2) : [];
+
+          if (hasEnoughCandidates) {
+            const errorDiff = topCandidates[1].error - topCandidates[0].error;
+            if (errorDiff <= threshold) {
+              topCandidates.forEach(c => {
+                c.features = getTrailingFeatures(c.candidate);
+              });
+
+              topCandidates.sort((a, b) => {
+                const zeroDiff = b.features.trailingZeros - a.features.trailingZeros;
+                if (zeroDiff !== 0) return zeroDiff;
+                
+                const countDiff = b.features.zeroAndFiveCount - a.features.zeroAndFiveCount;
+                if (countDiff !== 0) return countDiff;
+                
+                return a.error - b.error;
+              });
+            }
+          }
+
+          newCandidates = [...topCandidates, ...otherCandidates];
+          arr.push(newCandidates[0]);
+        }
+
+        arr.sort((a, b) => a.error - b.error);
+        let A_val = arr[0].candidate;
+        let errorA_new = arr[0].error;
+        let descA_new = arr[0].desc;
+
+        let subCandidates = [];
+        subCandidates.push({
+          method: "次位取整法",
+          subMethod: "A",
+          candidate: A_val,
+          error: errorA_new,
+          desc: descA_new
+        });
+
+        // B 和 C 的生成逻辑
+        let B, C;
+        if (A_val > 10) {
+          let digitsA = Math.floor(Math.log10(A_val)) + 1;
+          let factor = Math.pow(10, digitsA - 1);
+          B = Math.round(A_val / factor) * factor;
+        }
+        if (A_val > 100) {
+          let digitsA = Math.floor(Math.log10(A_val)) + 1;
+          let factorC = Math.pow(10, digitsA - 2);
+          C = Math.round(A_val / factorC) * factorC;
+        }
+
+        if (typeof B !== "undefined" && Math.floor(B) !== Math.floor(A_val)) {
+          subCandidates.push({
+            method: "次位取整法",
+            subMethod: "B",
+            candidate: B,
+            error: Math.round(Math.abs(B - exact) * 10) / 10,
+            desc: `根据 A 生成 B：A=${descA_new}，取最高位后得到 B=${B}`
+          });
+        }
+        if (typeof C !== "undefined" && Math.floor(C) !== Math.floor(A_val)) {
+          subCandidates.push({
+            method: "次位取整法",
+            subMethod: "C",
+            candidate: C,
+            error: Math.round(Math.abs(C - exact) * 10) / 10,
+            desc: `根据 A 生成 C：A=${descA_new}，取前两位后得到 C=${C}`
+          });
+        }
+
+        // D 的生成逻辑
+        let newDiv1 = secondDigitRoundDown(dividend);
+        let newDivisor1 = secondDigitRoundDown(divisor);
+        let candidate_D1 = Math.floor(newDiv1 / newDivisor1);
+        let change1_val = Math.abs(dividend - newDiv1) + Math.abs(divisor - newDivisor1);
+
+        let newDiv2 = secondDigitRoundUp(dividend);
+        let newDivisor2 = secondDigitRoundDown(divisor);
+        let candidate_D2 = Math.floor(newDiv2 / newDivisor2);
+        let change2_val = Math.abs(dividend - newDiv2) + Math.abs(divisor - newDivisor2);
+
+        let newDiv3 = secondDigitRoundDown(dividend);
+        let newDivisor3 = secondDigitRoundUp(divisor);
+        let candidate_D3 = Math.floor(newDiv3 / newDivisor3);
+        let change3_val = Math.abs(dividend - newDiv3) + Math.abs(divisor - newDivisor3);
+
+        let newDiv4 = secondDigitRoundUp(dividend);
+        let newDivisor4 = secondDigitRoundUp(divisor);
+        let candidate_D4 = Math.floor(newDiv4 / newDivisor4);
+        let change4_val = Math.abs(dividend - newDiv4) + Math.abs(divisor - newDivisor4);
+
+        let changes = [
+          { candidate: candidate_D1, change: change1_val, newDiv: newDiv1, newDivisor: newDivisor1 },
+          { candidate: candidate_D2, change: change2_val, newDiv: newDiv2, newDivisor: newDivisor2 },
+          { candidate: candidate_D3, change: change3_val, newDiv: newDiv3, newDivisor: newDivisor3 },
+          { candidate: candidate_D4, change: change4_val, newDiv: newDiv4, newDivisor: newDivisor4 }
+        ];
+
+        changes.sort((a, b) => a.change - b.change);
+        let bestChange = changes[0];
+        let D = bestChange.candidate;
+        let errorD = Math.round(Math.abs(D - exact) * 10) / 10;
+        let descD = `次位最小调整：选取变化量最小的方案，算式：${bestChange.newDiv} ÷ ${bestChange.newDivisor} = ${D}，变化量 ${bestChange.change}`;
+
+        let dCandidate = null;
+        if (Math.floor(D) !== Math.floor(A_val)) {
+          dCandidate = {
+            method: "次位取整法",
+            subMethod: "D",
+            candidate: D,
+            error: errorD,
+            desc: descD
+          };
+        }
+
+        baseCandidates = baseCandidates.concat(subCandidates);
+
+        if (dCandidate) {
+          let idxA = baseCandidates.findIndex(item => 
+            item.method === "次位取整法" && item.subMethod === "A"
+          );
+          
+          if (idxA !== -1) {
+            let errorDiff = Math.abs(dCandidate.error - baseCandidates[idxA].error);
+            let digitThreshold = String(Math.floor(Math.abs(dividend))).length - 1;
+            
+            if (errorDiff <= digitThreshold) {
+              baseCandidates.splice(idxA, 0, dCandidate);
+            } else {
+              let minIndex = baseCandidates.findIndex(item => item.method === "最小调整法");
+              if (minIndex >= 0) {
+                if (dCandidate.error < baseCandidates[minIndex].error) {
+                  baseCandidates.splice(minIndex, 0, dCandidate);
+                } else {
+                  baseCandidates.splice(minIndex + 1, 0, dCandidate);
+                }
+              } else {
+                baseCandidates.push(dCandidate);
+              }
+            }
+          }
+        }
+
+        // 当被除数小于100时的特殊排序规则
+        if (Math.abs(dividend) < 100) {
+          baseCandidates.sort((a, b) => {
+            if (a.method === "最小调整法") return -1;
+            if (b.method === "最小调整法") return 1;
+            return a.error - b.error;
+          });
+        } else {
+          baseCandidates.sort((a, b) => a.error - b.error);
+        }
+      }
+
+      // 应用后置排序规则
+      baseCandidates = applyPostSortRules(baseCandidates, dividend, divisor);
+
+      // 调用统一结果处理
+      const results = processResults(baseCandidates, exact);
+      let primaryResult = results.primary;
+      let secondaryResult = results.secondary;
+
+      // 尾部零数量检查并交换
+      function countTrailingZeros(num) {
+        let s = String(Math.floor(num));
+        let m = s.match(/0+$/);
+        return m ? m[0].length : 0;
+      }
+      if (
+        secondaryResult &&
+        countTrailingZeros(secondaryResult) > countTrailingZeros(primaryResult)
+      ) {
+        let temp = primaryResult;
+        primaryResult = secondaryResult;
+        secondaryResult = temp;
+      }
+
+      // 生成解释字符串
+      let explanationStr = `原算式：${dividend} ÷ ${divisor} = ${exactStr}\n`;
+      let candidateCount = {};
+      let displayLimit = 2;
+
+      baseCandidates.forEach(item => {
+        let key = String(Math.floor(item.candidate));
+        if (!candidateCount[key]) {
+          candidateCount[key] = 0;
+        }
+        if (candidateCount[key] >= displayLimit) return;
+        explanationStr += `【${item.method}】 ${item.desc}，估值为 <strong style="font-size:1.1em;">${item.candidate}</strong>（误差: ${item.error.toFixed(1)}）\n`;
+        candidateCount[key]++;
+      });
+
+      // 修复：检查次选结果是否为空
+      let displayHTML;
+      if (secondaryResult && secondaryResult !== "") {
+        displayHTML = `<span class="primaryAns"><span class="estimatePrefix">≈ </span>${primaryResult}</span>
+          <span class="separator">/</span>
+          <span class="secondaryContainer">
+            <span class="secondaryLabel">次选</span>
+            <span class="secondaryAns">${secondaryResult}</span>
+          </span>`;
+      } else {
+        displayHTML = `<span class="primaryAns"><span class="estimatePrefix">≈ </span>${primaryResult}</span>`;
+      }
+
+      display.innerHTML = displayHTML;
+      display.setAttribute("data-result", "true");
+      display.setAttribute("data-type", "estimate");
+      setExplanationContent(explanationStr);
+      adjustAnswerDisplay();
+      updateEstimateButtonState(); // 更新按键状态
+    }
+
+    // 后置排序规则函数
+    function applyPostSortRules(baseCandidates, dividend, divisor) {
+      let digitCount = String(Math.floor(Math.abs(dividend))).length;
+      
+      baseCandidates.sort((a, b) => a.error - b.error);
+
+      let ciweiMethods = baseCandidates.filter(item => 
+        item.method === "次位取整法" && 
+        (item.subMethod === "A" || item.subMethod === "D")
+      );
+      
+      if (ciweiMethods.length > 0) {
+        let bestCiwei = ciweiMethods.reduce((a, b) => 
+          a.error <= b.error ? a : b
+        );
+        
+        if (bestCiwei.error <= 1) {
+          let currentIdx = baseCandidates.findIndex(item => 
+            item.method === bestCiwei.method && 
+            item.subMethod === bestCiwei.subMethod
+          );
+          if (currentIdx > 0) {
+            baseCandidates.splice(currentIdx, 1);
+            baseCandidates.unshift(bestCiwei);
+          }
+        }
+      }
+      
+      if (digitCount <= 3) {
+        let idxMinAdjust = baseCandidates.findIndex(item => item.method === "最小调整法");
+        let idxLeading = baseCandidates.findIndex(item => item.method === "首位估算法");
+        if (idxMinAdjust !== -1 && idxLeading !== -1 && idxMinAdjust > idxLeading) {
+          let temp = baseCandidates[idxMinAdjust];
+          baseCandidates.splice(idxMinAdjust, 1);
+          baseCandidates.splice(idxLeading, 0, temp);
+        }
+      }
+
+      if (dividend > 100) {
+        let idxLeading = baseCandidates.findIndex(item => item.method === "首位估算法");
+        let idxCiweiA = baseCandidates.findIndex(item => 
+          item.method === "次位取整法" && item.subMethod === "A"
+        );
+        let idxCiweiD = baseCandidates.findIndex(item => 
+          item.method === "次位取整法" && item.subMethod === "D"
+        );
+
+        if (idxCiweiA !== -1 && idxCiweiD !== -1) {
+          let errorA = baseCandidates[idxCiweiA].error;
+          let errorD = baseCandidates[idxCiweiD].error;
+          let bestCiweiIdx = errorA <= errorD ? idxCiweiA : idxCiweiD;
+          
+          if (idxLeading !== -1) {
+            let bestCiwei = baseCandidates[bestCiweiIdx];
+            baseCandidates.splice(bestCiweiIdx, 1);
+            baseCandidates.splice(idxLeading, 0, bestCiwei);
+          }
+        }
+      }
+
+      return baseCandidates;
+    }
+    
+    // 加减法和乘法估算函数
+    function approximateCalculateOther(expr) {
+      expr = expr.replace(/\s/g, '');
+      const pattern = /^(-?\d+(?:\.\d+)?)([+\-×])(-?\d+(?:\.\d+)?)$/;
+      const match = expr.match(pattern);
+      if (!match) return;
+      let a = parseFloat(match[1]);
+      let op = match[2];
+      let b = parseFloat(match[3]);
+      let precise;
+      if (op === '+') precise = a + b;
+      else if (op === '-') precise = a - b;
+      else if (op === '×') {
+        // 修复：正确调用乘法估算函数
+        estimateMultiplication(a, b);
+        return;
+      }
+
+      let candidates = [];
+
+      // 专门规则（原特殊规则）
+      candidates.push({
+        method: "专门规则",
+        candidate: specialResultRound(precise),
+        error: 0,
+        desc: `当结果较小时采用特殊四舍五入法，最终算式：${a} ${op} ${b} = ${precise} → ${specialResultRound(precise)}`
+      });
+
+      // 原始分别四舍五入
+      let roundedA = Math.round(a / 10) * 10;
+      let roundedB = Math.round(b / 10) * 10;
+      candidates.push({
+        method: "分别四舍五入",
+        candidate: op === "+" ? roundedA + roundedB : roundedA - roundedB,
+        error: 0,
+        desc: `分别将两个数向最近10舍入后计算，最终算式：${roundedA} ${op} ${roundedB} = ${op === "+" ? roundedA + roundedB : roundedA - roundedB}`
+      });
+
+      // 分别四舍五入的两种新情形（仅减法）
+      if (op === "-") {
+        let case1 = {
+          candidate: roundedA - b,
+          error: Math.abs((roundedA - b) - precise),
+          desc: `被减数四舍五入：${roundedA} - ${b} = ${roundedA - b}`
+        };
+        
+        let case2 = {
+          candidate: a - roundedB,
+          error: Math.abs((a - roundedB) - precise),
+          desc: `减数四舍五入：${a} - ${roundedB} = ${a - roundedB}`
+        };
+
+        let betterCase = case1.error <= case2.error ? case1 : case2;
+        candidates.push({
+          method: "分别四舍五入2",
+          candidate: betterCase.candidate,
+          error: betterCase.error,
+          desc: betterCase.desc
+        });
+      }
+
+      // 首位估算法
+      let msdA = floorToMSD(a);
+      let msdB = floorToMSD(b);
+      candidates.push({
+        method: "首位估算法",
+        candidate: op === "+" ? msdA + msdB : msdA - msdB,
+        error: 0,
+        desc: `取两个数的首位估算直接计算，最终算式：${msdA} ${op} ${msdB} = ${op === "+" ? msdA + msdB : msdA - msdB}`,
+        priority: 4
+      });
+
+      // 首位估算的两种新情形（仅减法）
+      if (op === "-") {
+        let case1 = {
+          candidate: msdA - b,
+          error: Math.abs((msdA - b) - precise),
+          desc: `被减数取首位：${msdA} - ${b} = ${msdA - b}`
+        };
+        
+        let case2 = {
+          candidate: a - msdB,
+          error: Math.abs((a - msdB) - precise),
+          desc: `减数取首位：${a} - ${msdB} = ${a - msdB}`
+        };
+
+        let betterCase = case1.error <= case2.error ? case1 : case2;
+        candidates.push({
+          method: "首位估算法2",
+          candidate: betterCase.candidate,
+          error: betterCase.error,
+          desc: betterCase.desc
+        });
+      }
+
+      // 标准规则
+      let unit = getPrecision(precise) / 10;
+      let candidate_standard = Math.round(precise / unit) * unit;
+      candidates.push({
+        method: "标准规则",
+        candidate: candidate_standard,
+        error: 0,
+        desc: `将精确结果四舍五入至最近单位得到候选值，最终算式：Math.round(${precise}/10)*10 = ${candidate_standard}`,
+        priority: 0
+      });
+
+      // 次位估算法（当任一数 >= 100 时）
+      if ((a >= 100 || b >= 100) && (op === "-" || op === "+")) {
+        // 通用取整函数
+        function getSmartRounds(num) {
+          let absNum = Math.abs(num);
+          let str = String(Math.floor(absNum));
+          
+          if (absNum >= 100) {
+            let keepDigits = Math.min(2, str.length);
+            let factor = Math.pow(10, str.length - keepDigits);
+            let base = parseInt(str.substr(0, keepDigits)) * factor;
+            
+            return [
+              base - factor,
+              base,
+              base + factor
+            ].filter(v => v > 0);
+          } else {
+            let firstDigit = parseInt(str[0]) || 0;
+            return [
+              (firstDigit - 1) * 10,
+              firstDigit * 10,
+              (firstDigit + 1) * 10
+            ].filter(v => v >= 0);
+          }
+        }
+
+        // 次位估算法1（混合取整）
+        let aRounds = getSmartRounds(a);
+        let bRounds = getSmartRounds(b);
+        let combinations = [];
+        let exactRounded = Math.round(precise / 10) * 10;
+
+        aRounds.forEach(aVal => {
+          bRounds.forEach(bVal => {
+            if (aVal === a && bVal === b) return;
+            let calc = op === "+" ? aVal + bVal : aVal - bVal;
+            combinations.push({
+              result: calc,
+              error: Math.abs(calc - exactRounded),
+              desc: `${a}→${aVal}, ${b}→${bVal}, 计算 ${aVal} ${op} ${bVal} = ${calc}`,
+              aChange: Math.abs(aVal - a),
+              bChange: Math.abs(bVal - b)
+            });
+          });
+        });
+
+        if (combinations.length > 0) {
+          combinations.sort((a, b) => {
+            if (a.error === b.error) {
+              return (a.aChange + a.bChange) - (b.aChange + b.bChange);
+            }
+            return a.error - b.error;
+          });
+
+          let zeroError = combinations.filter(c => c.error === 0);
+          let otherError = combinations.filter(c => c.error > 0);
+          let uniqueResults = [];
+          
+          zeroError.slice(0, 1).forEach(item => {
+            if (!uniqueResults.some(x => Math.floor(x.result) === Math.floor(item.result))) {
+              uniqueResults.push(item);
+            }
+          });
+
+          if (zeroError.length > 0 && otherError.length > 0) {
+            let bestNonZero = otherError[0];
+            if (!uniqueResults.some(x => Math.abs(x.result - bestNonZero.result) <= 10)) {
+              uniqueResults.push(bestNonZero);
+            }
+          }
+
+          let existingIntegersFeature = candidates.map(c => Math.floor(c.candidate));
+          combinations.forEach(item => {
+            let features = getTrailingFeatures(item.result);
+            let lastDigit = Math.abs(item.result) % 10;
+            let integerPart = Math.floor(item.result);
+            
+            if (lastDigit === 0 && features.trailingZeros >= 1) {
+              if (existingIntegersFeature.indexOf(integerPart) === -1) {
+                uniqueResults.push(Object.assign({}, item));
+                existingIntegersFeature.push(integerPart);
+              }
+            } else if (lastDigit === 5 && features.zeroAndFiveCount >= 2) {
+              if (existingIntegersFeature.indexOf(integerPart) === -1) {
+                uniqueResults.push(Object.assign({}, item));
+                existingIntegersFeature.push(integerPart);
+              }
+            }
+          });
+
+          uniqueResults.slice(0, 3).forEach((item, index) => {
+            candidates.push({
+              method: `次位估算法1-${index + 1}`,
+              candidate: item.result,
+              error: item.error,
+              desc: item.desc
+            });
+          });
+        }
+      }
+
+      // 整十数法
+      function getRoundedCandidatesForAddSub(num) {
+        let absNum = Math.abs(num);
+        let digitCount = String(Math.floor(absNum)).length;
+        let results = [];
+        
+        function addCandidate(factor) {
+          let candidateDown = Math.floor(num / factor) * factor;
+          let candidateUp = Math.ceil(num / factor) * factor;
+          if (candidateDown !== 0) results.push(candidateDown);
+          if (candidateUp !== 0 && candidateUp !== candidateDown) results.push(candidateUp);
+        }
+
+        if (digitCount === 1) {
+          addCandidate(10);
+        } else if (digitCount <= 3) {
+          addCandidate(10);
+          if (absNum >= 100) {
+            addCandidate(100);
+          }
+        } else if (digitCount === 4) {
+          addCandidate(100);
+        } else {
+          addCandidate(Math.pow(10, digitCount - 1));
+          addCandidate(Math.pow(10, digitCount - 2));
+          addCandidate(Math.pow(10, digitCount - 3));
+        }
+        
+        return Array.from(new Set(results));
+      }
+
+      let candidatesA = getRoundedCandidatesForAddSub(a);
+      let candidatesB = getRoundedCandidatesForAddSub(b);
+      let allCombinations = [];
+
+      for (let i = 0; i < candidatesA.length; i++) {
+        for (let j = 0; j < candidatesB.length; j++) {
+          let calc = op === "+" ? candidatesA[i] + candidatesB[j] : candidatesA[i] - candidatesB[j];
+          let err = Math.abs(calc - precise);
+          let changeSum = Math.abs(candidatesA[i] - a) + Math.abs(candidatesB[j] - b);
+          
+          allCombinations.push({
+            result: calc,
+            error: err,
+            changeSum: changeSum,
+            desc: `将 ${a} 变为 ${candidatesA[i]}，${b} 变为 ${candidatesB[j]}，得到 ${candidatesA[i]} ${op} ${candidatesB[j]} = ${calc}`
+          });
+        }
+      }
+
+      // 整十数法3（仅变化单个值的情形，仅减法）
+      if (op === "-") {
+        let singleChangeCombos = allCombinations.filter(combo => {
+          let aChanged = combo.desc.indexOf(`将 ${a} 变为`) !== -1 && combo.desc.indexOf(`${b} 变为`) === -1;
+          let bChanged = combo.desc.indexOf(`${b} 变为`) !== -1 && combo.desc.indexOf(`将 ${a} 变为`) === -1;
+          return aChanged || bChanged;
+        });
+
+        let sortedSingleChange = singleChangeCombos.sort((a, b) => {
+          if (a.error === b.error) return a.changeSum - b.changeSum;
+          return a.error - b.error;
+        });
+
+        let uniqueSingle = [];
+        for (let k = 0; k < sortedSingleChange.length; k++) {
+          let combo = sortedSingleChange[k];
+          if (!uniqueSingle.some(x => Math.floor(x.result) === Math.floor(combo.result))) {
+            uniqueSingle.push(combo);
+            if (uniqueSingle.length >= 2) break;
+          }
+        }
+
+        uniqueSingle.forEach((combo, index) => {
+          candidates.push({
+            method: `整十数法${index + 3}`,
+            candidate: combo.result,
+            error: combo.error,
+            desc: combo.desc + "（单值变化方案）"
+          });
+        });
+      }
+
+      allCombinations.sort((a, b) => {
+        if (Math.abs(a.error - b.error) < 1e-10) {
+          return a.changeSum - b.changeSum;
+        }
+        return a.error - b.error;
+      });
+
+      let uniqueCombinationResults = [];
+      for (let l = 0; l < allCombinations.length; l++) {
+        let combo = allCombinations[l];
+        if (!uniqueCombinationResults.some(x => Math.floor(x.result) === Math.floor(combo.result))) {
+          uniqueCombinationResults.push(combo);
+        }
+      }
+
+      if (uniqueCombinationResults.length > 0) {
+        candidates.push({
+          method: "整十数法1",
+          candidate: uniqueCombinationResults[0].result,
+          error: uniqueCombinationResults[0].error,
+          desc: uniqueCombinationResults[0].desc
+        });
+      }
+      if (uniqueCombinationResults.length > 1) {
+        candidates.push({
+          method: "整十数法2",
+          candidate: uniqueCombinationResults[1].result,
+          error: uniqueCombinationResults[1].error,
+          desc: uniqueCombinationResults[1].desc
+        });
+      }
+
+      // 计算误差并去重
+      candidates.forEach(item => {
+        item.error = Math.round(Math.abs(item.candidate - precise) * 10) / 10;
+      });
+
+      let uniqueCandidates = [];
+      candidates.forEach(item => {
+        if (!uniqueCandidates.some(x => x.candidate === item.candidate)) {
+          uniqueCandidates.push(item);
+        }
+      });
+      candidates = uniqueCandidates;
+      candidates.sort((a, b) => a.error - b.error);
+
+      // 当加数位数和大于等于5时的特殊排序
+      let digitSum = String(Math.floor(Math.abs(a))).length + String(Math.floor(Math.abs(b))).length;
+      if (digitSum >= 5) {
+        let idxLeading = candidates.findIndex(item => item.method === "首位估算法");
+        let idxZhengtenshu = candidates.findIndex(item => item.method.indexOf("整十数法") !== -1);
+        if (idxLeading !== -1 && idxZhengtenshu !== -1) {
+          if (candidates[idxZhengtenshu].error <= candidates[idxLeading].error && idxZhengtenshu > idxLeading) {
+            let temp = candidates[idxZhengtenshu];
+            candidates.splice(idxZhengtenshu, 1);
+            candidates.splice(idxLeading, 0, temp);
+          }
+        }
+      }
+
+      let results = processResults(candidates, precise);
+      let primary = results.primary;
+      let secondary = results.secondary;
+
+      // 检查尾部零数量并交换
+      function countTrailingZeros(num) {
+        let s = String(Math.floor(num));
+        let m = s.match(/0+$/);
+        return m ? m[0].length : 0;
+      }
+      if (secondary && countTrailingZeros(secondary) > countTrailingZeros(primary)) {
+        let temp = primary;
+        primary = secondary;
+        secondary = temp;
+      }
+
+      let explanationStr = `原算式：${a} ${op} ${b} = ${precise}\n`;
+      let candidateCount = {};
+      candidates.forEach(item => {
+        let key = String(Math.floor(item.candidate));
+        if (!candidateCount[key]) {
+          candidateCount[key] = 0;
+        }
+        if (candidateCount[key] >= 2) return;
+        explanationStr += `【${item.method}】 ${item.desc}，估值为 <strong style="font-size:1.1em;">${item.candidate}</strong>（误差: ${item.error.toFixed(1)}）\n`;
+        candidateCount[key]++;
+      });
+
+      // 修复：检查次选结果是否为空
+      let displayHTML;
+      if (secondary && secondary !== "") {
+        displayHTML = `<span class="primaryAns">≈ ${primary}</span>
+           <span class="separator">/</span>
+           <span class="secondaryContainer">
+             <span class="secondaryLabel">次选</span>
+             <span class="secondaryAns">${secondary}</span>
+           </span>`;
+      } else {
+        displayHTML = `<span class="primaryAns">≈ ${primary}</span>`;
+      }
+
+      display.innerHTML = displayHTML;
+      display.setAttribute("data-result", "true");
+      display.setAttribute("data-type", "estimate");
+      adjustAnswerDisplay();
+      setExplanationContent(explanationStr);
+      updateEstimateButtonState(); // 更新按键状态
+    }
+
+    // 乘法估算函数（修复函数名和参数）
+    function estimateMultiplication(multiplicand, multiplier) {
+      const exactProduct = multiplicand * multiplier;
+      let mulCandidates = [];
+      
+      // 前置规则
+      if (multiplicand < 10 || multiplier < 10) {
+        if (multiplicand < 10 && multiplier >= 10) {
+          let candidate_front = multiplicand * (Math.ceil(multiplier / 10) * 10);
+          mulCandidates.push({
+            method: "前置规则",
+            candidate: candidate_front,
+            error: Math.round(Math.abs(candidate_front - exactProduct) * 10) / 10,
+            desc: `因因子较小，保持 ${multiplicand} 不变，${multiplier} 向上舍入至 ${Math.ceil(multiplier / 10) * 10}，最终算式：${multiplicand} × ${Math.ceil(multiplier / 10) * 10} = ${candidate_front}`
+          });
+        } else if (multiplier < 10 && multiplicand >= 10) {
+          let candidate_front = (Math.ceil(multiplicand / 10) * 10) * multiplier;
+          mulCandidates.push({
+            method: "前置规则",
+            candidate: candidate_front,
+            error: Math.round(Math.abs(candidate_front - exactProduct) * 10) / 10,
+            desc: `因因子较小，保持 ${multiplier} 不变，${multiplicand} 向上舍入至 ${Math.ceil(multiplicand / 10) * 10}，最终算式：${Math.ceil(multiplicand / 10) * 10} × ${multiplier} = ${candidate_front}`
+          });
+        }
+      }
+
+      // 特殊规则
+      if (exactProduct < 100) {
+        let candidate_special = specialResultRound(exactProduct);
+        mulCandidates.push({
+          method: "特殊规则",
+          candidate: candidate_special,
+          error: Math.round(Math.abs(candidate_special - exactProduct) * 10) / 10,
+          desc: `精确乘积较小时采用特殊四舍五入法，最终算式：${exactProduct} 变成 ${candidate_special}`
+        });
+      }
+
+      // 分别四舍五入
+      let candidate_separate = (Math.round(multiplicand / 10) * 10) * (Math.round(multiplier / 10) * 10);
+      mulCandidates.push({
+        method: "分别四舍五入",
+        candidate: candidate_separate,
+        error: Math.round(Math.abs(candidate_separate - exactProduct) * 10) / 10,
+        desc: `分别将两个乘数向最近10舍入后相乘，最终算式：${Math.round(multiplicand / 10) * 10} × ${Math.round(multiplier / 10) * 10} = ${candidate_separate}`
+      });
+
+      // 两者取小
+      let candidate_floor = (Math.floor(multiplicand / 10) * 10) * (Math.floor(multiplier / 10) * 10);
+      mulCandidates.push({
+        method: "两者取小",
+        candidate: candidate_floor,
+        error: Math.round(Math.abs(candidate_floor - exactProduct) * 10) / 10,
+        desc: `两个乘数均向下舍入后相乘，最终算式：${Math.floor(multiplicand / 10) * 10} × ${Math.floor(multiplier / 10) * 10} = ${candidate_floor}`
+      });
+
+      // 一大一小
+      let candidate_mixed1 = (Math.ceil(multiplicand / 10) * 10) * (Math.floor(multiplier / 10) * 10);
+      let candidate_mixed2 = (Math.floor(multiplicand / 10) * 10) * (Math.ceil(multiplier / 10) * 10);
+      let candidate_mixed = Math.abs(candidate_mixed1 - exactProduct) <= Math.abs(candidate_mixed2 - exactProduct) ? candidate_mixed1 : candidate_mixed2;
+      mulCandidates.push({
+        method: "一大一小",
+        candidate: candidate_mixed,
+        error: Math.round(Math.abs(candidate_mixed - exactProduct) * 10) / 10,
+        desc: "采用一因子向上、另一因子向下舍入后相乘，最终算式：" + (candidate_mixed === candidate_mixed1 ? `${Math.ceil(multiplicand / 10) * 10} × ${Math.floor(multiplier / 10) * 10} = ${candidate_mixed}` : `${Math.floor(multiplicand / 10) * 10} × ${Math.ceil(multiplier / 10) * 10} = ${candidate_mixed}`)
+      });
+
+      // 都取大
+      let candidate_ceil = (Math.ceil(multiplicand / 10) * 10) * (Math.ceil(multiplier / 10) * 10);
+      mulCandidates.push({
+        method: "都取大",
+        candidate: candidate_ceil,
+        error: Math.round(Math.abs(candidate_ceil - exactProduct) * 10) / 10,
+        desc: `两个乘数均向上舍入后相乘，最终算式：${Math.ceil(multiplicand / 10) * 10} × ${Math.ceil(multiplier / 10) * 10} = ${candidate_ceil}`
+      });
+
+      // 高和规则
+      let candidate_high = Math.round(exactProduct / 100) * 100;
+      mulCandidates.push({
+        method: "高和规则",
+        candidate: candidate_high,
+        error: Math.round(Math.abs(candidate_high - exactProduct) * 10) / 10,
+        desc: `将精确乘积四舍五入至最近100，最终算式：(${exactProduct} / 100) 四舍五入后乘以100 = ${candidate_high}`
+      });
+
+      // 单因子调整
+      let candidate_adjust1 = (Math.round(multiplicand / 10) * 10) * multiplier;
+      let candidate_adjust2 = multiplicand * (Math.round(multiplier / 10) * 10);
+      let candidate_adjust = Math.abs(candidate_adjust1 - exactProduct) <= Math.abs(candidate_adjust2 - exactProduct) ? candidate_adjust1 : candidate_adjust2;
+      mulCandidates.push({
+        method: "单因子调整",
+        candidate: candidate_adjust,
+        error: Math.round(Math.abs(candidate_adjust - exactProduct) * 10) / 10,
+        desc: "仅调整其中一个乘数使乘积更接近精确值，最终算式：" + (Math.abs(candidate_adjust1 - exactProduct) <= Math.abs(candidate_adjust2 - exactProduct) ? `${Math.round(multiplicand / 10) * 10} × ${multiplier} = ${candidate_adjust}` : `${multiplicand} × ${Math.round(multiplier / 10) * 10} = ${candidate_adjust}`)
+      });
+
+      // 计算误差并去重
+      mulCandidates.forEach(item => {
+        item.error = Math.round(Math.abs(item.candidate - exactProduct) * 10) / 10;
+      });
+
+      let uniqueCandidates = [];
+      mulCandidates.forEach(item => {
+        if (!uniqueCandidates.some(x => x.candidate === item.candidate)) {
+          uniqueCandidates.push(item);
+        }
+      });
+      mulCandidates = uniqueCandidates;
+      mulCandidates.sort((a, b) => a.error - b.error);
+
+      // 当乘数位数大于3时的特殊排序
+      let multiplicandDigits = String(Math.floor(Math.abs(multiplicand))).length;
+      let multiplierDigits = String(Math.floor(Math.abs(multiplier))).length;
+      if (multiplicandDigits > 3 || multiplierDigits > 3) {
+        let idxLeading = mulCandidates.findIndex(item => item.method === "首位估算法");
+        let idxZhengtenshu = mulCandidates.findIndex(item => item.method.indexOf("整十数法") !== -1);
+        if (idxLeading !== -1 && idxZhengtenshu !== -1) {
+          if (mulCandidates[idxZhengtenshu].error <= mulCandidates[idxLeading].error && idxZhengtenshu > idxLeading) {
+            let temp = mulCandidates[idxZhengtenshu];
+            mulCandidates.splice(idxZhengtenshu, 1);
+            mulCandidates.splice(idxLeading, 0, temp);
+          }
+        }
+      }
+
+      let results = processResults(mulCandidates, exactProduct);
+      let primaryMul = results.primary;
+      let secondaryMul = results.secondary;
+
+      function countTrailingZeros(num) {
+        let s = String(Math.floor(num));
+        let m = s.match(/0+$/);
+        return m ? m[0].length : 0;
+      }
+      if (secondaryMul && countTrailingZeros(secondaryMul) > countTrailingZeros(primaryMul)) {
+        let temp = primaryMul;
+        primaryMul = secondaryMul;
+        secondaryMul = temp;
+      }
+
+      let explanationStrMul = `原算式：${multiplicand} × ${multiplier} = ${exactProduct}\n`;
+      mulCandidates.forEach(item => {
+        explanationStrMul += `【${item.method}】 ${item.desc}，估值为 <strong style="font-size:1.1em;">${item.candidate}</strong>（误差: ${item.error.toFixed(1)}）\n`;
+      });
+
+      // 修复：检查次选结果是否为空
+      let displayHTML;
+      if (secondaryMul && secondaryMul !== "") {
+        displayHTML = `<span class="primaryAns">≈ ${primaryMul}</span>
+           <span class="separator">/</span>
+           <span class="secondaryContainer">
+             <span class="secondaryLabel">次选</span>
+             <span class="secondaryAns">${secondaryMul}</span>
+           </span>`;
+      } else {
+        displayHTML = `<span class="primaryAns">≈ ${primaryMul}</span>`;
+      }
+
+      display.innerHTML = displayHTML;
+      display.setAttribute("data-result", "true");
+      display.setAttribute("data-type", "estimate");
+      adjustAnswerDisplay();
+      setExplanationContent(explanationStrMul);
+      updateEstimateButtonState(); // 更新按键状态
+    }
+    
+    // "≈" 按钮：如果表达式中含有除号则调用 approximateCalculate（除法），否则根据其他运算调用 approximateCalculateOther
+    function estimate() {
+      // 检查按键是否被禁用
+      const estimateBtn = document.getElementById('estimateBtn');
+      if (estimateBtn.classList.contains('disabled')) {
+        return; // 如果按键被禁用，直接返回
+      }
+
+      let expr = exprString.trim();
+      if (!expr) return;
+      lastExpression = expr;
+      equalsPressCount = 0;
+      const divisionPattern = /^(-?\d+(?:\.\d+)?)([÷/])(-?\d+(?:\.\d+)?)$/;
+      const otherPattern = /^(-?\d+(?:\.\d+)?)([+\-×])(-?\d+(?:\.\d+)?)$/;
+      if (divisionPattern.test(expr)) {
+        approximateCalculate(expr);
+      } else if (otherPattern.test(expr)) {
+        approximateCalculateOther(expr);
+      }
+    }
+    
+    // "=" 按钮逻辑：首次点击显示精确结果；之后交替显示估算结果与精确结果
+    function equalsPressed() {
+      if (equalsPressCount === 0) {
+        lastExpression = exprString;
+        calculate();
+        equalsPressCount = 1;
+      } else {
+        const divisionPattern = /^(-?\d+(?:\.\d+)?)([÷/])(-?\d+(?:\.\d+)?)$/;
+        const otherPattern = /^(-?\d+(?:\.\d+)?)([+\-×])(-?\d+(?:\.\d+)?)$/;
+        if (divisionPattern.test(lastExpression)) {
+          if (equalsPressCount % 2 === 1) { 
+            approximateCalculate(lastExpression); 
+          } else { 
+            exprString = lastExpression; 
+            calculate(); 
+          }
+        } else if (otherPattern.test(lastExpression)) {
+          if (equalsPressCount % 2 === 1) { 
+            approximateCalculateOther(lastExpression); 
+          } else { 
+            exprString = lastExpression; 
+            calculate(); 
+          }
+        }
+        equalsPressCount++;
+      }
+    }
+    
+    function exponentOp() { appendValue("^"); }
+    function toggleParen() {
+      if (!window.parenOpen) { 
+        appendValue("("); 
+        window.parenOpen = true; 
+      } else { 
+        appendValue(")"); 
+        window.parenOpen = false; 
+      }
+    }
+    
+    function formatPrimaryAnswer(answerStr) {
+      let n = answerStr.length;
+      if (n <= 9) return { displayStr: answerStr, fontSize: "100%", textAlign: "center" };
+      else if (n <= 15) return { displayStr: answerStr, fontSize: "70%", textAlign: "center" };
+      else {
+        if (answerStr.includes(".")) return { displayStr: answerStr, fontSize: "50%", textAlign: "left" };
+        else {
+          let num = Number(answerStr);
+          if (isNaN(num)) return { displayStr: answerStr, fontSize: "60%", textAlign: "center" };
+          let sci = num.toExponential(2).replace("e+", "e");
+          return { displayStr: sci, fontSize: "60%", textAlign: "center" };
+        }
+      }
+    }
+    
+    function adjustResultFont(text) {
+      if (text.length >= 22) {
+        return { text: "答案过长，请见下方解释区", scale: 0.65 };
+      } else if (text.length >= 19) {
+        return { text: text, scale: 0.65 };
+      } else if (text.length >= 16) {
+        return { text: text, scale: 0.8 };
+      }
+      return { text: text, scale: 1 };
+    }
+    
+    function adjustAnswerDisplay() {
+      const primaryElem = document.querySelector('.primaryAns');
+      if (!primaryElem) return;
+      let ansText = primaryElem.textContent.trim();
+      let fmt = formatPrimaryAnswer(ansText);
+      primaryElem.style.fontSize = fmt.fontSize;
+      
+      const sepElem = document.querySelector('.separator');
+      if (sepElem) {
+        if (display.getAttribute("data-type") === "estimate") {
+          sepElem.style.fontSize = "0.7em";
+          sepElem.style.marginRight = "6px";
+          sepElem.style.top = "3px";
+        } else {
+          sepElem.style.fontSize = fmt.fontSize;
+        }
+      }
+      
+      const secondaryElem = document.querySelector('.secondaryContainer');
+      if (secondaryElem) secondaryElem.style.fontSize = fmt.fontSize;
+      display.style.textAlign = fmt.textAlign;
+    }
+    
+    document.addEventListener("keydown", function(e) {
+      const key = e.key;
+      if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")
+        return;
+      if ((key >= "0" && key <= "9") || key === ".") { appendValue(key); e.preventDefault(); }
+      else if (key === "+") { appendValue("+"); e.preventDefault(); }
+      else if (key === "-") { appendValue("-"); e.preventDefault(); }
+      else if (key === "*" || key.toLowerCase() === "x") { appendValue("×"); e.preventDefault(); }
+      else if (key === "/" || key === "÷") { appendValue("÷"); e.preventDefault(); }
+      else if (key === "(") { appendValue("("); e.preventDefault(); }
+      else if (key === ")") { appendValue(")"); e.preventDefault(); }
+      else if (key === "Enter" || key === "=") { equalsPressed(); e.preventDefault(); }
+      else if (key === "Backspace") { backspace(); e.preventDefault(); }
+      else if (key === "Delete" || key === "Escape") { clearDisplay(); e.preventDefault(); }
+      else if (key === "^") { exponentOp(); e.preventDefault(); }
+    });
+
+    // 页面加载完成后初始化按键状态
+    document.addEventListener("DOMContentLoaded", function() {
+      updateEstimateButtonState();
+    });
+  </script>
+</body>
+</html>
