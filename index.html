@@ -1,7 +1,10 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmarTools - 实用小工具集</title>
+    <title>SmartTools - 自用小工具集</title>
     <style>
         * {
             margin: 0;
@@ -19,12 +22,12 @@
         .container {
             max-width: 400px;
             margin: 0 auto;
-            padding-top: 40px;
+            padding-top: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 15px;
         }
 
         .title {
@@ -32,11 +35,41 @@
             font-size: 28px;
             font-weight: 300;
             margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .title .highlight {
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        .title .smart {
+            background: linear-gradient(45deg, #fff, #e8f4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title .tools {
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .subtitle {
             color: rgba(255, 255, 255, 0.8);
             font-size: 14px;
+        }
+
+        .subtitle a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+
+        .subtitle a:hover {
+            color: white;
         }
 
         .tools-grid {
@@ -81,14 +114,14 @@
 
         .footer {
             text-align: center;
-            margin-top: 40px;
+            margin-top: 15px;
             color: rgba(255, 255, 255, 0.6);
             font-size: 12px;
         }
 
         @media (max-width: 480px) {
             .container {
-                padding-top: 20px;
+                padding-top: 10px;
             }
             
             .title {
@@ -98,40 +131,51 @@
             .tool-card {
                 padding: 20px;
             }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .footer {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">SmarTools</h1>
-            <p class="subtitle">实用小工具集合</p>
+            <h1 class="title">
+                <span class="smart"><span class="highlight">S</span><b>mart</b></span><span class="tools"><span class="highlight">T</span><b>ools</b></span>
+            </h1>
+            <p class="subtitle">自用小工具集合 </p>
+            <p class="subtitle"><a href ="https://mrr.cc/">mrr.cc</a></p>
         </div>
 
         <div class="tools-grid">
             <a href="tools/ydyjsq.html" class="tool-card">
                 <span class="tool-icon">🧮</span>
                 <h3 class="tool-title">估算计算器</h3>
-                <p class="tool-desc">快速进行数值估算，提高计算效率</p>
+                <p class="tool-desc">可以进行拟人估算计算</p>
             </a>
 
             <a href="tools/math3.html" class="tool-card">
                 <span class="tool-icon">📚</span>
                 <h3 class="tool-title">三年级数学练习</h3>
-                <p class="tool-desc">自动生成三年级下学期数学每日练习题目</p>
+                <p class="tool-desc">自动生成数学每日口算练习-三（下）</p>
             </a>
 
             <a href="tools/9gg3.html" class="tool-card">
                 <span class="tool-icon">📖</span>
                 <h3 class="tool-title">诗词九宫格</h3>
-                <p class="tool-desc">通过九宫格游戏方式帮助记忆古诗词</p>
+                <p class="tool-desc">通过九宫格游戏帮助记忆古诗词</p>
             </a>
         </div>
 
         <div class="footer">
-            <p>简单实用，随时可用</p>
+            <p>自用小工具</p>
+            <p>yumumao@medu.cc</p>
         </div>
     </div>
-
-
-</body></html>
+</body>
+</html>
