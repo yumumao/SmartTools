@@ -41,11 +41,11 @@
       position: relative;
       display: block;
     }
-    /* 主界面诗词输入区域：恢复高度至270px */
+    /* 主界面诗词输入区域：恢复高度至290px */
     #poemInput {
       width: 100%;
       height: 290px;
-      font-size: 16px;
+      font-size: 18px;
       padding: 10px;
       box-sizing: border-box;
       border: 1px solid #ccc;
@@ -56,41 +56,98 @@
       word-wrap: break-word;
       white-space: pre-wrap;
     }
-    /* 空状态提示和水印 */
-    #poemInput:empty:before {
-      content: attr(data-placeholder);
-      color: #aaa;
-    }
-    #poemInput:empty:after {
-      content: "\A\A yumumao@medu.cc";
-      white-space: pre;
-      display: block;
-      text-align: right;
-      font-family: "微软雅黑", Arial, sans-serif;
-      color: rgba(211,211,211,0.5);
-    }
+/* 空状态提示和水印 */
+#poemInput:empty:before {
+  content: attr(data-placeholder);
+  color: #aaa;
+}
+
+/* 水印始终显示 */
+#poemInput:after {
+  content: "yumumao@medu.cc";
+  position: absolute;
+  bottom: 1px;
+  right: 5px;
+  font-family: "微软雅黑", Arial, sans-serif;
+  color: rgba(211,211,211,0.5);
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 10;
+}
+/* 九宫格界面水印 */
+.container:after {
+  content: "yumumao@medu.cc";
+  position: absolute;
+  bottom: 1px;
+  right: 5px;
+  font-family: "微软雅黑", Arial, sans-serif;
+  color: rgba(211,211,211,0.5);
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 100;
+  display: none;
+}
+
+/* 九宫格模式下显示容器水印 */
+.grid-mode:after {
+  display: block;
+}
     /* 每周一首：简单换行显示 */
     .poem-content p {
       margin: 0 0 8px;
       text-indent: 20px;
       text-align: left;
     }
+    /* 随机诗词正文样式：缩进并居左对齐 */
+.poem-content-line {
+  margin: 0 0 8px;
+  padding-left: 30px;
+  text-align: left;
+  line-height: 1.4;
+}
+#poemInput div {
+  display: block !important;
+  margin: 0 0 8px !important;
+}
+
+#poemInput .poem-content-line,
+#poemInput div[style*="padding-left"] {
+  margin: 0 0 8px !important;
+  padding-left: 30px !important;
+  text-align: left !important;
+  line-height: 1.4 !important;
+  display: block !important;
+}
     /* 历史记录区域 */
-    #historyContainer {
-      width: 100%;
-      margin-top: 10px;
-      background: #f8f4e7;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      min-height: 111px;
-      max-height: 150px;
-      overflow-y: auto;
-      padding: 5px;
-      text-align: left;
-      font-size: 12px;
-      color: #888;
-      box-sizing: border-box;
-    }
+#historyContainer {
+  width: 100%;
+  margin-top: 10px;
+  background: #f8f4e7;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  min-height: 180px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding: 5px;
+  text-align: left;
+  font-size: 12px;
+  color: #888;
+  box-sizing: border-box;
+  position: relative;
+  overflow-x: hidden;
+  z-index: 1;
+}
+
+.history-item {
+  padding: 2px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
     #historyContainer > div.header {
       display: flex;
       justify-content: space-between;
@@ -281,38 +338,51 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    /* 答案显示区域 */
-    #poemAnswer {
-      display: none;
-      width: 100%;
-      min-height: 189px;
-      max-height: 26vh;
-      padding: 5px;
-      border: 1px solid #ddd;
-      border-left-width: 1px;
-      border-top-width: 1px;
-      border-right-width: 2px;
-      border-bottom-width: 2px;
-      border-radius: 8px;
-      background-color: #fbfbebc7;
-      text-align: center;
-      color: #444;
-      white-space: pre-wrap;
-      overflow-y: auto;
-      font-size: 18px;
-      box-sizing: border-box;
-      z-index: 8;
-    }
+/* 答案显示区域 */
+#poemAnswer {
+  display: none;
+  width: 100%;
+  min-height: 180px;
+  max-height: 263px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-left-width: 1px;
+  border-top-width: 1px;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+  border-radius: 8px;
+  background-color: #fbfbebc7;
+  text-align: center;
+  color: #444;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  font-size: 18px;
+  box-sizing: border-box;
+  z-index: 8;
+}
     .answer-line {
       text-align: center;
     }
-    /* 当生成九宫格时，将主容器切换为 flex 布局，垂直居中 */
-    .grid-mode {
-      display: flex !important;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
+/* 当生成九宫格时，将主容器切换为 flex 布局，垂直居中 */
+.grid-mode {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 50px;
+}
+/* 响应式调整答案区域高度 */
+@media (max-height: 600px) {
+  #poemAnswer {
+    max-height: calc(100vh - 300px);
+  }
+}
+
+@media (max-height: 500px) {
+  #poemAnswer {
+    max-height: calc(100vh - 250px);
+  }
+}
     /* 响应式适配 */
     @media (max-width: 600px) {
       .container { padding: 15px; }
@@ -384,32 +454,52 @@
   <!-- 辅助函数 -->
   <script>
     // 将连续出现的标点（允许全角与半角混用，之间可能有空白）只保留第一个
-    function collapsePunctuation(str) {
-      return str.replace(/([，。！？,\.!?…])(?:\s*[，。！？,\.!?…])+/g, '$1');
-    }
+function collapsePunctuation(str) {
+  console.log("处理前:", str);
+  // 去除标点符号后面的半角逗号，处理更多情况
+  let result = str.replace(/([，。！？；…])\s*,/g, '$1')
+                 .replace(/([，。！？；…]),/g, '$1')
+                 .replace(/。\s*,/g, '。')
+                 .replace(/，\s*,/g, '，');
+  console.log("处理后:", result);
+  return result;
+}
     // 针对每周一首：直接以div换行显示
     function formatWeeklyPoem(fullText) {
       return fullText.split("\n").map(line => `<div>${line}</div>`).join("");
     }
     // 针对随机诗词：对正文中每一行调用 collapsePunctuation，再每两行合并显示
-    function formatRandomPoem(fullText) {
-      let lines = fullText.split("\n").map(l => l.trim()).filter(l => l !== "");
-      if (lines.length <= 3) {
-        return lines.join("<br/>");
+function formatRandomPoem(fullText) {
+  let lines = fullText.split("\n").map(l => l.trim()).filter(l => l !== "");
+  if (lines.length <= 3) {
+    return lines.join("<br/>");
+  } else {
+    let header = lines.slice(0, 3);
+    let bodyText = lines.slice(3).join(" ");
+    
+    // 先清理重复标点
+    bodyText = collapsePunctuation(bodyText);
+    
+    // 使用与答案区域相同的分句逻辑
+    let matches = bodyText.match(new RegExp(`[^，,、。.！？!…\?]+[，,、。.！？!…\?]*`, 'g'));
+    if (!matches || matches.length === 0) {
+      return header.join("<br/>") + "<br/>" + bodyText;
+    }
+    
+    // 每两句组合成一行，使用br标签确保换行
+    let grouped = [];
+    for (let i = 0; i < matches.length; i += 2) {
+      if (i + 1 < matches.length) {
+        grouped.push('<span style="padding-left: 30px; display: block;">' + matches[i] + matches[i + 1] + '</span>');
       } else {
-        let header = lines.slice(0, 3);
-        let content = lines.slice(3).map(line => collapsePunctuation(line));
-        let grouped = [];
-        for (let i = 0; i < content.length; i += 2) {
-          if (i + 1 < content.length) {
-            grouped.push(content[i] + " " + content[i+1]);
-          } else {
-            grouped.push(content[i]);
-          }
-        }
-        return header.join("<br/>") + "<br/>" + grouped.join("<br/>");
+        grouped.push('<span style="padding-left: 30px; display: block;">' + matches[i] + '</span>');
       }
     }
+    
+    return header.join("<br/>") + "<br/>" + grouped.join("<br/>");
+  }
+}
+
     // 备用：随机诗词复杂格式处理
     function formatMainPoem(fullText) {
       let lines = fullText.split("\n").map(line => line.trim());
@@ -565,7 +655,7 @@
                   localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
                   updateHistoryUI();
                 }
-              }, 300);
+              }, 1500);
             });
             item.addEventListener('touchend', function(e){
               clearTimeout(timer);
@@ -736,18 +826,27 @@
         btn.innerText = "正在加载";
         if (typeof jinrishici !== "undefined" && typeof jinrishici.load === "function") {
           try {
-            jinrishici.load(function(result) {
-              randomPoemData = result.data;
-              btn.innerText = "随机诗词";
-              var fullPoem = "《" + randomPoemData.origin.title + "》" + "\n" +
-                             "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
-                             randomPoemData.origin.content;
-              var formatted = formatRandomPoem(fullPoem);
-              document.getElementById('poemInput').innerHTML = formatted;
-              rawPoemText = fullPoem;
-              weeklyPoemSelected = null;
-              updateClearBtnStyle();
-            });
+jinrishici.load(function(result) {
+  randomPoemData = result.data;
+  btn.innerText = "随机诗词";
+  var fullPoem = "《" + randomPoemData.origin.title + "》" + "\n" +
+                 "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                 randomPoemData.origin.content;
+  var formatted = formatRandomPoem(fullPoem);
+  document.getElementById('poemInput').innerHTML = formatted;
+  rawPoemText = fullPoem;
+  weeklyPoemSelected = null;
+  updateClearBtnStyle();
+  // 添加随机诗词历史记录
+  var record = {
+    id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+    title: randomPoemData.origin.title,
+    author: randomPoemData.origin.author,
+    content: rawPoemText,
+    source: "random"
+  };
+  addHistoryRecord(record);
+});
           } catch (e) {
             console.error(e);
             btn.innerText = "随机诗词";
@@ -851,9 +950,48 @@
         document.getElementById('random-poem').style.display = 'none';
         document.getElementById('submenu').style.display = 'none';
         document.getElementById('historyContainer').style.display = 'none';
-        gridText.style.display = 'grid';
-        document.getElementById('answer-buttons').style.display = 'flex';
-        poemAnswer.style.display = 'block';
+gridText.style.display = 'grid';
+document.getElementById('answer-buttons').style.display = 'flex';
+poemAnswer.style.display = 'block';
+
+// 添加历史记录逻辑
+var titleStr = "";
+var authorStr = "";
+if (weeklyPoemSelected) {
+  titleStr = weeklyPoemSelected.title;
+  authorStr = weeklyPoemSelected.author;
+} else if (randomPoemData) {
+  titleStr = randomPoemData.origin.title;
+  authorStr = randomPoemData.origin.author;
+} else {
+  let rawLines = rawPoemText.split("\n").map(l => l.trim());
+  if (rawLines.length >= 2) {
+    titleStr = rawLines[1];
+    if (titleStr.startsWith("《") && titleStr.endsWith("》")){
+      titleStr = titleStr.slice(1,-1);
+    }
+  }
+  if (rawLines.length >= 3) {
+    authorStr = rawLines[2].startsWith("作者：") ? rawLines[2].slice(3) : rawLines[2];
+  }
+  if (!titleStr) { 
+    let pureText = rawPoemText.replace(/\n/g, "");
+    titleStr = pureText.substring(0, 10); 
+  }
+  if (!authorStr) { authorStr = "手动输入"; }
+}
+var source = "";
+if (weeklyPoemSelected) { source = "weekly"; }
+else if (randomPoemData) { source = "random"; }
+else { source = "manual"; }
+var record = {
+  id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+  title: titleStr,
+  author: authorStr,
+  content: rawPoemText,
+  source: source
+};
+addHistoryRecord(record);
       });
       
       document.getElementById('showAnswerBtn').addEventListener('click', function(){
