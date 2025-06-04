@@ -2,6 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
+  <!-- 响应式 meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>诗歌九宫格生成器</title>
   <style>
@@ -14,51 +15,52 @@
       font-weight: normal;
       font-style: normal;
     }
+    /* body：左右居中，垂直靠上 */
     body {
       margin: 0;
-      padding: 0;
+      padding-top: 22px;
       font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
       background-color: #f7f7f7;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: flex-start;
       min-height: 100vh;
+      box-sizing: border-box;
     }
+    /* 主容器：固定高度633px，保证主界面与九宫格界面一致 */
     .container {
       width: 90%;
       max-width: 400px;
-      background-color: #fff;
+      height: 633px;
       padding: 20px;
+      margin: 20px auto;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 1px 3px 8px rgba(0,0,0,0.15);
+      box-sizing: border-box;
       text-align: center;
       position: relative;
+      display: block;
     }
-    /* 随机诗词区域 */
-    #random-poem {
-      margin-bottom: 10px;
-      font-size: 16px;
-      text-align: center;
-    }
-    /* 使用 contenteditable 模拟文本输入框，并设置左对齐 */
+    /* 主界面诗词输入区域：恢复高度至270px */
     #poemInput {
       width: 100%;
-      height: 150px;
+      height: 290px;
       font-size: 16px;
-      padding: 10px 5px 10px 10px;
+      padding: 10px;
       box-sizing: border-box;
       border: 1px solid #ccc;
       border-radius: 4px;
       margin-bottom: 10px;
       overflow-y: auto;
       text-align: left;
+      word-wrap: break-word;
+      white-space: pre-wrap;
     }
-    /* 当内容为空时显示提示文字 */
+    /* 空状态提示和水印 */
     #poemInput:empty:before {
       content: attr(data-placeholder);
       color: #aaa;
     }
-    /* 新增水印：文本框为空时，在提示下两行右对齐显示 */
     #poemInput:empty:after {
       content: "\A\A yumumao@medu.cc";
       white-space: pre;
@@ -67,18 +69,76 @@
       font-family: "微软雅黑", Arial, sans-serif;
       color: rgba(211,211,211,0.5);
     }
-    /* 生成九宫格和清空按钮的容器 */
+    /* 每周一首：简单换行显示 */
+    .poem-content p {
+      margin: 0 0 8px;
+      text-indent: 20px;
+      text-align: left;
+    }
+    /* 历史记录区域 */
+    #historyContainer {
+      width: 100%;
+      margin-top: 10px;
+      background: #f8f4e7;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      min-height: 111px;
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 5px;
+      text-align: left;
+      font-size: 12px;
+      color: #888;
+      box-sizing: border-box;
+    }
+    #historyContainer > div.header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      font-weight: normal;
+    }
+    #historyContainer > div.header button {
+      font-size: 12px;
+      background: transparent;
+      border: 1px solid #888;
+      border-radius: 3px;
+      padding: 2px 5px;
+      color: #888;
+    }
+    .history-item {
+      padding: 2px 20px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    .history-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manual-tag { color: #0077ff; font-size: 14px; margin-right: 3px; }
+    .weekly-tag { color: #48ff00; font-size: 14px; margin-right: 3px; }
+    .random-tag { color: #ffae00; font-size: 14px; margin-right: 3px; }
+    /* 生成按钮区域 */
     #generateButtonsContainer {
       display: flex;
       gap: 5px;
       margin-bottom: 10px;
+    }
+    #generateBtn, #clearBtn {
+      height: 40px;
     }
     #generateBtn {
       flex: 4;
       background-color: #FF69B4;
       color: #fff;
       font-size: 16px;
-      padding: 10px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -88,7 +148,6 @@
       background-color: #fc6159;
       color: #fff;
       font-size: 16px;
-      padding: 10px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -99,16 +158,17 @@
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 10px;
+      height: 40px;
       position: relative;
     }
-    /* “每周一首”容器 */
     #weeklyContainer {
-      text-align: left;
       flex: 1;
       position: relative;
     }
+    /* 每周一首按钮 */
     #weeklyContainer button {
-      padding: 10px;
+      height: 100%;
+      padding: 0 10px;
       font-size: 16px;
       background-color: #9370DB;
       color: #fff;
@@ -117,7 +177,7 @@
       cursor: pointer;
       width: 100%;
     }
-    /* 二级菜单：包含年级、册别、周次（空值显示“周次”）、随机上册、随机下册 */
+    /* 二级菜单 */
     #submenu {
       display: none;
       position: fixed;
@@ -135,11 +195,10 @@
       font-size: 14px;
       border-radius: 4px;
       border: none;
-      background-color: #9370DB;
+      background-color: #4A90E2;
       color: #fff;
       cursor: pointer;
     }
-    /* 从左侧缩放展开动画 */
     @keyframes expandScale {
       0% { transform: scaleX(0); opacity: 0; }
       100% { transform: scaleX(1); opacity: 1; }
@@ -148,15 +207,16 @@
       animation: expandScale 0.15s ease-out forwards;
       transform-origin: left;
     }
-    /* 右侧“随机诗词”按钮 */
     #fillContainer {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 40px;
     }
     #fillContainer button {
-      padding: 10px;
+      height: 100%;
+      padding: 0 10px;
       font-size: 16px;
       background-color: #9370DB;
       border: none;
@@ -165,79 +225,122 @@
       cursor: pointer;
       width: 100%;
     }
-    /* 九宫格文本区域 */
+    /* 九宫格显示区域：调整上抬，将 margin-top 从 -20px 改为 -30px */
     #gridText {
       display: none;
       max-width: 300px;
-      margin: 0 auto;
+      height: 270px;
+      margin: -90px auto 0 auto;
+      position: relative;
+      z-index: 10;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 5px;
       font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
     }
+    /* 九宫格每个格子 */
     .grid-cell {
       border: 1px solid #ccc;
       background-color: #FFEEEE;
-      text-align: center;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 36px;
-      padding: 15px 0;
       cursor: pointer;
     }
     .cell-letter {
       transition: opacity 0.5s ease;
       opacity: 1;
     }
-    /* 答案、搜索、刷新、返回按钮区域 */
+    /* 操作按钮区域：宽度设置为80% */
     #answer-buttons {
       display: none;
-      max-width: 300px;
+      width: 100%;
       margin: 0 auto 10px;
+      height: 40px;
       justify-content: space-between;
       gap: 5px;
+      z-index: 11;
+    }
+    /* 按钮底色变暗：答案按钮采用较暗绿色，其他按钮采用较暗黄色 */
+    #showAnswerBtn {
+      flex: 2;
+      background-color: #4CAF50 !important;
+    }
+    #searchBtn, #refreshBtn, #backBtn {
+      flex: 1;
+      background-color: #F57F17 !important;
     }
     #answer-buttons button {
-      flex: 1;
-      padding: 8px;
+      height: 100%;
       font-size: 14px;
-      background-color: #9370DB;
       color: #fff;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
-    /* 完整诗文显示区域 */
+    /* 答案显示区域 */
     #poemAnswer {
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 4px;
-      background-color: #fafafa;
+      display: none;
+      width: 100%;
+      min-height: 189px;
+      max-height: 26vh;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-left-width: 1px;
+      border-top-width: 1px;
+      border-right-width: 2px;
+      border-bottom-width: 2px;
+      border-radius: 8px;
+      background-color: #fbfbebc7;
       text-align: center;
+      color: #444;
       white-space: pre-wrap;
-      font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
+      overflow-y: auto;
+      font-size: 18px;
+      box-sizing: border-box;
+      z-index: 8;
+    }
+    .answer-line {
+      text-align: center;
+    }
+    /* 当生成九宫格时，将主容器切换为 flex 布局，垂直居中 */
+    .grid-mode {
+      display: flex !important;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    /* 响应式适配 */
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      #poemInput { height: 180px; }
+      #gridText { max-width: 90%; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- SDK加载的随机诗词 -->
+  <div class="container" id="mainContainer">
+    <!-- SDK加载随机诗词 -->
     <div id="random-poem">
       <span id="jinrishici-sentence">正在加载今日诗词....</span>
       <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
     </div>
-    <!-- 文本输入框 -->
+    <!-- 主界面诗词输入区域 -->
     <div id="poemInput" contenteditable="true" data-placeholder="请输入或在下方选择诗词"></div>
-    <!-- 生成九宫格和清空按钮 -->
+    <!-- 生成按钮区域 -->
     <div id="generateButtonsContainer">
       <button id="generateBtn">生成九宫格</button>
       <button id="clearBtn">清空</button>
     </div>
-    <!-- 顶部区域 -->
+    <!-- 顶部按钮区域 -->
     <div id="top-buttons">
       <div id="weeklyContainer">
         <button id="weeklyBtn">每周一首</button>
-        <!-- 二级菜单：选择年级、册别、周次及随机上册/下册按钮 -->
         <div id="submenu">
+          <!-- 整合三个控件：年级、上/下册、周次（随机选项位于第二项） -->
           <select id="gradeSelect">
             <option value="1">一年级</option>
             <option value="2">二年级</option>
@@ -251,36 +354,648 @@
             <option value="下册" selected>下册</option>
           </select>
           <select id="weekSelect">
-            <!-- 第一项空值显示“周次”，后续选项将转换显示为“一”、“二”… -->
+            <!-- 周次选项由 updateWeekSelect 动态生成 -->
           </select>
-          <button id="randomUpperBtn">随机上册</button>
-          <button id="randomLowerBtn">随机下册</button>
         </div>
       </div>
       <div id="fillContainer">
         <button id="fillRandomBtn">随机诗词</button>
       </div>
     </div>
+    <!-- 历史记录区域 -->
+    <div id="historyContainer">
+      <div class="header"><span>历史记录</span><button id="clearHistoryBtn">清空</button></div>
+      <!-- 历史记录列表由JS动态生成 -->
+    </div>
     <!-- 九宫格显示区域 -->
     <div id="gridText"></div>
     <br>
-    <!-- 答案、搜索、刷新、返回按钮区域 -->
+    <!-- 九宫格模式下操作按钮区域 -->
     <div id="answer-buttons">
       <button id="showAnswerBtn">答案</button>
       <button id="searchBtn">搜索</button>
       <button id="refreshBtn">刷新</button>
       <button id="backBtn">返回</button>
     </div>
-    <!-- 完整诗文显示区域 -->
-    <div id="poemAnswer" style="display: none;"></div>
+    <!-- 答案显示区域 -->
+    <div id="poemAnswer">↑点击按钮或本区域 显示/隐藏 答案</div>
   </div>
   
+  <!-- 辅助函数 -->
   <script>
-    var currentLoadId = 0;
-    var randomPoemData = null;
-    var weeklyPoemSelected = null;
-    var savedPoem = "";
-
+    // 将连续出现的标点（允许全角与半角混用，之间可能有空白）只保留第一个
+    function collapsePunctuation(str) {
+      return str.replace(/([，。！？,\.!?…])(?:\s*[，。！？,\.!?…])+/g, '$1');
+    }
+    // 针对每周一首：直接以div换行显示
+    function formatWeeklyPoem(fullText) {
+      return fullText.split("\n").map(line => `<div>${line}</div>`).join("");
+    }
+    // 针对随机诗词：对正文中每一行调用 collapsePunctuation，再每两行合并显示
+    function formatRandomPoem(fullText) {
+      let lines = fullText.split("\n").map(l => l.trim()).filter(l => l !== "");
+      if (lines.length <= 3) {
+        return lines.join("<br/>");
+      } else {
+        let header = lines.slice(0, 3);
+        let content = lines.slice(3).map(line => collapsePunctuation(line));
+        let grouped = [];
+        for (let i = 0; i < content.length; i += 2) {
+          if (i + 1 < content.length) {
+            grouped.push(content[i] + " " + content[i+1]);
+          } else {
+            grouped.push(content[i]);
+          }
+        }
+        return header.join("<br/>") + "<br/>" + grouped.join("<br/>");
+      }
+    }
+    // 备用：随机诗词复杂格式处理
+    function formatMainPoem(fullText) {
+      let lines = fullText.split("\n").map(line => line.trim());
+      let headerLines = [];
+      if (lines[0] && (lines[0].includes('年级') || lines[0].startsWith("《"))) {
+        for (let i = 0; i < 3 && i < lines.length; i++) {
+          headerLines.push(lines[i]);
+        }
+        lines = lines.slice(3);
+      }
+      if (headerLines.length === 0) {
+        return lines.join("<br/>");
+      }
+      if(headerLines.length >= 2) {
+        let title = headerLines[1];
+        if(title.startsWith("《") && title.endsWith("》")){
+          title = title.slice(1,-1);
+        }
+        headerLines[1] = title;
+      }
+      let headerHTML = headerLines.map(item => `<div>${item}</div>`).join("");
+      let content = lines.join(" ");
+      const punctRegex = /([，,。、。.！？!…\?]+)/g;
+      let sentences = content.split(punctRegex)
+          .map(function(part, index, array) {
+              if (!punctRegex.test(part) && index < array.length - 1) {
+                  return part + (array[index + 1] || '') + "<br/>";
+              }
+              return part;
+          })
+          .filter(function(s) { return s.trim(); });
+      let contentHTML = sentences.join("");
+      return `<div>${headerHTML}</div><div class="poem-content">${contentHTML}</div>`;
+    }
+    // 格式化答案文本（原方法）
+    function formatAnswerNew(text) {
+      if (!text || typeof text !== "string") return "";
+      let textNoHalfComma = text.replace(/(,)(?=[，。])|([，。])(?=,)/g, "");
+      let lines = textNoHalfComma.split("\n").map(line => line.trim()).filter(line => line !== "");
+      let header = [];
+      let bodyText = "";
+      if (lines.length >= 2 && lines[0].startsWith("《")) {
+        header = lines.slice(0, 2);
+        bodyText = lines.slice(2).join(" ");
+      } else if (lines.length >= 3) {
+        header = lines.slice(0, 3);
+        bodyText = lines.slice(3).join(" ");
+      } else {
+        return text;
+      }
+      const punctuations = /([，,、。.！？!…\?]+|$)/g;
+      let matches = bodyText.match(new RegExp(`[^，,、。.！？!…\?]+[，,、。.！？!…\?]*`, 'g'));
+      if (!matches || matches.length === 0) {
+        return header.join("\n") + "\n" + bodyText;
+      }
+      let formattedBody = "";
+      for (let i = 0; i < matches.length; i += 2) {
+        if (i + 1 < matches.length) {
+          let firstSentence = matches[i];
+          let secondSentence = matches[i + 1].replace(punctuations, "");
+          formattedBody += firstSentence + secondSentence + "\n";
+        } else {
+          formattedBody += matches[i].replace(punctuations, "") + "\n";
+        }
+      }
+      return header.join("\n") + "\n" + formattedBody;
+    }
+    // 根据文本字数判断答案显示格式（平均字符数少于8，则合并两行后居中显示）
+    function formatAnswerDisplay(text) {
+      let lines = text.split("\n").map(l => l.trim()).filter(l => l !== "");
+      let totalChars = lines.reduce((sum, line) => sum + line.length, 0);
+      let avg = totalChars / lines.length;
+      let newLines = [];
+      if (avg < 8) {
+        for (let i = 0; i < lines.length; i += 2) {
+          if (i + 1 < lines.length) {
+            newLines.push(lines[i] + " " + lines[i+1]);
+          } else {
+            newLines.push(lines[i]);
+          }
+        }
+      } else {
+        newLines = lines;
+      }
+      return newLines.map(line => '<div class="answer-line">' + line + '</div>').join("");
+    }
+  </script>
+  
+  <!-- 主逻辑代码 -->
+  <script>
+    window.onload = function () {
+      var randomPoemData = null;
+      var weeklyPoemSelected = null;
+      var savedPoem = "";
+      var rawPoemText = "";
+      var historyRecords = JSON.parse(localStorage.getItem('poemHistory')) || [];
+      var answerVisible = false;
+      
+      function updateHistoryUI() {
+        var container = document.getElementById('historyContainer');
+        var html = '<div class="header"><span>历史记录</span><button id="clearHistoryBtn">清空</button></div>';
+        historyRecords.forEach(function(record, index) {
+          var dotClass = "";
+          if (record.source === "manual") {
+            dotClass = "manual-tag";
+          } else if (record.source === "weekly") {
+            dotClass = "weekly-tag";
+          } else if (record.source === "random") {
+            dotClass = "random-tag";
+          }
+          html += '<div class="history-item" data-index="' + index + '">'
+                + '<span class="' + dotClass + '">●</span>'
+                + '<span class="history-title">' + record.title + '</span> - ' + record.author
+                + '</div>';
+        });
+        container.innerHTML = html;
+        var clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        if (clearHistoryBtn) {
+          clearHistoryBtn.addEventListener('click', function(){
+            if (confirm("确定清空所有记录？")) {
+              historyRecords = [];
+              localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
+              updateHistoryUI();
+            }
+          });
+        }
+        var items = container.getElementsByClassName('history-item');
+        for (var i = 0; i < items.length; i++) {
+          items[i].addEventListener('click', function() {
+            var idx = this.getAttribute('data-index');
+            var rec = historyRecords[idx];
+            document.getElementById('poemInput').innerText = rec.content;
+            rawPoemText = rec.content;
+            weeklyPoemSelected = null;
+            updateClearBtnStyle();
+          });
+          items[i].addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            if (confirm("确定删除这条记录？")) {
+              var idx = this.getAttribute('data-index');
+              historyRecords.splice(idx, 1);
+              localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
+              updateHistoryUI();
+            }
+          });
+          (function(item){
+            let timer;
+            item.addEventListener('touchstart', function(e){
+              timer = setTimeout(() => {
+                if (confirm("确定删除这条记录？")) {
+                  var idx = item.getAttribute('data-index');
+                  historyRecords.splice(idx, 1);
+                  localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
+                  updateHistoryUI();
+                }
+              }, 300);
+            });
+            item.addEventListener('touchend', function(e){
+              clearTimeout(timer);
+            });
+          })(items[i]);
+        }
+      }
+      updateHistoryUI();
+      
+      function addHistoryRecord(record) {
+        if (record.source === "manual") {
+          let pureText = record.content.replace(/\n/g, "");
+          record.title = pureText.substring(0,10);
+          record.author = "手动输入";
+        }
+        var existIndex = historyRecords.findIndex(function(r) {
+          return r.content === record.content;
+        });
+        if (existIndex !== -1) { historyRecords.splice(existIndex, 1); }
+        historyRecords.unshift(record);
+        if (historyRecords.length > 20) { historyRecords = historyRecords.slice(0, 20); }
+        localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
+        updateHistoryUI();
+      }
+      
+      function updateClearBtnStyle() {
+        var poemInput = document.getElementById('poemInput');
+        var clearBtn = document.getElementById('clearBtn');
+        var content = poemInput.innerText.trim();
+        clearBtn.style.backgroundColor = (!content || content === "暂未提供该年级数据") ? "#999" : "#fc6159";
+      }
+      
+      function getCurrentPoemArray() {
+        var grade = document.getElementById('gradeSelect').value;
+        var volume = document.getElementById('volumeSelect').value;
+        var poemArr;
+      if (grade === "1") {
+        poemArr = (volume === "上册") ? gradeOneUpperPoems : gradeOneLowerPoems;
+      } else if (grade === "2") {
+        poemArr = (volume === "上册") ? gradeTwoUpperPoems : gradeTwoLowerPoems;
+      } else if (grade === "3") {
+        poemArr = (volume === "上册") ? gradeThreeUpperPoems : gradeThreeLowerPoems;
+      } else if (grade === "4") {
+        poemArr = (volume === "上册") ? grade4UpperPoems : grade4LowerPoems;
+      } else if (grade === "5") {
+        poemArr = (volume === "上册") ? grade5UpperPoems : grade5LowerPoems;
+      } else if (grade === "6") {
+        poemArr = (volume === "上册") ? grade6UpperPoems : grade6LowerPoems;
+      }
+        return poemArr;
+      }
+      
+      function updateWeekSelect() {
+        var poemArr = getCurrentPoemArray();
+        var weekSelect = document.getElementById('weekSelect');
+        weekSelect.innerHTML = "";
+        var emptyOption = document.createElement('option');
+        emptyOption.value = "";
+        emptyOption.text = "周次";
+        weekSelect.appendChild(emptyOption);
+        var randomOption = document.createElement('option');
+        randomOption.value = "random";
+        randomOption.text = "随机";
+        weekSelect.appendChild(randomOption);
+        for (let i = 0; i < poemArr.length; i++) {
+          let option = document.createElement('option');
+          option.value = i;
+          option.text = poemArr[i].week.replace(/^第/, "").replace(/周$/, "");
+          weekSelect.appendChild(option);
+        }
+        weekSelect.selectedIndex = 0;
+        if (weekSelect.value === "") {
+          document.getElementById('poemInput').innerHTML = "";
+          weeklyPoemSelected = null;
+        }
+      }
+      
+      document.getElementById('weekSelect').addEventListener("mousedown", function(){
+        if (this.value === "random") {
+          updateWeeklyPoem();
+        }
+      });
+      
+      function populatePoemInput(poem) {
+        var fullPoem = poem.week + " " + "《" + poem.title + "》" + "\n" +
+                       "作者：" + poem.author + "\n" + poem.content;
+        rawPoemText = fullPoem;
+        var formatted = formatWeeklyPoem(fullPoem);
+        document.getElementById('poemInput').innerHTML = formatted;
+        updateClearBtnStyle();
+      }
+      
+      function updateWeeklyPoem() {
+        updateWeekSelect();
+        var weekSelect = document.getElementById('weekSelect');
+        var poemArr = getCurrentPoemArray();
+        if (weekSelect.value === "") {
+          document.getElementById('poemInput').innerHTML = "";
+          weeklyPoemSelected = null;
+        } else if (weekSelect.value === "random") {
+          let randomIndex = Math.floor(Math.random() * poemArr.length);
+          let poem = poemArr[randomIndex];
+          populatePoemInput(poem);
+          weeklyPoemSelected = poem;
+          let record = {
+            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+            title: poem.title,
+            author: poem.author,
+            content: rawPoemText,
+            source: "weekly"
+          };
+          addHistoryRecord(record);
+        } else {
+          let index = parseInt(weekSelect.value);
+          let poem = poemArr[index];
+          populatePoemInput(poem);
+          weeklyPoemSelected = poem;
+          let record = {
+            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+            title: poem.title,
+            author: poem.author,
+            content: rawPoemText,
+            source: "weekly"
+          };
+          addHistoryRecord(record);
+        }
+      }
+      
+      document.getElementById('gradeSelect').addEventListener('change', updateWeeklyPoem);
+      document.getElementById('volumeSelect').addEventListener('change', updateWeeklyPoem);
+      document.getElementById('weekSelect').addEventListener('change', function() {
+        if (this.value === "") {
+          document.getElementById('poemInput').innerHTML = "";
+          weeklyPoemSelected = null;
+        } else if (this.value === "random") {
+          let poemArr = getCurrentPoemArray();
+          let randomIndex = Math.floor(Math.random() * poemArr.length);
+          let poem = poemArr[randomIndex];
+          populatePoemInput(poem);
+          weeklyPoemSelected = poem;
+          let record = {
+            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+            title: poem.title,
+            author: poem.author,
+            content: rawPoemText,
+            source: "weekly"
+          };
+          addHistoryRecord(record);
+        } else {
+          let index = parseInt(this.value);
+          let poemArr = getCurrentPoemArray();
+          let poem = poemArr[index];
+          populatePoemInput(poem);
+          weeklyPoemSelected = poem;
+          let record = {
+            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+            title: poem.title,
+            author: poem.author,
+            content: rawPoemText,
+            source: "weekly"
+          };
+          addHistoryRecord(record);
+        }
+      });
+      
+      document.getElementById('fillRandomBtn').addEventListener('click', function() {
+        var btn = this;
+        btn.innerText = "正在加载";
+        if (typeof jinrishici !== "undefined" && typeof jinrishici.load === "function") {
+          try {
+            jinrishici.load(function(result) {
+              randomPoemData = result.data;
+              btn.innerText = "随机诗词";
+              var fullPoem = "《" + randomPoemData.origin.title + "》" + "\n" +
+                             "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                             randomPoemData.origin.content;
+              var formatted = formatRandomPoem(fullPoem);
+              document.getElementById('poemInput').innerHTML = formatted;
+              rawPoemText = fullPoem;
+              weeklyPoemSelected = null;
+              updateClearBtnStyle();
+            });
+          } catch (e) {
+            console.error(e);
+            btn.innerText = "随机诗词";
+            alert("加载诗词时出现错误，请稍后再试");
+          }
+        } else {
+          btn.innerText = "随机诗词";
+          alert("诗词 API 未加载，请检查网络连接");
+        }
+      });
+      
+      document.getElementById('clearBtn').addEventListener('click', function() {
+        document.getElementById('poemInput').innerHTML = "";
+        updateClearBtnStyle();
+      });
+      
+      document.getElementById('generateBtn').addEventListener('click', function() {
+        var poemInput = document.getElementById('poemInput');
+        var fullText = poemInput.innerText.trim();
+        if (!fullText || fullText === "暂未提供该年级数据") {
+          alert("请输入或在下方选择诗词后，再生成九宫格");
+          return;
+        }
+        var poemAnswer = document.getElementById('poemAnswer');
+        poemAnswer.innerHTML = "↑点击按钮或本区域 显示/隐藏 答案";
+        poemAnswer.style.color = "#888";
+        answerVisible = false;
+        document.getElementById('showAnswerBtn').innerText = "答案";
+        
+        var body = fullText;
+        if (fullText.startsWith("《") || fullText.indexOf("《") !== -1) {
+          var parts = fullText.split("\n");
+          if (parts.length >= 3) {
+            body = parts.slice(2).join("\n");
+          }
+        }
+        rawPoemText = fullText;
+        savedPoem = body;
+        var chars = body.match(/[\u4e00-\u9fa5]/g);
+        if (!chars || chars.length === 0) {
+          alert("未检测到有效汉字");
+          return;
+        }
+        var required = 9;
+        if (chars.length < required) {
+          var times = Math.ceil(required / chars.length);
+          var repeated = [];
+          for (var i = 0; i < times; i++){
+            repeated = repeated.concat(chars);
+          }
+          chars = repeated.slice(0, required);
+        }
+        for (let i = chars.length - 1; i > 0; i--){
+          const j = Math.floor(Math.random() * (i + 1));
+          [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        var selectedChars = chars.slice(0, 9);
+        var gridText = document.getElementById('gridText');
+        gridText.innerHTML = "";
+        for (let i = 0; i < selectedChars.length; i++){
+          var cell = document.createElement('div');
+          cell.className = "grid-cell";
+          cell.innerHTML = '<span class="cell-letter">' + selectedChars[i] + '</span>';
+          cell.addEventListener("click", function(){
+            var span = this.querySelector(".cell-letter");
+            span.style.opacity = "0";
+            let cellThis = this;
+            setTimeout(function(){
+              var gridCells = document.getElementsByClassName("grid-cell");
+              var otherLetters = [];
+              for (var j = 0; j < gridCells.length; j++){
+                if (gridCells[j] !== cellThis){
+                  var s = gridCells[j].querySelector(".cell-letter");
+                  otherLetters.push(s.innerText);
+                }
+              }
+              var allChars = body.match(/[\u4e00-\u9fa5]/g) || [];
+              var candidates = allChars.filter(function(ch){
+                return otherLetters.indexOf(ch) === -1;
+              });
+              if (candidates.length === 0){
+                alert("没有可替换的新汉字");
+                span.style.opacity = "1";
+                return;
+              }
+              var newChar = candidates[Math.floor(Math.random() * candidates.length)];
+              span.innerText = newChar;
+              span.style.opacity = "1";
+            }, 500);
+          });
+          gridText.appendChild(cell);
+        }
+        // 切换到九宫格模式：隐藏主界面其它部分，
+        // 并将容器（主容器）切换为 flex 布局，使九宫格整体垂直居中
+        var container = document.getElementById('mainContainer');
+        container.classList.add("grid-mode");
+        document.getElementById('poemInput').style.display = 'none';
+        document.getElementById('weeklyContainer').style.display = 'none';
+        document.getElementById('fillContainer').style.display = 'none';
+        document.getElementById('generateButtonsContainer').style.display = 'none';
+        document.getElementById('random-poem').style.display = 'none';
+        document.getElementById('submenu').style.display = 'none';
+        document.getElementById('historyContainer').style.display = 'none';
+        gridText.style.display = 'grid';
+        document.getElementById('answer-buttons').style.display = 'flex';
+        poemAnswer.style.display = 'block';
+      });
+      
+      document.getElementById('showAnswerBtn').addEventListener('click', function(){
+        var poemAnswer = document.getElementById('poemAnswer');
+        if (!answerVisible) {
+          var rawAnswer = "";
+          if (weeklyPoemSelected) {
+            var gradeSelect = document.getElementById('gradeSelect');
+            var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+            var volumeText = document.getElementById('volumeSelect').value;
+            rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + "\n" +
+                        "《" + weeklyPoemSelected.title + "》\n" +
+                        "作者：" + weeklyPoemSelected.author + "\n" +
+                        weeklyPoemSelected.content;
+          } else if (randomPoemData && !weeklyPoemSelected) {
+            rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
+                        "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                        randomPoemData.origin.content;
+          } else {
+            rawAnswer = savedPoem;
+          }
+          var formatted = formatAnswerNew(rawAnswer);
+          var finalAnswer = formatAnswerDisplay(formatted);
+          poemAnswer.innerHTML = finalAnswer;
+          poemAnswer.style.color = "#000";
+          this.innerText = '隐藏';
+          answerVisible = true;
+        } else {
+          poemAnswer.innerHTML = "↑点击按钮或本区域 显示/隐藏 答案";
+          poemAnswer.style.color = "#888";
+          this.innerText = '答案';
+          answerVisible = false;
+        }
+      });
+      
+      document.getElementById('poemAnswer').addEventListener('click', function(){
+        document.getElementById('showAnswerBtn').click();
+      });
+      
+      document.getElementById('searchBtn').addEventListener('click', function(){
+        var searchQuery = "";
+        if (weeklyPoemSelected) {
+          searchQuery = weeklyPoemSelected.title + " " + weeklyPoemSelected.author;
+        } else if (randomPoemData && randomPoemData.origin && randomPoemData.origin.title) {
+          searchQuery = randomPoemData.origin.title + " " +
+                        randomPoemData.origin.dynasty + " " +
+                        randomPoemData.origin.author;
+        } else if (savedPoem) {
+          searchQuery = savedPoem;
+        }
+        if (!searchQuery) {
+          alert("没有可搜索的诗句");
+          return;
+        }
+        var url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(searchQuery);
+        window.open(url, '_blank');
+      });
+      
+      document.getElementById('refreshBtn').addEventListener('click', function(){
+        if (!rawPoemText) {
+          alert("没有可刷新的内容");
+          return;
+        }
+        var poemAnswer = document.getElementById('poemAnswer');
+        var wasVisible = answerVisible;
+        document.getElementById('generateBtn').click();
+        if (wasVisible) {
+          var gradeSelect = document.getElementById('gradeSelect');
+          var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+          var volumeText = document.getElementById('volumeSelect').value;
+          var rawAnswer = "";
+          if (weeklyPoemSelected) {
+            rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + "\n" +
+                        "《" + weeklyPoemSelected.title + "》\n" +
+                        "作者：" + weeklyPoemSelected.author + "\n" +
+                        weeklyPoemSelected.content;
+          } else if (randomPoemData && !weeklyPoemSelected) {
+            rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
+                        "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                        randomPoemData.origin.content;
+          } else {
+            rawAnswer = savedPoem;
+          }
+          var formatted = formatAnswerNew(rawAnswer);
+          var finalAnswer = formatAnswerDisplay(formatted);
+          poemAnswer.innerHTML = finalAnswer;
+          poemAnswer.style.color = "#000";
+          document.getElementById('showAnswerBtn').innerText = '隐藏';
+          answerVisible = true;
+        }
+      });
+      
+      document.getElementById('backBtn').addEventListener('click', function(){
+        weeklyPoemSelected = null;
+        savedPoem = "";
+        rawPoemText = "";
+        // 恢复主界面显示：恢复主容器布局
+        var container = document.getElementById('mainContainer');
+        container.classList.remove("grid-mode");
+        document.getElementById('poemInput').style.display = 'block';
+        document.getElementById('poemInput').innerHTML = "";
+        document.getElementById('weeklyContainer').style.display = 'block';
+        document.getElementById('fillContainer').style.display = 'block';
+        document.getElementById('generateButtonsContainer').style.display = 'flex';
+        document.getElementById('random-poem').style.display = 'block';
+        document.getElementById('gridText').style.display = 'none';
+        document.getElementById('answer-buttons').style.display = 'none';
+        document.getElementById('poemAnswer').style.display = 'none';
+        answerVisible = false;
+        document.getElementById('showAnswerBtn').innerText = '答案';
+        document.getElementById('historyContainer').style.display = 'block';
+        randomPoemData = null;
+      });
+      
+      document.getElementById('weeklyBtn').addEventListener('click', function(e) {
+        var submenu = document.getElementById('submenu');
+        if (submenu.style.display === "none" || submenu.style.display === "") {
+          var topRect = document.getElementById('weeklyBtn').getBoundingClientRect();
+          submenu.style.left = topRect.left + "px";
+          submenu.style.top = (topRect.bottom + 5) + "px";
+          submenu.style.display = "flex";
+          submenu.classList.add("open");
+          updateWeeklyPoem();
+        } else {
+          submenu.style.display = "none";
+          submenu.classList.remove("open");
+        }
+        e.stopPropagation();
+      });
+      
+      document.addEventListener('click', function(e) {
+        var weeklyContainer = document.getElementById('weeklyContainer');
+        var submenu = document.getElementById('submenu');
+        if (!weeklyContainer.contains(e.target)) {
+          submenu.style.display = "none";
+          submenu.classList.remove("open");
+        }
+      });
+    };
+  </script>
+  
+  <script>
     // ========== 数据嵌入 ==========
 
     // ---------- 一年级 ----------
@@ -510,411 +1225,6 @@
       { week: "第十五周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" },
       { week: "第十六周", title: "暂缺", author: "暂缺", content: "暂缺", volume: "下册" }
     ];
-
-    // ========== 功能函数 ==========
-    // 根据下拉选择获取当前古诗数组
-    function getCurrentPoemArray() {
-      var grade = document.getElementById('gradeSelect').value;
-      var volume = document.getElementById('volumeSelect').value;
-      var poemArr;
-      if (grade === "1") {
-        poemArr = (volume === "上册") ? gradeOneUpperPoems : gradeOneLowerPoems;
-      } else if (grade === "2") {
-        poemArr = (volume === "上册") ? gradeTwoUpperPoems : gradeTwoLowerPoems;
-      } else if (grade === "3") {
-        poemArr = (volume === "上册") ? gradeThreeUpperPoems : gradeThreeLowerPoems;
-      } else if (grade === "4") {
-        poemArr = (volume === "上册") ? grade4UpperPoems : grade4LowerPoems;
-      } else if (grade === "5") {
-        poemArr = (volume === "上册") ? grade5UpperPoems : grade5LowerPoems;
-      } else if (grade === "6") {
-        poemArr = (volume === "上册") ? grade6UpperPoems : grade6LowerPoems;
-      }
-      return poemArr;
-    }
-
-    // 根据当前古诗数组更新周下拉菜单选项，添加空值提示“周次”，后续选项显示为“一”、“二”、…
-    function updateWeekSelect() {
-      var poemArr = getCurrentPoemArray();
-      var weekSelect = document.getElementById('weekSelect');
-      weekSelect.innerHTML = "";
-      // 添加空值选项
-      var emptyOption = document.createElement('option');
-      emptyOption.value = "";
-      emptyOption.text = "周次";
-      weekSelect.appendChild(emptyOption);
-      // 为每个数据项显示去掉“第”和“周”的数字（例如 "第一周" 显示为 "一"）
-      for (var i = 0; i < poemArr.length; i++) {
-        var option = document.createElement('option');
-        option.value = i;
-        option.text = poemArr[i].week.replace(/^第/, "").replace(/周$/, "");
-        weekSelect.appendChild(option);
-      }
-      weekSelect.selectedIndex = 0;
-      // 默认空值时清空文本框
-      if (weekSelect.value === "") {
-        document.getElementById('poemInput').innerText = "";
-        weeklyPoemSelected = null;
-      }
-    }
-
-    // 将所选诗词填入文本框
-    function populatePoemInput(poem) {
-      var fullPoem = poem.week + " " + "《" + poem.title + "》" + "\n" +
-                     "作者：" + poem.author + "\n" + poem.content;
-      document.getElementById('poemInput').innerText = fullPoem;
-      updateClearBtnStyle();
-    }
-
-    // 更新“每周一首”——更新周次选项，并填入诗词（若周次为空则清空文本框）
-    function updateWeeklyPoem() {
-      updateWeekSelect();
-      var weekSelect = document.getElementById('weekSelect');
-      var poemArr = getCurrentPoemArray();
-      if (weekSelect.value === "") {
-        document.getElementById('poemInput').innerText = "";
-        weeklyPoemSelected = null;
-      } else if (poemArr.length > 0) {
-        var selectedIndex = weekSelect.value;
-        var poem = poemArr[selectedIndex];
-        populatePoemInput(poem);
-        weeklyPoemSelected = poem;
-      }
-    }
-
-    // 根据文本框内容更新清空按钮背景色
-    function updateClearBtnStyle() {
-      var poemInput = document.getElementById('poemInput');
-      var clearBtn = document.getElementById('clearBtn');
-      var content = poemInput.innerText.trim();
-      if (!content || content === "暂未提供该年级数据") {
-        clearBtn.style.backgroundColor = "#999";
-      } else {
-        clearBtn.style.backgroundColor = "#fc6159";
-      }
-    }
-
-    // ========== 事件绑定 ==========
-    document.getElementById('gradeSelect').addEventListener('change', updateWeeklyPoem);
-    document.getElementById('volumeSelect').addEventListener('change', updateWeeklyPoem);
-    document.getElementById('weekSelect').addEventListener('change', function() {
-      var weekSelect = document.getElementById('weekSelect');
-      if (weekSelect.value === "") {
-        document.getElementById('poemInput').innerText = "";
-        weeklyPoemSelected = null;
-      } else {
-        var poemArr = getCurrentPoemArray();
-        var selectedIndex = weekSelect.value;
-        populatePoemInput(poemArr[selectedIndex]);
-        weeklyPoemSelected = poemArr[selectedIndex];
-      }
-    });
-
-    // “随机上册”按钮：随机选择当前年级上册诗词，不生成九宫格
-    document.getElementById('randomUpperBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      var grade = document.getElementById('gradeSelect').value;
-      var poemArr;
-      if (grade === "1") {
-        poemArr = gradeOneUpperPoems;
-      } else if (grade === "2") {
-        poemArr = gradeTwoUpperPoems;
-      } else if (grade === "3") {
-        poemArr = gradeThreeUpperPoems;
-      } else if (grade === "4") {
-        poemArr = grade4UpperPoems;
-      } else if (grade === "5") {
-        poemArr = grade5UpperPoems;
-      } else if (grade === "6") {
-        poemArr = grade6UpperPoems;
-      }
-      if (poemArr && poemArr.length > 0) {
-        var randomIndex = Math.floor(Math.random() * poemArr.length);
-        var randomPoem = poemArr[randomIndex];
-        populatePoemInput(randomPoem);
-        weeklyPoemSelected = randomPoem;
-        document.getElementById('weekSelect').value = randomIndex;
-      }
-    });
-
-    // “随机下册”按钮：随机选择当前年级下册诗词，不生成九宫格
-    document.getElementById('randomLowerBtn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      var grade = document.getElementById('gradeSelect').value;
-      var poemArr;
-      if (grade === "1") {
-        poemArr = gradeOneLowerPoems;
-      } else if (grade === "2") {
-        poemArr = gradeTwoLowerPoems;
-      } else if (grade === "3") {
-        poemArr = gradeThreeLowerPoems;
-      } else if (grade === "4") {
-        poemArr = grade4LowerPoems;
-      } else if (grade === "5") {
-        poemArr = grade5LowerPoems;
-      } else if (grade === "6") {
-        poemArr = grade6LowerPoems;
-      }
-      if (poemArr && poemArr.length > 0) {
-        var randomIndex = Math.floor(Math.random() * poemArr.length);
-        var randomPoem = poemArr[randomIndex];
-        populatePoemInput(randomPoem);
-        weeklyPoemSelected = randomPoem;
-        document.getElementById('weekSelect').value = randomIndex;
-      }
-    });
-
-    // “每周一首”按钮点击：展开/收起二级菜单；默认选中三年级下册、周次为空
-    document.getElementById('weeklyBtn').addEventListener('click', function(e) {
-      var submenu = document.getElementById('submenu');
-      var topRect = document.getElementById('top-buttons').getBoundingClientRect();
-      if (submenu.style.display === "none" || submenu.style.display === "") {
-        submenu.style.width = topRect.width + "px";
-        submenu.style.left = topRect.left + "px";
-        submenu.style.top = (topRect.bottom + 5) + "px";
-        submenu.style.display = "flex";
-        submenu.classList.add("open");
-        // 默认设置：三年级、下册、周次为空
-        document.getElementById('gradeSelect').value = "3";
-        document.getElementById('volumeSelect').value = "下册";
-        updateWeeklyPoem(); // 此时周次为空，文本框清空
-      } else {
-        submenu.style.display = "none";
-        submenu.classList.remove("open");
-      }
-      e.stopPropagation();
-    });
-
-    // 点击二级菜单外区域时自动收起二级菜单
-    document.addEventListener('click', function(e) {
-      var weeklyContainer = document.getElementById('weeklyContainer');
-      var submenu = document.getElementById('submenu');
-      if (!weeklyContainer.contains(e.target)) {
-        submenu.style.display = "none";
-        submenu.classList.remove("open");
-      }
-    });
-
-    // “随机诗词”按钮：调用 API 填充诗词（并替换所有半角逗号为白色显示）
-    document.getElementById('fillRandomBtn').addEventListener('click', function() {
-      var btn = this;
-      currentLoadId++;
-      let thisLoadId = currentLoadId;
-      btn.innerText = "正在加载";
-      if (typeof jinrishici !== "undefined" && typeof jinrishici.load === "function") {
-        try {
-          jinrishici.load(function(result) {
-            if (thisLoadId === currentLoadId) {
-              randomPoemData = result.data;
-              btn.innerText = "随机诗词";
-              var fullPoem = "《" + randomPoemData.origin.title + "》\n" +
-                             "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
-                             randomPoemData.origin.content;
-              fullPoem = fullPoem.replace(/,/g, '<span style="color: white;">,</span>');
-              document.getElementById('poemInput').innerHTML = fullPoem;
-              weeklyPoemSelected = null;
-              updateClearBtnStyle();
-            }
-          });
-        } catch (e) {
-          console.error(e);
-          btn.innerText = "随机诗词";
-          alert("加载诗词时出现错误，请稍后再试");
-        }
-      } else {
-        btn.innerText = "随机诗词";
-        alert("诗词 API 未加载，请检查网络连接");
-      }
-    });
-
-    // “清空”按钮：清空文本框内容
-    document.getElementById('clearBtn').addEventListener('click', function() {
-      document.getElementById('poemInput').innerHTML = "";
-      updateClearBtnStyle();
-    });
-
-    // “生成九宫格”按钮：从文本框中取纯文本生成九宫格（仅提取正文部分汉字）
-    document.getElementById('generateBtn').addEventListener('click', generateGrid);
-    function generateGrid() {
-      var poemInput = document.getElementById('poemInput');
-      var fullText = poemInput.innerText.trim();
-      if (!fullText || fullText === "暂未提供该年级数据") {
-        alert("请输入或在下方选择诗词后，再生成九宫格");
-        return;
-      }
-      document.getElementById('poemAnswer').style.display = 'none';
-      document.getElementById('showAnswerBtn').innerText = '答案';
-      var body = fullText;
-      if (fullText.startsWith("《")) {
-        var parts = fullText.split("\n");
-        if (parts.length >= 3) {
-          body = parts.slice(2).join("\n");
-        }
-      }
-      savedPoem = body;
-      var chars = body.match(/[\u4e00-\u9fa5]/g);
-      if (!chars || chars.length === 0) {
-        alert("未检测到有效汉字");
-        return;
-      }
-      var required = 9;
-      if (chars.length < required) {
-        var times = Math.ceil(required / chars.length);
-        chars = Array(times).fill(chars).flat().slice(0, required);
-      }
-      for (let i = chars.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [chars[i], chars[j]] = [chars[j], chars[i]];
-      }
-      var selectedChars = chars.slice(0, 9);
-      var gridText = document.getElementById('gridText');
-      gridText.innerHTML = "";
-      for (let i = 0; i < selectedChars.length; i++) {
-        var cell = document.createElement('div');
-        cell.className = "grid-cell";
-        cell.innerHTML = '<span class="cell-letter">' + selectedChars[i] + '</span>';
-        cell.addEventListener("click", function() {
-          var span = this.querySelector(".cell-letter");
-          span.style.opacity = "0";
-          var cellThis = this;
-          setTimeout(function() {
-            var gridCells = document.getElementsByClassName("grid-cell");
-            var otherLetters = [];
-            for (var j = 0; j < gridCells.length; j++) {
-              if (gridCells[j] !== cellThis) {
-                var s = gridCells[j].querySelector(".cell-letter");
-                otherLetters.push(s.innerText);
-              }
-            }
-            var allChars = savedPoem.match(/[\u4e00-\u9fa5]/g) || [];
-            var candidates = allChars.filter(function(ch) {
-              return otherLetters.indexOf(ch) === -1;
-            });
-            if (candidates.length === 0) {
-              alert("没有可替换的新汉字");
-              span.style.opacity = "1";
-              return;
-            }
-            var newChar = candidates[Math.floor(Math.random() * candidates.length)];
-            span.innerText = newChar;
-            span.style.opacity = "1";
-          }, 500);
-        });
-        gridText.appendChild(cell);
-      }
-      poemInput.style.display = 'none';
-      document.getElementById('weeklyContainer').style.display = 'none';
-      document.getElementById('fillContainer').style.display = 'none';
-      document.getElementById('generateButtonsContainer').style.display = 'none';
-      document.getElementById('random-poem').style.display = 'none';
-      document.getElementById('submenu').style.display = 'none';
-      gridText.style.display = 'grid';
-      document.getElementById('answer-buttons').style.display = 'flex';
-    }
-
-    document.getElementById('poemAnswer').style.display = 'none';
-    document.getElementById('showAnswerBtn').innerText = '答案';
-    
-    // 修改处1：显示答案时，如果是每周一首生成的答案，则在首行前加上年级与册别
-    document.getElementById('showAnswerBtn').addEventListener('click', function() {
-      var poemAnswer = document.getElementById('poemAnswer');
-      document.getElementById('random-poem').style.display = 'none';
-      if (poemAnswer.style.display === 'none' || poemAnswer.style.display === '') {
-        var answerText = "";
-        if (weeklyPoemSelected) {
-          // 获取当前选择的年级及其选项文本
-          var gradeSelect = document.getElementById('gradeSelect');
-          var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
-          // 获取册别
-          var volumeText = document.getElementById('volumeSelect').value;
-          answerText = gradeText + volumeText + " " + weeklyPoemSelected.week + " 《" + weeklyPoemSelected.title + "》\n" +
-                       "作者：" + weeklyPoemSelected.author + "\n" + weeklyPoemSelected.content;
-        } else if (randomPoemData && !weeklyPoemSelected) {
-          answerText = '《' + randomPoemData.origin.title + '》\n' +
-                       '【' + randomPoemData.origin.dynasty + '】' + randomPoemData.origin.author + '\n' +
-                       randomPoemData.origin.content;
-        } else {
-          answerText = savedPoem;
-        }
-        answerText = answerText.replace(/,/g, '<span style="color: white;">,</span>');
-        poemAnswer.innerHTML = answerText;
-        poemAnswer.style.display = 'block';
-        this.innerText = '隐藏答案';
-      } else {
-        poemAnswer.style.display = 'none';
-        this.innerText = '答案';
-      }
-    });
-
-    // 修改处2：更新答案内容时，同样为每周一首的情况在首行加上年级及册别信息
-    function updateAnswerContent() {
-      var answerText = "";
-      if (weeklyPoemSelected) {
-        var gradeSelect = document.getElementById('gradeSelect');
-        var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
-        var volumeText = document.getElementById('volumeSelect').value;
-        answerText = gradeText + volumeText + " " + weeklyPoemSelected.week + " 《" + weeklyPoemSelected.title + "》\n" +
-                     "作者：" + weeklyPoemSelected.author + "\n" + weeklyPoemSelected.content;
-      } else if (randomPoemData && !weeklyPoemSelected) {
-        answerText = '《' + randomPoemData.origin.title + '》\n' +
-                     '【' + randomPoemData.origin.dynasty + '】' + randomPoemData.origin.author + '\n' +
-                     randomPoemData.origin.content;
-      } else {
-        answerText = savedPoem;
-      }
-      answerText = answerText.replace(/,/g, '<span style="color: white;">,</span>');
-      document.getElementById('poemAnswer').innerHTML = answerText;
-    }
-
-    document.getElementById('searchBtn').addEventListener('click', function() {
-      var searchQuery = "";
-      if (weeklyPoemSelected) {
-        searchQuery = weeklyPoemSelected.title + " " + weeklyPoemSelected.author;
-      } else if (randomPoemData && !weeklyPoemSelected && randomPoemData.origin && randomPoemData.origin.title) {
-        searchQuery = randomPoemData.origin.title + " " +
-                      randomPoemData.origin.dynasty + " " +
-                      randomPoemData.origin.author;
-      } else if (savedPoem) {
-        searchQuery = savedPoem;
-      }
-      if (!searchQuery) {
-        alert("没有可搜索的诗句");
-        return;
-      }
-      var url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(searchQuery);
-      window.open(url, '_blank');
-    });
-
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-      if (!savedPoem) {
-        alert("没有可刷新的内容");
-        return;
-      }
-      var poemAnswer = document.getElementById('poemAnswer');
-      var wasVisible = (poemAnswer.style.display === 'block');
-      generateGrid();
-      if (wasVisible) {
-        updateAnswerContent();
-        poemAnswer.style.display = 'block';
-        document.getElementById('showAnswerBtn').innerText = '隐藏答案';
-      }
-    });
-
-    document.getElementById('backBtn').addEventListener('click', function() {
-      weeklyPoemSelected = null;
-      savedPoem = "";
-      document.getElementById('poemInput').style.display = 'block';
-      document.getElementById('poemInput').innerHTML = "";
-      document.getElementById('weeklyContainer').style.display = 'block';
-      document.getElementById('fillContainer').style.display = 'block';
-      document.getElementById('generateButtonsContainer').style.display = 'flex';
-      document.getElementById('random-poem').style.display = 'block';
-      document.getElementById('gridText').style.display = 'none';
-      document.getElementById('poemAnswer').style.display = 'none';
-      document.getElementById('answer-buttons').style.display = 'none';
-      document.getElementById('showAnswerBtn').innerText = '答案';
-      randomPoemData = null;
-    });
   </script>
 </body>
 </html>

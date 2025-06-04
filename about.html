@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于 SmartTools</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6fd8;
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        
+        .tool-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .features {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .highlights {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← 返回主页</a>
+        
+        <h1>SmartTools - 小朋友在线小工具集</h1>
+        
+        <p>随手写的给自家小朋友使用的在线小工具，目前已有的工具如下：</p>
+
+        <div class="tool-section">
+            <h2>1. 估算计算器</h2>
+            <p>一款专门用于训练数学估算能力的智能计算器，帮助孩子掌握数学估算技巧。</p>
+            
+            <div class="features">
+                <strong>主要功能：</strong>
+                <ul>
+                    <li>支持加减乘除四则运算的估算</li>
+                    <li>提供多种估算方法（首位估算法、整十数法、次位取整法等）</li>
+                    <li>显示详细的估算过程和解释</li>
+                    <li>同时显示精确结果和估算结果供对比</li>
+                    <li>支持键盘输入，操作简便</li>
+                </ul>
+            </div>
+            
+            <div class="highlights">
+                <strong>特色：</strong>
+                <ul>
+                    <li>智能选择最优估算结果</li>
+                    <li>提供多个候选估算值</li>
+                    <li>详细的估算步骤说明，便于理解和学习</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tool-section">
+            <h2>2. 三年级数学练习</h2>
+            <p>自动生成三年级下学期数学每日口算练习题目，包含题目和标准答案。</p>
+            
+            <div class="features">
+                <strong>主要功能：</strong>
+                <ul>
+                    <li>自动生成口算练习题（15道）</li>
+                    <li>竖式计算题（4道，包含乘法、除法、小数加法）</li>
+                    <li>脱式计算题（2道，包含混合运算）</li>
+                    <li>同时生成对应的详细答案解析</li>
+                    <li>打印友好的页面设计</li>
+                </ul>
+            </div>
+            
+            <div class="highlights">
+                <strong>特色：</strong>
+                <ul>
+                    <li>题目难度符合三年级下学期教学要求</li>
+                    <li>题型丰富，涵盖基础计算到复杂运算</li>
+                    <li>答案包含完整的竖式计算过程</li>
+                    <li>支持直接打印，方便日常练习</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tool-section">
+            <h2>3. 诗词九宫格</h2>
+            <p>通过九宫格游戏的方式帮助孩子记忆和学习古诗词，寓教于乐。</p>
+            
+            <div class="features">
+                <strong>主要功能：</strong>
+                <ul>
+                    <li>内置1-6年级上下册诗词库（按每周一首编排）</li>
+                    <li>随机诗词功能（调用今日诗词API）</li>
+                    <li>自动生成九宫格汉字游戏</li>
+                    <li>点击汉字可随机替换</li>
+                    <li>提供完整诗词答案查看</li>
+                    <li>支持百度搜索诗词详细信息</li>
+                </ul>
+            </div>
+            
+            <div class="highlights">
+                <strong>特色：</strong>
+                <ul>
+                    <li>诗词库按年级和学期系统整理</li>
+                    <li>九宫格汉字随机打乱，增加趣味性</li>
+                    <li>支持自定义输入诗词内容</li>
+                    <li>游戏化学习方式，提高记忆效果</li>
+                    <li>界面简洁美观，适合小朋友使用</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>这些工具都采用响应式设计，支持手机和电脑使用，无需安装，打开即用。<br>
+            适合家长和老师辅导孩子学习使用。</p>
+            <p>yumumao@medu.cc</p>
+        </div>
+    </div>
+</body>
+</html>
