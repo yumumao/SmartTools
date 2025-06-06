@@ -16,12 +16,12 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 15px;
-            padding-bottom: 50px;
+            padding: 20px;
+            padding-bottom: 60px;
         }
 
         .container {
-            max-width: 500px;
+            max-width: 400px;
             margin: 0 auto;
             padding-top: 15px;
         }
@@ -102,7 +102,7 @@
             border: 2px solid rgba(255, 255, 255, 0.25);
             color: white;
             border-radius: 18px;
-            padding: 6px 28px;
+            padding: 6px 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -338,7 +338,7 @@
         .email-card {
             position: relative;
             padding: 16px;
-            padding-right: 40%; /* 修改：从50%改为40% */
+            padding-right: 50%; /* 修改：从40%改回50% */
             overflow: hidden; /* 确保动画内容不溢出 */
         }
 
@@ -370,7 +370,7 @@
             height: 100%;
             display: flex;
             z-index: 1;
-            width: 40%; /* 修改：从50%改为40% */
+            width: 50%; /* 修改：从40%改回50% */
         }
 
         .email-tab {
@@ -854,7 +854,7 @@
 
         .email-card.contact-card {
             padding: 14px 16px;
-            padding-right: 40%;
+            padding-right: 50%;
         }
 
         .email-contact-header {
@@ -888,10 +888,22 @@
             color: #0056b3;
         }
 
+        @media (min-width: 600px) {
+            .container {
+                max-width: 500px;
+            }
+        }
+
         @media (max-width: 480px) {
             .container {
-                padding: 12px;
-                padding-top: 8px;
+                width: 95%; /* 使用百分比设置宽度，减少边距 */
+                max-width: none;
+                padding: 0;
+            }
+            
+            body {
+                padding: 15px; /* 减少body的padding */
+                padding-bottom: 40px;
             }
             
             .title {
@@ -908,12 +920,12 @@
 
             .email-card {
                 padding: 12px;
-                padding-right: 40%;
+                padding-right: 50%;
             }
 
             .email-card.contact-card {
                 padding: 12px 12px;
-                padding-right: 40%;
+                padding-right: 50%;
             }
 
             .email-tab {
@@ -1015,7 +1027,7 @@
 
             .expand-section-btn {
                 font-size: 12px;
-                padding: 5px 24px;
+                padding: 5px 16px;
                 width: 40%;
                 min-width: 120px;
                 height: 28px;
@@ -1028,10 +1040,6 @@
 
             .hidden-cards {
                 margin-bottom: 8px;
-            }
-
-            body {
-                padding-bottom: 35px;
             }
 
             .back-link {
@@ -1079,7 +1087,7 @@
         <div class="header">
             <h1 class="title">🔖 在线收藏夹</h1>
             <div class="back-nav">
-                <a href="index.html" class="back-link">← 返回主页</a>
+                <a href="index.html" class="back-link">← 返回小工具</a>
             </div>
         </div>
 
@@ -1181,7 +1189,7 @@
                     <h3 class="link-title">生理学PPT</h3>
                     <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/slx', '_blank')">f66.fun/slx</p>
                 </div>
-                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DRHT5LcQzLmCCRj5x6kF', '_blank')">
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DRHT5LcQzLmCCRia2bgFIAA', '_blank')">
                     <span class="link-icon">🎓</span>
                     <h3 class="link-title">广药实验视频</h3>
                     <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/ve', '_blank')">f66.fun/ve</p>
@@ -1197,19 +1205,23 @@
                     <h3 class="link-title">LibreTV</h3>
                     <p class="link-desc">tv.f66.fun</p>
                 </a>
+                <a href="https://www.zxzjhd.com/" target="_blank" class="link-card">
+                    <span class="link-icon">🎥</span>
+                    <h3 class="link-title">在线之家</h3>
+                    <p class="link-desc">手机界面友好</p>
+                </a>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://ddys.info/', '_blank')">
-                        <span class="link-icon">📽️</span>
-                        <h3 class="link-title">低端影视</h3>
-                        <p class="link-desc">小众影视资源</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('ddys-subcards', this)" title="展开网址发布页">▼</button>
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.549.tv/', '_blank')">
+                        <span class="link-icon">🌲</span>
+                        <h3 class="link-title">影视森林</h3>
+                        <p class="link-desc">影视资源导航</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('forest-subcards', this)" title="展开备用地址">▼</button>
                     </div>
-                    <div class="sub-cards" id="ddys-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://ddys.site/', '_blank')">
+                    <div class="sub-cards" id="forest-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://www.549.tv/', '_blank')">
                             <span class="link-icon">🔗</span>
                             <div class="link-content">
-                                <span class="link-url">ddys.site</span>
-                                <span class="link-note">(网址发布页)</span>
+                                <span class="link-url">www.549.tv</span>
                             </div>
                         </div>
                     </div>
@@ -1217,7 +1229,7 @@
                 <div class="card-container">
                     <div class="link-card link-card-with-expand" onclick="window.open('https://www.gying.org/', '_blank')">
                         <span class="link-icon">🎥</span>
-                        <h3 class="link-title">观影(可下载)</h3>
+                        <h3 class="link-title">观 影</h3>
                         <p class="link-desc">影视大全</p>
                         <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('gying-subcards', this)" title="展开备用地址">▼</button>
                     </div>
@@ -1249,17 +1261,49 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.549.tv/', '_blank')">
-                        <span class="link-icon">🌲</span>
-                        <h3 class="link-title">影视森林</h3>
-                        <p class="link-desc">影视资源导航</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('forest-subcards', this)" title="展开备用地址">▼</button>
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.cilixiong.org/', '_blank')">
+                        <span class="link-icon">🐻</span>
+                        <h3 class="link-title">磁力熊（精选）</h3>
+                        <p class="link-desc">豆瓣高分电影下载</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('cilixiong-subcards', this)" title="展开备用地址">▼</button>
                     </div>
-                    <div class="sub-cards" id="forest-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://www.549.tv/', '_blank')">
+                    <div class="sub-cards" id="cilixiong-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://www.cilixiong.cc/', '_blank')">
                             <span class="link-icon">🔗</span>
                             <div class="link-content">
-                                <span class="link-url">www.549.tv</span>
+                                <span class="link-url">cilixiong.cc</span>
+                                <span class="link-note">(备用)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://ddys.pro/', '_blank')">
+                        <span class="link-icon">📽️</span>
+                        <h3 class="link-title">低端影视</h3>
+                        <p class="link-desc">小众影视资源</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('ddys-subcards', this)" title="展开备用地址">▼</button>
+                    </div>
+                    <div class="sub-cards" id="ddys-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://ddys.mov/', '_blank')">
+                            <span class="link-icon">🎬</span>
+                            <div class="link-content">
+                                <span class="link-url">ddys.mov</span>
+                                <span class="link-note">(备用)</span>
+                            </div>
+                        </div>
+                        <div class="sub-card compact-card" onclick="window.open('https://ddys.site/', '_blank')">
+                            <span class="link-icon">🔗</span>
+                            <div class="link-content">
+                                <span class="link-url">ddys.site</span>
+                                <span class="link-note">(网址发布页)</span>
+                            </div>
+                        </div>
+                        <div class="sub-card compact-card" onclick="window.open('https://ddys.love/', '_blank')">
+                            <span class="link-icon">💕</span>
+                            <div class="link-content">
+                                <span class="link-url">ddys.love</span>
+                                <span class="link-note">(网址发布页)</span>
                             </div>
                         </div>
                     </div>
@@ -1272,24 +1316,14 @@
             </button>
 
             <div class="hidden-cards" id="video-hidden-cards">
-                <a href="https://www.cilixiong.cc/" target="_blank" class="link-card">
-                    <span class="link-icon">🐻</span>
-                    <h3 class="link-title">磁力熊(精选，可下载)</h3>
-                    <p class="link-desc">豆瓣高分电影下载</p>
-                </a>
                 <a href="https://cz01.vip/" target="_blank" class="link-card">
                     <span class="link-icon">🎨</span>
                     <h3 class="link-title">厂长资源</h3>
                     <p class="link-desc">影视在线观看</p>
                 </a>
-                <a href="https://www.zxzjhd.com/" target="_blank" class="link-card">
-                    <span class="link-icon">🎥</span>
-                    <h3 class="link-title">在线之家</h3>
-                    <p class="link-desc">手机可看</p>
-                </a>
                 <a href="https://lzizy.net/" target="_blank" class="link-card">
                     <span class="link-icon">🎞️</span>
-                    <h3 class="link-title">量子资源网(可下载)</h3>
+                    <h3 class="link-title">量子资源</h3>
                     <p class="link-desc">lzizy1-8.com</p>
                 </a>
                 <a href="https://www.6bt0.com/" target="_blank" class="link-card">
