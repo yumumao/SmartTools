@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线收藏夹 - SmartTools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-top: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: white;
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .expand-section-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            border-radius: 18px;
+            padding: 6px 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            margin: 15px auto;
+            width: 30%;
+            min-width: 140px;
+            height: 32px;
+            opacity: 1;
+            transform: translateY(0);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .expand-section-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .expand-section-btn:hover::before {
+            left: 100%;
+        }
+
+        .expand-section-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .expand-section-btn .arrow {
+            font-size: 11px;
+            transition: transform 0.3s ease;
+        }
+
+        .expand-section-btn.expanded .arrow {
+            transform: rotate(180deg);
+        }
+
+        .expand-section-btn.moving {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        #video-collapse-btn {
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .links-grid-single {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .hidden-cards {
+            display: none;
+            margin-top: 12px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(-15px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .hidden-cards.expanded {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hidden-cards .link-card,
+        .hidden-cards .card-container {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .hidden-cards .link-card:nth-child(1),
+        .hidden-cards .card-container:nth-child(1),
+        .hidden-cards .link-card:nth-child(2),
+        .hidden-cards .card-container:nth-child(2) {
+            animation: slideInDownRow 0.6s ease forwards;
+            animation-delay: 0.1s;
+        }
+
+        .hidden-cards .link-card:nth-child(3),
+        .hidden-cards .card-container:nth-child(3),
+        .hidden-cards .link-card:nth-child(4),
+        .hidden-cards .card-container:nth-child(4) {
+            animation: slideInDownRow 0.6s ease forwards;
+            animation-delay: 0.3s;
+        }
+
+        .hidden-cards .link-card:nth-child(5),
+        .hidden-cards .card-container:nth-child(5),
+        .hidden-cards .link-card:nth-child(6),
+        .hidden-cards .card-container:nth-child(6) {
+            animation: slideInDownRow 0.6s ease forwards;
+            animation-delay: 0.5s;
+        }
+
+        .hidden-cards .link-card:nth-child(7),
+        .hidden-cards .card-container:nth-child(7),
+        .hidden-cards .link-card:nth-child(8),
+        .hidden-cards .card-container:nth-child(8) {
+            animation: slideInDownRow 0.6s ease forwards;
+            animation-delay: 0.7s;
+        }
+
+        .hidden-cards .link-card:nth-child(9),
+        .hidden-cards .card-container:nth-child(9),
+        .hidden-cards .link-card:nth-child(10),
+        .hidden-cards .card-container:nth-child(10) {
+            animation: slideInDownRow 0.6s ease forwards;
+            animation-delay: 0.9s;
+        }
+
+        @keyframes slideInDownRow {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden-cards.collapsing .link-card,
+        .hidden-cards.collapsing .card-container {
+            animation: slideOutUpRow 0.4s ease forwards;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(9),
+        .hidden-cards.collapsing .card-container:nth-child(9),
+        .hidden-cards.collapsing .link-card:nth-child(10),
+        .hidden-cards.collapsing .card-container:nth-child(10) {
+            animation-delay: 0s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(7),
+        .hidden-cards.collapsing .card-container:nth-child(7),
+        .hidden-cards.collapsing .link-card:nth-child(8),
+        .hidden-cards.collapsing .card-container:nth-child(8) {
+            animation-delay: 0.1s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(5),
+        .hidden-cards.collapsing .card-container:nth-child(5),
+        .hidden-cards .link-card:nth-child(6),
+        .hidden-cards.collapsing .card-container:nth-child(6) {
+            animation-delay: 0.2s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(3),
+        .hidden-cards.collapsing .card-container:nth-child(3),
+        .hidden-cards.collapsing .link-card:nth-child(4),
+        .hidden-cards.collapsing .card-container:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(1),
+        .hidden-cards.collapsing .card-container:nth-child(1),
+        .hidden-cards.collapsing .link-card:nth-child(2),
+        .hidden-cards.collapsing .card-container:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes slideOutUpRow {
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        .card-container {
+            position: relative;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .card-container.active {
+            z-index: 20;
+        }
+
+        .hidden-cards .card-container {
+            z-index: 2;
+        }
+
+        .hidden-cards .card-container.active {
+            z-index: 60; /* 提高z-index确保点击有效 */
+        }
+
+        .link-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .link-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+
+        .link-card-with-expand {
+            padding-right: 55px;
+        }
+
+        /* 邮箱卡片特殊样式 */
+        .email-card {
+            position: relative;
+            padding: 16px;
+            padding-right: 50%; /* 为叠瓦留出50%的空间 */
+            overflow: hidden; /* 确保动画内容不溢出 */
+        }
+
+        .email-main-content {
+            position: relative;
+            z-index: 2;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+        }
+
+        .email-main-content.slide-out {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        .email-main-content.slide-in {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .email-main-content.slide-in-active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .email-tabs {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            z-index: 1;
+            width: 50%; /* 占卡片宽度的50% */
+        }
+
+        .email-tab {
+            height: 100%;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 4px 2px;
+            position: absolute;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: left center;
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* 未选中标签的阴影 */
+        .email-tab:not(.active) {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-left: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        /* 激活状态样式 - 从右到左的渐变色，左侧更浅，无左边框 */
+        .email-tab.active {
+            background: linear-gradient(to left, rgba(102, 126, 234, 0.35), rgba(102, 126, 234, 0.08));
+            color: #4a5bcc;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            border-left: none; /* 移除左侧边框 */
+            /* 选中标签的阴影效果 */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
+                        inset 0 1px 2px rgba(0, 0, 0, 0.1),
+                        0 0 0 1px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 标签位置布局 - 选中标签在最左，其他保持相对顺序 */
+        
+        /* 默认位置 (选中第一个) */
+        .email-tabs.active-0 .email-tab[data-email="0"] {
+            right: 75%; /* 最左 */
+            width: 25%;
+            z-index: 15;
+        }
+        .email-tabs.active-0 .email-tab[data-email="1"] {
+            right: 50%;
+            width: 25%;
+            z-index: 13;
+        }
+        .email-tabs.active-0 .email-tab[data-email="2"] {
+            right: 25%;
+            width: 25%;
+            z-index: 12;
+        }
+        .email-tabs.active-0 .email-tab[data-email="3"] {
+            right: 0%;
+            width: 25%;
+            z-index: 11;
+        }
+
+        /* 选中第二个：2-1-3-4 */
+        .email-tabs.active-1 .email-tab[data-email="1"] {
+            right: 75%; /* 最左 */
+            width: 25%;
+            z-index: 15;
+        }
+        .email-tabs.active-1 .email-tab[data-email="0"] {
+            right: 50%;
+            width: 25%;
+            z-index: 13;
+        }
+        .email-tabs.active-1 .email-tab[data-email="2"] {
+            right: 25%;
+            width: 25%;
+            z-index: 12;
+        }
+        .email-tabs.active-1 .email-tab[data-email="3"] {
+            right: 0%;
+            width: 25%;
+            z-index: 11;
+        }
+
+        /* 选中第三个：3-1-2-4 */
+        .email-tabs.active-2 .email-tab[data-email="2"] {
+            right: 75%; /* 最左 */
+            width: 25%;
+            z-index: 15;
+        }
+        .email-tabs.active-2 .email-tab[data-email="0"] {
+            right: 50%;
+            width: 25%;
+            z-index: 13;
+        }
+        .email-tabs.active-2 .email-tab[data-email="1"] {
+            right: 25%;
+            width: 25%;
+            z-index: 12;
+        }
+        .email-tabs.active-2 .email-tab[data-email="3"] {
+            right: 0%;
+            width: 25%;
+            z-index: 11;
+        }
+
+        /* 选中第四个：4-1-2-3 */
+        .email-tabs.active-3 .email-tab[data-email="3"] {
+            right: 75%; /* 最左 */
+            width: 25%;
+            z-index: 15;
+        }
+        .email-tabs.active-3 .email-tab[data-email="0"] {
+            right: 50%;
+            width: 25%;
+            z-index: 13;
+        }
+        .email-tabs.active-3 .email-tab[data-email="1"] {
+            right: 25%;
+            width: 25%;
+            z-index: 12;
+        }
+        .email-tabs.active-3 .email-tab[data-email="2"] {
+            right: 0%;
+            width: 25%;
+            z-index: 11;
+        }
+
+        .email-tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateX(-2px);
+        }
+
+        .email-tab.active:hover {
+            transform: translateX(0) scale(1.02);
+        }
+
+        .expand-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 32px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            z-index: 3;
+        }
+
+        .expand-btn:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6a42a0);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .expand-btn.expanded {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .expand-btn.expanded:hover {
+            transform: translateY(-50%) rotate(180deg) scale(1.1);
+        }
+
+        .sub-cards {
+            position: absolute;
+            top: 100%;
+            left: 2.5%;
+            right: 2.5%;
+            z-index: 30;
+            margin-top: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        visibility 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 8px;
+            background: rgba(220, 225, 235, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            border: 2px solid rgba(200, 210, 220, 0.4);
+        }
+
+        .hidden-cards .sub-cards {
+            z-index: 70; /* 进一步提高z-index */
+        }
+
+        .sub-cards.expanded {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .sub-card {
+            background: rgba(240, 242, 247, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(180, 190, 200, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateX(-20px);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 隐藏卡片区域的sub-card不需要动画延迟 */
+        .hidden-cards .sub-card {
+            animation: slideInLeft 0.5s ease forwards;
+            animation-delay: 0s !important; /* 移除动画延迟 */
+        }
+
+        /* 非隐藏区域保持原有动画 */
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card {
+            animation: slideInLeft 0.5s ease forwards;
+        }
+
+        .sub-card.backup-card {
+            padding: 8px 12px !important;
+            margin-bottom: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .sub-card.two-line-card {
+            padding: 8px 12px !important;
+            margin-bottom: 4px !important;
+        }
+
+        .two-line-card .card-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .two-line-card .link-icon {
+            font-size: 20px !important;
+            margin-bottom: 0 !important;
+            opacity: 0.8;
+        }
+
+        .two-line-card .link-title {
+            font-size: 14px !important;
+            margin-bottom: 0 !important;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .two-line-card .link-url {
+            font-size: 11px;
+            color: #0066cc;
+            line-height: 1.2;
+        }
+
+        .sub-card.compact-card {
+            padding: 5px 11px !important;
+            margin-bottom: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            min-height: auto !important;
+        }
+
+        .compact-card .link-icon {
+            font-size: 14px !important;
+            margin-bottom: 0 !important;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        .compact-card .link-content {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-grow: 1;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        .compact-card .link-url {
+            color: #0066cc;
+            font-weight: 600;
+        }
+
+        .compact-card .link-note {
+            color: #666;
+            font-size: 10px;
+        }
+
+        .sub-card:hover {
+            background: rgba(240, 242, 247, 0.85) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            z-index: 2;
+        }
+
+        /* 非隐藏区域的动画延迟 */
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(7) {
+            animation-delay: 0.7s;
+        }
+
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(8) {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .sub-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: transparent;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .link-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .sub-card .link-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+            opacity: 0.8;
+        }
+
+        .backup-card .link-icon {
+            font-size: 16px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .link-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .sub-card .link-title {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .backup-card .link-title {
+            font-size: 12px;
+            margin-bottom: 0;
+            flex-grow: 1;
+            font-weight: 600;
+        }
+
+        .link-desc {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .sub-card .link-desc {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .link-desc-clickable {
+            font-size: 11px;
+            color: #007bff;
+            line-height: 1.3;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .sub-card .link-desc-clickable {
+            font-size: 11px;
+            color: #0066cc;
+        }
+
+        .link-desc-clickable:hover {
+            color: #0056b3;
+        }
+
+        .sub-card .link-desc-clickable:hover {
+            color: #004499;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                padding-top: 10px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .link-card {
+                padding: 12px;
+            }
+
+            .link-card-with-expand {
+                padding-right: 45px;
+            }
+
+            .email-card {
+                padding: 12px;
+                padding-right: 50%;
+            }
+
+            .email-tab {
+                font-size: 10px;
+                padding: 3px 1px;
+                border-radius: 0 8px 8px 0;
+            }
+
+            .expand-btn {
+                right: 12px;
+                width: 28px;
+                height: 20px;
+                font-size: 12px;
+            }
+
+            .sub-card {
+                padding: 8px 12px;
+            }
+
+            .backup-card, .compact-card {
+                padding: 4px 8px !important;
+                gap: 6px !important;
+            }
+
+            .two-line-card {
+                padding: 6px 10px !important;
+            }
+
+            .two-line-card .card-header {
+                gap: 5px;
+                margin-bottom: 2px;
+            }
+
+            .two-line-card .link-icon {
+                font-size: 18px !important;
+            }
+
+            .two-line-card .link-title {
+                font-size: 13px !important;
+            }
+
+            .two-line-card .link-url {
+                font-size: 10px;
+            }
+
+            .link-icon {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+
+            .sub-card .link-icon {
+                font-size: 18px;
+            }
+
+            .backup-card .link-icon {
+                font-size: 14px;
+            }
+
+            .compact-card .link-icon {
+                font-size: 12px !important;
+            }
+
+            .compact-card .link-content {
+                font-size: 10px;
+            }
+
+            .compact-card .link-note {
+                font-size: 9px;
+            }
+
+            .link-title {
+                font-size: 13px;
+            }
+
+            .sub-card .link-title {
+                font-size: 13px;
+            }
+
+            .backup-card .link-title {
+                font-size: 11px;
+            }
+
+            .link-desc, .link-desc-clickable {
+                font-size: 10px;
+            }
+
+            .sub-card .link-desc, .sub-card .link-desc-clickable {
+                font-size: 10px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .sub-cards {
+                left: 1%;
+                right: 1%;
+            }
+
+            .expand-section-btn {
+                font-size: 12px;
+                padding: 5px 24px;
+                width: 40%;
+                min-width: 120px;
+                height: 28px;
+            }
+
+            #video-collapse-btn {
+                margin-top: 6px;
+                margin-bottom: 8px;
+            }
+
+            .hidden-cards {
+                margin-bottom: 8px;
+            }
+
+            body {
+                padding-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🔖 在线收藏夹</h1>
+            <p class="subtitle">常用网站链接收藏</p>
+            <a href="index.html" class="back-link">← 返回主页</a>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">☁️ 在线U盘</h2>
+            <div class="links-grid">
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DTPAg6sQptHYCBjA6_YFIAA', '_blank')">
+                    <span class="link-icon">🏫</span>
+                    <h3 class="link-title">lty在线U盘(新华)</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://121.ink/lty', '_blank')">121.ink/lty</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DQ0EyaEQptHYCBj9ivkFIAA', '_blank')">
+                    <span class="link-icon">🏛</span>
+                    <h3 class="link-title">lty在线U盘(隆安)</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://121.ink/la', '_blank')">121.ink/la</p>
+                </div>
+            </div>
+            
+            <div class="links-grid" style="margin-top: 12px;">
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.jianguoyun.com/p/DZ0FaaMQyu2zDBiSjrYF', '_blank')">
+                        <span class="link-icon">💾</span>
+                        <h3 class="link-title">zz在线U盘</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://121.ink/u', '_blank')">121.ink/u</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('zz-subcards', this)" title="展开备用地址">▼</button>
+                    </div>
+                    <div class="sub-cards" id="zz-subcards">
+                        <div class="sub-card two-line-card" onclick="window.open('https://www.jianguoyun.com/p/DemLEOwQpYHpBRiwtscFIAA', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">📤</span>
+                                <h3 class="link-title">临时上传文件夹</h3>
+                            </div>
+                            <p class="link-url">f66.fun/fun (密码：zz1001)</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://www.jianguoyun.com/p/DZ0FaaMQyu2zDBiSjrYF', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">📁</span>
+                                <h3 class="link-title">zz备用1</h3>
+                            </div>
+                            <p class="link-url">to2.top/u</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://www.jianguoyun.com/p/DZ0FaaMQyu2zDBiSjrYF', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🗂️</span>
+                                <h3 class="link-title">zz备用2</h3>
+                            </div>
+                            <p class="link-url">f66.fun/u</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://29.n29.net:2096/', '_blank')">
+                        <span class="link-icon">💽</span>
+                        <h3 class="link-title">云硬盘</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://to2.top/n29', '_blank')">to2.top/n29</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('cloud-subcards', this)" title="展开备用地址">▼</button>
+                    </div>
+                    <div class="sub-cards" id="cloud-subcards">
+                        <div class="sub-card two-line-card" onclick="window.open('http://88.88ah.top:8818/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">💿</span>
+                                <h3 class="link-title">云硬盘备用地址</h3>
+                            </div>
+                            <p class="link-url">to2.top/29</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🎬 视频聚合</h2>
+            <div class="links-grid">
+                <a href="https://tv.f66.fun/" target="_blank" class="link-card">
+                    <span class="link-icon">📺</span>
+                    <h3 class="link-title">LibreTV</h3>
+                    <p class="link-desc">tv.f66.fun</p>
+                </a>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://ddys.info/', '_blank')">
+                        <span class="link-icon">📽️</span>
+                        <h3 class="link-title">低端影视</h3>
+                        <p class="link-desc">小众影视资源</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('ddys-subcards', this)" title="展开网址发布页">▼</button>
+                    </div>
+                    <div class="sub-cards" id="ddys-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://ddys.site/', '_blank')">
+                            <span class="link-icon">🔗</span>
+                            <div class="link-content">
+                                <span class="link-url">ddys.site</span>
+                                <span class="link-note">(网址发布页)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.gying.org/', '_blank')">
+                        <span class="link-icon">🎥</span>
+                        <h3 class="link-title">观影(可下载)</h3>
+                        <p class="link-desc">影视大全</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('gying-subcards', this)" title="展开备用地址">▼</button>
+                    </div>
+                    <div class="sub-cards" id="gying-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://gying.si', '_blank')">
+                            <span class="link-icon">🎬</span>
+                            <div class="link-content">
+                                <span class="link-url">gying.si</span>
+                            </div>
+                        </div>
+                        <div class="sub-card compact-card" onclick="window.open('https://gying.in', '_blank')">
+                            <span class="link-icon">🍿</span>
+                            <div class="link-content">
+                                <span class="link-url">gying.in</span>
+                            </div>
+                        </div>
+                        <div class="sub-card compact-card" onclick="window.open('https://gyg.la', '_blank')">
+                            <span class="link-icon">🎭</span>
+                            <div class="link-content">
+                                <span class="link-url">gyg.la</span>
+                            </div>
+                        </div>
+                        <div class="sub-card compact-card" onclick="window.open('https://gyg.si', '_blank')">
+                            <span class="link-icon">🎪</span>
+                            <div class="link-content">
+                                <span class="link-url">gyg.si</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.549.tv/', '_blank')">
+                        <span class="link-icon">🌲</span>
+                        <h3 class="link-title">影视森林(导航)</h3>
+                        <p class="link-desc">影视资源导航</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('forest-subcards', this)" title="展开备用地址">▼</button>
+                    </div>
+                    <div class="sub-cards" id="forest-subcards">
+                        <div class="sub-card compact-card" onclick="window.open('https://www.549.tv/', '_blank')">
+                            <span class="link-icon">🔗</span>
+                            <div class="link-content">
+                                <span class="link-url">www.549.tv</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-expand-btn">
+                <span>展开卡片</span>
+                <span class="arrow">▼</span>
+            </button>
+
+            <div class="hidden-cards" id="video-hidden-cards">
+                <a href="https://www.cilixiong.cc/" target="_blank" class="link-card">
+                    <span class="link-icon">🐻</span>
+                    <h3 class="link-title">磁力熊(精选，可下载)</h3>
+                    <p class="link-desc">豆瓣高分电影下载</p>
+                </a>
+                <a href="https://cz01.vip/" target="_blank" class="link-card">
+                    <span class="link-icon">🎨</span>
+                    <h3 class="link-title">厂长资源</h3>
+                    <p class="link-desc">影视在线观看</p>
+                </a>
+                <a href="https://www.zxzjhd.com/" target="_blank" class="link-card">
+                    <span class="link-icon">🎥</span>
+                    <h3 class="link-title">在线之家</h3>
+                    <p class="link-desc">手机可看</p>
+                </a>
+                <a href="https://lzizy.net/" target="_blank" class="link-card">
+                    <span class="link-icon">🎞️</span>
+                    <h3 class="link-title">量子资源网(可下载)</h3>
+                    <p class="link-desc">lzizy1-8.com</p>
+                </a>
+                <a href="https://www.6bt0.com/" target="_blank" class="link-card">
+                    <span class="link-icon">🔻</span>
+                    <h3 class="link-title">不太灵(下载站)</h3>
+                    <p class="link-desc">小众影视下载</p>
+                </a>
+                <a href="https://www.4kvm.tv/" target="_blank" class="link-card">
+                    <span class="link-icon">🎬</span>
+                    <h3 class="link-title">4K影视</h3>
+                    <p class="link-desc">高清在线影视</p>
+                </a>
+                <a href="https://www.dygod.net/" target="_blank" class="link-card">
+                    <span class="link-icon">🏰</span>
+                    <h3 class="link-title">电影天堂</h3>
+                    <p class="link-desc">经典影视下载</p>
+                </a>
+                <a href="https://kawaka.cafe/" target="_blank" class="link-card">
+                    <span class="link-icon">☕</span>
+                    <h3 class="link-title">kwk咖啡(Alist)</h3>
+                    <p class="link-desc">网盘聚合</p>
+                </a>
+                <a href="https://7080.wang/" target="_blank" class="link-card">
+                    <span class="link-icon">📱</span>
+                    <h3 class="link-title">7080网</h3>
+                    <p class="link-desc">怀旧影视资源</p>
+                </a>
+                <a href="https://www.饭太硬.com/" target="_blank" class="link-card">
+                    <span class="link-icon">🍚</span>
+                    <h3 class="link-title">饭太硬(导航)</h3>
+                    <p class="link-desc">影视资源导航</p>
+                </a>
+            </div>
+
+            <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-collapse-btn" style="display: none;">
+                <span>折叠卡片</span>
+                <span class="arrow">▲</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📚 授课资源</h2>
+            <div class="links-grid">
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://mooc1.chaoxing.com/mooc-ans/course/214155769.html', '_blank')">
+                        <span class="link-icon">🩺</span>
+                        <h3 class="link-title">超星-生理学-云浮</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/mooc1', '_blank')">f66.fun/mooc1</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('physiology-subcards', this)" title="展开更多课程">▼</button>
+                    </div>
+                    <div class="sub-cards" id="physiology-subcards">
+                        <div class="sub-card two-line-card" onclick="window.open('https://mooc1-2.chaoxing.com/mooc-ans/course/214155769.html', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🔬</span>
+                                <h3 class="link-title">超星-生理学-云浮2</h3>
+                            </div>
+                            <p class="link-url">f66.fun/mooc</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DdCoU9cQzLmCCRia2bgFIAA', '_blank')">
+                    <span class="link-icon">🚑</span>
+                    <h3 class="link-title">急救知识</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/aid', '_blank')">f66.fun/aid</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DXQKP7QQyu2zDBj9mLgF', '_blank')">
+                    <span class="link-icon">📊</span>
+                    <h3 class="link-title">生理学PPT</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/slx', '_blank')">f66.fun/slx</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DRHT5LcQzLmCCRj5x6kF', '_blank')">
+                    <span class="link-icon">🎓</span>
+                    <h3 class="link-title">广药实验视频</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/ve', '_blank')">f66.fun/ve</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📧 联系方式</h2>
+            <div class="links-grid">
+                <div class="card-container">
+                    <div class="link-card email-card" onclick="openEmail(currentEmailData.url)">
+                        <div class="email-main-content" id="email-main-content">
+                            <span class="link-icon" id="email-icon">✉️</span>
+                            <h3 class="link-title" id="email-title">邮箱1</h3>
+                            <p class="link-desc-clickable" id="email-address" onclick="event.stopPropagation(); window.open(currentEmailData.mailto, '_blank')">aabb@cc.cc</p>
+                        </div>
+                        <div class="email-tabs active-0" id="email-tabs">
+                            <div class="email-tab active" onclick="event.stopPropagation(); switchEmail(0)" data-email="0">1</div>
+                            <div class="email-tab" onclick="event.stopPropagation(); switchEmail(1)" data-email="1">2</div>
+                            <div class="email-tab" onclick="event.stopPropagation(); switchEmail(2)" data-email="2">3</div>
+                            <div class="email-tab" onclick="event.stopPropagation(); switchEmail(3)" data-email="3">4</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="https://mrr.cc/" target="_blank" class="link-card">
+                    <span class="link-icon">🛠️</span>
+                    <h3 class="link-title">在线小工具</h3>
+                    <p class="link-desc">mrr.cc - 实用工具集合</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExpanded = null;
+
+        const emailData = [
+            {
+                icon: '✉️',
+                title: '邮箱1',
+                address: 'aabb@cc.cc',
+                url: 'http://aabb.cc.cc',
+                mailto: 'mailto:aabb@cc.cc'
+            },
+            {
+                icon: '📮',
+                title: '邮箱2',
+                address: 'aaabbb@cc.cc',
+                url: 'http://aaabbb.cc.cc',
+                mailto: 'mailto:aaabbb@cc.cc'
+            },
+            {
+                icon: '📬',
+                title: '邮箱3',
+                address: 'cocoa@cc.cc',
+                url: 'http://cocoa.cc.cc',
+                mailto: 'mailto:cocoa@cc.cc'
+            },
+            {
+                icon: '📭',
+                title: '邮箱4',
+                address: 'yumumao@cc.cc',
+                url: 'http://yumumao.cc.cc',
+                mailto: 'mailto:yumumao@cc.cc'
+            }
+        ];
+
+        let currentEmailData = emailData[0];
+        let isAnimating = false;
+
+        function switchEmail(index) {
+            if (isAnimating) return;
+            
+            const currentIndex = emailData.findIndex(email => email === currentEmailData);
+            if (currentIndex === index) return;
+            
+            isAnimating = true;
+            const mainContent = document.getElementById('email-main-content');
+            
+            // 开始滑出动画
+            mainContent.classList.add('slide-out');
+            
+            setTimeout(() => {
+                // 更新数据
+                currentEmailData = emailData[index];
+                
+                // 更新主卡片内容
+                document.getElementById('email-icon').textContent = currentEmailData.icon;
+                document.getElementById('email-title').textContent = currentEmailData.title;
+                document.getElementById('email-address').textContent = currentEmailData.address;
+                
+                // 更新邮箱地址的点击事件
+                const addressElement = document.getElementById('email-address');
+                addressElement.onclick = function(event) {
+                    event.stopPropagation();
+                    window.open(currentEmailData.mailto, '_blank');
+                };
+                
+                // 准备滑入动画
+                mainContent.classList.remove('slide-out');
+                mainContent.classList.add('slide-in');
+                
+                // 触发滑入动画
+                setTimeout(() => {
+                    mainContent.classList.remove('slide-in');
+                    mainContent.classList.add('slide-in-active');
+                    
+                    // 完成动画
+                    setTimeout(() => {
+                        mainContent.classList.remove('slide-in-active');
+                        isAnimating = false;
+                    }, 400);
+                }, 50);
+                
+            }, 200);
+            
+            // 更新叠瓦状态
+            document.querySelectorAll('.email-tab').forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // 更新容器的类名来控制叠瓦位置
+            const tabsContainer = document.getElementById('email-tabs');
+            tabsContainer.className = `email-tabs active-${index}`;
+        }
+
+        function openEmail(url) {
+            window.open(url, '_blank');
+        }
+
+        function toggleSubCards(subcardId, button) {
+            const subcards = document.getElementById(subcardId);
+            const overlay = document.getElementById('overlay');
+            const cardContainer = button.closest('.card-container');
+            const isExpanded = subcards.classList.contains('expanded');
+            
+            if (currentExpanded && currentExpanded !== subcardId) {
+                const otherSubcards = document.getElementById(currentExpanded);
+                const otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
+                const otherContainer = otherButton.closest('.card-container');
+                otherSubcards.classList.remove('expanded');
+                otherButton.classList.remove('expanded');
+                otherContainer.classList.remove('active');
+            }
+            
+            if (isExpanded) {
+                subcards.classList.remove('expanded');
+                button.classList.remove('expanded');
+                cardContainer.classList.remove('active');
+                overlay.classList.remove('active');
+                currentExpanded = null;
+            } else {
+                subcards.classList.add('expanded');
+                button.classList.add('expanded');
+                cardContainer.classList.add('active');
+                overlay.classList.add('active');
+                currentExpanded = subcardId;
+            }
+        }
+
+        function toggleSection(sectionId, button) {
+            const section = document.getElementById(sectionId);
+            const expandBtn = document.getElementById('video-expand-btn');
+            const collapseBtn = document.getElementById('video-collapse-btn');
+            const isExpanded = section.classList.contains('expanded');
+            
+            if (isExpanded) {
+                section.classList.add('collapsing');
+                collapseBtn.classList.add('moving');
+                
+                setTimeout(() => {
+                    section.classList.remove('expanded', 'collapsing');
+                    collapseBtn.style.display = 'none';
+                    collapseBtn.classList.remove('moving');
+                    
+                    setTimeout(() => {
+                        expandBtn.style.display = 'flex';
+                        expandBtn.classList.remove('moving');
+                    }, 100);
+                }, 600);
+                
+            } else {
+                expandBtn.classList.add('moving');
+                
+                setTimeout(() => {
+                    expandBtn.style.display = 'none';
+                    section.classList.add('expanded');
+                    
+                    setTimeout(() => {
+                        collapseBtn.style.display = 'flex';
+                        collapseBtn.classList.remove('moving');
+                    }, 800);
+                }, 200);
+            }
+        }
+
+        document.getElementById('overlay').addEventListener('click', function() {
+            if (currentExpanded) {
+                const subcards = document.getElementById(currentExpanded);
+                const button = subcards.parentElement.querySelector('.expand-btn');
+                const cardContainer = button.closest('.card-container');
+                subcards.classList.remove('expanded');
+                button.classList.remove('expanded');
+                cardContainer.classList.remove('active');
+                this.classList.remove('active');
+                currentExpanded = null;
+            }
+        });
+
+        document.querySelectorAll('.sub-cards').forEach(function(subcards) {
+            subcards.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+</body>
+</html>
