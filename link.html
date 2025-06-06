@@ -24,6 +24,7 @@
             max-width: 400px;
             margin: 0 auto;
             padding-top: 15px;
+            transition: max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .header {
@@ -37,6 +38,7 @@
             font-weight: 300;
             margin-bottom: 15px;
             letter-spacing: 1px;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .back-nav {
@@ -86,6 +88,7 @@
 
         .section {
             margin-bottom: 30px;
+            transition: margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .section-title {
@@ -94,6 +97,8 @@
             font-weight: 600;
             margin-bottom: 15px;
             text-align: center;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .expand-section-btn {
@@ -163,16 +168,26 @@
             margin-bottom: 15px;
         }
 
+        /* 通用网格布局 - 最多每行4个，居中显示 */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
+            transition: gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            justify-content: center;
+            width: 100%;
         }
 
-        .links-grid-single {
+        /* 联系方式网格 - 特殊处理，限制最大宽度 */
+        .contact-row {
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
+            transition: gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            justify-content: center;
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
         }
 
         .hidden-cards {
@@ -190,6 +205,8 @@
             gap: 12px;
             opacity: 1;
             transform: translateY(0);
+            transition: gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            justify-content: center;
         }
 
         .hidden-cards .link-card,
@@ -307,7 +324,7 @@
         }
 
         .hidden-cards .card-container.active {
-            z-index: 60; /* 提高z-index确保点击有效 */
+            z-index: 60;
         }
 
         .link-card {
@@ -315,7 +332,9 @@
             border-radius: 10px;
             padding: 16px;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease,
+                       padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       border-radius 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             text-decoration: none;
             color: inherit;
             position: relative;
@@ -338,8 +357,8 @@
         .email-card {
             position: relative;
             padding: 16px;
-            padding-right: 50%; /* 修改：从40%改回50% */
-            overflow: hidden; /* 确保动画内容不溢出 */
+            padding-right: 50%;
+            overflow: hidden;
         }
 
         .email-main-content {
@@ -370,7 +389,7 @@
             height: 100%;
             display: flex;
             z-index: 1;
-            width: 50%; /* 修改：从40%改回50% */
+            width: 50%;
         }
 
         .email-tab {
@@ -406,7 +425,7 @@
             background: linear-gradient(to left, rgba(102, 126, 234, 0.35), rgba(102, 126, 234, 0.08));
             color: #4a5bcc;
             border: 1px solid rgba(102, 126, 234, 0.4);
-            border-left: none; /* 移除左侧边框 */
+            border-left: none;
             /* 选中标签的阴影效果 */
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
                         inset 0 1px 2px rgba(0, 0, 0, 0.1),
@@ -417,7 +436,7 @@
         
         /* 默认位置 (选中第一个) */
         .email-tabs.active-0 .email-tab[data-email="0"] {
-            right: 75%; /* 最左 */
+            right: 75%;
             width: 25%;
             z-index: 15;
         }
@@ -439,7 +458,7 @@
 
         /* 选中第二个：2-1-3-4 */
         .email-tabs.active-1 .email-tab[data-email="1"] {
-            right: 75%; /* 最左 */
+            right: 75%;
             width: 25%;
             z-index: 15;
         }
@@ -461,7 +480,7 @@
 
         /* 选中第三个：3-1-2-4 */
         .email-tabs.active-2 .email-tab[data-email="2"] {
-            right: 75%; /* 最左 */
+            right: 75%;
             width: 25%;
             z-index: 15;
         }
@@ -483,7 +502,7 @@
 
         /* 选中第四个：4-1-2-3 */
         .email-tabs.active-3 .email-tab[data-email="3"] {
-            right: 75%; /* 最左 */
+            right: 75%;
             width: 25%;
             z-index: 15;
         }
@@ -570,7 +589,7 @@
         }
 
         .hidden-cards .sub-cards {
-            z-index: 70; /* 进一步提高z-index */
+            z-index: 70;
         }
 
         .sub-cards.expanded {
@@ -587,7 +606,9 @@
             margin-bottom: 5px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(180, 190, 200, 0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease,
+                       padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
             opacity: 0;
             transform: translateX(-20px);
@@ -598,7 +619,7 @@
         /* 隐藏卡片区域的sub-card不需要动画延迟 */
         .hidden-cards .sub-card {
             animation: slideInLeft 0.5s ease forwards;
-            animation-delay: 0s !important; /* 移除动画延迟 */
+            animation-delay: 0s !important;
         }
 
         /* 非隐藏区域保持原有动画 */
@@ -630,6 +651,7 @@
             font-size: 20px !important;
             margin-bottom: 0 !important;
             opacity: 0.8;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .two-line-card .link-title {
@@ -637,12 +659,14 @@
             margin-bottom: 0 !important;
             font-weight: 600;
             color: #333;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .two-line-card .link-url {
             font-size: 11px;
             color: #0066cc;
             line-height: 1.2;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card.compact-card {
@@ -659,6 +683,7 @@
             margin-bottom: 0 !important;
             flex-shrink: 0;
             opacity: 0.8;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .compact-card .link-content {
@@ -668,6 +693,7 @@
             flex-grow: 1;
             font-size: 11px;
             line-height: 1.2;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .compact-card .link-url {
@@ -678,6 +704,7 @@
         .compact-card .link-note {
             color: #666;
             font-size: 10px;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card:hover {
@@ -753,12 +780,16 @@
             font-size: 20px;
             margin-bottom: 6px;
             display: block;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card .link-icon {
             font-size: 20px;
             margin-bottom: 6px;
             opacity: 0.8;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .backup-card .link-icon {
@@ -773,6 +804,8 @@
             margin-bottom: 4px;
             color: #333;
             line-height: 1.2;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card .link-title {
@@ -780,6 +813,8 @@
             margin-bottom: 4px;
             color: #333;
             font-weight: 600;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .backup-card .link-title {
@@ -793,11 +828,13 @@
             font-size: 11px;
             color: #666;
             line-height: 1.3;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card .link-desc {
             font-size: 11px;
             color: #666;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .link-desc-clickable {
@@ -806,11 +843,13 @@
             line-height: 1.3;
             cursor: pointer;
             text-decoration: underline;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .sub-card .link-desc-clickable {
             font-size: 11px;
             color: #0066cc;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .link-desc-clickable:hover {
@@ -850,6 +889,8 @@
             color: #666;
             line-height: 1.3;
             margin-left: 28px;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .email-card.contact-card {
@@ -882,27 +923,143 @@
             cursor: pointer;
             text-decoration: underline;
             margin-left: 28px;
+            transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                       margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .email-contact-desc:hover {
             color: #0056b3;
         }
 
-        @media (min-width: 600px) {
+        /* 响应式布局 - 平板（3列布局） */
+        @media (min-width: 481px) and (max-width: 799px) {
             .container {
-                max-width: 500px;
+                max-width: 600px;
+            }
+
+            .links-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+
+            .hidden-cards.expanded {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+
+            /* 联系方式在3列布局下：2个卡片占满整个宽度 */
+            .contact-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                max-width: 100%; /* 占满整个宽度 */
             }
         }
 
+        /* 响应式布局 - 中等屏幕（4列布局） */
+        @media (min-width: 800px) {
+            .container {
+                max-width: 1200px;
+            }
+
+            .links-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+
+            .hidden-cards.expanded {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+
+            /* 联系方式在4列布局下：2个卡片占3列的宽度 */
+            .contact-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                max-width: calc(75% + 10px); /* 4列中3列的宽度 */
+            }
+
+            .section-title {
+                font-size: 22px;
+                margin-bottom: 18px;
+            }
+
+            .link-card {
+                padding: 18px;
+            }
+
+            .email-card {
+                padding: 18px;
+                padding-right: 50%;
+            }
+
+            .email-card.contact-card {
+                padding: 18px;
+                padding-right: 50%;
+            }
+
+            .link-card-with-expand {
+                padding-right: 58px;
+            }
+
+            .expand-btn {
+                right: 18px;
+                width: 34px;
+                height: 26px;
+                font-size: 15px;
+            }
+
+            .link-icon {
+                font-size: 22px;
+                margin-bottom: 8px;
+            }
+
+            .link-title {
+                font-size: 15px;
+                margin-bottom: 5px;
+            }
+
+            .link-desc, .link-desc-clickable {
+                font-size: 12px;
+            }
+
+            .contact-header .link-icon {
+                font-size: 22px;
+            }
+
+            .contact-header .link-title {
+                font-size: 15px;
+            }
+
+            .contact-desc, .email-contact-desc {
+                font-size: 12px;
+                margin-left: 30px;
+            }
+
+            .email-contact-header .link-icon {
+                font-size: 22px;
+            }
+
+            .email-contact-header .link-title {
+                font-size: 15px;
+            }
+
+            .email-tab {
+                font-size: 13px;
+                padding: 5px 3px;
+                border-radius: 0 12px 12px 0;
+            }
+        }
+
+        /* 移动端响应式 - 保持最少2个卡片每行 */
         @media (max-width: 480px) {
             .container {
-                width: 96%; /* 使用百分比设置宽度，减少边距 */
+                width: 96%;
                 max-width: none;
                 padding: 0;
             }
             
             body {
-                padding: 10px; /* 减少body的padding */
+                padding: 10px;
                 padding-bottom: 30px;
             }
             
@@ -926,6 +1083,23 @@
             .email-card.contact-card {
                 padding: 12px 12px;
                 padding-right: 50%;
+            }
+
+            /* 移动端保持2列 */
+            .links-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .hidden-cards.expanded {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            /* 联系方式在移动端单独占一行 */
+            .contact-row {
+                grid-template-columns: 1fr !important;
+                max-width: none !important;
             }
 
             .email-tab {
@@ -1072,11 +1246,6 @@
             .email-contact-header .link-title {
                 font-size: 13px;
             }
-
-            /* 手机端联系方式卡片单独占一行 */
-            .contact-row {
-                grid-template-columns: 1fr !important;
-            }
         }
     </style>
 </head>
@@ -1104,9 +1273,6 @@
                     <h3 class="link-title">lty在线U盘(隆安)</h3>
                     <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://121.ink/la', '_blank')">121.ink/la</p>
                 </div>
-            </div>
-            
-            <div class="links-grid" style="margin-top: 12px;">
                 <div class="card-container">
                     <div class="link-card link-card-with-expand" onclick="window.open('https://www.jianguoyun.com/p/DZ0FaaMQyu2zDBiSjrYF', '_blank')">
                         <span class="link-icon">💾</span>
@@ -1138,7 +1304,6 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="card-container">
                     <div class="link-card link-card-with-expand" onclick="window.open('https://29.n29.net:2096/', '_blank')">
                         <span class="link-icon">💽</span>
@@ -1199,169 +1364,8 @@
 
         <div class="section">
             <h2 class="section-title">🎬 视频聚合</h2>
-            <div class="links-grid">
-                <a href="https://tv.f66.fun/" target="_blank" class="link-card">
-                    <span class="link-icon">📺</span>
-                    <h3 class="link-title">LibreTV</h3>
-                    <p class="link-desc">tv.f66.fun</p>
-                </a>
-                <a href="https://www.zxzjhd.com/" target="_blank" class="link-card">
-                    <span class="link-icon">🎥</span>
-                    <h3 class="link-title">在线之家</h3>
-                    <p class="link-desc">手机界面友好</p>
-                </a>
-                <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.549.tv/', '_blank')">
-                        <span class="link-icon">🌲</span>
-                        <h3 class="link-title">影视森林</h3>
-                        <p class="link-desc">影视资源导航</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('forest-subcards', this)" title="展开备用地址">▼</button>
-                    </div>
-                    <div class="sub-cards" id="forest-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://www.549.tv/', '_blank')">
-                            <span class="link-icon">🔗</span>
-                            <div class="link-content">
-                                <span class="link-url">www.549.tv</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.gying.org/', '_blank')">
-                        <span class="link-icon">🎥</span>
-                        <h3 class="link-title">观 影</h3>
-                        <p class="link-desc">影视大全</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('gying-subcards', this)" title="展开备用地址">▼</button>
-                    </div>
-                    <div class="sub-cards" id="gying-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://gying.si', '_blank')">
-                            <span class="link-icon">🎬</span>
-                            <div class="link-content">
-                                <span class="link-url">gying.si</span>
-                            </div>
-                        </div>
-                        <div class="sub-card compact-card" onclick="window.open('https://gying.in', '_blank')">
-                            <span class="link-icon">🍿</span>
-                            <div class="link-content">
-                                <span class="link-url">gying.in</span>
-                            </div>
-                        </div>
-                        <div class="sub-card compact-card" onclick="window.open('https://gyg.la', '_blank')">
-                            <span class="link-icon">🎭</span>
-                            <div class="link-content">
-                                <span class="link-url">gyg.la</span>
-                            </div>
-                        </div>
-                        <div class="sub-card compact-card" onclick="window.open('https://gyg.si', '_blank')">
-                            <span class="link-icon">🎪</span>
-                            <div class="link-content">
-                                <span class="link-url">gyg.si</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.cilixiong.org/', '_blank')">
-                        <span class="link-icon">🐻</span>
-                        <h3 class="link-title">磁力熊</h3>
-                        <p class="link-desc">精选豆瓣高分</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('cilixiong-subcards', this)" title="展开备用地址">▼</button>
-                    </div>
-                    <div class="sub-cards" id="cilixiong-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://www.cilixiong.cc/', '_blank')">
-                            <span class="link-icon">🔗</span>
-                            <div class="link-content">
-                                <span class="link-url">cilixiong.cc</span>
-                                <span class="link-note">(备用)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="window.open('https://ddys.pro/', '_blank')">
-                        <span class="link-icon">📽️</span>
-                        <h3 class="link-title">低端影视</h3>
-                        <p class="link-desc">小众影视资源</p>
-                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('ddys-subcards', this)" title="展开备用地址">▼</button>
-                    </div>
-                    <div class="sub-cards" id="ddys-subcards">
-                        <div class="sub-card compact-card" onclick="window.open('https://ddys.mov/', '_blank')">
-                            <span class="link-icon">🎬</span>
-                            <div class="link-content">
-                                <span class="link-url">ddys.mov</span>
-                                <span class="link-note">(备用)</span>
-                            </div>
-                        </div>
-                        <div class="sub-card compact-card" onclick="window.open('https://ddys.site/', '_blank')">
-                            <span class="link-icon">🔗</span>
-                            <div class="link-content">
-                                <span class="link-url">ddys.site</span>
-                                <span class="link-note">(网址发布页)</span>
-                            </div>
-                        </div>
-                        <div class="sub-card compact-card" onclick="window.open('https://ddys.love/', '_blank')">
-                            <span class="link-icon">💕</span>
-                            <div class="link-content">
-                                <span class="link-url">ddys.love</span>
-                                <span class="link-note">(网址发布页)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-expand-btn">
-                <span>展开卡片</span>
-                <span class="arrow">▼</span>
-            </button>
-
-            <div class="hidden-cards" id="video-hidden-cards">
-                <a href="https://cz01.vip/" target="_blank" class="link-card">
-                    <span class="link-icon">🎨</span>
-                    <h3 class="link-title">厂长资源</h3>
-                    <p class="link-desc">影视在线观看</p>
-                </a>
-                <a href="https://lzizy.net/" target="_blank" class="link-card">
-                    <span class="link-icon">🎞️</span>
-                    <h3 class="link-title">量子资源</h3>
-                    <p class="link-desc">lzizy1-8.com</p>
-                </a>
-                <a href="https://www.6bt0.com/" target="_blank" class="link-card">
-                    <span class="link-icon">🔻</span>
-                    <h3 class="link-title">不太灵(下载站)</h3>
-                    <p class="link-desc">小众影视下载</p>
-                </a>
-                <a href="https://www.4kvm.tv/" target="_blank" class="link-card">
-                    <span class="link-icon">🎬</span>
-                    <h3 class="link-title">4K影视</h3>
-                    <p class="link-desc">高清在线影视</p>
-                </a>
-                <a href="https://www.dygod.net/" target="_blank" class="link-card">
-                    <span class="link-icon">🏰</span>
-                    <h3 class="link-title">电影天堂</h3>
-                    <p class="link-desc">经典影视下载</p>
-                </a>
-                <a href="https://kawaka.cafe/" target="_blank" class="link-card">
-                    <span class="link-icon">☕</span>
-                    <h3 class="link-title">kwk咖啡(Alist)</h3>
-                    <p class="link-desc">网盘聚合</p>
-                </a>
-                <a href="https://7080.wang/" target="_blank" class="link-card">
-                    <span class="link-icon">📱</span>
-                    <h3 class="link-title">7080网</h3>
-                    <p class="link-desc">怀旧影视资源</p>
-                </a>
-                <a href="https://www.饭太硬.com/" target="_blank" class="link-card">
-                    <span class="link-icon">🍚</span>
-                    <h3 class="link-title">饭太硬(导航)</h3>
-                    <p class="link-desc">影视资源导航</p>
-                </a>
-            </div>
-
-            <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-collapse-btn" style="display: none;">
-                <span>折叠卡片</span>
-                <span class="arrow">▲</span>
-            </button>
+            <!-- 动态生成的视频聚合内容将在这里插入 -->
+            <div id="video-content"></div>
         </div>
 
         <div class="section">
@@ -1397,6 +1401,7 @@
 
     <script>
         let currentExpanded = null;
+        let currentLayout = 'mobile'; // mobile, tablet, desktop
 
         const emailData = [
             {
@@ -1429,8 +1434,338 @@
             }
         ];
 
+        // 视频聚合数据
+        const videoData = [
+            {
+                id: 'libreTV',
+                icon: '📺',
+                title: 'LibreTV',
+                desc: 'tv.f66.fun',
+                url: 'https://tv.f66.fun/',
+                type: 'simple'
+            },
+            {
+                id: 'zaixianzhijia',
+                icon: '🎥',
+                title: '在线之家',
+                desc: '手机界面友好',
+                url: 'https://www.zxzjhd.com/',
+                type: 'simple'
+            },
+            {
+                id: 'yingshiselin',
+                icon: '🌲',
+                title: '影视森林',
+                desc: '影视资源导航',
+                url: 'https://www.549.tv/',
+                type: 'expandable',
+                subCards: [
+                    {
+                        icon: '🔗',
+                        content: 'www.549.tv',
+                        url: 'https://www.549.tv/'
+                    }
+                ]
+            },
+            {
+                id: 'guanying',
+                icon: '🎥',
+                title: '观 影',
+                desc: '影视大全',
+                url: 'https://www.gying.org/',
+                type: 'expandable',
+                subCards: [
+                    {
+                        icon: '🎬',
+                        content: 'gying.si',
+                        url: 'https://gying.si'
+                    },
+                    {
+                        icon: '🍿',
+                        content: 'gying.in',
+                        url: 'https://gying.in'
+                    },
+                    {
+                        icon: '🎭',
+                        content: 'gyg.la',
+                        url: 'https://gyg.la'
+                    },
+                    {
+                        icon: '🎪',
+                        content: 'gyg.si',
+                        url: 'https://gyg.si'
+                    }
+                ]
+            },
+            {
+                id: 'cilixiong',
+                icon: '🐻',
+                title: '磁力熊',
+                desc: '精选豆瓣高分',
+                url: 'https://www.cilixiong.org/',
+                type: 'expandable',
+                subCards: [
+                    {
+                        icon: '🔗',
+                        content: 'cilixiong.cc',
+                        note: '(备用)',
+                        url: 'https://www.cilixiong.cc/'
+                    }
+                ]
+            },
+            {
+                id: 'diduanyingshi',
+                icon: '📽️',
+                title: '低端影视',
+                desc: '小众影视资源',
+                url: 'https://ddys.pro/',
+                type: 'expandable',
+                subCards: [
+                    {
+                        icon: '🎬',
+                        content: 'ddys.mov',
+                        note: '(备用)',
+                        url: 'https://ddys.mov/'
+                    },
+                    {
+                        icon: '🔗',
+                        content: 'ddys.site',
+                        note: '(网址发布页)',
+                        url: 'https://ddys.site/'
+                    },
+                    {
+                        icon: '💕',
+                        content: 'ddys.love',
+                        note: '(网址发布页)',
+                        url: 'https://ddys.love/'
+                    }
+                ]
+            },
+            {
+                id: 'changzhanquan',
+                icon: '🎨',
+                title: '厂长资源',
+                desc: '影视在线观看',
+                url: 'https://cz01.vip/',
+                type: 'simple'
+            },
+            {
+                id: 'liangziziyuan',
+                icon: '🎞️',
+                title: '量子资源',
+                desc: 'lzizy1-8.com',
+                url: 'https://lzizy.net/',
+                type: 'simple'
+            },
+            {
+                id: 'butailing',
+                icon: '🔻',
+                title: '不太灵(下载站)',
+                desc: '小众影视下载',
+                url: 'https://www.6bt0.com/',
+                type: 'simple'
+            },
+            {
+                id: '4kyingshi',
+                icon: '🎬',
+                title: '4K影视',
+                desc: '高清在线影视',
+                url: 'https://www.4kvm.tv/',
+                type: 'simple'
+            },
+            {
+                id: 'dianyingtiantang',
+                icon: '🏰',
+                title: '电影天堂',
+                desc: '经典影视下载',
+                url: 'https://www.dygod.net/',
+                type: 'simple'
+            },
+            {
+                id: 'kwkkafei',
+                icon: '☕',
+                title: 'kwk咖啡(Alist)',
+                desc: '网盘聚合',
+                url: 'https://kawaka.cafe/',
+                type: 'simple'
+            },
+            {
+                id: '7080wang',
+                icon: '📱',
+                title: '7080网',
+                desc: '怀旧影视资源',
+                url: 'https://7080.wang/',
+                type: 'simple'
+            },
+            {
+                id: 'fantaiying',
+                icon: '🍚',
+                title: '饭太硬(导航)',
+                desc: '影视资源导航',
+                url: 'https://www.饭太硬.com/',
+                type: 'simple'
+            }
+        ];
+
         let currentEmailData = emailData[0];
         let isAnimating = false;
+
+        // 检测当前布局
+        function detectLayout() {
+            const width = window.innerWidth;
+            if (width <= 480) {
+                return 'mobile';
+            } else if (width <= 799) {
+                return 'tablet';
+            } else {
+                return 'desktop';
+            }
+        }
+
+        // 生成视频聚合HTML结构
+        function generateVideoStructure(layout) {
+            let html = '';
+            
+            if (layout === 'mobile') {
+                // 移动端：显示前6个，折叠后8个
+                const visibleCards = videoData.slice(0, 6);
+                const hiddenCards = videoData.slice(6);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+                
+            } else if (layout === 'tablet') {
+                // 平板：显示前6个，折叠后8个
+                const visibleCards = videoData.slice(0, 6);
+                const hiddenCards = videoData.slice(6);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+                
+            } else {
+                // 桌面：显示前8个，折叠后6个
+                const visibleCards = videoData.slice(0, 8);
+                const hiddenCards = videoData.slice(8);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+            }
+            
+            return html;
+        }
+
+        // 生成单个卡片HTML
+        function generateCardHTML(card) {
+            if (card.type === 'simple') {
+                return `
+                    <a href="${card.url}" target="_blank" class="link-card">
+                        <span class="link-icon">${card.icon}</span>
+                        <h3 class="link-title">${card.title}</h3>
+                        <p class="link-desc">${card.desc}</p>
+                    </a>
+                `;
+            } else if (card.type === 'expandable') {
+                let subCardsHTML = '';
+                card.subCards.forEach(subCard => {
+                    subCardsHTML += `
+                        <div class="sub-card compact-card" onclick="window.open('${subCard.url}', '_blank')">
+                            <span class="link-icon">${subCard.icon}</span>
+                            <div class="link-content">
+                                <span class="link-url">${subCard.content}</span>
+                                ${subCard.note ? `<span class="link-note">${subCard.note}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                return `
+                    <div class="card-container">
+                        <div class="link-card link-card-with-expand" onclick="window.open('${card.url}', '_blank')">
+                            <span class="link-icon">${card.icon}</span>
+                            <h3 class="link-title">${card.title}</h3>
+                            <p class="link-desc">${card.desc}</p>
+                            <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('${card.id}-subcards', this)" title="展开备用地址">▼</button>
+                        </div>
+                        <div class="sub-cards" id="${card.id}-subcards">
+                            ${subCardsHTML}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 生成展开按钮
+        function generateExpandButton() {
+            return `
+                <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-expand-btn">
+                    <span>展开卡片</span>
+                    <span class="arrow">▼</span>
+                </button>
+            `;
+        }
+
+        // 生成折叠卡片区域
+        function generateHiddenCardsHTML(cards, layout) {
+            let html = '<div class="hidden-cards" id="video-hidden-cards">';
+            cards.forEach(card => {
+                html += generateCardHTML(card);
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // 生成折叠按钮
+        function generateCollapseButton() {
+            return `
+                <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-collapse-btn" style="display: none;">
+                    <span>折叠卡片</span>
+                    <span class="arrow">▲</span>
+                </button>
+            `;
+        }
+
+        // 更新视频聚合结构
+        function updateVideoStructure() {
+            const newLayout = detectLayout();
+            if (newLayout !== currentLayout) {
+                currentLayout = newLayout;
+                const videoContent = document.getElementById('video-content');
+                videoContent.innerHTML = generateVideoStructure(currentLayout);
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            currentLayout = detectLayout();
+            const videoContent = document.getElementById('video-content');
+            videoContent.innerHTML = generateVideoStructure(currentLayout);
+        });
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', function() {
+            updateVideoStructure();
+        });
 
         function switchEmail(index) {
             if (isAnimating) return;
@@ -1575,10 +1910,11 @@
             }
         });
 
-        document.querySelectorAll('.sub-cards').forEach(function(subcards) {
-            subcards.addEventListener('click', function(e) {
+        // 使用事件委托处理动态生成的sub-cards
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.sub-cards')) {
                 e.stopPropagation();
-            });
+            }
         });
     </script>
 </body>
