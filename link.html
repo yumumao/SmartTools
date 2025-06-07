@@ -359,6 +359,7 @@
             padding: 16px;
             padding-right: 50%;
             overflow: hidden;
+    border-bottom: 3px solid rgba(102, 126, 234, 0.4);
         }
 
         .email-main-content {
@@ -395,12 +396,13 @@
         .email-tab {
             height: 100%;
             background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.2); 
+    /* 将原来的边框注释掉或删除 */
+    /* border: 1px solid rgba(102, 126, 234, 0.2); */
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 15px;
             color: #667eea;
             font-weight: 600;
             writing-mode: vertical-rl;
@@ -424,7 +426,7 @@
 
         /* 激活状态样式 - 从右到左的渐变色，左侧更浅，无左边框 */
         .email-tab.active {
-            background: linear-gradient(to left, rgba(102, 126, 234, 0.55), rgba(102, 126, 234, 0.08));
+            background: linear-gradient(to left, rgba(102, 126, 234, 0.35), rgba(102, 126, 234, 0.08));
             color: #4a5bcc;
             border-left: none;
             /* 选中标签的阴影效果 */
@@ -432,8 +434,11 @@
                         inset 0 1px 2px rgba(0, 0, 0, 0.1),
                         0 0 0 1px rgba(102, 126, 234, 0.0);
             border-right: 2px solid rgba(102, 126, 234, 0.4);
-            border-top: 1px solid rgba(102, 126, 234, 0.4);
-            border-bottom: 3px solid rgba(102, 126, 234, 0.4);
+            border-top: 0px solid rgba(102, 126, 234, 0.4);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.4);
+            font-weight: block;
+            /* 添加文字阴影 */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         /* 标签位置布局 - 选中标签在最左，其他保持相对顺序 */
@@ -1048,7 +1053,7 @@
             }
 
             .email-tab {
-                font-size: 13px;
+                font-size: 15px;
                 padding: 5px 3px;
                 border-radius: 0 12px 12px 0;
             }
@@ -1107,7 +1112,7 @@
             }
 
             .email-tab {
-                font-size: 10px;
+                font-size: 13px;
                 padding: 3px 1px;
                 border-radius: 0 8px 8px 0;
             }
