@@ -42,10 +42,17 @@
       display: block;
     }
     /* 九宫格模式下容器调整 */
-    .grid-mode {
-      height: 100vh;  /* 使用全视窗高度 */
-      min-height: 700px;  /* 最小高度确保内容不挤压 */
-    }
+.grid-mode {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start !important;
+  align-items: center;
+  padding: 0;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  /* 保持与主页面相同的高度 */
+}
     /* 主界面诗词输入区域 */
     #poemInput {
       width: 100%;
@@ -132,7 +139,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   min-height: 80px;
-  max-height: 175px;
+  max-height: 176px;
   overflow-y: auto;
   padding: 5px;
   text-align: left;
@@ -355,7 +362,7 @@
   display: none;
   width: 100%;
   min-height: 160px;
-  max-height: 200px;
+  max-height: 223px;
   padding: 5px;
   border: 1px solid #ddd;
   border-left-width: 1px;
@@ -402,6 +409,13 @@
   max-width: 360px;
 }
 
+.grid-mode #poemAnswer {
+  display: block !important;  /* 确保答案区域显示 */
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
 /* 手机设备响应式调整 */
 @media (max-height: 700px) {
   .grid-mode #gridText {
@@ -423,6 +437,10 @@
 
 /* 手机宽度响应式 */
 @media (max-width: 600px) {
+    .container { 
+    padding: 15px; 
+    /* 保持相同的高度和宽度设置 */
+  }
   .grid-mode #gridText {
     margin-top: -50px;  /* 手机宽度下的调整 */
   }
