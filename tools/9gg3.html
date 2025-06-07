@@ -435,10 +435,17 @@
   }
 }
 
-/* 手机宽度响应式 - 合并所有 max-width: 600px 的规则 */
+/* 手机宽度响应式 - 强制保持容器宽度一致 */
 @media (max-width: 600px) {
   .container { 
     padding: 15px; 
+  }
+  
+  /* 强制九宫格模式下保持相同的容器约束 */
+  .grid-mode {
+    width: 90% !important;  /* 强制与主页面相同 */
+    max-width: 400px !important;  /* 强制与主页面相同 */
+    margin: 20px auto !important;  /* 强制与主页面相同 */
   }
   
   #poemInput { 
@@ -446,8 +453,8 @@
   }
   
   #gridText { 
-    width: 320px;
-    height: 320px;
+    width: 280px;  /* 适当缩小以适应小屏幕 */
+    height: 280px;
     padding: 10px;
   }
   
@@ -463,15 +470,21 @@
   
   .grid-mode #answer-buttons {
     margin: -15px auto 12px auto;
-    max-width: 320px;
+    max-width: 280px;  /* 配合九宫格宽度 */
   }
 }
 
-/* 合并所有 max-width: 400px 的规则 */
 @media (max-width: 400px) {
+  /* 强制九宫格模式下保持相同的容器约束 */
+  .grid-mode {
+    width: 90% !important;
+    max-width: 400px !important;
+    margin: 20px auto !important;
+  }
+  
   #gridText { 
-    width: 300px;
-    height: 300px;
+    width: 260px;  /* 进一步缩小 */
+    height: 260px;
     padding: 8px;
   }
   
@@ -487,7 +500,7 @@
   
   .grid-mode #answer-buttons {
     margin: -10px auto 10px auto;
-    max-width: 300px;
+    max-width: 260px;  /* 配合九宫格宽度 */
   }
 }
 
