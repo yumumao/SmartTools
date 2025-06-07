@@ -4,7 +4,8 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线收藏夹 - SmartTools</title>
+    <title>🔖 在线收藏夹 - SmartTools</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😺🔖</text></svg>">
     <style>
         * {
             margin: 0;
@@ -1356,10 +1357,74 @@
                         </div>
                     </div>
                 </div>
-                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DdCoU9cQzLmCCRia2bgFIAA', '_blank')">
-                    <span class="link-icon">🚑</span>
-                    <h3 class="link-title">急救知识</h3>
-                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/aid', '_blank')">f66.fun/aid</p>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://webvpn.gdpu.edu.cn/', '_blank')">
+                        <span class="link-icon">🔒</span>
+                        <h3 class="link-title">广药VPN</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://172.21.199.252/', '_blank')">172.21.199.252</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('vpn-subcards', this)" title="展开相关链接">▼</button>
+                    </div>
+                    <div class="sub-cards" id="vpn-subcards">
+                        <div class="sub-card two-line-card" onclick="window.open('https://portal.gdpu.edu.cn/#/index', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🏛️</span>
+                                <h3 class="link-title">融合门户</h3>
+                            </div>
+                            <p class="link-url">portal.gdpu.edu.cn/#/index</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('http://172.21.199.252/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🌐</span>
+                                <h3 class="link-title">校园网登录</h3>
+                            </div>
+                            <p class="link-url">172.21.199.252</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-container">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.medsci.cn/medsci-tools', '_blank')">
+                        <span class="link-icon">🏥</span>
+                        <h3 class="link-title">在线医学工具</h3>
+                        <p class="link-desc">算/表/统</p>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('medical-tools-subcards', this)" title="展开更多工具">▼</button>
+                    </div>
+                    <div class="sub-cards" id="medical-tools-subcards">
+                        <div class="sub-card two-line-card" onclick="window.open('https://m.medsci.cn/scale/index.do', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">💉</span>
+                                <h3 class="link-title">梅斯医学计算器</h3>
+                            </div>
+                            <p class="link-url">m.medsci.cn/scale/index.do</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://drugs.dxy.cn/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">💊</span>
+                                <h3 class="link-title">用药助手</h3>
+                            </div>
+                            <p class="link-url">drugs.dxy.cn</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://cals.medlive.cn/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">📐</span>
+                                <h3 class="link-title">医脉通医学计算</h3>
+                            </div>
+                            <p class="link-url">cals.medlive.cn</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://medsta.cn/software', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🌪️</span>
+                                <h3 class="link-title">风暴在线统计</h3>
+                            </div>
+                            <p class="link-url">medsta.cn/software</p>
+                        </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://www.cxmed.cn/statistool.html', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">📈</span>
+                                <h3 class="link-title">常笑在线统计</h3>
+                            </div>
+                            <p class="link-url">cxmed.cn/statistool.html</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DXQKP7QQyu2zDBj9mLgF', '_blank')">
                     <span class="link-icon">📊</span>
@@ -1370,6 +1435,11 @@
                     <span class="link-icon">🎓</span>
                     <h3 class="link-title">广药实验视频</h3>
                     <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/ve', '_blank')">f66.fun/ve</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://www.jianguoyun.com/p/DdCoU9cQzLmCCRia2bgFIAA', '_blank')">
+                    <span class="link-icon">🚑</span>
+                    <h3 class="link-title">急救知识</h3>
+                    <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/aid', '_blank')">f66.fun/aid</p>
                 </div>
             </div>
         </div>
@@ -1458,7 +1528,7 @@
             },
             {
                 id: 'zaixianzhijia',
-                icon: '🎥',
+                icon: '📱',
                 title: '在线之家',
                 desc: '手机界面友好',
                 url: 'https://www.zxzjhd.com/',
@@ -1603,7 +1673,7 @@
             },
             {
                 id: '7080wang',
-                icon: '📱',
+                icon: '📹',
                 title: '7080网',
                 desc: '怀旧影视资源',
                 url: 'https://7080.wang/',
