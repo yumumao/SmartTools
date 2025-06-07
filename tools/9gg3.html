@@ -283,17 +283,18 @@
       cursor: pointer;
       width: 100%;
     }
-    /* 九宫格显示区域：调整上抬，margin-top -35px */
+    /* 九宫格显示区域：使用相对定位和百分比，避免固定值 */
     #gridText {
       display: none;
       max-width: 300px;
-      height: 270px;
-      margin: -36px auto 0 auto;
+      height: 260px;
+      margin: -10px auto 0 auto;
+      /* margin: 0 auto;  */
       position: relative;
       z-index: 10;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
+      gap: 10px;
       font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
     }
     /* 九宫格每个格子 */
@@ -312,11 +313,11 @@
       transition: opacity 0.5s ease;
       opacity: 1;
     }
-    /* 操作按钮区域：宽度设置为80% */
+    /* 操作按钮区域 */
     #answer-buttons {
       display: none;
       width: 100%;
-      margin: 0 auto 10px;
+      margin: 10px auto 10px;
       height: 40px;
       justify-content: space-between;
       gap: 5px;
@@ -343,8 +344,8 @@
 #poemAnswer {
   display: none;
   width: 100%;
-  min-height: 180px;
-  max-height: 223px;
+  min-height: 160px;
+  max-height: 36vh;
   padding: 5px;
   border: 1px solid #ddd;
   border-left-width: 1px;
@@ -360,6 +361,7 @@
   font-size: 18px;
   box-sizing: border-box;
   z-index: 8;
+  margin: 0 auto;
 }
     .answer-line {
       text-align: center;
@@ -368,20 +370,54 @@
 .grid-mode {
   display: flex !important;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: flex-start !important;  /* 改为 flex-start，让内容靠上 */
   align-items: center;
-  padding-top: 50px;
+  padding-top: 30px;  /* 添加顶部padding，控制九宫格位置 */
+  padding-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  /* min-height: 633px; */
+  margin-top: -20px;  /* 让整个容器上移 */
+  /* 不要重新定义 height、width、max-width，让它继承 .container 的设置 */
 }
-/* 响应式调整答案区域高度 */
-@media (max-height: 600px) {
+
+/* 九宫格模式下的内容居中布局 */
+.grid-mode #gridText {
+  display: grid !important;
+  margin-bottom: 5px;
+}
+
+.grid-mode #answer-buttons {
+  display: flex !important;
+  margin-top: -5px;  /* 添加负上边距 */
+  margin-bottom: 15px;
+}
+
+.grid-mode #poemAnswer {
+  display: block !important;
+}
+
+/* 响应式调整 */
+@media (max-height: 700px) {
+  .grid-mode {
+    min-height: auto;
+    padding: 10px;
+   /* margin-top: -6px;  让整个容器上移 */
+  }
   #poemAnswer {
-    max-height: calc(100vh - 280px);
+    max-height: 180px;
+    min-height: 120px;
   }
 }
 
-@media (max-height: 500px) {
+@media (max-height: 600px) {
+  .grid-mode {
+    padding: 5px;
+    /* margin-top: -6px;  让整个容器上移 */
+  }
   #poemAnswer {
-    max-height: calc(100vh - 230px);
+    max-height: 160px;
+    min-height: 100px;
   }
 }
     /* 响应式适配 */
@@ -596,6 +632,7 @@ function formatRandomPoem(fullText) {
       var weeklyPoemSelected = null;
       var savedPoem = "";
       var rawPoemText = "";
+      var currentSource = ""; // 新增：当前诗词来源
       var historyRecords = JSON.parse(localStorage.getItem('poemHistory')) || [];
       var answerVisible = false;
       
@@ -634,7 +671,36 @@ function formatRandomPoem(fullText) {
             var rec = historyRecords[idx];
             document.getElementById('poemInput').innerText = rec.content;
             rawPoemText = rec.content;
+            
+            // 修复：重置所有状态变量，设置当前来源
             weeklyPoemSelected = null;
+            randomPoemData = null;
+            currentSource = rec.source;
+            
+            // 如果是weekly类型，需要重新设置weeklyPoemSelected
+            if (rec.source === "weekly") {
+              // 从记录中重构weeklyPoemSelected对象
+              weeklyPoemSelected = {
+                title: rec.title,
+                author: rec.author,
+                content: rec.content.split("\n").slice(3).join("\n"), // 提取正文部分
+                week: rec.content.split("\n")[0] // 提取周次信息
+              };
+            }
+            // 如果是random类型，需要重新设置randomPoemData
+            else if (rec.source === "random") {
+              // 从记录中重构randomPoemData对象
+              var lines = rec.content.split("\n");
+              randomPoemData = {
+                origin: {
+                  title: rec.title,
+                  author: rec.author,
+                  dynasty: lines[1] ? lines[1].replace(/[【】]/g, '').split('】')[0] : "",
+                  content: lines.slice(2).join("\n")
+                }
+              };
+            }
+            
             updateClearBtnStyle();
           });
           items[i].addEventListener('contextmenu', function(e) {
@@ -744,6 +810,7 @@ function formatRandomPoem(fullText) {
         var fullPoem = poem.week + " " + "《" + poem.title + "》" + "\n" +
                        "作者：" + poem.author + "\n" + poem.content;
         rawPoemText = fullPoem;
+        currentSource = "weekly"; // 设置来源
         var formatted = formatWeeklyPoem(fullPoem);
         document.getElementById('poemInput').innerHTML = formatted;
         updateClearBtnStyle();
@@ -761,6 +828,7 @@ function formatRandomPoem(fullText) {
           let poem = poemArr[randomIndex];
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
+          randomPoemData = null; // 重置random数据
           let record = {
             id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
             title: poem.title,
@@ -774,6 +842,7 @@ function formatRandomPoem(fullText) {
           let poem = poemArr[index];
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
+          randomPoemData = null; // 重置random数据
           let record = {
             id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
             title: poem.title,
@@ -797,6 +866,7 @@ function formatRandomPoem(fullText) {
           let poem = poemArr[randomIndex];
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
+          randomPoemData = null; // 重置random数据
           let record = {
             id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
             title: poem.title,
@@ -811,6 +881,7 @@ function formatRandomPoem(fullText) {
           let poem = poemArr[index];
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
+          randomPoemData = null; // 重置random数据
           let record = {
             id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
             title: poem.title,
@@ -829,6 +900,7 @@ function formatRandomPoem(fullText) {
           try {
 jinrishici.load(function(result) {
   randomPoemData = result.data;
+  weeklyPoemSelected = null; // 重置weekly数据
   btn.innerText = "随机诗词";
   var fullPoem = "《" + randomPoemData.origin.title + "》" + "\n" +
                  "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
@@ -836,7 +908,7 @@ jinrishici.load(function(result) {
   var formatted = formatRandomPoem(fullPoem);
   document.getElementById('poemInput').innerHTML = formatted;
   rawPoemText = fullPoem;
-  weeklyPoemSelected = null;
+  currentSource = "random"; // 设置来源
   updateClearBtnStyle();
   // 添加随机诗词历史记录
   var record = {
@@ -861,6 +933,11 @@ jinrishici.load(function(result) {
       
       document.getElementById('clearBtn').addEventListener('click', function() {
         document.getElementById('poemInput').innerHTML = "";
+        // 清空时重置所有状态
+        weeklyPoemSelected = null;
+        randomPoemData = null;
+        currentSource = "";
+        rawPoemText = "";
         updateClearBtnStyle();
       });
       
@@ -940,8 +1017,7 @@ jinrishici.load(function(result) {
           });
           gridText.appendChild(cell);
         }
-        // 切换到九宫格模式：隐藏主界面其它部分，
-        // 并将容器（主容器）切换为 flex 布局，使九宫格整体垂直居中
+        // 切换到九宫格模式
         var container = document.getElementById('mainContainer');
         container.classList.add("grid-mode");
         document.getElementById('poemInput').style.display = 'none';
@@ -951,19 +1027,20 @@ jinrishici.load(function(result) {
         document.getElementById('random-poem').style.display = 'none';
         document.getElementById('submenu').style.display = 'none';
         document.getElementById('historyContainer').style.display = 'none';
-gridText.style.display = 'grid';
-document.getElementById('answer-buttons').style.display = 'flex';
-poemAnswer.style.display = 'block';
 
-// 添加历史记录逻辑
+// 添加历史记录逻辑（如果尚未添加）
 var titleStr = "";
 var authorStr = "";
+var source = currentSource; // 使用当前来源
+
 if (weeklyPoemSelected) {
   titleStr = weeklyPoemSelected.title;
   authorStr = weeklyPoemSelected.author;
+  source = "weekly";
 } else if (randomPoemData) {
   titleStr = randomPoemData.origin.title;
   authorStr = randomPoemData.origin.author;
+  source = "random";
 } else {
   let rawLines = rawPoemText.split("\n").map(l => l.trim());
   if (rawLines.length >= 2) {
@@ -980,11 +1057,9 @@ if (weeklyPoemSelected) {
     titleStr = pureText.substring(0, 10); 
   }
   if (!authorStr) { authorStr = "手动输入"; }
+  source = source || "manual";
 }
-var source = "";
-if (weeklyPoemSelected) { source = "weekly"; }
-else if (randomPoemData) { source = "random"; }
-else { source = "manual"; }
+
 var record = {
   id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
   title: titleStr,
@@ -1012,7 +1087,8 @@ addHistoryRecord(record);
                         "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
                         randomPoemData.origin.content;
           } else {
-            rawAnswer = savedPoem;
+            // 修复：对于历史记录中的内容，使用当前的rawPoemText
+            rawAnswer = rawPoemText || savedPoem;
           }
           var formatted = formatAnswerNew(rawAnswer);
           var finalAnswer = formatAnswerDisplay(formatted);
@@ -1074,7 +1150,7 @@ addHistoryRecord(record);
                         "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
                         randomPoemData.origin.content;
           } else {
-            rawAnswer = savedPoem;
+            rawAnswer = rawPoemText || savedPoem;
           }
           var formatted = formatAnswerNew(rawAnswer);
           var finalAnswer = formatAnswerDisplay(formatted);
@@ -1086,10 +1162,7 @@ addHistoryRecord(record);
       });
       
       document.getElementById('backBtn').addEventListener('click', function(){
-        weeklyPoemSelected = null;
-        savedPoem = "";
-        rawPoemText = "";
-        // 恢复主界面显示：恢复主容器布局
+        // 恢复主界面显示
         var container = document.getElementById('mainContainer');
         container.classList.remove("grid-mode");
         document.getElementById('poemInput').style.display = 'block';
@@ -1104,6 +1177,12 @@ addHistoryRecord(record);
         answerVisible = false;
         document.getElementById('showAnswerBtn').innerText = '答案';
         document.getElementById('historyContainer').style.display = 'block';
+        
+        // 清理状态
+        weeklyPoemSelected = null;
+        savedPoem = "";
+        rawPoemText = "";
+        currentSource = "";
         randomPoemData = null;
       });
       
@@ -1286,7 +1365,7 @@ addHistoryRecord(record);
       { "week": "第十三周", "title": "赠别二首·其一", "author": "[唐] 杜牧", "content": "娉娉袅袅十三余，豆蔻梢头二月初。\n春风十里扬州路，卷上珠帘总不如。", "volume": "下册" },
       { "week": "第十四周", "title": "长干行二首·其一", "author": "[唐] 李白", "content": "妾发初覆额，折花门前剧。\n郎骑竹马来，绕床弄青梅。\n同居长干里，两小无嫌猜。", "volume": "下册" },
       { "week": "第十五周", "title": "上善若水", "author": "[春秋] 老子", "content": "上善若水，水善利万物而不争。\n处众人之所恶，故几于道。", "volume": "下册" },
-      { "week": "第十六周", "title": "卧薪尝胆", "author": "[西汉] 司马迁", "content": "吴既赦越，越王勾践反国，\n乃苦身焦思，置胆于坐，\n坐卧即仰胆，饮食亦尝胆也。\n曰：“女忘会稽之耻邪？”\n身自耕作，夫人自织；\n食不加肉，衣不重采；\n折节下贤人，厚遇宾客；\n振贫吊死，与百姓同其劳。", "volume": "下册" }
+      { "week": "第十六周", "title": "卧薪尝胆", "author": "[西汉] 司马迁", "content": "吴既赦越，越王勾践反国，\n乃苦身焦思，置胆于坐，\n坐卧即仰胆，饮食亦尝胆也。\n曰："女忘会稽之耻邪？"\n身自耕作，夫人自织；\n食不加肉，衣不重采；\n折节下贤人，厚遇宾客；\n振贫吊死，与百姓同其劳。", "volume": "下册" }
     ];
 
     // ---------- 五年级 ----------
