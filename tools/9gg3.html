@@ -392,7 +392,7 @@
 .grid-mode #gridText {
   display: grid !important;
   margin: 0 auto;
- margin-top: -70px;   /* 控制九宫格距离容器顶部的距离 */
+  margin-top: -70px;   /* 控制九宫格距离容器顶部的距离 */
 }
 
 .grid-mode #answer-buttons {
@@ -402,39 +402,57 @@
   max-width: 360px;
 }
 
-.grid-mode #poemAnswer {
-  display: block !important;
-  width: 100%;
-  max-width: 360px;
-  margin: 0 auto;
-}
-
-/* 响应式调整 */
+/* 手机设备响应式调整 */
 @media (max-height: 700px) {
-  .grid-mode {
-    min-height: auto;
-    justify-content: flex-start;
-    padding-top: 50px;
-  }
   .grid-mode #gridText {
-    transform: translateY(-10px);
+    margin-top: -40px;  /* 小屏幕高度下减少上边距 */
   }
-  #poemAnswer {
-    max-height: 160px;
-    min-height: 120px;
+  .grid-mode #answer-buttons {
+    margin: -10px auto 10px auto;  /* 调整按钮间距 */
   }
 }
 
 @media (max-height: 600px) {
-  .grid-mode {
-    padding-top: 30px;
-  }
   .grid-mode #gridText {
-    transform: translateY(0);
+    margin-top: -20px;  /* 更小屏幕进一步调整 */
+  }
+  .grid-mode #answer-buttons {
+    margin: -5px auto 8px auto;
+  }
+}
+
+/* 手机宽度响应式 */
+@media (max-width: 600px) {
+  .grid-mode #gridText {
+    margin-top: -50px;  /* 手机宽度下的调整 */
+  }
+  .grid-mode #answer-buttons {
+    margin: -15px auto 12px auto;
+    max-width: 320px;  /* 配合九宫格宽度 */
+  }
+}
+
+@media (max-width: 400px) {
+  .grid-mode #gridText {
+    margin-top: -30px;  /* 小屏手机进一步调整 */
+  }
+  .grid-mode #answer-buttons {
+    margin: -10px auto 10px auto;
+    max-width: 300px;
+  }
+}
+
+/* 超小屏幕或横屏手机 */
+@media (max-height: 500px) {
+  .grid-mode #gridText {
+    margin-top: 0px;  /* 极小屏幕取消负边距 */
+  }
+  .grid-mode #answer-buttons {
+    margin: 5px auto 5px auto;
   }
   #poemAnswer {
-    max-height: 140px;
-    min-height: 100px;
+    max-height: 100px;  /* 限制答案区域高度 */
+    min-height: 80px;
   }
 }
     /* 响应式适配 */
