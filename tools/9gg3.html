@@ -27,7 +27,7 @@
       min-height: 100vh;
       box-sizing: border-box;
     }
-    /* 主容器：固定高度633px，保证主界面与九宫格界面一致 */
+    /* 主容器：修改为适应九宫格居中 */
     .container {
       width: 90%;
       max-width: 400px;
@@ -40,6 +40,11 @@
       text-align: center;
       position: relative;
       display: block;
+    }
+    /* 九宫格模式下容器调整 */
+    .grid-mode {
+      height: 100vh;  /* 使用全视窗高度 */
+      min-height: 700px;  /* 最小高度确保内容不挤压 */
     }
     /* 主界面诗词输入区域 */
     #poemInput {
@@ -283,32 +288,37 @@
       cursor: pointer;
       width: 100%;
     }
-    /* 九宫格显示区域：使用相对定位和百分比，避免固定值 */
+    /* 九宫格显示区域：完美居中设计 */
     #gridText {
       display: none;
-      max-width: 300px;
-      height: 260px;
-      margin: -10px auto 0 auto;
-      /* margin: 0 auto;  */
+      width: 320px;
+      height: 320px;
       position: relative;
       z-index: 10;
-      display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
       font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
+      padding: 15px;
+      box-sizing: border-box;
     }
     /* 九宫格每个格子 */
     .grid-cell {
       border: 1px solid #ccc;
       background-color: #FFEEEE;
-      width: 80px;
-      height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 36px;
       cursor: pointer;
+      font-family: "yanti", "颜体", "FZJZXF", "SimHei", "黑体", "Microsoft YaHei", sans-serif;
+      border-radius: 4px;
+      max-width: 100px;
+      max-height: 100px;
+      min-width: 60px;
+      min-height: 60px;
     }
+  
     .cell-letter {
       transition: opacity 0.5s ease;
       opacity: 1;
@@ -317,7 +327,7 @@
     #answer-buttons {
       display: none;
       width: 100%;
-      margin: 10px auto 10px;
+      margin: 15px 0;
       height: 40px;
       justify-content: space-between;
       gap: 5px;
@@ -345,7 +355,7 @@
   display: none;
   width: 100%;
   min-height: 160px;
-  max-height: 36vh;
+  max-height: 200px;
   padding: 5px;
   border: 1px solid #ddd;
   border-left-width: 1px;
@@ -366,57 +376,64 @@
     .answer-line {
       text-align: center;
     }
-/* 当生成九宫格时，将主容器切换为 flex 布局，垂直居中 */
+/* 九宫格模式：使用flex完美居中 */
 .grid-mode {
   display: flex !important;
   flex-direction: column;
-  justify-content: flex-start !important;  /* 改为 flex-start，让内容靠上 */
+  justify-content: flex-start !important;  /* 改为flex-start */
   align-items: center;
-  padding-top: 30px;  /* 添加顶部padding，控制九宫格位置 */
-  padding-bottom: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  /* min-height: 633px; */
-  /* margin-top: -20px;  让整个容器上移 */
-  /* 不要重新定义 height、width、max-width，让它继承 .container 的设置 */
+  padding: 0;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* 九宫格模式下的内容居中布局 */
+/* 九宫格模式下的内容布局 */
 .grid-mode #gridText {
   display: grid !important;
-  margin-bottom: 5px;
+  margin: 0 auto;
+ margin-top: -70px;   /* 控制九宫格距离容器顶部的距离 */
 }
 
 .grid-mode #answer-buttons {
   display: flex !important;
-  margin-top: -5px;  /* 添加负上边距 */
-  margin-bottom: 15px;
+  margin: -20px auto 15px auto;
+  width: 100%;
+  max-width: 360px;
 }
 
 .grid-mode #poemAnswer {
   display: block !important;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 /* 响应式调整 */
 @media (max-height: 700px) {
   .grid-mode {
     min-height: auto;
-    padding: 10px;
-   /* margin-top: -6px;  让整个容器上移 */
+    justify-content: flex-start;
+    padding-top: 50px;
+  }
+  .grid-mode #gridText {
+    transform: translateY(-10px);
   }
   #poemAnswer {
-    max-height: 180px;
+    max-height: 160px;
     min-height: 120px;
   }
 }
 
 @media (max-height: 600px) {
   .grid-mode {
-    padding: 5px;
-    /* margin-top: -6px;  让整个容器上移 */
+    padding-top: 30px;
+  }
+  .grid-mode #gridText {
+    transform: translateY(0);
   }
   #poemAnswer {
-    max-height: 160px;
+    max-height: 140px;
     min-height: 100px;
   }
 }
@@ -424,7 +441,29 @@
     @media (max-width: 600px) {
       .container { padding: 15px; }
       #poemInput { height: 180px; }
-      #gridText { max-width: 90%; }
+      #gridText { 
+        width: 320px;
+        height: 320px;
+        padding: 10px;
+      }
+      .grid-cell {
+        font-size: 32px;
+        max-width: 90px;
+        max-height: 90px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      #gridText { 
+        width: 300px;
+        height: 300px;
+        padding: 8px;
+      }
+      .grid-cell {
+        font-size: 30px;
+        max-width: 80px;
+        max-height: 80px;
+      }
     }
   </style>
 </head>

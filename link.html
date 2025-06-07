@@ -608,13 +608,13 @@
         }
 
         .sub-card {
-            background: rgba(240, 242, 247, 0.5);
+            background: rgba(240, 242, 247, 0.67);
             backdrop-filter: blur(10px);
             border-radius: 8px;
             padding: 10px 14px;
             margin-bottom: 5px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(180, 190, 200, 0.3);
+            border: 1px solid rgba(180, 190, 200, 0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease,
                        padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                        margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -717,9 +717,12 @@
         }
 
         .sub-card:hover {
-            background: rgba(240, 242, 247, 0.85) !important;
+            background: rgba(240, 242, 247, 0.95) !important;
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 
+                    0 0 15px rgba(102, 126, 234, 0.5), /* 添加蓝色发光效果 */
+                    0 0 30px rgba(102, 126, 234, 0.2), /* 添加更大范围的发光 */
+                    inset 0 1px 3px rgba(255, 255, 255, 0.5); /* 内部高光 */
             z-index: 2;
         }
 
