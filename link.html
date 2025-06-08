@@ -560,8 +560,8 @@
             color: white;
             border: none;
             border-radius: 8px;
-            width: 32px;
-            height: 24px;
+            width: 34px;
+            height: 26px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -569,7 +569,7 @@
             font-size: 14px;
             font-weight: bold;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.3);
             z-index: 3;
         }
 
@@ -1026,9 +1026,10 @@
 
             .expand-btn {
                 right: 18px;
-                width: 34px;
-                height: 26px;
+                width: 36px;
+                height: 28px;
                 font-size: 15px;
+                margin: -3px 0;     /* 稍微增加负边距 */
             }
 
             .link-icon {
@@ -1133,9 +1134,10 @@
 
             .expand-btn {
                 right: 12px;
-                width: 28px;
-                height: 20px;
+                width: 30px;
+                height: 22px;
                 font-size: 12px;
+                margin: -2px 0;     /* 稍微增加负边距 */
             }
 
             .sub-card {
@@ -1640,12 +1642,15 @@ const onlineAIData = [
     }
 ];
 
-// 生成在线AI结构
-function generateOnlineAIStructure(layout) {
+// 为在线AI创建独立的布局状态
+let currentAILayout = 'mobile';
+
+// 生成在线AI HTML结构（完全复用视频聚合的逻辑）
+function generateAIStructure(layout) {
     let html = '';
     
     if (layout === 'mobile') {
-        // 移动端：显示前2个
+        // 移动端：显示前2个，折叠后8个
         const visibleCards = onlineAIData.slice(0, 2);
         const hiddenCards = onlineAIData.slice(2);
         
@@ -1655,12 +1660,14 @@ function generateOnlineAIStructure(layout) {
         });
         html += '</div>';
         
-        html += generateOnlineAIExpandButton();
-        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
-        html += generateOnlineAICollapseButton();
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
         
     } else if (layout === 'tablet') {
-        // 平板：显示前3个
+        // 平板：显示前3个，折叠后7个
         const visibleCards = onlineAIData.slice(0, 3);
         const hiddenCards = onlineAIData.slice(3);
         
@@ -1670,12 +1677,14 @@ function generateOnlineAIStructure(layout) {
         });
         html += '</div>';
         
-        html += generateOnlineAIExpandButton();
-        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
-        html += generateOnlineAICollapseButton();
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
         
     } else {
-        // 桌面：显示前4个
+        // 桌面：显示前4个，折叠后6个
         const visibleCards = onlineAIData.slice(0, 4);
         const hiddenCards = onlineAIData.slice(4);
         
@@ -1685,15 +1694,17 @@ function generateOnlineAIStructure(layout) {
         });
         html += '</div>';
         
-        html += generateOnlineAIExpandButton();
-        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
-        html += generateOnlineAICollapseButton();
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
     }
     
     return html;
 }
 
-// 生成AI单个卡片HTML
+// 生成单个AI卡片HTML
 function generateAICardHTML(card) {
     if (card.type === 'simple') {
         return `
@@ -1706,8 +1717,8 @@ function generateAICardHTML(card) {
     }
 }
 
-// 生成在线AI展开按钮
-function generateOnlineAIExpandButton() {
+// 生成AI展开按钮
+function generateAIExpandButton() {
     return `
         <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-expand-btn">
             <span>展开卡片</span>
@@ -1716,8 +1727,8 @@ function generateOnlineAIExpandButton() {
     `;
 }
 
-// 生成在线AI隐藏卡片区域
-function generateOnlineAIHiddenCardsHTML(cards) {
+// 生成AI折叠卡片区域
+function generateAIHiddenCardsHTML(cards, layout) {
     let html = '<div class="hidden-cards" id="ai-hidden-cards">';
     cards.forEach(card => {
         html += generateAICardHTML(card);
@@ -1726,8 +1737,8 @@ function generateOnlineAIHiddenCardsHTML(cards) {
     return html;
 }
 
-// 生成在线AI折叠按钮
-function generateOnlineAICollapseButton() {
+// 生成AI折叠按钮
+function generateAICollapseButton() {
     return `
         <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-collapse-btn" style="display: none;">
             <span>折叠卡片</span>
@@ -1736,7 +1747,7 @@ function generateOnlineAICollapseButton() {
     `;
 }
 
-// 在线AI独立的切换函数
+// AI分类独立的切换函数
 function toggleAISection(sectionId, button) {
     const section = document.getElementById(sectionId);
     const expandBtn = document.getElementById('ai-expand-btn');
@@ -1773,11 +1784,14 @@ function toggleAISection(sectionId, button) {
     }
 }
 
-// 初始化在线AI分类
-function initOnlineAISection() {
-    const layout = detectLayout();
-    const content = generateOnlineAIStructure(layout);
-    document.getElementById('online-ai-content').innerHTML = content;
+// 更新AI分类结构（使用独立的布局状态）
+function updateAIStructure() {
+    const newLayout = detectLayout();
+    if (newLayout !== currentAILayout) {
+        currentAILayout = newLayout;
+        const aiContent = document.getElementById('online-ai-content');
+        aiContent.innerHTML = generateAIStructure(currentAILayout);
+    }
 }
 // ===================== 结束：在线AI分类的JS代码 =====================
 
@@ -2105,17 +2119,19 @@ function initOnlineAISection() {
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
+            currentAILayout = detectLayout(); // 初始化AI布局状态
             const videoContent = document.getElementById('video-content');
             videoContent.innerHTML = generateVideoStructure(currentLayout);
             // 初始化在线AI分类
-            initOnlineAISection();           
+            const aiContent = document.getElementById('online-ai-content');
+            aiContent.innerHTML = generateAIStructure(currentAILayout);           
         });
-   
+
         // 监听窗口大小变化
         window.addEventListener('resize', function() {
             updateVideoStructure();
             // 更新在线AI分类结构
-            initOnlineAISection();
+            updateAIStructure();
         });
 
         function switchEmail(index) {
