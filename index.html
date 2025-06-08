@@ -48,20 +48,36 @@
         }
 
         .title .smart {
-            background: linear-gradient(45deg, #fff, #e8f4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: transparent;
-        }
+    /* 回退方案：不支持background-clip的浏览器显示白色 */
+    color: white;
+    /* 现代浏览器的渐变效果 */
+    background: linear-gradient(45deg, #fff, #e8f4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    }
+/* 支持background-clip的浏览器才应用透明色 */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+    .title .smart {
+        color: transparent;
+    }
+}
+.title .tools {
+    /* 回退方案：不支持background-clip的浏览器显示白色 */
+    color: white;
+    /* 现代浏览器的渐变效果 */
+    background: linear-gradient(45deg, #fff, #f0f8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
 
-        .title .tools {
-            background: linear-gradient(45deg, #fff, #f0f8ff);
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            -webkit-background-clip: text;
-        }
+/* 支持background-clip的浏览器才应用透明色 */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+    .title .tools {
+        color: transparent;
+    }
+}
 
         .subtitle {
             color: rgba(255, 255, 255, 0.8);
