@@ -41,7 +41,12 @@
             letter-spacing: 1px;
             transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-
+        .footer {
+            text-align: center;
+            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
         .back-nav {
             display: flex;
             justify-content: center;
@@ -165,6 +170,11 @@
         }
 
         #video-collapse-btn {
+            margin-top: 8px;
+            margin-bottom: 15px;
+        }
+
+        #ai-collapse-btn {
             margin-top: 8px;
             margin-bottom: 15px;
         }
@@ -1225,6 +1235,11 @@
                 margin-bottom: 8px;
             }
 
+            #ai-collapse-btn {
+                margin-top: 6px;
+                margin-bottom: 8px;
+            }
+
             .hidden-cards {
                 margin-bottom: 8px;
             }
@@ -1272,7 +1287,7 @@
                 <a href="index.html" class="back-link">← 返回小工具</a>
             </div>
         </div>
-
+<!-- ===================== 开始：在线U盘分类 ===================== -->
         <div class="section">
             <h2 class="section-title">☁️ 在线U盘</h2>
             <div class="links-grid">
@@ -1343,9 +1358,11 @@
                 </div>
             </div>
         </div>
+<!-- ===================== 结束：在线U盘分类 ===================== -->
 
+<!-- ===================== 开始：授课资料分类 ===================== -->
         <div class="section">
-            <h2 class="section-title">📚 授课资源</h2>
+            <h2 class="section-title">📚 授课资料</h2>
             <div class="links-grid">
                 <div class="card-container">
                     <div class="link-card link-card-with-expand" onclick="window.open('https://mooc1.chaoxing.com/mooc-ans/course/214155769.html', '_blank')">
@@ -1357,7 +1374,7 @@
                     <div class="sub-cards" id="physiology-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://mooc1-2.chaoxing.com/mooc-ans/course/214155769.html', '_blank')">
                             <div class="card-header">
-                                <span class="link-icon">🔬</span>
+                                <span class="link-icon">👨‍⚕️</span>
                                 <h3 class="link-title">超星-生理学2</h3>
                             </div>
                             <p class="link-url">f66.fun/mooc</p>
@@ -1450,13 +1467,25 @@
                 </div>
             </div>
         </div>
+<!-- ===================== 结束：授课资料分类 ===================== -->
 
+<!-- ===================== 开始：在线AI分类 ===================== -->
+<div class="section">
+    <h2 class="section-title">🤖 在线AI</h2>
+    <!-- 动态生成的在线AI分类将在这里插入 -->
+    <div id="online-ai-content"></div>
+</div>
+<!-- ===================== 结束：在线AI分类 ===================== -->
+
+<!-- ===================== 开始：视频聚合分类 ===================== -->
         <div class="section">
             <h2 class="section-title">🎬 视频聚合</h2>
             <!-- 动态生成的视频聚合内容将在这里插入 -->
             <div id="video-content"></div>
         </div>
+<!-- ===================== 结束：视频聚合分类 ===================== -->
 
+<!-- ===================== 开始：联系方式分类 ===================== -->
         <div class="section">
             <h2 class="section-title">📧 联系方式</h2>
             <div class="links-grid contact-row">
@@ -1477,17 +1506,20 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://mrr.cc/" target="_blank" class="link-card contact-card">
+                <a href="index.html" target="_self" class="link-card contact-card">
                     <div class="contact-header">
                         <span class="link-icon">🛠️</span>
                         <h3 class="link-title">在线小工具</h3>
                     </div>
-                    <p class="contact-desc">mrr.cc - 实用工具集合</p>
+                    <p class="contact-desc">mrr.cc - 自用工具集合</p>
                 </a>
             </div>
         </div>
+        <div class="footer">
+            <p>m(AT)mrr.cc</p>
+        </div>
     </div>
-
+<!-- ===================== 结束：联系方式分类 ===================== -->
     <script>
         let currentExpanded = null;
         let currentLayout = 'mobile'; // mobile, tablet, desktop
@@ -1505,23 +1537,249 @@
                 title: '邮箱2',
                 address: 'aaabbb(AT)cc.cc',
                 url: 'http://aaabbb.cc.cc',
-                mailto: 'http://aaabbb@cc.cc'
+                mailto: 'http://aaabbb.cc.cc'
             },
             {
                 icon: '📬',
                 title: '邮箱3',
                 address: 'cocoa(AT)cc.cc',
                 url: 'http://cocoa.cc.cc',
-                mailto: 'http://cocoa@cc.cc'
+                mailto: 'http://cocoa.cc.cc'
             },
             {
                 icon: '📭',
                 title: '邮箱4',
                 address: 'yumumao(AT)cc.cc',
                 url: 'http://yumumao.cc.cc',
-                mailto: 'http://yumumao@cc.cc'
+                mailto: 'http://yumumao.cc.cc'
             }
         ];
+
+// ===================== 开始：在线AI分类的JS代码 =====================
+// 在线AI数据
+const onlineAIData = [
+    {
+        id: 'qwen',
+        icon: '🧞',
+        title: 'Qwen',
+        desc: '阿里千问',
+        url: 'https://chat.qwen.ai/',
+        type: 'simple'
+    },
+    {
+        id: 'poe',
+        icon: '🧙‍',
+        title: 'POE',
+        desc: 'AI助手集合',
+        url: 'https://poe.com/',
+        type: 'simple'
+    },
+    {
+        id: 'yuanbao',
+        icon: '🍏',
+        title: '腾讯元宝',
+        desc: '腾讯AI助手',
+        url: 'https://yuanbao.tencent.com/',
+        type: 'simple'
+    },
+    {
+        id: 'bibigpt',
+        icon: '👁️',
+        title: 'BibiGPT',
+        desc: '音视频AI总结',
+        url: 'https://bibigpt.co/',
+        type: 'simple'
+    },
+    {
+        id: 'doubao',
+        icon: '💁‍',
+        title: '豆包',
+        desc: '字节跳动AI助手',
+        url: 'https://www.doubao.com/',
+        type: 'simple'
+    },
+    {
+        id: 'deepseek',
+        icon: '🤿',
+        title: 'DeepSeek',
+        desc: '深度求索',
+        url: 'https://www.deepseek.com/',
+        type: 'simple'
+    },
+    {
+        id: 'chatgpt',
+        icon: '💬',
+        title: 'ChatGPT',
+        desc: 'OpenAI聊天机器人',
+        url: 'https://chat.openai.com/',
+        type: 'simple'
+    },
+    {
+        id: 'grok',
+        icon: '🦊',
+        title: 'Grok',
+        desc: 'xAI的AI助手',
+        url: 'https://grok.com/',
+        type: 'simple'
+    },
+    {
+        id: 'mitasearch',
+        icon: '🔎',
+        title: '秘塔搜索',
+        desc: 'AI搜索引擎',
+        url: 'https://metaso.cn/',
+        type: 'simple'
+    },
+    {
+        id: 'nanomisearch',
+        icon: '🔬',
+        title: '纳米搜索',
+        desc: 'AI搜索工具',
+        url: 'https://www.n.cn/',
+        type: 'simple'
+    }
+];
+
+// 生成在线AI结构
+function generateOnlineAIStructure(layout) {
+    let html = '';
+    
+    if (layout === 'mobile') {
+        // 移动端：显示前2个
+        const visibleCards = onlineAIData.slice(0, 2);
+        const hiddenCards = onlineAIData.slice(2);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        html += generateOnlineAIExpandButton();
+        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
+        html += generateOnlineAICollapseButton();
+        
+    } else if (layout === 'tablet') {
+        // 平板：显示前3个
+        const visibleCards = onlineAIData.slice(0, 3);
+        const hiddenCards = onlineAIData.slice(3);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        html += generateOnlineAIExpandButton();
+        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
+        html += generateOnlineAICollapseButton();
+        
+    } else {
+        // 桌面：显示前4个
+        const visibleCards = onlineAIData.slice(0, 4);
+        const hiddenCards = onlineAIData.slice(4);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        html += generateOnlineAIExpandButton();
+        html += generateOnlineAIHiddenCardsHTML(hiddenCards);
+        html += generateOnlineAICollapseButton();
+    }
+    
+    return html;
+}
+
+// 生成AI单个卡片HTML
+function generateAICardHTML(card) {
+    if (card.type === 'simple') {
+        return `
+            <a href="${card.url}" target="_blank" class="link-card">
+                <span class="link-icon">${card.icon}</span>
+                <h3 class="link-title">${card.title}</h3>
+                <p class="link-desc">${card.desc}</p>
+            </a>
+        `;
+    }
+}
+
+// 生成在线AI展开按钮
+function generateOnlineAIExpandButton() {
+    return `
+        <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-expand-btn">
+            <span>展开卡片</span>
+            <span class="arrow">▼</span>
+        </button>
+    `;
+}
+
+// 生成在线AI隐藏卡片区域
+function generateOnlineAIHiddenCardsHTML(cards) {
+    let html = '<div class="hidden-cards" id="ai-hidden-cards">';
+    cards.forEach(card => {
+        html += generateAICardHTML(card);
+    });
+    html += '</div>';
+    return html;
+}
+
+// 生成在线AI折叠按钮
+function generateOnlineAICollapseButton() {
+    return `
+        <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-collapse-btn" style="display: none;">
+            <span>折叠卡片</span>
+            <span class="arrow">▲</span>
+        </button>
+    `;
+}
+
+// 在线AI独立的切换函数
+function toggleAISection(sectionId, button) {
+    const section = document.getElementById(sectionId);
+    const expandBtn = document.getElementById('ai-expand-btn');
+    const collapseBtn = document.getElementById('ai-collapse-btn');
+    const isExpanded = section.classList.contains('expanded');
+    
+    if (isExpanded) {
+        section.classList.add('collapsing');
+        collapseBtn.classList.add('moving');
+        
+        setTimeout(() => {
+            section.classList.remove('expanded', 'collapsing');
+            collapseBtn.style.display = 'none';
+            collapseBtn.classList.remove('moving');
+            
+            setTimeout(() => {
+                expandBtn.style.display = 'flex';
+                expandBtn.classList.remove('moving');
+            }, 100);
+        }, 600);
+        
+    } else {
+        expandBtn.classList.add('moving');
+        
+        setTimeout(() => {
+            expandBtn.style.display = 'none';
+            section.classList.add('expanded');
+            
+            setTimeout(() => {
+                collapseBtn.style.display = 'flex';
+                collapseBtn.classList.remove('moving');
+            }, 800);
+        }, 200);
+    }
+}
+
+// 初始化在线AI分类
+function initOnlineAISection() {
+    const layout = detectLayout();
+    const content = generateOnlineAIStructure(layout);
+    document.getElementById('online-ai-content').innerHTML = content;
+}
+// ===================== 结束：在线AI分类的JS代码 =====================
 
         // 视频聚合数据
         const videoData = [
@@ -1849,11 +2107,15 @@
             currentLayout = detectLayout();
             const videoContent = document.getElementById('video-content');
             videoContent.innerHTML = generateVideoStructure(currentLayout);
+            // 初始化在线AI分类
+            initOnlineAISection();           
         });
-
+   
         // 监听窗口大小变化
         window.addEventListener('resize', function() {
             updateVideoStructure();
+            // 更新在线AI分类结构
+            initOnlineAISection();
         });
 
         function switchEmail(index) {
@@ -1881,7 +2143,7 @@
                 const addressElement = document.getElementById('email-address');
                 addressElement.onclick = function(event) {
                     event.stopPropagation();
-                    window.open(currentEmailData.mailto, '_blank');
+                    window.open(currentEmailData.url, '_blank');
                 };
                 
                 // 准备滑入动画
