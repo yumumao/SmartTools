@@ -43,7 +43,7 @@
 
         .title .highlight {
             font-weight: 700;
-            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.5);
             color: #fff;
         }
 
@@ -57,9 +57,10 @@
 
         .title .tools {
             background: linear-gradient(45deg, #fff, #f0f8ff);
-            -webkit-background-clip: text;
+            color: transparent;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-background-clip: text;
         }
 
         .subtitle {
@@ -174,23 +175,76 @@
             font-size: 12px;
         }
 
-        /* 响应式布局 - 手机平板 */
-        @media (max-width: 800px) {
+        /* 响应式布局 - 小屏幕 */
+        @media (max-width: 320px) {
+            .container {
+                padding-top: 10px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .tool-card {
+                padding: 18px;
+            }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .footer {
+                margin-top: 10px;
+            }
+
+            .nav-cards {
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .nav-card {
+                min-width: 100px;
+                padding: 12px 18px;
+                font-size: 12px;
+            }
+
+            .tool-icon {
+                font-size: 23px;
+                margin-bottom: 8px;
+            }
+
+            .tool-title {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+
+            .tool-desc {
+                font-size: 12px;
+            }
+
+            .tools-grid {
+                gap: 12px;
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 响应式布局 - 平板或手机 */
+        @media (min-width: 321px) and (max-width: 799px) {
             .container {
                 max-width: 600px;
             }
 
             .tools-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
+                gap: 15px;
             }
 
             .nav-cards {
-                gap: 16px;
+                gap: 15px;
             }
 
             .nav-card {
-                min-width: 160px;
+                min-width: 120px;
                 padding: 18px 28px;
                 font-size: 15px;
             }
@@ -330,7 +384,7 @@
 
         <div class="footer">
             <p><a href="about.html" style="color: rgba(255, 255, 255, 0.8); text-decoration: none;">关于这些工具</a></p>
-            <p>yumumao@medu.cc</p>
+            <p>m(AT)mrr.cc</p>
         </div>
     </div>
 </body>
