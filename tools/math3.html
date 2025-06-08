@@ -22,10 +22,10 @@
     /* 返回首页按钮样式 */
     #backHomeBtn {
       position: fixed; /* 固定定位，不占用文档流 */
-      top: 10px; /* 距离顶部10px */
+      top: 20px;
       left: max(5%, calc(50% - min(90%, var(--max-width)) / 2));
       z-index: 10000; /* 确保在最上层 */
-      padding: 8px 15px;
+      padding: 8px 10px;
       background-color: rgba(76, 175, 50, 0.67); /* 添加透明度 */
       color: #fff;
       border: none;
@@ -441,7 +441,7 @@
 </head>
 <body>
   <!-- 返回首页按钮（固定在左上角） -->
-  <button id="backHomeBtn" onclick="window.location.href='../index.html'">←返回主页</button>
+  <button id="backHomeBtn" onclick="window.location.href='../index.html'">←返回</button>
     <div class="controls">
         <button class="btn" onclick="generateProblems()">重新出题</button>
     </div>
