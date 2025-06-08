@@ -5,6 +5,7 @@
   <!-- 响应式 meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>诗歌九宫格生成器</title>
+  ​​<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📜</text></svg>">
   <style>
     /* 加载新字体 */
     @font-face {
@@ -29,19 +30,20 @@
       top: 10px; /* 距离顶部10px */
       left: max(5%, calc(50% - min(90%, var(--max-width)) / 2));
       z-index: 10000; /* 确保在最上层 */
-      padding: 6px 12px;
-      background-color: #9370DB; /* 与每周一首按钮相同 */
+      padding: 3px 8px;
+      background-color: rgba(147, 112, 219, 0.67); /* 添加透明度 */
       color: #fff;
       border: none;
       border-radius: 4px;
       font-size: 14px;
       font-family: "FZJZXF", "微软雅黑", Arial, sans-serif;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
       transition: background-color 0.3s;
     }
     #backHomeBtn:hover {
-      background-color: #7a5fb5; /* 鼠标悬停时颜色加深 */
+      background-color: rgba(122, 95, 181, 0.95); /* 悬停时更透明 */
+      opacity: 0.95;
     }
     
     /* body：左右居中，垂直靠上 */
@@ -170,7 +172,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   min-height: 80px;
-  max-height: 176px;
+  max-height: 167px;
   overflow-y: auto;
   padding: 5px;
   text-align: left;
@@ -552,7 +554,7 @@
 </head>
 <body>
   <!-- 返回首页按钮（固定在左上角） -->
-  <button id="backHomeBtn">返回首页</button>
+  <button id="backHomeBtn">←返回主页</button>
   
   <div class="container" id="mainContainer">
     <!-- SDK加载随机诗词 -->

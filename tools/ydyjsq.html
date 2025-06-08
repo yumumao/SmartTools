@@ -5,9 +5,11 @@
   <!-- 固定宽度320px -->
   <meta name="viewport" content="width=320, initial-scale=1.0" />
   <title>估算计算器</title>
+  ​​<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🧮</text></svg>">
   <style>
     /* 全局样式 */
     body {
+      --max-width: 360px; /* 与主框架最大宽度一致 */
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
       display: flex;
@@ -17,6 +19,28 @@
       margin: 0;
       padding: 10px;
     }
+    /* 返回首页按钮样式 */
+    #backHomeBtn {
+  position: fixed;
+  top: 10px;
+  left: max(5%, calc(50% - min(90%, var(--max-width)) / 2));
+  z-index: 10000;
+  padding: 3px 8px;
+  background-color: rgba(147, 112, 219, 0.67); /* 添加透明度 */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: "微软雅黑", Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  transition: background-color 0.3s;
+}
+#backHomeBtn:hover {
+      background-color: rgba(122, 95, 181, 0.95); /* 悬停时更透明 */
+      opacity: 0.95;
+}
     .calculator {
       background: #fff;
       border-radius: 10px;
@@ -167,6 +191,8 @@
   </style>
 </head>
 <body>
+    <!--  返回主页按钮 -->
+<button id="backHomeBtn" onclick="window.location.href='../index.html'">←返回主页</button>
   <div class="calculator">
     <!-- 显示区 -->
     <div id="display" class="display"></div>
