@@ -755,9 +755,11 @@ function formatMainDisplay(text) {
         // 如果前四句汉字总数 >= 28，使用1px缩进和小字号
         if (totalChineseChars >= 28) {
           indentValue = "1px";
-          fontSize = "font-size: 17px;"; // 设置较小的字体
+          fontSize = "font-size: 18px;"; // 设置较小的字体
+          rightPadding = "padding-right: 5px;"; // 设置较小的右边距
           console.log("应用1px缩进和小字号");
         } else {
+          rightPadding = "padding-right: 10px;"; // 保持默认右边距
           console.log("保持15px缩进和默认字号");
         }
       }
