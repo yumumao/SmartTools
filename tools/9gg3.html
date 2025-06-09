@@ -655,6 +655,7 @@ function formatMainDisplay(text) {
   let header = [];
   let bodyLines = [];
   let isWeeklyPoem = false;
+  let isRandomPoem = false;
   
   // 判断是否是每周一首（包含年级、《》、第几周等）
   if (lines[0] && (lines[0].includes('年级') || lines[0].includes('第') || lines[0].includes('周'))) {
@@ -665,6 +666,7 @@ function formatMainDisplay(text) {
     console.log("识别为每周一首");
   } else if (lines[0] && lines[0].startsWith("《")) {
     // 随机诗词格式
+    isRandomPoem = true;
     header = lines.slice(0, 2); // 只有前两行：标题和作者朝代
     
     // 处理正文：从第三行开始
@@ -720,8 +722,50 @@ function formatMainDisplay(text) {
   // 处理正文部分
   let formattedBodyLines = [];
   if (bodyLines.length > 0) {
-    formattedBodyLines = bodyLines.map(line => `<div class="content-line">${line}</div>`);
-    console.log("正文格式化完成");
+    // 新增：对于随机诗词，根据"句"来计算前四句的汉字总数
+    let indentValue = "15px"; // 默认缩进
+    
+    if (isRandomPoem) {
+      // 将所有正文内容合并，然后按标点符号分句
+      let allBodyText = bodyLines.join("");
+      console.log("合并的正文文本:", allBodyText);
+      
+      // 按标点符号分句（任何标点符号都算句子分隔符）
+      let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
+      // 过滤空句子
+      sentences = sentences.filter(s => s.trim() !== "");
+      console.log("分句结果:", sentences);
+      
+      if (sentences.length >= 4) {
+        // 统计前四句的纯汉字数量
+        let firstFourSentences = sentences.slice(0, 4);
+        let totalChineseChars = 0;
+        
+        firstFourSentences.forEach((sentence, index) => {
+          // 使用正则表达式匹配中文字符
+          let chineseChars = sentence.match(/[\u4e00-\u9fa5]/g);
+          let charCount = chineseChars ? chineseChars.length : 0;
+          console.log(`第${index + 1}句: "${sentence}" -> ${charCount}个汉字`);
+          totalChineseChars += charCount;
+        });
+        
+        console.log("前四句汉字总数:", totalChineseChars);
+        
+        // 如果前四句汉字总数 >= 28，使用1px缩进
+        if (totalChineseChars >= 28) {
+          indentValue = "1px";
+          console.log("应用1px缩进");
+        } else {
+          console.log("保持15px缩进");
+        }
+      }
+    }
+    
+    // 应用计算出的缩进值
+    formattedBodyLines = bodyLines.map(line => 
+      `<div class="content-line" style="padding-left: ${indentValue} !important;">${line}</div>`
+    );
+    console.log("正文格式化完成，缩进值:", indentValue);
   }
   
   let result = headerHTML + formattedBodyLines.join("");
@@ -931,7 +975,7 @@ function formatRandomPoem(fullText) {
           items[i].addEventListener('click', function() {
             var idx = this.getAttribute('data-index');
             var rec = historyRecords[idx];
-            document.getElementById('poemInput').innerText = rec.content;
+            document.getElementById('poemInput').innerHTML = formatMainDisplay(rec.content);
             rawPoemText = rec.content;
             
             // 修复：重置所有状态变量，设置当前来源
