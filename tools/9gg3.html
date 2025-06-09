@@ -725,6 +725,7 @@ function formatMainDisplay(text) {
     // 新增：对于随机诗词，根据"句"来计算前四句的汉字总数
     let indentValue = "15px"; // 默认缩进
     let fontSize = ""; // 默认字体大小
+    let rightPadding = "padding-right: 10px;"; // 默认右边距
     
     if (isRandomPoem) {
       // 将所有正文内容合并，然后按标点符号分句
@@ -754,20 +755,19 @@ function formatMainDisplay(text) {
         
         // 如果前四句汉字总数 >= 28，使用1px缩进和小字号
         if (totalChineseChars >= 28) {
-          indentValue = "1px";
+          indentValue = "5px";
           fontSize = "font-size: 18px;"; // 设置较小的字体
-          rightPadding = "padding-right: 5px;"; // 设置较小的右边距
+          rightPadding = "padding-right: 1px;"; // 设置较小的右边距
           console.log("应用1px缩进和小字号");
         } else {
-          rightPadding = "padding-right: 10px;"; // 保持默认右边距
           console.log("保持15px缩进和默认字号");
         }
       }
     }
     
-    // 应用计算出的缩进值和字体大小
+    // 应用计算出的缩进值、字体大小和右边距
     formattedBodyLines = bodyLines.map(line => 
-      `<div class="content-line" style="padding-left: ${indentValue} !important; ${fontSize}">${line}</div>`
+      `<div class="content-line" style="padding-left: ${indentValue} !important; ${rightPadding} !important; ${fontSize}">${line}</div>`
     );
     console.log("正文格式化完成，缩进值:", indentValue, "字体大小:", fontSize);
   }
