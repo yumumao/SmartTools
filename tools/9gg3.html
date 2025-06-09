@@ -753,12 +753,15 @@ function formatMainDisplay(text) {
         
         console.log("前四句汉字总数:", totalChineseChars);
         
-        // 如果前四句汉字总数 >= 28，使用1px缩进和小字号
+        // 根据前四句汉字总数调整样式
         if (totalChineseChars >= 28) {
           indentValue = "5px";
-          fontSize = "font-size: 18px;"; // 设置较小的字体
+          fontSize = "font-size: 17px;"; // 设置较小的字体
           rightPadding = "padding-right: 1px;"; // 设置较小的右边距
-          console.log("应用1px缩进和小字号");
+          console.log("应用5px缩进和小字号");
+        } else if (totalChineseChars <= 20) {
+          indentValue = "22px";
+          console.log("应用22px缩进");
         } else {
           console.log("保持15px缩进和默认字号");
         }
