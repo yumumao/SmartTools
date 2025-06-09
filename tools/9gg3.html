@@ -144,25 +144,45 @@
       text-indent: 20px;
       text-align: left;
     }
-    /* 随机诗词正文样式：缩进并居左对齐 */
-.poem-content-line {
-  margin: 0 0 8px;
-  padding-left: 30px;
-  text-align: left;
-  line-height: 1.4;
-}
+
+/* 诗词输入区域基础样式 */
 #poemInput div {
   display: block !important;
-  margin: 0 0 8px !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  padding-left: 15px !important; /* 所有行都有15px缩进 */
 }
 
-#poemInput .poem-content-line,
-#poemInput div[style*="padding-left"] {
-  margin: 0 0 8px !important;
-  padding-left: 30px !important;
+/* 标题和作者行样式（前两行紧密） */
+#poemInput div:nth-child(1),
+#poemInput div:nth-child(2) {
+  line-height: 1.1 !important;
+  margin-bottom: 2px !important;
+}
+
+/* 每周一首的第三行（作者行）与正文之间的间距 */
+#poemInput div.weekly-author-line {
+  line-height: 1.1 !important;
+  margin-bottom: 8px !important;
+}
+
+/* 随机诗词的第二行（作者朝代行）与正文之间的间距 */
+#poemInput div.random-author-line {
+  line-height: 1.1 !important;
+  margin-bottom: 8px !important;
+}
+
+/* 正文行样式 */
+#poemInput div.content-line {
   text-align: left !important;
-  line-height: 1.4 !important;
-  display: block !important;
+  line-height: 1.3 !important;
+  margin-bottom: 0 !important;
+}
+
+/* 手动输入和每周一首的普通行 */
+#poemInput div:not([style*="padding-left"]):not([style*="margin-bottom"]) {
+  line-height: 1.3 !important;
+  margin-bottom: 0 !important;
 }
     /* 历史记录区域 */
 #historyContainer {
@@ -617,6 +637,97 @@
   
   <!-- 辅助函数 -->
   <script>
+// 主界面文本格式化函数
+function formatMainDisplay(text) {
+  if (!text || typeof text !== "string") return "";
+  
+  console.log("原始文本:", text);
+  
+  let lines = text.split("\n").map(l => l.trim()).filter(l => l !== "");
+  console.log("分割后的行:", lines);
+  
+  // 如果行数太少，直接返回
+  if (lines.length <= 2) {
+    return lines.map(line => `<div>${line}</div>`).join("");
+  }
+  
+  // 分离标题部分和正文部分
+  let header = [];
+  let bodyLines = [];
+  let isWeeklyPoem = false;
+  
+  // 判断是否是每周一首（包含年级、《》、第几周等）
+  if (lines[0] && (lines[0].includes('年级') || lines[0].includes('第') || lines[0].includes('周'))) {
+    isWeeklyPoem = true;
+    // 每周一首的结构：第1行是周次，第2行是标题，第3行是作者，第4行开始是正文
+    header = lines.slice(0, 3); // 前三行：周次、标题、作者
+    bodyLines = lines.slice(3); // 第四行开始：正文
+    console.log("识别为每周一首");
+  } else if (lines[0] && lines[0].startsWith("《")) {
+    // 随机诗词格式
+    header = lines.slice(0, 2); // 只有前两行：标题和作者朝代
+    
+    // 处理正文：从第三行开始
+    if (lines.length > 2) {
+      let contentLine = lines[2];
+      
+      // 1. 先将半角逗号替换为换行符
+      let processedContent = contentLine.replace(/,/g, '\n');
+      
+      // 2. 在全角句号、感叹号、问号后添加换行符
+      processedContent = processedContent.replace(/([。！？])/g, '$1\n');
+      
+      // 3. 处理连续换行：将多个连续的换行符合并为一个
+      processedContent = processedContent.replace(/\n+/g, '\n');
+      
+      // 4. 分割成行并过滤空行
+      bodyLines = processedContent.split('\n').map(l => l.trim()).filter(l => l !== "");
+      
+      console.log("处理后的诗句:", bodyLines);
+    }
+    console.log("识别为随机诗词");
+  } else {
+    bodyLines = lines; // 全部作为正文处理
+    console.log("识别为手动输入");
+  }
+  
+  console.log("标题行:", header);
+  console.log("正文行:", bodyLines);
+  
+  // 处理标题部分
+  let headerHTML = "";
+  if (isWeeklyPoem) {
+    // 每周一首：周次、标题、作者
+    if (header.length >= 1) {
+      headerHTML += `<div>${header[0]}</div>`; // 第一行：周次
+    }
+    if (header.length >= 2) {
+      headerHTML += `<div>${header[1]}</div>`; // 第二行：标题
+    }
+    if (header.length >= 3) {
+      headerHTML += `<div class="weekly-author-line">${header[2]}</div>`; // 第三行：作者（与正文间有间距）
+    }
+  } else {
+    // 随机诗词：标题、作者朝代
+    if (header.length >= 1) {
+      headerHTML += `<div>${header[0]}</div>`; // 第一行：标题
+    }
+    if (header.length >= 2) {
+      headerHTML += `<div class="random-author-line">${header[1]}</div>`; // 第二行：作者朝代（与正文间有间距）
+    }
+  }
+  
+  // 处理正文部分
+  let formattedBodyLines = [];
+  if (bodyLines.length > 0) {
+    formattedBodyLines = bodyLines.map(line => `<div class="content-line">${line}</div>`);
+    console.log("正文格式化完成");
+  }
+  
+  let result = headerHTML + formattedBodyLines.join("");
+  console.log("最终HTML:", result);
+  return result;
+}
     // 将连续出现的标点（允许全角与半角混用，之间可能有空白）只保留第一个
 function collapsePunctuation(str) {
   console.log("处理前:", str);
@@ -629,41 +740,49 @@ function collapsePunctuation(str) {
   return result;
 }
     // 针对每周一首：直接以div换行显示
-    function formatWeeklyPoem(fullText) {
-      return fullText.split("\n").map(line => `<div>${line}</div>`).join("");
+function formatWeeklyPoem(fullText) {
+  let lines = fullText.split("\n");
+  let formattedLines = lines.map((line, index) => {
+    if (index === 0 || index === 1) {
+      // 前两行：周次和标题，紧密排列
+      return `<div>${line}</div>`;
+    } else if (index === 2) {
+      // 第三行：作者，作为最后一个标题行
+      return `<div>${line}</div>`;
+    } else {
+      // 第四行及以后：正文行，不添加缩进（每周一首不需要缩进）
+      return `<div>${line}</div>`;
     }
+  });
+  return formattedLines.join("");
+}
+
     // 针对随机诗词：对正文中每一行调用 collapsePunctuation，再每两行合并显示
 function formatRandomPoem(fullText) {
   let lines = fullText.split("\n").map(l => l.trim()).filter(l => l !== "");
+  
   if (lines.length <= 3) {
-    return lines.join("<br/>");
+    // 短诗词直接用div包装每行
+    return lines.map(line => `<div>${line}</div>`).join("");
   } else {
-    let header = lines.slice(0, 3);
-    let bodyText = lines.slice(3).join(" ");
+    let header = lines.slice(0, 2); // 标题、作者（前两行紧密）
+    let dynastyAuthor = lines[2]; // 朝代作者行
+    let bodyLines = lines.slice(3); // 正文行
     
-    // 先清理重复标点
-    bodyText = collapsePunctuation(bodyText);
+    // 标题和作者（紧密排列）
+    let headerHTML = header.map(line => `<div>${line}</div>`).join("");
     
-    // 使用与答案区域相同的分句逻辑
-    let matches = bodyText.match(new RegExp(`[^，,、。.！？!…\?]+[，,、。.！？!…\?]*`, 'g'));
-    if (!matches || matches.length === 0) {
-      return header.join("<br/>") + "<br/>" + bodyText;
-    }
+    // 朝代作者行（与正文之间有大间距）
+    let dynastyHTML = `<div style="margin-bottom: 15px;">${dynastyAuthor}</div>`;
+        
+    // 正文部分，每行都用div包装，添加缩进样式
+    let bodyHTML = bodyLines.map(line => 
+      `<div style="padding-left: 30px;">${line}</div>`
+    ).join("");
     
-    // 每两句组合成一行，使用br标签确保换行
-    let grouped = [];
-    for (let i = 0; i < matches.length; i += 2) {
-      if (i + 1 < matches.length) {
-        grouped.push('<span style="padding-left: 30px; display: block;">' + matches[i] + matches[i + 1] + '</span>');
-      } else {
-        grouped.push('<span style="padding-left: 30px; display: block;">' + matches[i] + '</span>');
-      }
-    }
-    
-    return header.join("<br/>") + "<br/>" + grouped.join("<br/>");
+    return headerHTML + dynastyHTML + bodyHTML;
   }
 }
-
     // 备用：随机诗词复杂格式处理
     function formatMainPoem(fullText) {
       let lines = fullText.split("\n").map(line => line.trim());
@@ -755,11 +874,22 @@ function formatRandomPoem(fullText) {
   <!-- 主逻辑代码 -->
   <script>
     window.onload = function () {
-       // 添加返回首页按钮功能
-      document.getElementById('backHomeBtn').addEventListener('click', function() {
-        window.location.href = '../index.html';
-      });
-      
+  // 恢复上次选择的年级和册别
+  var savedGrade = localStorage.getItem('selectedGrade');
+  var savedVolume = localStorage.getItem('selectedVolume');
+  
+  if (savedGrade) {
+    document.getElementById('gradeSelect').value = savedGrade;
+  }
+  if (savedVolume) {
+    document.getElementById('volumeSelect').value = savedVolume;
+  }
+  
+  // 添加返回首页按钮功能
+  document.getElementById('backHomeBtn').addEventListener('click', function() {
+    window.location.href = '../index.html';
+  });
+
       var randomPoemData = null;
       var weeklyPoemSelected = null;
       var savedPoem = "";
@@ -904,33 +1034,42 @@ function formatRandomPoem(fullText) {
       } else if (grade === "6") {
         poemArr = (volume === "上册") ? grade6UpperPoems : grade6LowerPoems;
       }
-        return poemArr;
+  // 添加调试信息和安全返回
+  console.log("getCurrentPoemArray:", grade, volume, poemArr ? poemArr.length : "undefined");
+  return poemArr || []; // 确保返回数组而不是undefined
       }
       
-      function updateWeekSelect() {
-        var poemArr = getCurrentPoemArray();
-        var weekSelect = document.getElementById('weekSelect');
-        weekSelect.innerHTML = "";
-        var emptyOption = document.createElement('option');
-        emptyOption.value = "";
-        emptyOption.text = "周次";
-        weekSelect.appendChild(emptyOption);
-        var randomOption = document.createElement('option');
-        randomOption.value = "random";
-        randomOption.text = "随机";
-        weekSelect.appendChild(randomOption);
-        for (let i = 0; i < poemArr.length; i++) {
-          let option = document.createElement('option');
-          option.value = i;
-          option.text = poemArr[i].week.replace(/^第/, "").replace(/周$/, "");
-          weekSelect.appendChild(option);
-        }
-        weekSelect.selectedIndex = 0;
-        if (weekSelect.value === "") {
-          document.getElementById('poemInput').innerHTML = "";
-          weeklyPoemSelected = null;
-        }
-      }
+function updateWeekSelect() {
+  var poemArr = getCurrentPoemArray();
+  
+  // 添加检查，防止访问undefined的.length属性
+  if (!poemArr || poemArr.length === 0) {
+    console.log("诗词数组为空或未定义", poemArr);
+    return;
+  }
+  
+  var weekSelect = document.getElementById('weekSelect');
+  weekSelect.innerHTML = "";
+  var emptyOption = document.createElement('option');
+  emptyOption.value = "";
+  emptyOption.text = "周次";
+  weekSelect.appendChild(emptyOption);
+  var randomOption = document.createElement('option');
+  randomOption.value = "random";
+  randomOption.text = "随机";
+  weekSelect.appendChild(randomOption);
+  for (let i = 0; i < poemArr.length; i++) {
+    let option = document.createElement('option');
+    option.value = i;
+    option.text = poemArr[i].week.replace(/^第/, "").replace(/周$/, "");
+    weekSelect.appendChild(option);
+  }
+  weekSelect.selectedIndex = 0;
+  if (weekSelect.value === "") {
+    document.getElementById('poemInput').innerHTML = "";
+    weeklyPoemSelected = null;
+  }
+}
       
       document.getElementById('weekSelect').addEventListener("mousedown", function(){
         if (this.value === "random") {
@@ -938,15 +1077,22 @@ function formatRandomPoem(fullText) {
         }
       });
       
-      function populatePoemInput(poem) {
-        var fullPoem = poem.week + " " + "《" + poem.title + "》" + "\n" +
-                       "作者：" + poem.author + "\n" + poem.content;
-        rawPoemText = fullPoem;
-        currentSource = "weekly"; // 设置来源
-        var formatted = formatWeeklyPoem(fullPoem);
-        document.getElementById('poemInput').innerHTML = formatted;
-        updateClearBtnStyle();
-      }
+function populatePoemInput(poem) {
+  // 获取当前选择的年级和册别
+  var gradeSelect = document.getElementById('gradeSelect');
+  var volumeSelect = document.getElementById('volumeSelect');
+  var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+  var volumeText = volumeSelect.value;
+  
+  // 在周次前面添加年级和册别信息
+  var fullPoem = gradeText + volumeText + " " + poem.week + " " + "《" + poem.title + "》" + "\n" +
+                 "作者：" + poem.author + "\n" + poem.content;
+  rawPoemText = fullPoem;
+  currentSource = "weekly"; // 设置来源
+  var formatted = formatMainDisplay(fullPoem); // 使用新函数
+  document.getElementById('poemInput').innerHTML = formatted;
+  updateClearBtnStyle();
+}
       
       function updateWeeklyPoem() {
         updateWeekSelect();
@@ -986,8 +1132,16 @@ function formatRandomPoem(fullText) {
         }
       }
       
-      document.getElementById('gradeSelect').addEventListener('change', updateWeeklyPoem);
-      document.getElementById('volumeSelect').addEventListener('change', updateWeeklyPoem);
+      document.getElementById('gradeSelect').addEventListener('change', function() {
+  // 保存选择到本地存储
+  localStorage.setItem('selectedGrade', this.value);
+  updateWeeklyPoem();
+});
+      document.getElementById('volumeSelect').addEventListener('change', function() {
+  // 保存选择到本地存储
+  localStorage.setItem('selectedVolume', this.value);
+  updateWeeklyPoem();
+});
       document.getElementById('weekSelect').addEventListener('change', function() {
         if (this.value === "") {
           document.getElementById('poemInput').innerHTML = "";
@@ -1037,7 +1191,7 @@ jinrishici.load(function(result) {
   var fullPoem = "《" + randomPoemData.origin.title + "》" + "\n" +
                  "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
                  randomPoemData.origin.content;
-  var formatted = formatRandomPoem(fullPoem);
+  var formatted = formatMainDisplay(fullPoem); // 使用新函数
   document.getElementById('poemInput').innerHTML = formatted;
   rawPoemText = fullPoem;
   currentSource = "random"; // 设置来源
@@ -1497,7 +1651,7 @@ addHistoryRecord(record);
       { "week": "第十三周", "title": "赠别二首·其一", "author": "[唐] 杜牧", "content": "娉娉袅袅十三余，豆蔻梢头二月初。\n春风十里扬州路，卷上珠帘总不如。", "volume": "下册" },
       { "week": "第十四周", "title": "长干行二首·其一", "author": "[唐] 李白", "content": "妾发初覆额，折花门前剧。\n郎骑竹马来，绕床弄青梅。\n同居长干里，两小无嫌猜。", "volume": "下册" },
       { "week": "第十五周", "title": "上善若水", "author": "[春秋] 老子", "content": "上善若水，水善利万物而不争。\n处众人之所恶，故几于道。", "volume": "下册" },
-      { "week": "第十六周", "title": "卧薪尝胆", "author": "[西汉] 司马迁", "content": "吴既赦越，越王勾践反国，\n乃苦身焦思，置胆于坐，\n坐卧即仰胆，饮食亦尝胆也。\n曰："女忘会稽之耻邪？"\n身自耕作，夫人自织；\n食不加肉，衣不重采；\n折节下贤人，厚遇宾客；\n振贫吊死，与百姓同其劳。", "volume": "下册" }
+      { "week": "第十六周", "title": "卧薪尝胆", "author": "[西汉] 司马迁", "content": "吴既赦越，越王勾践反国，\n乃苦身焦思，置胆于坐，\n坐卧即仰胆，饮食亦尝胆也。\n曰：\"女忘会稽之耻邪？\"\n身自耕作，夫人自织；\n食不加肉，衣不重采；\n折节下贤人，厚遇宾客；\n振贫吊死，与百姓同其劳。", "volume": "下册" }
     ];
 
     // ---------- 五年级 ----------
