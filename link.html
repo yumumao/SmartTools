@@ -203,7 +203,7 @@
 
         .hidden-cards {
             display: none;
-            margin-top: 12px;
+            margin-top: 19px;
             margin-bottom: 15px;
             opacity: 0;
             transform: translateY(-15px);
@@ -220,17 +220,19 @@
             justify-content: center;
         }
 
+        /* ==================== 开始：隐藏卡片展开动画和悬停效果 ==================== */
         .hidden-cards .link-card,
         .hidden-cards .card-container {
             opacity: 0;
             transform: translateY(-20px);
         }
 
+        /* 展开动画 - 支持20个卡片，分组延迟 */
         .hidden-cards .link-card:nth-child(1),
         .hidden-cards .card-container:nth-child(1),
         .hidden-cards .link-card:nth-child(2),
         .hidden-cards .card-container:nth-child(2) {
-            animation: slideInDownRow 0.6s ease forwards;
+            animation: slideInDownRowWithHover 0.6s ease forwards;
             animation-delay: 0.1s;
         }
 
@@ -238,7 +240,7 @@
         .hidden-cards .card-container:nth-child(3),
         .hidden-cards .link-card:nth-child(4),
         .hidden-cards .card-container:nth-child(4) {
-            animation: slideInDownRow 0.6s ease forwards;
+            animation: slideInDownRowWithHover 0.6s ease forwards;
             animation-delay: 0.3s;
         }
 
@@ -246,7 +248,7 @@
         .hidden-cards .card-container:nth-child(5),
         .hidden-cards .link-card:nth-child(6),
         .hidden-cards .card-container:nth-child(6) {
-            animation: slideInDownRow 0.6s ease forwards;
+            animation: slideInDownRowWithHover 0.6s ease forwards;
             animation-delay: 0.5s;
         }
 
@@ -254,7 +256,7 @@
         .hidden-cards .card-container:nth-child(7),
         .hidden-cards .link-card:nth-child(8),
         .hidden-cards .card-container:nth-child(8) {
-            animation: slideInDownRow 0.6s ease forwards;
+            animation: slideInDownRowWithHover 0.6s ease forwards;
             animation-delay: 0.7s;
         }
 
@@ -262,10 +264,98 @@
         .hidden-cards .card-container:nth-child(9),
         .hidden-cards .link-card:nth-child(10),
         .hidden-cards .card-container:nth-child(10) {
-            animation: slideInDownRow 0.6s ease forwards;
+            animation: slideInDownRowWithHover 0.6s ease forwards;
             animation-delay: 0.9s;
         }
 
+        .hidden-cards .link-card:nth-child(11),
+        .hidden-cards .card-container:nth-child(11),
+        .hidden-cards .link-card:nth-child(12),
+        .hidden-cards .card-container:nth-child(12) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 1.1s;
+        }
+
+        .hidden-cards .link-card:nth-child(13),
+        .hidden-cards .card-container:nth-child(13),
+        .hidden-cards .link-card:nth-child(14),
+        .hidden-cards .card-container:nth-child(14) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 1.3s;
+        }
+
+        .hidden-cards .link-card:nth-child(15),
+        .hidden-cards .card-container:nth-child(15),
+        .hidden-cards .link-card:nth-child(16),
+        .hidden-cards .card-container:nth-child(16) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 1.5s;
+        }
+
+        .hidden-cards .link-card:nth-child(17),
+        .hidden-cards .card-container:nth-child(17),
+        .hidden-cards .link-card:nth-child(18),
+        .hidden-cards .card-container:nth-child(18) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 1.7s;
+        }
+
+        .hidden-cards .link-card:nth-child(19),
+        .hidden-cards .card-container:nth-child(19),
+        .hidden-cards .link-card:nth-child(20),
+        .hidden-cards .card-container:nth-child(20) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 1.9s;
+        }
+
+        /* 超过20个的卡片使用统一延迟 */
+        .hidden-cards .link-card:nth-child(n+21),
+        .hidden-cards .card-container:nth-child(n+21) {
+            animation: slideInDownRowWithHover 0.6s ease forwards;
+            animation-delay: 2.1s;
+        }
+
+        /* 展开动画关键帧 - 完成后自动具备悬停能力 */
+        @keyframes slideInDownRowWithHover {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+/* 关键：为展开完成的卡片强制添加过渡效果和悬停能力 */
+.hidden-cards.expanded.hover-ready .link-card {
+    animation-name: none !important; /* 只清除动画名称，保持其他属性 */
+    opacity: 1 !important; /* 确保可见 */
+    transform: translateY(0) !important; /* 确保在正确位置 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important; /* 强制添加过渡 */
+}
+
+.hidden-cards.expanded.hover-ready .card-container .link-card {
+    animation-name: none !important; /* 只清除动画名称，保持其他属性 */
+    opacity: 1 !important; /* 确保可见 */
+    transform: translateY(0) !important; /* 确保在正确位置 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important; /* 强制添加过渡 */
+}
+
+/* 展开后的悬停效果 */
+.hidden-cards.expanded.hover-ready .link-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    z-index: 2 !important;
+}
+
+.hidden-cards.expanded.hover-ready .card-container .link-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    z-index: 2 !important;
+}
+
+        /* 原有的slideInDownRow保持不变（用于折叠动画） */
         @keyframes slideInDownRow {
             to {
                 opacity: 1;
@@ -273,44 +363,80 @@
             }
         }
 
+        /* 折叠动画保持不变 */
         .hidden-cards.collapsing .link-card,
         .hidden-cards.collapsing .card-container {
             animation: slideOutUpRow 0.4s ease forwards;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(19),
+        .hidden-cards.collapsing .card-container:nth-child(19),
+        .hidden-cards.collapsing .link-card:nth-child(20),
+        .hidden-cards.collapsing .card-container:nth-child(20) {
+            animation-delay: 0s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(17),
+        .hidden-cards.collapsing .card-container:nth-child(17),
+        .hidden-cards.collapsing .link-card:nth-child(18),
+        .hidden-cards.collapsing .card-container:nth-child(18) {
+            animation-delay: 0.1s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(15),
+        .hidden-cards.collapsing .card-container:nth-child(15),
+        .hidden-cards .link-card:nth-child(16),
+        .hidden-cards.collapsing .card-container:nth-child(16) {
+            animation-delay: 0.2s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(13),
+        .hidden-cards.collapsing .card-container:nth-child(13),
+        .hidden-cards.collapsing .link-card:nth-child(14),
+        .hidden-cards.collapsing .card-container:nth-child(14) {
+            animation-delay: 0.3s;
+        }
+
+        .hidden-cards.collapsing .link-card:nth-child(11),
+        .hidden-cards.collapsing .card-container:nth-child(11),
+        .hidden-cards.collapsing .link-card:nth-child(12),
+        .hidden-cards.collapsing .card-container:nth-child(12) {
+            animation-delay: 0.4s;
         }
 
         .hidden-cards.collapsing .link-card:nth-child(9),
         .hidden-cards.collapsing .card-container:nth-child(9),
         .hidden-cards.collapsing .link-card:nth-child(10),
         .hidden-cards.collapsing .card-container:nth-child(10) {
-            animation-delay: 0s;
+            animation-delay: 0.5s;
         }
 
         .hidden-cards.collapsing .link-card:nth-child(7),
         .hidden-cards.collapsing .card-container:nth-child(7),
         .hidden-cards.collapsing .link-card:nth-child(8),
         .hidden-cards.collapsing .card-container:nth-child(8) {
-            animation-delay: 0.1s;
+            animation-delay: 0.6s;
         }
 
         .hidden-cards.collapsing .link-card:nth-child(5),
         .hidden-cards.collapsing .card-container:nth-child(5),
         .hidden-cards .link-card:nth-child(6),
         .hidden-cards.collapsing .card-container:nth-child(6) {
-            animation-delay: 0.2s;
+            animation-delay: 0.7s;
         }
 
         .hidden-cards.collapsing .link-card:nth-child(3),
         .hidden-cards.collapsing .card-container:nth-child(3),
         .hidden-cards.collapsing .link-card:nth-child(4),
         .hidden-cards.collapsing .card-container:nth-child(4) {
-            animation-delay: 0.3s;
+            animation-delay: 0.8s;
         }
 
         .hidden-cards.collapsing .link-card:nth-child(1),
         .hidden-cards.collapsing .card-container:nth-child(1),
         .hidden-cards.collapsing .link-card:nth-child(2),
         .hidden-cards.collapsing .card-container:nth-child(2) {
-            animation-delay: 0.4s;
+            animation-delay: 0.9s;
         }
 
         @keyframes slideOutUpRow {
@@ -319,6 +445,7 @@
                 transform: translateY(-20px);
             }
         }
+        /* ==================== 结束：隐藏卡片展开动画和悬停效果 ==================== */
 
         .card-container {
             position: relative;
@@ -1247,6 +1374,7 @@
             }
 
             .hidden-cards {
+                margin-top: 8px;
                 margin-bottom: 8px;
             }
 
@@ -1390,6 +1518,13 @@
                             </div>
                             <p class="link-url">cccpan.com</p>
                         </div>
+                                                <div class="sub-card two-line-card" onclick="window.open('https://alist.n29.net/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">🐾​​</span>
+                                <h3 class="link-title">Alist@ClawCloud</h3>
+                            </div>
+                            <p class="link-url">run.claw.cloud</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1505,13 +1640,13 @@
         </div>
 <!-- ===================== 结束：授课资料分类 ===================== -->
 
-<!-- ===================== 开始：在线AI分类 ===================== -->
+<!-- ===================== 开始：网络资源分类 ===================== -->
 <div class="section">
-    <h2 class="section-title">🤖 在线AI</h2>
-    <!-- 动态生成的在线AI分类将在这里插入 -->
+    <h2 class="section-title">🖥️ 网络资源</h2>
+    <!-- 动态生成的网络资源分类将在这里插入 -->
     <div id="online-ai-content"></div>
 </div>
-<!-- ===================== 结束：在线AI分类 ===================== -->
+<!-- ===================== 结束：网络资源分类 ===================== -->
 
 <!-- ===================== 开始：视频聚合分类 ===================== -->
         <div class="section">
@@ -1553,11 +1688,11 @@
 </div>
             </div>
         </div>
+<!-- ===================== 结束：联系方式分类 ===================== -->        
         <div class="footer">
             <p>m(AT)mrr.cc</p>
         </div>
     </div>
-<!-- ===================== 结束：联系方式分类 ===================== -->
     <script>
         let currentExpanded = null;
         let currentLayout = 'mobile'; // mobile, tablet, desktop
@@ -1593,8 +1728,8 @@
             }
         ];
 
-// ===================== 开始：在线AI分类的JS代码 =====================
-// 在线AI数据
+// ===================== 开始：网络资源分类的JS代码 =====================
+// 网络资源数据
 const onlineAIData = [
     {
         id: 'qwen',
@@ -1675,13 +1810,45 @@ const onlineAIData = [
         desc: 'AI搜索工具',
         url: 'https://www.n.cn/',
         type: 'simple'
+    }, 
+    {
+        id: 'claude',
+        icon: '🎆',
+        title: 'Claude',
+        desc: '擅长写代码',
+        url: 'https://www.anthropic.com/claude',
+        type: 'simple'
+    }, 
+    {
+        id: 'cloudflare',
+        icon: '🌩️',
+        title: 'Cloudflare',
+        desc: 'Cloudflare',
+        url: 'https://www.cloudflare.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'clawcloud',
+        icon: '🐾',
+        title: 'ClawCloud',
+        desc: 'ClawCloud',
+        url: 'https://run.claw.cloud/',
+        type: 'simple'
+    }, 
+    {
+        id: 'ruoyu',
+        icon: '🐱‍👓',
+        title: '若愚',
+        desc: '文档翻译',
+        url: 'https://ruoyu.dingyu.me/',
+        type: 'simple'
     }
 ];
 
-// 为在线AI创建独立的布局状态
+// 为网络资源创建独立的布局状态
 let currentAILayout = 'mobile';
 
-// 生成在线AI HTML结构（完全复用视频聚合的逻辑）
+// 生成网络资源 HTML结构（完全复用视频聚合的逻辑）
 function generateAIStructure(layout) {
     let html = '';
     
@@ -1791,6 +1958,8 @@ function toggleAISection(sectionId, button) {
     const isExpanded = section.classList.contains('expanded');
     
     if (isExpanded) {
+        // 折叠操作：移除hover-ready类
+        section.classList.remove('hover-ready');
         section.classList.add('collapsing');
         collapseBtn.classList.add('moving');
         
@@ -1806,11 +1975,17 @@ function toggleAISection(sectionId, button) {
         }, 600);
         
     } else {
+        // 展开操作
         expandBtn.classList.add('moving');
         
         setTimeout(() => {
             expandBtn.style.display = 'none';
             section.classList.add('expanded');
+            
+            // 关键：等待所有动画完成后添加hover-ready类
+            setTimeout(() => {
+                section.classList.add('hover-ready');
+            }, 2500); // 等待最长延迟(2.1s) + 动画时长(0.6s)
             
             setTimeout(() => {
                 collapseBtn.style.display = 'flex';
@@ -1829,7 +2004,7 @@ function updateAIStructure() {
         aiContent.innerHTML = generateAIStructure(currentAILayout);
     }
 }
-// ===================== 结束：在线AI分类的JS代码 =====================
+// ===================== 结束：网络资源分类的JS代码 =====================
 
         // 视频聚合数据
         const videoData = [
@@ -2158,7 +2333,7 @@ function updateAIStructure() {
             currentAILayout = detectLayout(); // 初始化AI布局状态
             const videoContent = document.getElementById('video-content');
             videoContent.innerHTML = generateVideoStructure(currentLayout);
-            // 初始化在线AI分类
+            // 初始化网络资源分类
             const aiContent = document.getElementById('online-ai-content');
             aiContent.innerHTML = generateAIStructure(currentAILayout);           
         });
@@ -2166,7 +2341,7 @@ function updateAIStructure() {
         // 监听窗口大小变化
         window.addEventListener('resize', function() {
             updateVideoStructure();
-            // 更新在线AI分类结构
+            // 更新网络资源分类结构
             updateAIStructure();
         });
 
@@ -2264,6 +2439,7 @@ function updateAIStructure() {
             }
         }
 
+        // 视频聚合的切换函数 - 修改版本
         function toggleSection(sectionId, button) {
             const section = document.getElementById(sectionId);
             const expandBtn = document.getElementById('video-expand-btn');
@@ -2271,6 +2447,8 @@ function updateAIStructure() {
             const isExpanded = section.classList.contains('expanded');
             
             if (isExpanded) {
+                // 折叠操作：移除hover-ready类
+                section.classList.remove('hover-ready');
                 section.classList.add('collapsing');
                 collapseBtn.classList.add('moving');
                 
@@ -2286,11 +2464,17 @@ function updateAIStructure() {
                 }, 600);
                 
             } else {
+                // 展开操作
                 expandBtn.classList.add('moving');
                 
                 setTimeout(() => {
                     expandBtn.style.display = 'none';
                     section.classList.add('expanded');
+                    
+                    // 关键：等待所有动画完成后添加hover-ready类
+                    setTimeout(() => {
+                        section.classList.add('hover-ready');
+                    }, 2500); // 等待最长延迟(2.1s) + 动画时长(0.6s)
                     
                     setTimeout(() => {
                         collapseBtn.style.display = 'flex';
