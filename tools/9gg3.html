@@ -150,7 +150,22 @@
   display: block !important;
   line-height: 1.3 !important;
   margin: 0 !important;
-  padding-left: 15px !important; /* 所有行都有15px缩进 */
+  /* 不设置padding-left */
+}
+
+/* 为标题行设置缩进 */
+#poemInput div:not(.content-line) {
+  padding-left: 15px;
+}
+
+/* 强制正文行使用内联样式 */
+#poemInput div.content-line {
+  padding-left: 0; /* 默认为0，完全依赖内联样式 */
+}
+
+/* 如果内联样式没生效，强制覆盖 */
+#poemInput div.content-line[style] {
+  /* 这个选择器确保有style属性的元素优先级更高 */
 }
 
 /* 标题和作者行样式（前两行紧密） */
@@ -160,8 +175,8 @@
   margin-bottom: 2px !important;
 }
 
-/* 每周一首的第三行（作者行）与正文之间的间距 */
-#poemInput div.weekly-author-line {
+/* 每周一首的第二行（作者行）与正文之间的间距 */
+#poemInput div.weekly-title-line {
   line-height: 1.1 !important;
   margin-bottom: 8px !important;
 }
@@ -519,6 +534,11 @@
     .answer-line {
       text-align: center;
     }
+/* 九宫格答案中每周一首的正文缩进调整 */
+#poemAnswer .answer-line {
+  padding-left: 0 !important; /* 或者改为你想要的缩进值，比如 5px */
+}
+
 /* 九宫格模式：使用flex完美居中 */
 .grid-mode {
   display: flex !important;
@@ -745,14 +765,14 @@ function formatMainDisplay(text) {
   // 判断是否是每周一首（包含年级、《》、第几周等）
   if (lines[0] && (lines[0].includes('年级') || lines[0].includes('第') || lines[0].includes('周'))) {
     isWeeklyPoem = true;
-    // 每周一首的结构：第1行是周次，第2行是标题，第3行是作者，第4行开始是正文
-    header = lines.slice(0, 3); // 前三行：周次、标题、作者
+    // 每周一首的结构：第1行是周次标题，第2行是作者朝代，第3行开始是正文
+    header = lines.slice(0, 2); // 前两行：周次标题、作者朝代
     
     // 查找【注释】和【大意】的位置
     let notesStartIndex = -1;
     let summaryStartIndex = -1;
     
-    for (let i = 3; i < lines.length; i++) {
+    for (let i = 2; i < lines.length; i++) { // 从第3行开始查找
       if (lines[i].includes('【注释】')) {
         notesStartIndex = i;
       } else if (lines[i].includes('【大意】')) {
@@ -762,17 +782,17 @@ function formatMainDisplay(text) {
     }
     
     if (notesStartIndex !== -1 && summaryStartIndex !== -1) {
-      bodyLines = lines.slice(3, notesStartIndex); // 正文部分
+      bodyLines = lines.slice(2, notesStartIndex); // 从第3行开始到注释前
       notesSection = formatNotesSection(lines.slice(notesStartIndex, summaryStartIndex));
       summarySection = formatSummarySection(lines.slice(summaryStartIndex));
     } else if (notesStartIndex !== -1) {
-      bodyLines = lines.slice(3, notesStartIndex);
+      bodyLines = lines.slice(2, notesStartIndex);
       notesSection = formatNotesSection(lines.slice(notesStartIndex));
     } else if (summaryStartIndex !== -1) {
-      bodyLines = lines.slice(3, summaryStartIndex);
+      bodyLines = lines.slice(2, summaryStartIndex);
       summarySection = formatSummarySection(lines.slice(summaryStartIndex));
     } else {
-      bodyLines = lines.slice(3); // 第四行开始：正文
+      bodyLines = lines.slice(2); // 第三行开始：正文
     }
     
     console.log("识别为每周一首");
@@ -811,15 +831,12 @@ function formatMainDisplay(text) {
   // 处理标题部分
   let headerHTML = "";
   if (isWeeklyPoem) {
-    // 每周一首：周次、标题、作者
+    // 每周一首：周次标题、作者朝代（只有两行）
     if (header.length >= 1) {
-      headerHTML += `<div>${header[0]}</div>`; // 第一行：周次
+      headerHTML += `<div>${header[0]}</div>`; // 第一行：周次标题
     }
     if (header.length >= 2) {
-      headerHTML += `<div>${header[1]}</div>`; // 第二行：标题
-    }
-    if (header.length >= 3) {
-      headerHTML += `<div class="weekly-author-line">${header[2]}</div>`; // 第三行：作者（与正文间有间距）
+      headerHTML += `<div class="weekly-title-line">${header[1]}</div>`; // 第二行：作者朝代（与正文间有间距）
     }
   } else {
     // 随机诗词：标题、作者朝代
@@ -839,24 +856,42 @@ function formatMainDisplay(text) {
     let fontSize = ""; // 默认字体大小
     let rightPadding = "padding-right: 10px;"; // 默认右边距
     
-    if (isRandomPoem) {
-      // 将所有正文内容合并，然后按标点符号分句
-      let allBodyText = bodyLines.join("");
-      console.log("合并的正文文本:", allBodyText);
-      
-      // 按标点符号分句（任何标点符号都算句子分隔符）
-      let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
-      // 过滤空句子
-      sentences = sentences.filter(s => s.trim() !== "");
-      console.log("分句结果:", sentences);
-      
+if (isRandomPoem || isWeeklyPoem) {
+  // 将所有正文内容合并，然后按标点符号分句
+  let allBodyText = bodyLines.join("");
+  console.log("合并的正文文本:", allBodyText);
+  
+  // 按标点符号分句（任何标点符号都算句子分隔符）
+  let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
+  // 过滤空句子
+  sentences = sentences.filter(s => s.trim() !== "");
+  console.log("分句结果:", sentences);
+  
+  if (sentences.length >= 1) { // 改为只需要有第一句即可
+    // 只统计第一句的纯汉字数量
+    let firstSentence = sentences[0];
+    let chineseChars = firstSentence.match(/[\u4e00-\u9fa5]/g);
+    let charCount = chineseChars ? chineseChars.length : 0;
+    
+    console.log(`第一句: "${firstSentence}" -> ${charCount}个汉字`);
+    
+    // 根据第一句汉字数量调整样式
+    if (isWeeklyPoem) {
+      // 每周一首的新逻辑：第一句>=7个汉字则5px缩进，否则15px缩进
+      if (charCount >= 7) {
+        indentValue = "5px";
+        console.log("每周一首：第一句>=7个汉字，应用5px缩进");
+      } else {
+        indentValue = "15px";
+        console.log("每周一首：第一句<7个汉字，应用15px缩进");
+      }
+    } else if (isRandomPoem) {
+      // 随机诗词保持原有逻辑
       if (sentences.length >= 4) {
-        // 统计前四句的纯汉字数量
         let firstFourSentences = sentences.slice(0, 4);
         let totalChineseChars = 0;
         
         firstFourSentences.forEach((sentence, index) => {
-          // 使用正则表达式匹配中文字符
           let chineseChars = sentence.match(/[\u4e00-\u9fa5]/g);
           let charCount = chineseChars ? chineseChars.length : 0;
           console.log(`第${index + 1}句: "${sentence}" -> ${charCount}个汉字`);
@@ -865,25 +900,27 @@ function formatMainDisplay(text) {
         
         console.log("前四句汉字总数:", totalChineseChars);
         
-        // 根据前四句汉字总数调整样式
         if (totalChineseChars >= 28) {
           indentValue = "5px";
           fontSize = "font-size: 17px;"; // 设置较小的字体
           rightPadding = "padding-right: 1px;"; // 设置较小的右边距
-          console.log("应用5px缩进和小字号");
+          console.log("随机诗词：应用5px缩进和小字号");
         } else if (totalChineseChars <= 20) {
           indentValue = "22px";
-          console.log("应用22px缩进");
+          console.log("随机诗词：应用22px缩进");
         } else {
-          console.log("保持15px缩进和默认字号");
+          console.log("随机诗词：保持15px缩进和默认字号");
         }
       }
     }
-    
-    // 应用计算出的缩进值、字体大小和右边距
-    formattedBodyLines = bodyLines.map(line => 
-      `<div class="content-line" style="padding-left: ${indentValue} !important; ${rightPadding} !important; ${fontSize}">${line}</div>`
-    );
+  }
+}
+
+// 应用计算出的缩进值、字体大小和右边距
+formattedBodyLines = bodyLines.map((line, index) => {
+  console.log(`正文第${index + 1}行应用缩进: ${indentValue}`);
+  return `<div class="content-line" style="padding-left: ${indentValue} !important; ${rightPadding} ${fontSize}">${line}</div>`;
+});
     console.log("正文格式化完成，缩进值:", indentValue, "字体大小:", fontSize);
   }
   
@@ -1071,12 +1108,12 @@ function formatAnswerNew(text) {
         bodyLines = lines.slice(2);
       }
     } else if (isWeeklyPoem) {
-      // 每周一首格式：前3行是标题信息
-      header = lines.slice(0, 3);
+      // 每周一首格式：前2行是标题信息
+      header = lines.slice(0, 2);
       if (bodyEndIndex !== -1) {
-        bodyLines = lines.slice(3, bodyEndIndex);
+        bodyLines = lines.slice(2, bodyEndIndex);
       } else {
-        bodyLines = lines.slice(3);
+        bodyLines = lines.slice(2);
       }
     } else {
       // 其他格式
@@ -1156,14 +1193,14 @@ function formatAnswerNew(text) {
       bodyText = lines.slice(2).join(" ");
     }
   } else if (isWeeklyPoem) {
-    // 每周一首格式：前3行是标题信息
-    header = lines.slice(0, 3);
+    // 每周一首格式：前2行是标题信息
+    header = lines.slice(0, 2);
     
     if (notesStartIndex !== -1) {
       // 对于每周一首，保持行结构，不用空格连接
-      bodyText = lines.slice(3, notesStartIndex).join("\n");
+      bodyText = lines.slice(2, notesStartIndex).join("\n");
     } else {
-      bodyText = lines.slice(3).join("\n");
+      bodyText = lines.slice(2).join("\n");
     }
   } else {
     return text;
@@ -1394,19 +1431,7 @@ function formatAnswerNew(text) {
 if (rec.source === "weekly") {
   // 动态识别正文开始位置
   var lines = rec.content.split("\n");
-  var contentStartIndex = 3; // 默认从第4行开始
-  
-  // 查找"作者："行，如果没有则从第3行开始
-  for (var i = 1; i < lines.length; i++) {
-    if (lines[i].startsWith("作者：")) {
-      contentStartIndex = i + 1;
-      break;
-    } else if (i === 2 && !lines[i].startsWith("作者：")) {
-      // 第3行不是作者行，说明第3行就是正文开始
-      contentStartIndex = 2;
-      break;
-    }
-  }
+  var contentStartIndex = 2; // 从第3行开始（修改为新的结构）
   
   // 从记录中重构weeklyPoemSelected对象
   weeklyPoemSelected = {
@@ -1562,8 +1587,16 @@ function populatePoemInput(poem) {
   var volumeText = volumeSelect.value;
   
   // 在周次前面添加年级和册别信息
-  var fullPoem = gradeText + volumeText + " " + poem.week + " " + "《" + poem.title + "》" + "\n" +
-                 "作者：" + poem.author + "\n" + poem.content;
+  var fullPoem = gradeText + volumeText + " " + poem.week + " " + "《" + poem.title + "》" + "\n";
+
+// 检查是否有作者信息，如果author不为空且不是空字符串，才添加作者行
+if (poem.author && poem.author.trim() !== "") {
+  fullPoem += poem.author + "\n";
+} else {
+  fullPoem += "\n"; // 如果没有作者，添加一个空行占位
+}
+
+fullPoem += poem.content;
   
   // 添加注释和大意
   var { notesText, summaryText } = buildNotesAndSummaryText(poem);
@@ -1848,14 +1881,22 @@ if (isFromHistory && lastSelectedHistoryIndex !== -1) {
         var poemAnswer = document.getElementById('poemAnswer');
         if (!answerVisible) {
           var rawAnswer = "";
-          if (weeklyPoemSelected) {
-            var gradeSelect = document.getElementById('gradeSelect');
-            var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
-            var volumeText = document.getElementById('volumeSelect').value;
-            rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + "\n" +
-                        "《" + weeklyPoemSelected.title + "》\n" +
-                        "作者：" + weeklyPoemSelected.author + "\n" +
-                        weeklyPoemSelected.content;
+if (weeklyPoemSelected) {
+  // 检查是否已经包含年级册别信息
+  if (weeklyPoemSelected.week && weeklyPoemSelected.week.includes('年级')) {
+    // 如果week字段已经包含完整信息，直接使用
+    rawAnswer = weeklyPoemSelected.week + " " + "《" + weeklyPoemSelected.title + "》" + "\n" +
+                weeklyPoemSelected.author + "\n" +
+                weeklyPoemSelected.content;
+  } else {
+    // 如果没有，才添加年级册别信息
+    var gradeSelect = document.getElementById('gradeSelect');
+    var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
+    var volumeText = document.getElementById('volumeSelect').value;
+    rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + " " + "《" + weeklyPoemSelected.title + "》" + "\n" +
+                weeklyPoemSelected.author + "\n" +
+                weeklyPoemSelected.content;
+  }
             
             // 添加注释和大意，避免重复
             if (!rawAnswer.includes('【注释】') && !rawAnswer.includes('【大意】')) {
@@ -1921,9 +1962,8 @@ if (isFromHistory && lastSelectedHistoryIndex !== -1) {
           var volumeText = document.getElementById('volumeSelect').value;
           var rawAnswer = "";
           if (weeklyPoemSelected) {
-            rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + "\n" +
-                        "《" + weeklyPoemSelected.title + "》\n" +
-                        "作者：" + weeklyPoemSelected.author + "\n" +
+            rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + " " + "《" + weeklyPoemSelected.title + "》" + "\n" +
+                        weeklyPoemSelected.author + "\n" +
                         weeklyPoemSelected.content;
             
             // 添加注释和大意，避免重复
@@ -2174,7 +2214,7 @@ var gradeThreeUpperPoems = [
   {
     week: "第八周",
     title: "孔融让梨",
-    author: "",
+    author: "[南朝]范晔",
     content: "融四岁，与诸兄共食梨，融辄引小者。\n大人问其故，答曰：‘我小儿，法当取小者。’",
     volume: "上册",
     notes: [
@@ -2279,7 +2319,7 @@ var gradeThreeUpperPoems = [
   {
     week: "第十六周",
     title: "女娲造人",
-    author: "",
+    author: "传说",
     content: "俗说天地开辟，未有人民，女娲抟黄土作人。\n剧务，力不暇供，乃引绳于泥中，举以为人。",
     volume: "上册",
     notes: [
@@ -2368,7 +2408,7 @@ var gradeThreeLowerPoems = [
   {
     week: "第七周",
     title: "盘古传说（一）",
-    author: "",
+    author: "传说",
     content: "天地混沌如鸡子，盘古生其中。\n万八千岁，天地开辟，阳清为天，阴浊为地。",
     volume: "下册",
     notes: [
@@ -2479,7 +2519,7 @@ var gradeThreeLowerPoems = [
   {
     week: "第十六周",
     title: "鱼我所欲也（节选）",
-    author: "",
+    author: "《孟子·告子上》",
     content: "鱼，我所欲也；熊掌，亦我所欲也。\n二者不可得兼，舍鱼而取熊掌者也。\n生，亦我所欲也；义，亦我所欲也。\n二者不可得兼，舍生而取义者也。",
     volume: "下册",
     notes: [
