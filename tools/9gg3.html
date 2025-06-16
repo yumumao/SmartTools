@@ -698,21 +698,21 @@
         <button id="weeklyBtn">每周一首</button>
         <div id="submenu">
           <!-- 整合三个控件：年级、上/下册、周次（随机选项位于第二项） -->
-          <select id="gradeSelect">
-            <option value="1">一年级</option>
-            <option value="2">二年级</option>
-            <option value="3" selected>三年级</option>
-            <option value="4">四年级</option>
-            <option value="5">五年级</option>
-            <option value="6">六年级</option>
-          </select>
-          <select id="volumeSelect">
-            <option value="上册">上册</option>
-            <option value="下册" selected>下册</option>
-          </select>
-          <select id="weekSelect">
-            <!-- 周次选项由 updateWeekSelect 动态生成 -->
-          </select>
+<select id="gradeSelect" aria-label="选择年级">
+  <option value="1">一年级</option>
+  <option value="2">二年级</option>
+  <option value="3" selected>三年级</option>
+  <option value="4">四年级</option>
+  <option value="5">五年级</option>
+  <option value="6">六年级</option>
+</select>
+<select id="volumeSelect" aria-label="选择上册或下册">
+  <option value="上册">上册</option>
+  <option value="下册" selected>下册</option>
+</select>
+<select id="weekSelect" aria-label="选择周次">
+  <!-- 周次选项由 updateWeekSelect 动态生成 -->
+</select>
         </div>
       </div>
       <div id="fillContainer">
@@ -1081,8 +1081,12 @@ function formatRandomPoem(fullText) {
 function formatAnswerNew(text) {
   if (!text || typeof text !== "string") return "";
   
+  console.log("formatAnswerNew收到的文本:", text);
+  
   // 检查是否已经包含格式化的注释和大意，如果是则避免重复处理
   if (text.includes('【注释】') || text.includes('【大意】')) {
+    console.log("检测到已格式化的注释大意，进入简化处理");
+    
     // 如果文本中已经有格式化的标记，就采用简化处理
     let lines = text.split("\n").map(line => line.trim()).filter(line => line !== "");
     let bodyEndIndex = -1;
@@ -1122,15 +1126,46 @@ function formatAnswerNew(text) {
       return text; // 直接返回原文本
     }
     
-    // 对于每周一首，保持原有行结构不进行合并
+    // 对于每周一首，保持原有行结构不进行合并，但添加小字体标记
     if (isWeeklyPoem) {
-      let result = header.join("\n") + "\n" + bodyLines.join("\n");
+      console.log("进入简化处理的每周一首分支");
+      
+      // 分析正文第一句的字数以决定字体大小
+      let allBodyText = bodyLines.join("");
+      let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
+      sentences = sentences.filter(s => s.trim() !== "");
+      
+      let useSmallFont = false;
+      if (sentences.length >= 1) {
+        let firstSentence = sentences[0];
+        let chineseChars = firstSentence.match(/[\u4e00-\u9fa5]/g);
+        let charCount = chineseChars ? chineseChars.length : 0;
+        
+        if (charCount >= 7) {
+          useSmallFont = true;
+          console.log("简化处理-九宫格答案-每周一首：第一句>=7个汉字，应用小字号");
+        } else {
+          console.log("简化处理-九宫格答案-每周一首：第一句<7个汉字，保持默认字号");
+        }
+      }
+      
+      // 处理正文行，添加特殊标记
+      let formattedBodyLines = bodyLines.map(line => {
+        if (useSmallFont) {
+          console.log("简化处理：添加小字体标记到行:", line);
+          return `[SMALLFONT]${line}[/SMALLFONT]`;
+        }
+        return line;
+      });
+      
+      let result = header.join("\n") + "\n" + formattedBodyLines.join("\n");
       
       // 添加注释和大意部分
       if (bodyEndIndex !== -1) {
         result += "\n" + lines.slice(bodyEndIndex).join("\n");
       }
       
+      console.log("简化处理最终结果:", result);
       return result;
     } else {
       // 对于随机诗词，进行传统的两两合并处理
@@ -1208,7 +1243,7 @@ function formatAnswerNew(text) {
     return text;
   }
   
-// 对于每周一首，不进行句子合并处理，但应用动态字体逻辑
+  // 对于每周一首，不进行句子合并处理，但应用动态字体逻辑
   if (isWeeklyPoem) {
     // 分析正文第一句的字数以决定字体大小
     let bodyLines = bodyText.split("\n").filter(line => line.trim() !== "");
@@ -1216,31 +1251,34 @@ function formatAnswerNew(text) {
     let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
     sentences = sentences.filter(s => s.trim() !== "");
     
-    let fontSize = "";
+    let useSmallFont = false;
     if (sentences.length >= 1) {
       let firstSentence = sentences[0];
       let chineseChars = firstSentence.match(/[\u4e00-\u9fa5]/g);
       let charCount = chineseChars ? chineseChars.length : 0;
       
       if (charCount >= 7) {
-        fontSize = "font-size: 17px;"; // 设置较小的字体
+        useSmallFont = true;
         console.log("九宫格答案-每周一首：第一句>=7个汉字，应用小字号");
       } else {
         console.log("九宫格答案-每周一首：第一句<7个汉字，保持默认字号");
       }
     }
     
-    // 构建结果，为正文行添加字体样式
+    // 构建结果，为正文行添加特殊标记
     let result = header.join("\n") + "\n";
     
-    // 处理正文行，添加字体样式
+    // 处理正文行，添加特殊标记
     let formattedBodyLines = bodyLines.map(line => {
-      if (fontSize) {
-        return `<span style="${fontSize}">${line}</span>`;
+      if (useSmallFont) {
+        console.log("添加小字体标记到行:", line);
+        return `[SMALLFONT]${line}[/SMALLFONT]`;
       }
       return line;
     });
     result += formattedBodyLines.join("\n");
+    
+    console.log("九宫格答案最终结果:", result);
     
     // 添加注释和大意部分（用于九宫格答案）
     if (notesStartIndex !== -1) {
@@ -1360,14 +1398,35 @@ function formatAnswerNew(text) {
           resultHTML += `<div class="answer-summary-content">${line}</div>`;
         } else {
           // 正文部分的处理
-          let totalChars = lines.slice(0, Math.min(i + 4, lines.length)).reduce((sum, l) => sum + l.length, 0);
+          let hasSmallFont = line.includes('[SMALLFONT]');
+          let cleanLine = line.replace(/\[SMALLFONT\]|\[\/SMALLFONT\]/g, '');
+          
+          console.log("处理答案行:", line, "是否有小字体标记:", hasSmallFont);
+          
+          let totalChars = lines.slice(0, Math.min(i + 4, lines.length)).reduce((sum, l) => {
+            return sum + l.replace(/\[SMALLFONT\]|\[\/SMALLFONT\]/g, '').length;
+          }, 0);
           let avg = totalChars / Math.min(i + 4, lines.length);
           
           if (avg < 8 && i + 1 < lines.length && !lines[i + 1].includes('【')) {
-            resultHTML += `<div class="answer-line">${line} ${lines[i + 1]}</div>`;
+            let nextLine = lines[i + 1];
+            let nextHasSmallFont = nextLine.includes('[SMALLFONT]');
+            let cleanNextLine = nextLine.replace(/\[SMALLFONT\]|\[\/SMALLFONT\]/g, '');
+            
+            if (hasSmallFont || nextHasSmallFont) {
+              console.log("应用小字体到合并行");
+              resultHTML += `<div class="answer-line" style="font-size: 17px !important;">${cleanLine} ${cleanNextLine}</div>`;
+            } else {
+              resultHTML += `<div class="answer-line">${cleanLine} ${cleanNextLine}</div>`;
+            }
             i++; // 跳过下一行
           } else {
-            resultHTML += `<div class="answer-line">${line}</div>`;
+            if (hasSmallFont) {
+              console.log("应用小字体到单行");
+              resultHTML += `<div class="answer-line" style="font-size: 17px !important;">${cleanLine}</div>`;
+            } else {
+              resultHTML += `<div class="answer-line">${cleanLine}</div>`;
+            }
           }
         }
       }
@@ -1621,18 +1680,23 @@ function populatePoemInput(poem) {
   // 在周次前面添加年级和册别信息
   var fullPoem = gradeText + volumeText + " " + poem.week + " " + "《" + poem.title + "》" + "\n";
 
-// 检查是否有作者信息，如果author不为空且不是空字符串，才添加作者行
-if (poem.author && poem.author.trim() !== "") {
-  fullPoem += poem.author + "\n";
-} else {
-  fullPoem += "\n"; // 如果没有作者，添加一个空行占位
-}
+  // 检查是否有作者信息，如果author不为空且不是空字符串，才添加作者行
+  if (poem.author && poem.author.trim() !== "") {
+    fullPoem += poem.author + "\n";
+  } else {
+    fullPoem += "\n"; // 如果没有作者，添加一个空行占位
+  }
 
-fullPoem += poem.content;
+  fullPoem += poem.content;
   
   // 添加注释和大意
-  var { notesText, summaryText } = buildNotesAndSummaryText(poem);
-  fullPoem += notesText + summaryText;
+  if (poem.notes && Array.isArray(poem.notes)) {
+    fullPoem += "\n\n【注释】\n" + poem.notes.join("\n");
+  }
+  
+  if (poem.summary && typeof poem.summary === "string") {
+    fullPoem += "\n\n【大意】\n" + poem.summary;
+  }
   
   rawPoemText = fullPoem;
   currentSource = "weekly"; // 设置来源
@@ -1910,52 +1974,33 @@ if (isFromHistory && lastSelectedHistoryIndex !== -1) {
       });
       
       document.getElementById('showAnswerBtn').addEventListener('click', function(){
-        var poemAnswer = document.getElementById('poemAnswer');
-        if (!answerVisible) {
-          var rawAnswer = "";
-if (weeklyPoemSelected) {
-  // 检查是否已经包含年级册别信息
-  if (weeklyPoemSelected.week && weeklyPoemSelected.week.includes('年级')) {
-    // 如果week字段已经包含完整信息，直接使用
-    rawAnswer = weeklyPoemSelected.week + " " + "《" + weeklyPoemSelected.title + "》" + "\n" +
-                weeklyPoemSelected.author + "\n" +
-                weeklyPoemSelected.content;
+  var poemAnswer = document.getElementById('poemAnswer');
+  if (!answerVisible) {
+    var rawAnswer = "";
+    if (weeklyPoemSelected) {
+      // 直接使用rawPoemText，因为它已经包含了完整的格式化信息
+      rawAnswer = rawPoemText;
+    } else if (randomPoemData && !weeklyPoemSelected) {
+      rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
+                  "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
+                  randomPoemData.origin.content;
+    } else {
+      // 修复：对于历史记录中的内容，使用当前的rawPoemText
+      rawAnswer = rawPoemText || savedPoem;
+    }
+    var formatted = formatAnswerNew(rawAnswer);
+    var finalAnswer = formatAnswerDisplay(formatted);
+    poemAnswer.innerHTML = finalAnswer;
+    poemAnswer.style.color = "#000";
+    this.innerText = '隐藏';
+    answerVisible = true;
   } else {
-    // 如果没有，才添加年级册别信息
-    var gradeSelect = document.getElementById('gradeSelect');
-    var gradeText = gradeSelect.options[gradeSelect.selectedIndex].text;
-    var volumeText = document.getElementById('volumeSelect').value;
-    rawAnswer = gradeText + volumeText + " " + weeklyPoemSelected.week + " " + "《" + weeklyPoemSelected.title + "》" + "\n" +
-                weeklyPoemSelected.author + "\n" +
-                weeklyPoemSelected.content;
+    poemAnswer.innerHTML = "↑点击按钮或本区域 显示/隐藏 答案";
+    poemAnswer.style.color = "#888";
+    this.innerText = '答案';
+    answerVisible = false;
   }
-            
-            // 添加注释和大意，避免重复
-            if (!rawAnswer.includes('【注释】') && !rawAnswer.includes('【大意】')) {
-              var { notesText, summaryText } = buildNotesAndSummaryText(weeklyPoemSelected);
-              rawAnswer += notesText + summaryText;
-            }
-          } else if (randomPoemData && !weeklyPoemSelected) {
-            rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
-                        "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
-                        randomPoemData.origin.content;
-          } else {
-            // 修复：对于历史记录中的内容，使用当前的rawPoemText
-            rawAnswer = rawPoemText || savedPoem;
-          }
-          var formatted = formatAnswerNew(rawAnswer);
-          var finalAnswer = formatAnswerDisplay(formatted);
-          poemAnswer.innerHTML = finalAnswer;
-          poemAnswer.style.color = "#000";
-          this.innerText = '隐藏';
-          answerVisible = true;
-        } else {
-          poemAnswer.innerHTML = "↑点击按钮或本区域 显示/隐藏 答案";
-          poemAnswer.style.color = "#888";
-          this.innerText = '答案';
-          answerVisible = false;
-        }
-      });
+});
       
       document.getElementById('poemAnswer').addEventListener('click', function(){
         document.getElementById('showAnswerBtn').click();
@@ -2000,8 +2045,8 @@ if (weeklyPoemSelected) {
             
             // 添加注释和大意，避免重复
             if (!rawAnswer.includes('【注释】') && !rawAnswer.includes('【大意】')) {
-              var { notesText, summaryText } = buildNotesAndSummaryText(weeklyPoemSelected);
-              rawAnswer += notesText + summaryText;
+            //  var { notesText, summaryText } = buildNotesAndSummaryText(weeklyPoemSelected);
+            //  rawAnswer += notesText + summaryText;
             }
           } else if (randomPoemData && !weeklyPoemSelected) {
             rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
