@@ -184,6 +184,48 @@
   line-height: 1.3 !important;
   margin-bottom: 0 !important;
 }
+
+/* 主界面的注释和大意样式 */
+#poemInput .poem-notes {
+  font-size: 16px !important;
+  color: #555 !important;
+  padding-left: 8px !important; /* 减小缩进 */
+  margin-top: 8px !important;
+}
+
+#poemInput .poem-notes-header {
+  font-weight: bold;
+  margin: 8px 0 4px 0;
+  padding-left: 8px !important; /* 减小缩进 */
+}
+
+#poemInput .poem-notes-item {
+  margin: 2px 0;
+  text-indent: 0 !important;
+  padding-left: 8px !important; /* 减小缩进 */
+  line-height: 1.4 !important;
+}
+
+#poemInput .poem-summary {
+  font-size: 16px !important;
+  color: #555 !important;
+  padding-left: 8px !important; /* 减小缩进 */
+  margin-top: 8px !important;
+}
+
+#poemInput .poem-summary-header {
+  font-weight: bold;
+  margin: 8px 0 4px 0;
+  padding-left: 8px !important; /* 减小缩进 */
+}
+
+#poemInput .poem-summary-content {
+  margin: 2px 0;
+  text-indent: 2em !important; /* 首行缩进两个字符 */
+  padding-left: 8px !important; /* 减小缩进 */
+  text-align: left !important;
+  line-height: 1.4 !important;
+}
     /* 历史记录区域 */
 #historyContainer {
   width: 100%;
@@ -433,6 +475,47 @@
   z-index: 8;
   margin: 0 auto;
 }
+
+/* 九宫格答案区域的注释和大意样式 */
+#poemAnswer .answer-notes {
+  font-size: 16px;
+  color: #555;
+  text-align: left;
+  margin-top: 8px;
+  padding-left: 8px;
+}
+
+#poemAnswer .answer-notes-header {
+  font-weight: bold;
+  margin: 8px 0 4px 0;
+}
+
+#poemAnswer .answer-notes-item {
+  margin: 2px 0;
+  padding-left: 8px;
+  line-height: 1.4;
+}
+
+#poemAnswer .answer-summary {
+  font-size: 16px;
+  color: #555;
+  text-align: left;
+  margin-top: 8px;
+  padding-left: 8px;
+}
+
+#poemAnswer .answer-summary-header {
+  font-weight: bold;
+  margin: 8px 0 4px 0;
+}
+
+#poemAnswer .answer-summary-content {
+  margin: 2px 0;
+  padding-left: 8px;
+  line-height: 1.4;
+  text-indent: 2em; /* 首行缩进两个字符 */
+}
+
     .answer-line {
       text-align: center;
     }
@@ -654,6 +737,8 @@ function formatMainDisplay(text) {
   // 分离标题部分和正文部分
   let header = [];
   let bodyLines = [];
+  let notesSection = "";
+  let summarySection = "";
   let isWeeklyPoem = false;
   let isRandomPoem = false;
   
@@ -662,7 +747,34 @@ function formatMainDisplay(text) {
     isWeeklyPoem = true;
     // 每周一首的结构：第1行是周次，第2行是标题，第3行是作者，第4行开始是正文
     header = lines.slice(0, 3); // 前三行：周次、标题、作者
-    bodyLines = lines.slice(3); // 第四行开始：正文
+    
+    // 查找【注释】和【大意】的位置
+    let notesStartIndex = -1;
+    let summaryStartIndex = -1;
+    
+    for (let i = 3; i < lines.length; i++) {
+      if (lines[i].includes('【注释】')) {
+        notesStartIndex = i;
+      } else if (lines[i].includes('【大意】')) {
+        summaryStartIndex = i;
+        break;
+      }
+    }
+    
+    if (notesStartIndex !== -1 && summaryStartIndex !== -1) {
+      bodyLines = lines.slice(3, notesStartIndex); // 正文部分
+      notesSection = formatNotesSection(lines.slice(notesStartIndex, summaryStartIndex));
+      summarySection = formatSummarySection(lines.slice(summaryStartIndex));
+    } else if (notesStartIndex !== -1) {
+      bodyLines = lines.slice(3, notesStartIndex);
+      notesSection = formatNotesSection(lines.slice(notesStartIndex));
+    } else if (summaryStartIndex !== -1) {
+      bodyLines = lines.slice(3, summaryStartIndex);
+      summarySection = formatSummarySection(lines.slice(summaryStartIndex));
+    } else {
+      bodyLines = lines.slice(3); // 第四行开始：正文
+    }
+    
     console.log("识别为每周一首");
   } else if (lines[0] && lines[0].startsWith("《")) {
     // 随机诗词格式
@@ -775,10 +887,68 @@ function formatMainDisplay(text) {
     console.log("正文格式化完成，缩进值:", indentValue, "字体大小:", fontSize);
   }
   
-  let result = headerHTML + formattedBodyLines.join("");
+  let result = headerHTML + formattedBodyLines.join("") + notesSection + summarySection;
   console.log("最终HTML:", result);
   return result;
 }
+
+// 格式化注释部分（主界面）
+function formatNotesSection(notesLines) {
+  if (!notesLines || notesLines.length === 0) return "";
+  
+  let html = '<div class="poem-notes">';
+  html += '<div class="poem-notes-header">【注释】</div>';
+  
+  for (let i = 1; i < notesLines.length; i++) { // 跳过第一行的【注释】标题
+    let line = notesLines[i].trim();
+    if (line) {
+      // 检查是否已经有序号，如果有则添加bullet，如果没有则保持原样
+      if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(line)) {
+        html += `<div class="poem-notes-item">• ${line}</div>`;
+      } else {
+        html += `<div class="poem-notes-item">${line}</div>`;
+      }
+    }
+  }
+  
+  html += '</div>';
+  return html;
+}
+
+// 格式化大意部分（主界面）
+function formatSummarySection(summaryLines) {
+  if (!summaryLines || summaryLines.length === 0) return "";
+  
+  let html = '<div class="poem-summary">';
+  html += '<div class="poem-summary-header">【大意】</div>';
+  
+  for (let i = 1; i < summaryLines.length; i++) { // 跳过第一行的【大意】标题
+    let line = summaryLines[i].trim();
+    if (line) {
+      html += `<div class="poem-summary-content">${line}</div>`;
+    }
+  }
+  
+  html += '</div>';
+  return html;
+}
+
+// 从数组格式构建注释和大意文本（避免重复）
+function buildNotesAndSummaryText(poem) {
+  let notesText = "";
+  let summaryText = "";
+  
+  if (poem.notes && Array.isArray(poem.notes)) {
+    notesText = "\n\n【注释】\n" + poem.notes.join("\n");
+  }
+  
+  if (poem.summary && typeof poem.summary === "string") {
+    summaryText = "\n\n【大意】\n" + poem.summary;
+  }
+  
+  return { notesText, summaryText };
+}
+
     // 将连续出现的标点（允许全角与半角混用，之间可能有空白）只保留第一个
 function collapsePunctuation(str) {
   console.log("处理前:", str);
@@ -868,27 +1038,71 @@ function formatRandomPoem(fullText) {
       let contentHTML = sentences.join("");
       return `<div>${headerHTML}</div><div class="poem-content">${contentHTML}</div>`;
     }
-    // 格式化答案文本（原方法）
-    function formatAnswerNew(text) {
-      if (!text || typeof text !== "string") return "";
-      let textNoHalfComma = text.replace(/(,)(?=[，。])|([，。])(?=,)/g, "");
-      let lines = textNoHalfComma.split("\n").map(line => line.trim()).filter(line => line !== "");
-      let header = [];
-      let bodyText = "";
-      if (lines.length >= 2 && lines[0].startsWith("《")) {
-        header = lines.slice(0, 2);
-        bodyText = lines.slice(2).join(" ");
-      } else if (lines.length >= 3) {
-        header = lines.slice(0, 3);
-        bodyText = lines.slice(3).join(" ");
-      } else {
-        return text;
+// 格式化答案文本（九宫格答案，避免重复）
+function formatAnswerNew(text) {
+  if (!text || typeof text !== "string") return "";
+  
+  // 检查是否已经包含格式化的注释和大意，如果是则避免重复处理
+  if (text.includes('【注释】') || text.includes('【大意】')) {
+    // 如果文本中已经有格式化的标记，就采用简化处理
+    let lines = text.split("\n").map(line => line.trim()).filter(line => line !== "");
+    let bodyEndIndex = -1;
+    
+    // 找到正文结束的位置
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes('【注释】') || lines[i].includes('【大意】')) {
+        bodyEndIndex = i;
+        break;
       }
+    }
+    
+    let header = [];
+    let bodyLines = [];
+    
+    // 识别是否为每周一首格式
+    let isWeeklyPoem = lines[0] && (lines[0].includes('年级') || lines[0].includes('第') || lines[0].includes('周'));
+    
+    if (lines.length >= 2 && lines[0].startsWith("《")) {
+      // 随机诗词格式
+      header = lines.slice(0, 2);
+      if (bodyEndIndex !== -1) {
+        bodyLines = lines.slice(2, bodyEndIndex);
+      } else {
+        bodyLines = lines.slice(2);
+      }
+    } else if (isWeeklyPoem) {
+      // 每周一首格式：前3行是标题信息
+      header = lines.slice(0, 3);
+      if (bodyEndIndex !== -1) {
+        bodyLines = lines.slice(3, bodyEndIndex);
+      } else {
+        bodyLines = lines.slice(3);
+      }
+    } else {
+      // 其他格式
+      return text; // 直接返回原文本
+    }
+    
+    // 对于每周一首，保持原有行结构不进行合并
+    if (isWeeklyPoem) {
+      let result = header.join("\n") + "\n" + bodyLines.join("\n");
+      
+      // 添加注释和大意部分
+      if (bodyEndIndex !== -1) {
+        result += "\n" + lines.slice(bodyEndIndex).join("\n");
+      }
+      
+      return result;
+    } else {
+      // 对于随机诗词，进行传统的两两合并处理
+      let bodyText = bodyLines.join(" ");
       const punctuations = /([，,、。.！？!…\?]+|$)/g;
       let matches = bodyText.match(new RegExp(`[^，,、。.！？!…\?]+[，,、。.！？!…\?]*`, 'g'));
+      
       if (!matches || matches.length === 0) {
-        return header.join("\n") + "\n" + bodyText;
+        return text; // 直接返回原文本
       }
+      
       let formattedBody = "";
       for (let i = 0; i < matches.length; i += 2) {
         if (i + 1 < matches.length) {
@@ -899,26 +1113,202 @@ function formatRandomPoem(fullText) {
           formattedBody += matches[i].replace(punctuations, "") + "\n";
         }
       }
-      return header.join("\n") + "\n" + formattedBody;
+      
+      // 返回格式化的正文加上剩余的注释和大意部分
+      let result = header.join("\n") + "\n" + formattedBody;
+      if (bodyEndIndex !== -1) {
+        result += "\n" + lines.slice(bodyEndIndex).join("\n");
+      }
+      
+      return result;
     }
-    // 根据文本字数判断答案显示格式（平均字符数少于8，则合并两行后居中显示）
-    function formatAnswerDisplay(text) {
-      let lines = text.split("\n").map(l => l.trim()).filter(l => l !== "");
-      let totalChars = lines.reduce((sum, line) => sum + line.length, 0);
-      let avg = totalChars / lines.length;
-      let newLines = [];
-      if (avg < 8) {
-        for (let i = 0; i < lines.length; i += 2) {
-          if (i + 1 < lines.length) {
-            newLines.push(lines[i] + " " + lines[i+1]);
-          } else {
-            newLines.push(lines[i]);
+  }
+  
+  // 原有的处理逻辑（用于没有格式化标记的文本）
+  let textNoHalfComma = text.replace(/(,)(?=[，。])|([，。])(?=,)/g, "");
+  let lines = textNoHalfComma.split("\n").map(line => line.trim()).filter(line => line !== "");
+  let header = [];
+  let bodyText = "";
+  
+  // 查找【注释】和【大意】的位置
+  let notesStartIndex = -1;
+  let summaryStartIndex = -1;
+  
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('【注释】')) {
+      notesStartIndex = i;
+    } else if (lines[i].includes('【大意】')) {
+      summaryStartIndex = i;
+      break;
+    }
+  }
+  
+  // 识别是否为每周一首格式
+  let isWeeklyPoem = lines[0] && (lines[0].includes('年级') || lines[0].includes('第') || lines[0].includes('周'));
+  
+  if (lines.length >= 2 && lines[0].startsWith("《")) {
+    // 随机诗词格式
+    header = lines.slice(0, 2);
+    
+    if (notesStartIndex !== -1) {
+      bodyText = lines.slice(2, notesStartIndex).join(" ");
+    } else {
+      bodyText = lines.slice(2).join(" ");
+    }
+  } else if (isWeeklyPoem) {
+    // 每周一首格式：前3行是标题信息
+    header = lines.slice(0, 3);
+    
+    if (notesStartIndex !== -1) {
+      // 对于每周一首，保持行结构，不用空格连接
+      bodyText = lines.slice(3, notesStartIndex).join("\n");
+    } else {
+      bodyText = lines.slice(3).join("\n");
+    }
+  } else {
+    return text;
+  }
+  
+  // 对于每周一首，不进行句子合并处理
+  if (isWeeklyPoem) {
+    let result = header.join("\n") + "\n" + bodyText;
+    
+    // 添加注释和大意部分（用于九宫格答案）
+    if (notesStartIndex !== -1) {
+      result += "\n\n【注释】\n";
+      if (summaryStartIndex !== -1) {
+        for (let i = notesStartIndex + 1; i < summaryStartIndex; i++) {
+          if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(lines[i].trim())) {
+            result += "• " + lines[i] + "\n";
+          } else if (lines[i].trim()) {
+            result += lines[i] + "\n";
           }
         }
       } else {
-        newLines = lines;
+        for (let i = notesStartIndex + 1; i < lines.length; i++) {
+          if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(lines[i].trim())) {
+            result += "• " + lines[i] + "\n";
+          } else if (lines[i].trim()) {
+            result += lines[i] + "\n";
+          }
+        }
       }
-      return newLines.map(line => '<div class="answer-line">' + line + '</div>').join("");
+    }
+    
+    if (summaryStartIndex !== -1) {
+      result += "\n\n【大意】\n";
+      for (let i = summaryStartIndex + 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          result += "　　" + lines[i] + "\n"; // 添加两个全角空格实现首行缩进
+        }
+      }
+    }
+    
+    return result;
+  } else {
+    // 对于随机诗词，进行传统的句子合并处理
+    const punctuations = /([，,、。.！？!…\?]+|$)/g;
+    let matches = bodyText.match(new RegExp(`[^，,、。.！？!…\?]+[，,、。.！？!…\?]*`, 'g'));
+    if (!matches || matches.length === 0) {
+      return header.join("\n") + "\n" + bodyText;
+    }
+    let formattedBody = "";
+    for (let i = 0; i < matches.length; i += 2) {
+      if (i + 1 < matches.length) {
+        let firstSentence = matches[i];
+        let secondSentence = matches[i + 1].replace(punctuations, "");
+        formattedBody += firstSentence + secondSentence + "\n";
+      } else {
+        formattedBody += matches[i].replace(punctuations, "") + "\n";
+      }
+    }
+    
+    let result = header.join("\n") + "\n" + formattedBody;
+    
+    // 添加注释和大意部分（用于九宫格答案）
+    if (notesStartIndex !== -1) {
+      result += "\n\n【注释】\n";
+      if (summaryStartIndex !== -1) {
+        for (let i = notesStartIndex + 1; i < summaryStartIndex; i++) {
+          if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(lines[i].trim())) {
+            result += "• " + lines[i] + "\n";
+          } else if (lines[i].trim()) {
+            result += lines[i] + "\n";
+          }
+        }
+      } else {
+        for (let i = notesStartIndex + 1; i < lines.length; i++) {
+          if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(lines[i].trim())) {
+            result += "• " + lines[i] + "\n";
+          } else if (lines[i].trim()) {
+            result += lines[i] + "\n";
+          }
+        }
+      }
+    }
+    
+    if (summaryStartIndex !== -1) {
+      result += "\n\n【大意】\n";
+      for (let i = summaryStartIndex + 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          result += "　　" + lines[i] + "\n"; // 添加两个全角空格实现首行缩进
+        }
+      }
+    }
+    
+    return result;
+  }
+}
+    // 根据文本字数判断答案显示格式（平均字符数少于8，则合并两行后居中显示）
+    function formatAnswerDisplay(text) {
+      let lines = text.split("\n").map(l => l.trim()).filter(l => l !== "");
+      
+      let resultHTML = "";
+      let inNotes = false;
+      let inSummary = false;
+      
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        
+        if (line.includes('【注释】')) {
+          resultHTML += '<div class="answer-notes"><div class="answer-notes-header">【注释】</div>';
+          inNotes = true;
+          inSummary = false;
+          continue;
+        } else if (line.includes('【大意】')) {
+          if (inNotes) {
+            resultHTML += '</div>'; // 关闭注释部分
+          }
+          resultHTML += '<div class="answer-summary"><div class="answer-summary-header">【大意】</div>';
+          inNotes = false;
+          inSummary = true;
+          continue;
+        }
+        
+        if (inNotes) {
+          resultHTML += `<div class="answer-notes-item">${line}</div>`;
+        } else if (inSummary) {
+          resultHTML += `<div class="answer-summary-content">${line}</div>`;
+        } else {
+          // 正文部分的处理
+          let totalChars = lines.slice(0, Math.min(i + 4, lines.length)).reduce((sum, l) => sum + l.length, 0);
+          let avg = totalChars / Math.min(i + 4, lines.length);
+          
+          if (avg < 8 && i + 1 < lines.length && !lines[i + 1].includes('【')) {
+            resultHTML += `<div class="answer-line">${line} ${lines[i + 1]}</div>`;
+            i++; // 跳过下一行
+          } else {
+            resultHTML += `<div class="answer-line">${line}</div>`;
+          }
+        }
+      }
+      
+      // 关闭未关闭的div
+      if (inNotes || inSummary) {
+        resultHTML += '</div>';
+      }
+      
+      return resultHTML;
     }
   </script>
   
@@ -948,6 +1338,8 @@ function formatRandomPoem(fullText) {
       var currentSource = ""; // 新增：当前诗词来源
       var historyRecords = JSON.parse(localStorage.getItem('poemHistory')) || [];
       var answerVisible = false;
+      var lastSelectedHistoryIndex = -1; // 记录最后选择的历史记录索引
+      var isFromHistory = false; // 标记是否来自历史记录
       
       function updateHistoryUI() {
         var container = document.getElementById('historyContainer');
@@ -980,26 +1372,52 @@ function formatRandomPoem(fullText) {
         var items = container.getElementsByClassName('history-item');
         for (var i = 0; i < items.length; i++) {
           items[i].addEventListener('click', function() {
-            var idx = this.getAttribute('data-index');
+            var idx = parseInt(this.getAttribute('data-index'));
             var rec = historyRecords[idx];
-            document.getElementById('poemInput').innerHTML = formatMainDisplay(rec.content);
-            rawPoemText = rec.content;
+            
+            // 保存当前选择的历史记录索引
+            lastSelectedHistoryIndex = idx;
+            isFromHistory = true;
+            
+            // 构建完整内容（不包含重复的注释和大意）
+            var completeContent = rec.content;
+            
+            document.getElementById('poemInput').innerHTML = formatMainDisplay(completeContent);
+            rawPoemText = completeContent;
             
             // 修复：重置所有状态变量，设置当前来源
             weeklyPoemSelected = null;
             randomPoemData = null;
             currentSource = rec.source;
             
-            // 如果是weekly类型，需要重新设置weeklyPoemSelected
-            if (rec.source === "weekly") {
-              // 从记录中重构weeklyPoemSelected对象
-              weeklyPoemSelected = {
-                title: rec.title,
-                author: rec.author,
-                content: rec.content.split("\n").slice(3).join("\n"), // 提取正文部分
-                week: rec.content.split("\n")[0] // 提取周次信息
-              };
-            }
+// 如果是weekly类型，需要重新设置weeklyPoemSelected
+if (rec.source === "weekly") {
+  // 动态识别正文开始位置
+  var lines = rec.content.split("\n");
+  var contentStartIndex = 3; // 默认从第4行开始
+  
+  // 查找"作者："行，如果没有则从第3行开始
+  for (var i = 1; i < lines.length; i++) {
+    if (lines[i].startsWith("作者：")) {
+      contentStartIndex = i + 1;
+      break;
+    } else if (i === 2 && !lines[i].startsWith("作者：")) {
+      // 第3行不是作者行，说明第3行就是正文开始
+      contentStartIndex = 2;
+      break;
+    }
+  }
+  
+  // 从记录中重构weeklyPoemSelected对象
+  weeklyPoemSelected = {
+    title: rec.title,
+    author: rec.author,
+    content: lines.slice(contentStartIndex).join("\n"), // 动态提取正文部分
+    week: lines[0], // 提取周次信息
+    notes: Array.isArray(rec.notes) ? rec.notes : (rec.notes || []),
+    summary: rec.summary || ""
+  };
+}
             // 如果是random类型，需要重新设置randomPoemData
             else if (rec.source === "random") {
               // 从记录中重构randomPoemData对象
@@ -1019,7 +1437,7 @@ function formatRandomPoem(fullText) {
           items[i].addEventListener('contextmenu', function(e) {
             e.preventDefault();
             if (confirm("确定删除这条记录？")) {
-              var idx = this.getAttribute('data-index');
+              var idx = parseInt(this.getAttribute('data-index'));
               historyRecords.splice(idx, 1);
               localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
               updateHistoryUI();
@@ -1030,7 +1448,7 @@ function formatRandomPoem(fullText) {
             item.addEventListener('touchstart', function(e){
               timer = setTimeout(() => {
                 if (confirm("确定删除这条记录？")) {
-                  var idx = item.getAttribute('data-index');
+                  var idx = parseInt(item.getAttribute('data-index'));
                   historyRecords.splice(idx, 1);
                   localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
                   updateHistoryUI();
@@ -1051,12 +1469,20 @@ function formatRandomPoem(fullText) {
           record.title = pureText.substring(0,10);
           record.author = "手动输入";
         }
+        
+        // 检查是否有重复记录
         var existIndex = historyRecords.findIndex(function(r) {
-          return r.content === record.content;
+          return r.content === record.content && r.title === record.title && r.author === record.author;
         });
-        if (existIndex !== -1) { historyRecords.splice(existIndex, 1); }
+        
+        if (existIndex !== -1) { 
+          historyRecords.splice(existIndex, 1); 
+        }
+        
         historyRecords.unshift(record);
-        if (historyRecords.length > 20) { historyRecords = historyRecords.slice(0, 20); }
+        if (historyRecords.length > 20) { 
+          historyRecords = historyRecords.slice(0, 20); 
+        }
         localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
         updateHistoryUI();
       }
@@ -1138,8 +1564,14 @@ function populatePoemInput(poem) {
   // 在周次前面添加年级和册别信息
   var fullPoem = gradeText + volumeText + " " + poem.week + " " + "《" + poem.title + "》" + "\n" +
                  "作者：" + poem.author + "\n" + poem.content;
+  
+  // 添加注释和大意
+  var { notesText, summaryText } = buildNotesAndSummaryText(poem);
+  fullPoem += notesText + summaryText;
+  
   rawPoemText = fullPoem;
   currentSource = "weekly"; // 设置来源
+  isFromHistory = false; // 重置标记
   var formatted = formatMainDisplay(fullPoem); // 使用新函数
   document.getElementById('poemInput').innerHTML = formatted;
   updateClearBtnStyle();
@@ -1158,28 +1590,40 @@ function populatePoemInput(poem) {
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
           randomPoemData = null; // 重置random数据
-          let record = {
-            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
-            title: poem.title,
-            author: poem.author,
-            content: rawPoemText,
-            source: "weekly"
-          };
-          addHistoryRecord(record);
+          
+          // 只有不是从历史记录来的时候才添加历史记录
+          if (!isFromHistory) {
+            let record = {
+              id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+              title: poem.title,
+              author: poem.author,
+              content: rawPoemText,
+              notes: poem.notes || [],
+              summary: poem.summary || "",
+              source: "weekly"
+            };
+            addHistoryRecord(record);
+          }
         } else {
           let index = parseInt(weekSelect.value);
           let poem = poemArr[index];
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
           randomPoemData = null; // 重置random数据
-          let record = {
-            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
-            title: poem.title,
-            author: poem.author,
-            content: rawPoemText,
-            source: "weekly"
-          };
-          addHistoryRecord(record);
+          
+          // 只有不是从历史记录来的时候才添加历史记录
+          if (!isFromHistory) {
+            let record = {
+              id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+              title: poem.title,
+              author: poem.author,
+              content: rawPoemText,
+              notes: poem.notes || [],
+              summary: poem.summary || "",
+              source: "weekly"
+            };
+            addHistoryRecord(record);
+          }
         }
       }
       
@@ -1204,14 +1648,20 @@ function populatePoemInput(poem) {
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
           randomPoemData = null; // 重置random数据
-          let record = {
-            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
-            title: poem.title,
-            author: poem.author,
-            content: rawPoemText,
-            source: "weekly"
-          };
-          addHistoryRecord(record);
+          
+          // 只有不是从历史记录来的时候才添加历史记录
+          if (!isFromHistory) {
+            let record = {
+              id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+              title: poem.title,
+              author: poem.author,
+              content: rawPoemText,
+              notes: poem.notes || [],
+              summary: poem.summary || "",
+              source: "weekly"
+            };
+            addHistoryRecord(record);
+          }
         } else {
           let index = parseInt(this.value);
           let poemArr = getCurrentPoemArray();
@@ -1219,14 +1669,20 @@ function populatePoemInput(poem) {
           populatePoemInput(poem);
           weeklyPoemSelected = poem;
           randomPoemData = null; // 重置random数据
-          let record = {
-            id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
-            title: poem.title,
-            author: poem.author,
-            content: rawPoemText,
-            source: "weekly"
-          };
-          addHistoryRecord(record);
+          
+          // 只有不是从历史记录来的时候才添加历史记录
+          if (!isFromHistory) {
+            let record = {
+              id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
+              title: poem.title,
+              author: poem.author,
+              content: rawPoemText,
+              notes: poem.notes || [],
+              summary: poem.summary || "",
+              source: "weekly"
+            };
+            addHistoryRecord(record);
+          }
         }
       });
       
@@ -1246,6 +1702,7 @@ jinrishici.load(function(result) {
   document.getElementById('poemInput').innerHTML = formatted;
   rawPoemText = fullPoem;
   currentSource = "random"; // 设置来源
+  isFromHistory = false; // 重置标记
   updateClearBtnStyle();
   // 添加随机诗词历史记录
   var record = {
@@ -1275,6 +1732,8 @@ jinrishici.load(function(result) {
         randomPoemData = null;
         currentSource = "";
         rawPoemText = "";
+        lastSelectedHistoryIndex = -1;
+        isFromHistory = false;
         updateClearBtnStyle();
       });
       
@@ -1365,46 +1824,24 @@ jinrishici.load(function(result) {
         document.getElementById('submenu').style.display = 'none';
         document.getElementById('historyContainer').style.display = 'none';
 
-// 添加历史记录逻辑（如果尚未添加）
-var titleStr = "";
-var authorStr = "";
-var source = currentSource; // 使用当前来源
-
-if (weeklyPoemSelected) {
-  titleStr = weeklyPoemSelected.title;
-  authorStr = weeklyPoemSelected.author;
-  source = "weekly";
-} else if (randomPoemData) {
-  titleStr = randomPoemData.origin.title;
-  authorStr = randomPoemData.origin.author;
-  source = "random";
-} else {
-  let rawLines = rawPoemText.split("\n").map(l => l.trim());
-  if (rawLines.length >= 2) {
-    titleStr = rawLines[1];
-    if (titleStr.startsWith("《") && titleStr.endsWith("》")){
-      titleStr = titleStr.slice(1,-1);
-    }
+// 处理历史记录
+if (isFromHistory && lastSelectedHistoryIndex !== -1) {
+  // 如果是从历史记录选择的，将该记录移到第一位并删除原位置
+  var selectedRecord = historyRecords[lastSelectedHistoryIndex];
+  historyRecords.splice(lastSelectedHistoryIndex, 1); // 删除原位置
+  historyRecords.unshift(selectedRecord); // 添加到第一位
+  
+  // 限制历史记录数量
+  if (historyRecords.length > 20) {
+    historyRecords = historyRecords.slice(0, 20);
   }
-  if (rawLines.length >= 3) {
-    authorStr = rawLines[2].startsWith("作者：") ? rawLines[2].slice(3) : rawLines[2];
-  }
-  if (!titleStr) { 
-    let pureText = rawPoemText.replace(/\n/g, "");
-    titleStr = pureText.substring(0, 10); 
-  }
-  if (!authorStr) { authorStr = "手动输入"; }
-  source = source || "manual";
+  
+  localStorage.setItem('poemHistory', JSON.stringify(historyRecords));
+  updateHistoryUI();
+  lastSelectedHistoryIndex = -1; // 重置
+  isFromHistory = false; // 重置
 }
-
-var record = {
-  id: Date.now() + "_" + Math.random().toString(36).substr(2,5),
-  title: titleStr,
-  author: authorStr,
-  content: rawPoemText,
-  source: source
-};
-addHistoryRecord(record);
+// 注意：这里不添加新的历史记录，因为选择每周一首时已经添加过了
       });
       
       document.getElementById('showAnswerBtn').addEventListener('click', function(){
@@ -1419,6 +1856,12 @@ addHistoryRecord(record);
                         "《" + weeklyPoemSelected.title + "》\n" +
                         "作者：" + weeklyPoemSelected.author + "\n" +
                         weeklyPoemSelected.content;
+            
+            // 添加注释和大意，避免重复
+            if (!rawAnswer.includes('【注释】') && !rawAnswer.includes('【大意】')) {
+              var { notesText, summaryText } = buildNotesAndSummaryText(weeklyPoemSelected);
+              rawAnswer += notesText + summaryText;
+            }
           } else if (randomPoemData && !weeklyPoemSelected) {
             rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
                         "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
@@ -1482,6 +1925,12 @@ addHistoryRecord(record);
                         "《" + weeklyPoemSelected.title + "》\n" +
                         "作者：" + weeklyPoemSelected.author + "\n" +
                         weeklyPoemSelected.content;
+            
+            // 添加注释和大意，避免重复
+            if (!rawAnswer.includes('【注释】') && !rawAnswer.includes('【大意】')) {
+              var { notesText, summaryText } = buildNotesAndSummaryText(weeklyPoemSelected);
+              rawAnswer += notesText + summaryText;
+            }
           } else if (randomPoemData && !weeklyPoemSelected) {
             rawAnswer = "《" + randomPoemData.origin.title + "》\n" +
                         "【" + randomPoemData.origin.dynasty + "】" + randomPoemData.origin.author + "\n" +
@@ -1521,6 +1970,8 @@ addHistoryRecord(record);
         rawPoemText = "";
         currentSource = "";
         randomPoemData = null;
+        lastSelectedHistoryIndex = -1;
+        isFromHistory = false;
       });
       
       document.getElementById('weeklyBtn').addEventListener('click', function(e) {
@@ -1549,7 +2000,7 @@ addHistoryRecord(record);
       });
     };
   </script>
-  
+
   <script>
     // ========== 数据嵌入 ==========
 
@@ -1629,42 +2080,415 @@ addHistoryRecord(record);
       { week: "第十六周", title: "劳劳亭", author: "[唐] 李白", content: "天下伤心处，劳劳送客亭。\n春风知别苦，不遣柳条青。", volume: "下册" }
     ];
 
-    // ---------- 三年级 ----------
-    var gradeThreeUpperPoems = [
-  { week: "第一周", title: "勤学", author: "[北宋] 汪洙", content: "学向勤中得，萤窗万卷书。\n三冬今足用，谁笑腹空虚。", volume: "上册" },
-  { week: "第二周", title: "牧童", author: "[唐] 卢肇", content: "谁人得似牧童心，牛上横眠秋听深。\n时复往来吹一曲，何愁南北不知音。", volume: "上册" },
-  { week: "第三周", title: "秋月", author: "[南宋] 朱熹", content: "清溪流过碧山头，空水澄鲜一色秋。\n隔断红尘三十里，白云红叶两悠悠。", volume: "上册" },
-  { week: "第四周", title: "秋凉晚步", author: "[南宋] 杨万里", content: "秋气堪悲未必然，轻寒正是可人天。\n绿池落尽红蕖却，荷叶犹开最小钱。", volume: "上册" },
-  { week: "第五周", title: "不第后赋菊", author: "[唐] 黄巢", content: "待到秋来九月八，我花开后百花杀。\n冲天香阵透长安，满城尽带黄金甲。", volume: "上册" },
-  { week: "第六周", title: "无题", author: "[唐] 李商隐", content: "相见时难别亦难，东风无力百花残。\n春蚕到死丝方尽，蜡炬成灰泪始干。", volume: "上册" },
-  { week: "第七周", title: "花影", author: "[北宋] 苏轼", content: "重重叠叠上瑶台，几度呼童扫不开。\n刚被太阳收拾去，却教明月送将来。", volume: "上册" },
-  { week: "第八周", title: "孔融让梨", author: "", content: "融四岁，与诸兄共食梨，融辄引小者。\n大人问其故，答曰：‘我小儿，法当取小者。’", volume: "上册" },
-  { week: "第九周", title: "赠花卿", author: "[唐] 杜甫", content: "锦城丝管日纷纷，半入江风半入云。\n此曲只应天上有，人间能得几回闻？", volume: "上册" },
-  { week: "第十周", title: "书事", author: "[唐] 王维", content: "轻阴阁小雨，深院昼慵开。\n坐看苍苔色，欲上人衣来。", volume: "上册" },
-  { week: "第十一周", title: "赠少年", author: "[唐] 温庭筠", content: "江海相逢客恨多，秋风叶下洞庭波。\n酒酣夜别淮阴市，月照高楼一曲歌。", volume: "上册" },
-  { week: "第十二周", title: "长安秋望", author: "[唐] 杜牧", content: "楼倚霜树外，镜天无一毫。\n南山与秋色，气势两相高。", volume: "上册" },
-  { week: "第十三周", title: "春雪", author: "[唐] 刘方平", content: "飞雪带春风，徘徊乱绕空。\n君看似花处，偏在洛城东。", volume: "上册" },
-  { week: "第十四周", title: "题君山", author: "[唐] 雍陶", content: "烟波不动影沉沉，碧色全无翠色深。\n疑是水仙梳洗处，一螺青黛镜中心。", volume: "上册" },
-  { week: "第十五周", title: "秋夕", author: "[唐] 杜牧", content: "银烛秋光冷画屏，轻罗小扇扑流萤。\n天阶夜色凉如水，坐看牵牛织女星。", volume: "上册" },
-  { week: "第十六周", title: "女娲造人", author: "", content: "俗说天地开辟，未有人民，女娲抟黄土作人。\n剧务，力不暇供，乃引绳于泥中，举以为人。", volume: "上册" }
+// ---------- 三年级 ----------
+var gradeThreeUpperPoems = [
+  {
+    week: "第一周",
+    title: "勤学",
+    author: "[北宋] 汪洙",
+    content: "学向勤中得，萤窗万卷书。\n三冬今足用，谁笑腹空虚。",
+    volume: "上册",
+    notes: [
+      "①萤窗：指晋代时车胤将萤火虫放入囊袋中，利用萤火虫亮光照书夜读。后以“萤窗”形容勤学苦读。亦借指读书之所。",
+      "②空虚：空无，不充实。"
+    ],
+    summary: "学问是需要勤奋才能得来的，就像前人囊萤取光，勤奋夜读，读很多书。苦学多年，积累了一定的知识，那时候谁还会笑话你胸无点墨，没有学问呢？"
+  },
+  {
+    week: "第二周",
+    title: "牧童",
+    author: "[唐] 卢肇",
+    content: "谁人得似牧童心，牛上横眠秋听深。\n时复往来吹一曲，何愁南北不知音。",
+    volume: "上册",
+    notes: [
+      "①横眠：横躺着睡觉。",
+      "②时复：时常。",
+      "③知音：知道心思的人。"
+    ],
+    summary: "谁能比得上牧童的心境呢？他横卧在牛背上睡觉，倾听深秋的风声。在路上时不时还吹上一首曲子，根本就不担心来往行人中有没有知音来欣赏。"
+  },
+  {
+    week: "第三周",
+    title: "秋月",
+    author: "[南宋] 朱熹",
+    content: "清溪流过碧山头，空水澄鲜一色秋。\n隔断红尘三十里，白云红叶两悠悠。",
+    volume: "上册",
+    notes: [
+      "①空水：指夜空和溪中的流水。",
+      "②澄鲜：明净、清新的样子。",
+      "③红尘：泛指人世间。"
+    ],
+    summary: "清澈的溪水流过碧绿的山头，一泻而下，澄清的水和蓝天在月色的映照下构成了一幅空明澄澈的秋景画卷。这秋色把人世间隔在三十里之外，空中是悠闲的白云，山上是悠闲自在的红叶，幽静的秋色是多么令人陶醉啊！"
+  },
+  {
+    week: "第四周",
+    title: "秋凉晚步",
+    author: "[南宋] 杨万里",
+    content: "秋气堪悲未必然，轻寒正是可人天。\n绿池落尽红蕖却，荷叶犹开最小钱。",
+    volume: "上册",
+    notes: [
+      "①可人：合人意，叫人喜欢。",
+      "②红蕖：红色的荷花。",
+      "③却：开尽。",
+      "④最小钱：新出荷叶才像小铜钱那么大。"
+    ],
+    summary: "人们以为秋气使人悲哀，其实未必是这样，轻微地有一点寒意正是气候宜人的季节。绿色池塘里的红色荷花虽然都落尽了，但荷叶还有新长出来的如铜钱那么圆的小叶片。"
+  },
+  {
+    week: "第五周",
+    title: "不第后赋菊",
+    author: "[唐] 黄巢",
+    content: "待到秋来九月八，我花开后百花杀。\n冲天香阵透长安，满城尽带黄金甲。",
+    volume: "上册",
+    notes: [
+      "①九月八：九月九日为重阳节，有登高赏菊的风俗。说“九月八”，既是为了押韵，也表达出一种迫不及待的情绪。",
+      "②杀：凋谢。",
+      "③黄金甲：金黄色的铠甲，此处指菊花的颜色。"
+    ],
+    summary: "等到秋天九月重阳节来临的时候，菊花盛开以后别的花就凋谢了。盛开的菊花璀璨夺目，阵阵香气弥漫长安，满城沐浴在芳香的菊意中，遍地都是金黄如铠甲般的菊花。"
+  },
+  {
+    week: "第六周",
+    title: "无题",
+    author: "[唐] 李商隐",
+    content: "相见时难别亦难，东风无力百花残。\n春蚕到死丝方尽，蜡炬成灰泪始干。",
+    volume: "上册",
+    notes: [
+      "①丝：蚕吐出的丝，“丝”与“思”谐音，以“丝”喻“思”，含相思之意。"
+    ],
+    summary: "见面的机会真是难得，分别时更是难舍难分，暮春离别，百花凋谢，东风也无力挽回。春蚕结茧到死时丝才吐完，蜡烛要燃尽成灰时，蜡油才滴干。"
+  },
+  {
+    week: "第七周",
+    title: "花影",
+    author: "[北宋] 苏轼",
+    content: "重重叠叠上瑶台，几度呼童扫不开。\n刚被太阳收拾去，却教明月送将来。",
+    volume: "上册",
+    notes: [
+      "①重重叠叠：形容地上的花影一层又一层，很浓厚。",
+      "②瑶台：华贵的亭台。",
+      "③几度：几次。"
+    ],
+    summary: "亭台上的花影一层又一层，几次叫仆人去打扫，可是花影怎么也扫不走。傍晚太阳下山时，花影刚刚退去，可是月亮升起来了，花影又重重叠叠出现了。"
+  },
+  {
+    week: "第八周",
+    title: "孔融让梨",
+    author: "",
+    content: "融四岁，与诸兄共食梨，融辄引小者。\n大人问其故，答曰：‘我小儿，法当取小者。’",
+    volume: "上册",
+    notes: [
+      "①诸：许多。",
+      "②辄：就。",
+      "③故：原因。",
+      "④法：按道理。"
+    ],
+    summary: "孔融四岁的时候，和许多哥哥一起吃梨，孔融就挑选了最小的梨。大人问孔融为什么要挑最小的，孔融回答说：“我是最小的孩子，按道理应当拿最小的梨。”"
+  },
+  {
+    week: "第九周",
+    title: "赠花卿",
+    author: "[唐] 杜甫",
+    content: "锦城丝管日纷纷，半入江风半入云。\n此曲只应天上有，人间能得几回闻？",
+    volume: "上册",
+    notes: [
+      "①花卿：成都尹崔光远的部将花敬定。",
+      "②锦城：即锦官城，此指成都。",
+      "③丝管：弦乐器和管乐器，这里泛指音乐。"
+    ],
+    summary: "锦官城里每日音乐声轻柔悠扬，一半随着江风飘去，一半飘入了云端。这样的乐曲只应该天上才有，人世间哪里能有几回听得见？"
+  },
+  {
+    week: "第十周",
+    title: "书事",
+    author: "[唐] 王维",
+    content: "轻阴阁小雨，深院昼慵开。\n坐看苍苔色，欲上人衣来。",
+    volume: "上册",
+    notes: [
+      "①书事：写眼前所见之景以寄情。",
+      "②“轻阴”句：小雨刚停,天气转阴。阁，同“搁”。",
+      "③慵：懒。",
+      "④苍苔色：青苔的颜色。"
+    ],
+    summary: "细雨初停，天尚微阴。尽管在白天，还是懒得开院门。坐下来静观苍苔，那可爱的绿色简直要染到人的衣服上来。"
+  },
+  {
+    week: "第十一周",
+    title: "赠少年",
+    author: "[唐] 温庭筠",
+    content: "江海相逢客恨多，秋风叶下洞庭波。\n酒酣夜别淮阴市，月照高楼一曲歌。",
+    volume: "上册",
+    notes: [
+      "①江海：泛指外乡。",
+      "②叶下：指秋风吹得树叶纷纷落下，借以渲染客恨。",
+      "③市：商业交换场所，古称“市”。"
+    ],
+    summary: "在外乡漂泊，忽遇友人产生颇多苦恨，黄叶纷纷落下，洞庭湖水波连波。深夜畅饮即将作别淮阴的街市，月照高楼我们引吭高唱离别歌。"
+  },
+  {
+    week: "第十二周",
+    title: "长安秋望",
+    author: "[唐] 杜牧",
+    content: "楼倚霜树外，镜天无一毫。\n南山与秋色，气势两相高。",
+    volume: "上册",
+    notes: [
+      "①霜树：经霜后的树。",
+      "②“镜天”句：天空明净如镜,一丝云彩也没有。",
+      "③南山：终南山,在长安南。",
+      "④“气势”句：满天秋色似与终南山一比高低。"
+    ],
+    summary: "楼阁倚在经霜的树林外，天空如明镜无纤云一毫。峻拔的南山与清爽秋色，气势互不相让两两争高。"
+  },
+  {
+    week: "第十三周",
+    title: "春雪",
+    author: "[唐] 刘方平",
+    content: "飞雪带春风，徘徊乱绕空。\n君看似花处，偏在洛城东。",
+    volume: "上册",
+    notes: [
+      "①徘徊：来来回回。",
+      "②洛城：洛阳。"
+    ],
+    summary: "春风卷着漫天大雪，飘来飘去，落得到处都是。你看那欣赏雪景的人们，原都是居住在洛阳城中的富贵人家啊！"
+  },
+  {
+    week: "第十四周",
+    title: "题君山",
+    author: "[唐] 雍陶",
+    content: "烟波不动影沉沉，碧色全无翠色深。\n疑是水仙梳洗处，一螺青黛镜中心。",
+    volume: "上册",
+    notes: [
+      "①烟波：洞庭湖的水面。",
+      "②水仙：水中女神，即湘君姐妹。",
+      "③青黛：女子青黑色发丝。"
+    ],
+    summary: "八百里洞庭风平浪静，君山的侧影深深地映在水中，仿佛看不见那碧绿的湖水，只有青翠的山色显得更加鲜明。我忽然想起住在君山的湘君姐妹，这里莫非是这些仙女梳洗的地方？你看那一螺画眉的青黛，正放在明亮的镜中央。"
+  },
+  {
+    week: "第十五周",
+    title: "秋夕",
+    author: "[唐] 杜牧",
+    content: "银烛秋光冷画屏，轻罗小扇扑流萤。\n天阶夜色凉如水，坐看牵牛织女星。",
+    volume: "上册",
+    notes: [
+      "①秋夕：秋天的夜晚。",
+      "②天阶：露天的石阶。"
+    ],
+    summary: "秋夜,精美的银色蜡烛发出微弱的光,给画屏上添了几分清冷之色;一位宫女手执绫罗小扇,轻轻地扑打飞舞的萤火虫。天阶上的夜色,清凉如水;坐榻仰望星空,只见牵牛星正远远眺望着织女星。"
+  },
+  {
+    week: "第十六周",
+    title: "女娲造人",
+    author: "",
+    content: "俗说天地开辟，未有人民，女娲抟黄土作人。\n剧务，力不暇供，乃引绳于泥中，举以为人。",
+    volume: "上册",
+    notes: [
+      "①抟：同“团”。",
+      "②力不暇供：没有足够的力量来完成这项工作。"
+    ],
+    summary: "民间传说，天地开辟之初，大地上并没有人类，是女娲把黄土捏成团造了人。她干得又忙又累，竭尽全力干还赶不上供应。于是她就拿了绳子把它投入泥浆中，举起绳子一甩，泥浆洒落在地上，就变成了一个个人。后人说,富贵的人是女娲亲手抟黄土造的，而贫贱的人只是女娲用绳沾泥浆，把泥浆洒落在地上变成的。"
+  }
 ];
-    var gradeThreeLowerPoems = [
-  { week: "第一周", title: "舟夜书所见", author: "[清] 查慎行", content: "月黑见渔灯，孤光一点萤。\n微微风簇浪，散作满河星。", volume: "下册" },
-  { week: "第二周", title: "梅花", author: "[宋] 王安石", content: "白玉堂前一树梅，为谁零落为谁开。\n唯有春风最相惜，一年一度一归来。", volume: "下册" },
-  { week: "第三周", title: "紫薇花", author: "[唐] 杜牧", content: "晓迎秋露一枝新，不占园中最上春。\n桃李无言又何在，向风偏笑艳阳人。", volume: "下册" },
-  { week: "第四周", title: "偶步", author: "[清] 袁枚", content: "偶步西廊下，幽兰一朵开。\n是谁先报信，便有蜜蜂来。", volume: "下册" },
-  { week: "第五周", title: "春风", author: "[唐] 白居易", content: "春风先发苑中梅，樱杏桃梨次第开。\n荠花榆荚深村里，亦道春风为我来。", volume: "下册" },
-  { week: "第六周", title: "渡汉江", author: "[唐] 宋之问", content: "岭外音书断，经冬复历春。\n近乡情更怯，不敢问来人。", volume: "下册" },
-  { week: "第七周", title: "盘古传说（一）", author: "", content: "天地混沌如鸡子，盘古生其中。\n万八千岁，天地开辟，阳清为天，阴浊为地。", volume: "下册" },
-  { week: "第八周", title: "秋夜寄邱员外", author: "[唐] 韦应物", content: "怀君属秋夜，散步咏凉天。\n空山松子落，幽人应未眠。", volume: "下册" },
-  { week: "第九周", title: "白石滩", author: "[唐] 王维", content: "清浅白石滩，绿蒲向堪把。\n家住水东西，浣纱明月下。", volume: "下册" },
-  { week: "第十周", title: "送别", author: "[唐] 王维", content: "下马饮君酒，问君何所之？\n君言不得意，归卧南山陲。\n但去莫复问，白云无尽时。", volume: "下册" },
-  { week: "第十一周", title: "花下醉", author: "[唐] 李商隐", content: "寻芳不觉醉流霞，倚树沉眠日已斜。\n客散酒醒深夜后，更持红烛赏残花。", volume: "下册" },
-  { week: "第十二周", title: "桑茶坑道中", author: "[宋] 杨万里", content: "晴明风日雨干时，草满花堤水满溪。\n童子柳阴眠正着，一牛吃过柳阴西。", volume: "下册" },
-  { week: "第十三周", title: "闲居初夏午睡起（其一）", author: "[宋] 杨万里", content: "梅子留酸软齿牙，芭蕉分绿与窗纱。\n日长睡起无情思，闲看儿童捉柳花。", volume: "下册" },
-  { week: "第十四周", title: "竹枝词（其一）", author: "[唐] 刘禹锡", content: "杨柳青青江水平，闻郎江上唱歌声。\n东边日出西边雨，道是无晴却有晴。", volume: "下册" },
-  { week: "第十五周", title: "江南逢李龟年", author: "[唐] 杜甫", content: "岐王宅里寻常见，崔九堂前几度闻。\n正是江南好风景，落花时节又逢君。", volume: "下册" },
-  { week: "第十六周", title: "鱼我所欲也（节选）", author: "", content: "鱼，我所欲也；熊掌，亦我所欲也。\n二者不可得兼，舍鱼而取熊掌者也。\n生，亦我所欲也；义，亦我所欲也。\n二者不可得兼，舍生而取义者也。", volume: "下册" }
+
+var gradeThreeLowerPoems = [
+  {
+    week: "第一周",
+    title: "舟夜书所见",
+    author: "[清] 查慎行",
+    content: "月黑见渔灯，孤光一点萤。\n微微风簇浪，散作满河星。",
+    volume: "下册",
+    notes: [
+      "①孤光：孤零零的灯光。",
+      "②簇：拥起。"
+    ],
+    summary: "黑夜中的河面上，只有渔船还闪烁着点点荧光。微风拂过，水面上泛起层层波澜，灯火散落河中，好似繁星洒落人间。"
+  },
+  {
+    week: "第二周",
+    title: "梅花",
+    author: "[宋] 王安石",
+    content: "白玉堂前一树梅，为谁零落为谁开。\n唯有春风最相惜，一年一度一归来。",
+    volume: "下册",
+    notes: [
+      "①白玉堂：神仙所居，亦喻指富贵人家的邸宅。",
+      "②唯有：只有，唯独。"
+    ],
+    summary: "白玉堂前有一棵梅花树，梅树花谢花开，却不知为谁而开，为谁而谢。年复一年，不见旁人相惜，唯独那吹拂的春风，每年归来相探。"
+  },
+  {
+    week: "第三周",
+    title: "紫薇花",
+    author: "[唐] 杜牧",
+    content: "晓迎秋露一枝新，不占园中最上春。\n桃李无言又何在，向风偏笑艳阳人。",
+    volume: "下册",
+    notes: [
+      "①上春：早春。",
+      "②桃李无言：司马迁《史记·李将军列传》：“桃李不言，下自成蹊。”意谓桃李不说话，不夸耀自己，而人们都来欣赏他们，在桃李树下，走出了一条条小路。",
+      "③艳阳人：指在艳阳春天里开的花。"
+    ],
+    summary: "一支初绽的紫薇在秋露里迎接晨光，而不是在早春与百花争奇斗艳。无言的桃花、李花现在不知道在何处，只有紫薇花向着寒冷的秋风，笑对那些争着在艳阳春天开放的花朵。"
+  },
+  {
+    week: "第四周",
+    title: "偶步",
+    author: "[清] 袁枚",
+    content: "偶步西廊下，幽兰一朵开。\n是谁先报信，便有蜜蜂来。",
+    volume: "下册",
+    notes: [
+      "①偶步：偶尔散步。"
+    ],
+    summary: "偶尔来到西边长廊处散步，惊喜地看到一朵兰花在廊下静静地开放着。是谁先把兰花开放的信息传出去的呢？不然怎么会有蜜蜂比我还早来。"
+  },
+  {
+    week: "第五周",
+    title: "春风",
+    author: "[唐] 白居易",
+    content: "春风先发苑中梅，樱杏桃梨次第开。\n荠花榆荚深村里，亦道春风为我来。",
+    volume: "下册",
+    notes: [
+      "①发：开。",
+      "②我：指榆荚，此处暗指地位不高的人。"
+    ],
+    summary: "春风先将京城花园里的早梅吹开了，然后让樱杏桃李也竞相绽放，使人感到生机勃勃。春风的来临也给乡村带来了欢笑，春风拂过，田野里开放的荠花榆荚欢呼雀跃，欣喜地称道：“春风为我而来！”"
+  },
+  {
+    week: "第六周",
+    title: "渡汉江",
+    author: "[唐] 宋之问",
+    content: "岭外音书断，经冬复历春。\n近乡情更怯，不敢问来人。",
+    volume: "下册",
+    notes: [
+      "①汉江：汉水。长江最大支流，源出陕西，经湖北流入长江。",
+      "②岭外：五岭以南的广东省广大地区，通常称岭南。唐代常作罪臣的流放地。",
+      "③书：信。",
+      "④来人：渡汉江时遇到的从家乡来的人。"
+    ],
+    summary: "流放岭南与亲人断绝了音信，熬过了冬天又经历一个新春。越走近故乡心里就越是胆怯，不敢打听从家那边过来的人。"
+  },
+  {
+    week: "第七周",
+    title: "盘古传说（一）",
+    author: "",
+    content: "天地混沌如鸡子，盘古生其中。\n万八千岁，天地开辟，阳清为天，阴浊为地。",
+    volume: "下册",
+    notes: [
+      "①混沌：模糊一团。",
+      "②鸡子：鸡蛋。",
+      "③阳清：轻而清的阳气。",
+      "④阴浊：重而浊的阴气。"
+    ],
+    summary: "世界开辟以前，天和地混混沌沌地成一团，像个鸡蛋一样，盘古就生在这当中。过了一万八千年，天地分开了，轻而清的阳气上升为天，重而浊的阴气下沉为地。"
+  },
+  {
+    week: "第八周",
+    title: "秋夜寄邱员外",
+    author: "[唐] 韦应物",
+    content: "怀君属秋夜，散步咏凉天。\n空山松子落，幽人应未眠。",
+    volume: "下册",
+    notes: [
+      "①属：正值，适逢，恰好。",
+      "②幽人：幽居隐逸的人，悠闲的人，此处指邱员外。"
+    ],
+    summary: "怀念你竟在这深秋的夜晚，散步咏叹多么寒凉的霜天。想此刻空山中正掉落松子，幽居的友人一定还未安眠。"
+  },
+  {
+    week: "第九周",
+    title: "白石滩",
+    author: "[唐] 王维",
+    content: "清浅白石滩，绿蒲向堪把。\n家住水东西，浣纱明月下。",
+    volume: "下册",
+    notes: [
+      "①向：临近，将近。",
+      "②堪：能够，可以。"
+    ],
+    summary: "清澈见底的白石浅滩，嫩绿的蒲草可以满把采摘。一群少女住在绿水两旁，趁着皎洁的月色洗衣浣纱。"
+  },
+  {
+    week: "第十周",
+    title: "送别",
+    author: "[唐] 王维",
+    content: "下马饮君酒，问君何所之？\n君言不得意，归卧南山陲。\n但去莫复问，白云无尽时。",
+    volume: "下册",
+    notes: [
+      "①饮君酒：劝君饮酒。饮，使......喝。",
+      "②何所之：去哪里。之，往。",
+      "③归卧：隐居。",
+      "④陲：边缘。"
+    ],
+    summary: "请你下马来喝一杯美酒，想问问朋友你要去往哪里？你说因为生活不得意，要回乡隐居在终南山旁。只管去吧我不会再追问，那里正有绵延不尽的白云，在天空中飘荡。"
+  },
+  {
+    week: "第十一周",
+    title: "花下醉",
+    author: "[唐] 李商隐",
+    content: "寻芳不觉醉流霞，倚树沉眠日已斜。\n客散酒醒深夜后，更持红烛赏残花。",
+    volume: "下册",
+    notes: [
+      "①芳：花。",
+      "②流霞：神话传说中一种仙酒。"
+    ],
+    summary: "探寻花儿，不知不觉中为美酒所醉。靠着树深深地睡了，不觉天色已晚，日已西斜。深夜了，客人们都散去了。主人酒醒了，赏花之意更浓了。手拿红烛静心观赏这行将凋零的残花在生命的最后瞬间现出光华。"
+  },
+  {
+    week: "第十二周",
+    title: "桑茶坑道中",
+    author: "[宋] 杨万里",
+    content: "晴明风日雨干时，草满花堤水满溪。\n童子柳阴眠正着，一牛吃过柳阴西。",
+    volume: "下册",
+    notes: [
+      "①风日：风和日丽。"
+    ],
+    summary: "雨后的晴天，风和日丽，地面上的雨水已经蒸发得无踪无影。小溪里的流水却涨满河槽，岸边野草繁茂，野花肆意开放。柳阴里，一位小牧童躺在草地上睡梦正酣。而那头牛只管埋头吃草，越走越远，直吃到柳林西面。"
+  },
+  {
+    week: "第十三周",
+    title: "闲居初夏午睡起（其一）",
+    author: "[宋] 杨万里",
+    content: "梅子留酸软齿牙，芭蕉分绿与窗纱。\n日长睡起无情思，闲看儿童捉柳花。",
+    volume: "下册",
+    notes: [
+      "①无情思：没有情绪，指无所适从，不知做什么好。",
+      "②柳花：柳絮。"
+    ],
+    summary: "梅子味道很酸，吃过之后，余酸还残留在牙齿之间。芭蕉初长，而绿阴映衬到纱窗上。春去夏来，日长人倦，午睡后起来，情绪无聊。我闲着无事观看儿童戏捉空中飘飞的柳絮。"
+  },
+  {
+    week: "第十四周",
+    title: "竹枝词（其一）",
+    author: "[唐] 刘禹锡",
+    content: "杨柳青青江水平，闻郎江上唱歌声。\n东边日出西边雨，道是无晴却有晴。",
+    volume: "下册",
+    notes: [
+      "①竹枝词：巴渝（今四川省重庆市）一带的民歌。",
+      "②晴：与“情”同音，诗人用谐音双关的手法，表面上说天气，实际上是说这歌声好像“无情”，又好像“有情”，难以捉摸。"
+    ],
+    summary: "杨柳青翠，江水平静。岸上忽然传来情郎那熟悉的歌声。这就像东边出太阳，西边下雨，你说它不是晴天，它又是晴天。"
+  },
+  {
+    week: "第十五周",
+    title: "江南逢李龟年",
+    author: "[唐] 杜甫",
+    content: "岐王宅里寻常见，崔九堂前几度闻。\n正是江南好风景，落花时节又逢君。",
+    volume: "下册",
+    notes: [
+      "①寻常：经常。",
+      "②落花时节：暮春，通常指阴历三月。"
+    ],
+    summary: "当年我经常在岐王与崔九的住宅里见到你，并听到你的歌声。现在正好是江南风景秀美的时候，在这暮春季节再次遇见了你。"
+  },
+  {
+    week: "第十六周",
+    title: "鱼我所欲也（节选）",
+    author: "",
+    content: "鱼，我所欲也；熊掌，亦我所欲也。\n二者不可得兼，舍鱼而取熊掌者也。\n生，亦我所欲也；义，亦我所欲也。\n二者不可得兼，舍生而取义者也。",
+    volume: "下册",
+    notes: [
+      "①亦：也。",
+      "②欲：喜爱。",
+      "③得兼：两种东西都得到。"
+    ],
+    summary: "鱼是我所想要的，熊掌也是我所想要的。如果这两种东西不能同时得到，那么我就只好放弃鱼而选取熊掌了。生命是我所想要的，道义也是我所想要的。如果这两样不能同时都具有的话，那么我只好牺牲生命而选取道义了。"
+  }
 ];
 
     // ---------- 四年级 ----------
