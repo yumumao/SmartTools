@@ -204,40 +204,40 @@
 #poemInput .poem-notes {
   font-size: 16px !important;
   color: #555 !important;
-  padding-left: 8px !important; /* 减小缩进 */
-  margin-top: 8px !important;
+  padding-left: 3px !important; /* 减小缩进 */
+  margin-top: 5px !important;
 }
 
 #poemInput .poem-notes-header {
   font-weight: bold;
   margin: 8px 0 4px 0;
-  padding-left: 8px !important; /* 减小缩进 */
+  padding-left: 3px !important; /* 减小缩进 */
 }
 
 #poemInput .poem-notes-item {
   margin: 2px 0;
   text-indent: 0 !important;
-  padding-left: 8px !important; /* 减小缩进 */
+  padding-left: 3px !important; /* 减小缩进 */
   line-height: 1.4 !important;
 }
 
 #poemInput .poem-summary {
   font-size: 16px !important;
   color: #555 !important;
-  padding-left: 8px !important; /* 减小缩进 */
-  margin-top: 8px !important;
+  padding-left: 3px !important; /* 减小缩进 */
+  margin-top: 5px !important;
 }
 
 #poemInput .poem-summary-header {
   font-weight: bold;
   margin: 8px 0 4px 0;
-  padding-left: 8px !important; /* 减小缩进 */
+  padding-left: 3px !important; /* 减小缩进 */
 }
 
 #poemInput .poem-summary-content {
   margin: 2px 0;
   text-indent: 2em !important; /* 首行缩进两个字符 */
-  padding-left: 8px !important; /* 减小缩进 */
+  padding-left: 3px !important; /* 减小缩进 */
   text-align: left !important;
   line-height: 1.4 !important;
 }
@@ -875,15 +875,17 @@ if (isRandomPoem || isWeeklyPoem) {
     
     console.log(`第一句: "${firstSentence}" -> ${charCount}个汉字`);
     
-    // 根据第一句汉字数量调整样式
+// 根据第一句汉字数量调整样式
     if (isWeeklyPoem) {
-      // 每周一首的新逻辑：第一句>=7个汉字则5px缩进，否则15px缩进
+      // 每周一首的新逻辑：与缩进使用相同的判断逻辑
       if (charCount >= 7) {
         indentValue = "5px";
-        console.log("每周一首：第一句>=7个汉字，应用5px缩进");
+        fontSize = "font-size: 17px;"; // 设置较小的字体
+        rightPadding = "padding-right: 1px;"; // 设置较小的右边距
+        console.log("每周一首：第一句>=7个汉字，应用5px缩进和小字号");
       } else {
         indentValue = "15px";
-        console.log("每周一首：第一句<7个汉字，应用15px缩进");
+        console.log("每周一首：第一句<7个汉字，应用15px缩进和默认字号");
       }
     } else if (isRandomPoem) {
       // 随机诗词保持原有逻辑
@@ -1206,9 +1208,39 @@ function formatAnswerNew(text) {
     return text;
   }
   
-  // 对于每周一首，不进行句子合并处理
+// 对于每周一首，不进行句子合并处理，但应用动态字体逻辑
   if (isWeeklyPoem) {
-    let result = header.join("\n") + "\n" + bodyText;
+    // 分析正文第一句的字数以决定字体大小
+    let bodyLines = bodyText.split("\n").filter(line => line.trim() !== "");
+    let allBodyText = bodyLines.join("");
+    let sentences = allBodyText.split(/[，。！？；：、,.\!\?;:]/);
+    sentences = sentences.filter(s => s.trim() !== "");
+    
+    let fontSize = "";
+    if (sentences.length >= 1) {
+      let firstSentence = sentences[0];
+      let chineseChars = firstSentence.match(/[\u4e00-\u9fa5]/g);
+      let charCount = chineseChars ? chineseChars.length : 0;
+      
+      if (charCount >= 7) {
+        fontSize = "font-size: 17px;"; // 设置较小的字体
+        console.log("九宫格答案-每周一首：第一句>=7个汉字，应用小字号");
+      } else {
+        console.log("九宫格答案-每周一首：第一句<7个汉字，保持默认字号");
+      }
+    }
+    
+    // 构建结果，为正文行添加字体样式
+    let result = header.join("\n") + "\n";
+    
+    // 处理正文行，添加字体样式
+    let formattedBodyLines = bodyLines.map(line => {
+      if (fontSize) {
+        return `<span style="${fontSize}">${line}</span>`;
+      }
+      return line;
+    });
+    result += formattedBodyLines.join("\n");
     
     // 添加注释和大意部分（用于九宫格答案）
     if (notesStartIndex !== -1) {
