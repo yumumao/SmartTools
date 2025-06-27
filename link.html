@@ -1871,9 +1871,9 @@ function generateAIStructure(layout) {
     let html = '';
     
     if (layout === 'mobile') {
-        // 移动端：显示前2个，折叠后8个
-        const visibleCards = onlineAIData.slice(0, 2);
-        const hiddenCards = onlineAIData.slice(2);
+        // 移动端：显示前4个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 4);
+        const hiddenCards = onlineAIData.slice(4);
         
         html += '<div class="links-grid">';
         visibleCards.forEach(card => {
@@ -1888,9 +1888,9 @@ function generateAIStructure(layout) {
         }
         
     } else if (layout === 'tablet') {
-        // 平板：显示前3个，折叠后7个
-        const visibleCards = onlineAIData.slice(0, 3);
-        const hiddenCards = onlineAIData.slice(3);
+        // 平板：显示前6个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 6);
+        const hiddenCards = onlineAIData.slice(6);
         
         html += '<div class="links-grid">';
         visibleCards.forEach(card => {
@@ -1905,9 +1905,9 @@ function generateAIStructure(layout) {
         }
         
     } else {
-        // 桌面：显示前4个，折叠后6个
-        const visibleCards = onlineAIData.slice(0, 4);
-        const hiddenCards = onlineAIData.slice(4);
+        // 桌面：显示前8个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 8);
+        const hiddenCards = onlineAIData.slice(8);
         
         html += '<div class="links-grid">';
         visibleCards.forEach(card => {
@@ -2024,7 +2024,7 @@ function updateAIStructure() {
 }
 // ===================== 结束：网络资源分类的JS代码 =====================
 
-        // 视频聚合数据
+        // 修改后的视频聚合数据（磁力熊和低端影视改为简单卡片）
         const videoData = [
             {
                 id: 'libreTV',
@@ -2052,9 +2052,14 @@ function updateAIStructure() {
                 subCards: [
                     {
                         icon: '🔗',
-                        content: 'www.549.tv',
-                        url: 'https://www.549.tv/'
-                    }
+                        content: 'www.549.fr',
+                        url: 'https://www.549.fr/'
+                    }, 
+                    {
+                        icon: '🔗',
+                        content: 'www.548549.xyz',
+                        url: 'https://www.548549.xyz/'
+                    }                    
                 ]
             },
             {
@@ -2091,45 +2096,21 @@ function updateAIStructure() {
                 id: 'cilixiong',
                 icon: '🐻',
                 title: '磁力熊',
-                desc: '精选高分',
+                desc: '',
+                descClickable: 'cilixiong.cc（备用）',
+                descUrl: 'https://www.cilixiong.cc/',
                 url: 'https://www.cilixiong.org/',
-                type: 'expandable',
-                subCards: [
-                    {
-                        icon: '🔗',
-                        content: 'cilixiong.cc',
-                        note: '(备用)',
-                        url: 'https://www.cilixiong.cc/'
-                    }
-                ]
+                type: 'desc-clickable'
             },
             {
                 id: 'diduanyingshi',
                 icon: '📽️',
                 title: '低端影视',
-                desc: '高清资源',
+                desc: '',
+                descClickable: 'ddys.site（网址发布）',
+                descUrl: 'https://ddys.site/',
                 url: 'https://ddys.pro/',
-                type: 'expandable',
-                subCards: [
-                    {
-                        icon: '🎬',
-                        content: 'ddys.mov',
-                        note: '(备用)',
-                        url: 'https://ddys.mov/'
-                    },
-                    {
-                        icon: '🔗',
-                        content: 'ddys.site',
-                        note: '(网址发布)',
-                        url: 'https://ddys.site/'
-                    },
-                    {
-                        icon: '💕',
-                        content: 'ddys.love',
-                        note: '(网址发布)',
-                        url: 'https://ddys.love/'
-                    }
-                ]
+                type: 'desc-clickable'
             },
             {
                 id: 'changzhanquan',
@@ -2225,9 +2206,9 @@ function updateAIStructure() {
             let html = '';
             
             if (layout === 'mobile') {
-                // 移动端：显示前6个，折叠后8个
-                const visibleCards = videoData.slice(0, 6);
-                const hiddenCards = videoData.slice(6);
+                // 移动端：显示前4个，折叠后面
+                const visibleCards = videoData.slice(0, 4);
+                const hiddenCards = videoData.slice(4);
                 
                 html += '<div class="links-grid">';
                 visibleCards.forEach(card => {
@@ -2240,7 +2221,7 @@ function updateAIStructure() {
                 html += generateCollapseButton();
                 
             } else if (layout === 'tablet') {
-                // 平板：显示前6个，折叠后8个
+                // 平板：显示前6个，折叠后面
                 const visibleCards = videoData.slice(0, 6);
                 const hiddenCards = videoData.slice(6);
                 
@@ -2255,7 +2236,7 @@ function updateAIStructure() {
                 html += generateCollapseButton();
                 
             } else {
-                // 桌面：显示前8个，折叠后6个
+                // 桌面：显示前8个，折叠后面
                 const visibleCards = videoData.slice(0, 8);
                 const hiddenCards = videoData.slice(8);
                 
@@ -2273,7 +2254,7 @@ function updateAIStructure() {
             return html;
         }
 
-        // 生成单个卡片HTML
+        // 修改后的生成单个卡片HTML函数
         function generateCardHTML(card) {
             if (card.type === 'simple') {
                 return `
@@ -2282,6 +2263,14 @@ function updateAIStructure() {
                         <h3 class="link-title">${card.title}</h3>
                         <p class="link-desc">${card.desc}</p>
                     </a>
+                `;
+            } else if (card.type === 'desc-clickable') {
+                return `
+                    <div class="link-card" onclick="window.open('${card.url}', '_blank')">
+                        <span class="link-icon">${card.icon}</span>
+                        <h3 class="link-title">${card.title}</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('${card.descUrl}', '_blank')">${card.descClickable}</p>
+                    </div>
                 `;
             } else if (card.type === 'expandable') {
                 let subCardsHTML = '';
