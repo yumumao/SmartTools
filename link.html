@@ -491,11 +491,11 @@
             padding-right: 55px;
         }
 
-        /* 邮箱卡片特殊样式 */
+        /* 邮箱卡片特殊样式 - 修改为55%宽度 */
         .email-card {
             position: relative;
             padding: 16px;
-            padding-right: 50%;
+            padding-right: 55%; /* 从50%改为55% */
             overflow: hidden;
             border-bottom: 3px solid rgba(102, 126, 234, 0.6);
         }
@@ -528,7 +528,7 @@
             height: 100%;
             display: flex;
             z-index: 1;
-            width: 50%;
+            width: 55%; /* 从50%改为55% */
         }
 
         .email-tab {
@@ -538,7 +538,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            font-size: 13px;
             color: #667eea;
             font-weight: 600;
             writing-mode: vertical-rl;
@@ -549,6 +549,7 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-origin: left center;
             border-radius: 0 10px 10px 0;
+            white-space: nowrap; /* 添加强制不换行 */
         }
 
         /* 未选中标签的阴影 */
@@ -579,94 +580,141 @@
             border-radius: 0 15px 15px 0;
         }
 
-        /* 标签位置布局 - 选中标签在最左，其他保持相对顺序 */
+        /* 标签位置布局 - 5个标签，每个占20%宽度 */
         
         /* 默认位置 (选中第一个) */
         .email-tabs.active-0 .email-tab[data-email="0"] {
-            right: 75%;
-            width: 25%;
+            right: 80%;
+            width: 20%;
             z-index: 15;
         }
         .email-tabs.active-0 .email-tab[data-email="1"] {
-            right: 50%;
-            width: 25%;
+            right: 60%;
+            width: 20%;
             z-index: 13;
         }
         .email-tabs.active-0 .email-tab[data-email="2"] {
-            right: 25%;
-            width: 25%;
+            right: 40%;
+            width: 20%;
             z-index: 12;
         }
         .email-tabs.active-0 .email-tab[data-email="3"] {
-            right: 0%;
-            width: 25%;
+            right: 20%;
+            width: 20%;
             z-index: 11;
         }
+        .email-tabs.active-0 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        /* 选中第二个：2-1-3-4 */
+        /* 选中第二个：2-1-3-4-5 */
         .email-tabs.active-1 .email-tab[data-email="1"] {
-            right: 75%;
-            width: 25%;
+            right: 80%;
+            width: 20%;
             z-index: 15;
         }
         .email-tabs.active-1 .email-tab[data-email="0"] {
-            right: 50%;
-            width: 25%;
+            right: 60%;
+            width: 20%;
             z-index: 13;
         }
         .email-tabs.active-1 .email-tab[data-email="2"] {
-            right: 25%;
-            width: 25%;
+            right: 40%;
+            width: 20%;
             z-index: 12;
         }
         .email-tabs.active-1 .email-tab[data-email="3"] {
-            right: 0%;
-            width: 25%;
+            right: 20%;
+            width: 20%;
             z-index: 11;
         }
+        .email-tabs.active-1 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        /* 选中第三个：3-1-2-4 */
+        /* 选中第三个：3-1-2-4-5 */
         .email-tabs.active-2 .email-tab[data-email="2"] {
-            right: 75%;
-            width: 25%;
+            right: 80%;
+            width: 20%;
             z-index: 15;
         }
         .email-tabs.active-2 .email-tab[data-email="0"] {
-            right: 50%;
-            width: 25%;
+            right: 60%;
+            width: 20%;
             z-index: 13;
         }
         .email-tabs.active-2 .email-tab[data-email="1"] {
-            right: 25%;
-            width: 25%;
+            right: 40%;
+            width: 20%;
             z-index: 12;
         }
         .email-tabs.active-2 .email-tab[data-email="3"] {
-            right: 0%;
-            width: 25%;
+            right: 20%;
+            width: 20%;
             z-index: 11;
         }
+        .email-tabs.active-2 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        /* 选中第四个：4-1-2-3 */
+        /* 选中第四个：4-1-2-3-5 */
         .email-tabs.active-3 .email-tab[data-email="3"] {
-            right: 75%;
-            width: 25%;
+            right: 80%;
+            width: 20%;
             z-index: 15;
         }
         .email-tabs.active-3 .email-tab[data-email="0"] {
-            right: 50%;
-            width: 25%;
+            right: 60%;
+            width: 20%;
             z-index: 13;
         }
         .email-tabs.active-3 .email-tab[data-email="1"] {
-            right: 25%;
-            width: 25%;
+            right: 40%;
+            width: 20%;
             z-index: 12;
         }
         .email-tabs.active-3 .email-tab[data-email="2"] {
-            right: 0%;
-            width: 25%;
+            right: 20%;
+            width: 20%;
             z-index: 11;
+        }
+        .email-tabs.active-3 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
+
+        /* 选中第五个：5-1-2-3-4 */
+        .email-tabs.active-4 .email-tab[data-email="4"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-4 .email-tab[data-email="0"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-4 .email-tab[data-email="1"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-4 .email-tab[data-email="2"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-4 .email-tab[data-email="3"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
         }
 
         .email-tab:hover:not(.active) {
@@ -1049,7 +1097,7 @@
 }
         .email-card.contact-card {
             padding: 14px 16px;
-            padding-right: 50%;
+            padding-right: 55%; /* 从50%改为55% */
         }
 
         .email-contact-header {
@@ -1153,12 +1201,12 @@
             
             .email-card {
                 padding: 18px;
-                padding-right: 50%;
+                padding-right: 55%; /* 从50%改为55% */
             }
 
             .email-card.contact-card {
                 padding: 18px;
-                padding-right: 50%;
+                padding-right: 55%; /* 从50%改为55% */
             }
 
             .link-card-with-expand {
@@ -1209,7 +1257,7 @@
             }
 
             .email-tab {
-                font-size: 15px;
+                font-size: 13px;
                 padding: 5px 3px;
                 border-radius: 0 12px 12px 0;
             }
@@ -1242,12 +1290,12 @@
 
             .email-card {
                 padding: 12px;
-                padding-right: 50%;
+                padding-right: 60%; /* 从50%改为60% */
             }
 
             .email-card.contact-card {
                 padding: 12px 12px;
-                padding-right: 50%;
+                padding-right: 60%; /* 从50%改为60% */
             }
 
             /* 移动端保持2列 */
@@ -1268,7 +1316,7 @@
             }
 
             .email-tab {
-                font-size: 13px;
+                font-size: 11px;
                 padding: 3px 1px;
                 border-radius: 0 8px 8px 0;
             }
@@ -1684,6 +1732,7 @@
                             <div class="email-tab" onclick="event.stopPropagation(); switchEmail(1)" data-email="1">2</div>
                             <div class="email-tab" onclick="event.stopPropagation(); switchEmail(2)" data-email="2">3</div>
                             <div class="email-tab" onclick="event.stopPropagation(); switchEmail(3)" data-email="3">4</div>
+                            <div class="email-tab" onclick="event.stopPropagation(); switchEmail(4)" data-email="4">5</div>
                         </div>
                     </div>
                 </div>
@@ -1707,6 +1756,7 @@
         let currentExpanded = null;
         let currentLayout = 'mobile'; // mobile, tablet, desktop
 
+        // 修改后的邮箱数据，增加第5个邮箱
         const emailData = [
             {
                 icon: '✉️',
@@ -1716,7 +1766,7 @@
                 mailto: 'http://aabb.cc.cc'
             },
             {
-                icon: '📮',
+                icon: '📪',
                 title: '邮箱2',
                 address: 'aaabbb(AT)cc.cc',
                 url: 'http://aaabbb.cc.cc',
@@ -1732,6 +1782,13 @@
             {
                 icon: '📭',
                 title: '邮箱4',
+                address: 'abab(AT)cc.cc',
+                url: 'http://abab.cc.cc',
+                mailto: 'http://abab.cc.cc'
+            },
+            {
+                icon: '📠',
+                title: '邮箱5',
                 address: 'yumumao(AT)cc.cc',
                 url: 'http://yumumao.cc.cc',
                 mailto: 'http://yumumao.cc.cc'
