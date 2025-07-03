@@ -1569,6 +1569,13 @@
                             </div>
                             <p class="link-url">to2.top/29</p>
                         </div>
+                        <div class="sub-card two-line-card" onclick="window.open('https://alist.n29.net/', '_blank')">
+                            <div class="card-header">
+                                <span class="link-icon">👨‍🚀​​</span>
+                                <h3 class="link-title">Alist@CC</h3>
+                            </div>
+                            <p class="link-url">run.claw.cloud</p>
+                        </div>                        
                         <div class="sub-card two-line-card" onclick="window.open('http://yumumao.ysepan.com/', '_blank')">
                             <div class="card-header">
                                 <span class="link-icon">🌳​​</span>
@@ -1576,13 +1583,13 @@
                             </div>
                             <p class="link-url">cccpan.com</p>
                         </div>
-                                                <div class="sub-card two-line-card" onclick="window.open('https://alist.n29.net/', '_blank')">
+                        <div class="sub-card two-line-card" onclick="window.open('https://i.f66.fun/', '_blank')">
                             <div class="card-header">
-                                <span class="link-icon">👨‍🚀​​</span>
-                                <h3 class="link-title">Alist@CC</h3>
+                                <span class="link-icon">🖼​​</span>
+                                <h3 class="link-title">自用图床</h3>
                             </div>
-                            <p class="link-url">run.claw.cloud</p>
-                        </div>
+                            <p class="link-url">i.f66.fun</p>
+                        </div>                        
                     </div>
                 </div>
             </div>
@@ -1855,7 +1862,7 @@
         ];
 
 // ===================== 开始：网络资源分类的JS代码 =====================
-// 网络资源数据
+// 修改后的网络资源数据
 const onlineAIData = [
     {
         id: 'qwen',
@@ -1871,7 +1878,33 @@ const onlineAIData = [
         title: 'POE',
         desc: 'AI助手集合',
         url: 'https://poe.com/',
-        type: 'simple'
+        type: 'expandable',
+        subCards: [
+            {
+                icon: '🤿',
+                title: 'DeepSeek',
+                desc: '深度求索',
+                url: 'https://www.deepseek.com/'
+            },
+            {
+                icon: '💬',
+                title: 'ChatGPT',
+                desc: 'OpenAI聊天机器人',
+                url: 'https://chat.openai.com/'
+            },
+            {
+                icon: '🦊',
+                title: 'Grok',
+                desc: 'xAI的AI助手',
+                url: 'https://grok.com/'
+            },
+            {
+                icon: '🎆',
+                title: 'Claude',
+                desc: '擅长写代码',
+                url: 'https://www.anthropic.com/claude'
+            }
+        ]
     },
     {
         id: 'yuanbao',
@@ -1881,6 +1914,28 @@ const onlineAIData = [
         url: 'https://yuanbao.tencent.com/',
         type: 'simple'
     },
+    {
+        id: 'mitasearch',
+        icon: '🔎',
+        title: '秘塔搜索',
+        desc: 'AI搜索引擎',
+        url: 'https://metaso.cn/',
+        type: 'expandable',
+        subCards: [
+            {
+                icon: '🔬',
+                title: '纳米搜索',
+                desc: 'AI搜索工具',
+                url: 'https://www.n.cn/'
+            },
+            {
+                icon: '✵',
+                title: 'Perplexity',
+                desc: 'AI搜索',
+                url: 'https://www.perplexity.ai/'
+            }
+        ]
+    },    
     {
         id: 'bibigpt',
         icon: '👁️‍🗨️',
@@ -1897,54 +1952,6 @@ const onlineAIData = [
         url: 'https://www.doubao.com/',
         type: 'simple'
     },
-    {
-        id: 'deepseek',
-        icon: '🤿',
-        title: 'DeepSeek',
-        desc: '深度求索',
-        url: 'https://www.deepseek.com/',
-        type: 'simple'
-    },
-    {
-        id: 'chatgpt',
-        icon: '💬',
-        title: 'ChatGPT',
-        desc: 'OpenAI聊天机器人',
-        url: 'https://chat.openai.com/',
-        type: 'simple'
-    },
-    {
-        id: 'grok',
-        icon: '🦊',
-        title: 'Grok',
-        desc: 'xAI的AI助手',
-        url: 'https://grok.com/',
-        type: 'simple'
-    },
-    {
-        id: 'mitasearch',
-        icon: '🔎',
-        title: '秘塔搜索',
-        desc: 'AI搜索引擎',
-        url: 'https://metaso.cn/',
-        type: 'simple'
-    },
-    {
-        id: 'nanomisearch',
-        icon: '🔬',
-        title: '纳米搜索',
-        desc: 'AI搜索工具',
-        url: 'https://www.n.cn/',
-        type: 'simple'
-    }, 
-    {
-        id: 'claude',
-        icon: '🎆',
-        title: 'Claude',
-        desc: '擅长写代码',
-        url: 'https://www.anthropic.com/claude',
-        type: 'simple'
-    }, 
     {
         id: 'cloudflare',
         icon: '🌩️',
@@ -2050,6 +2057,33 @@ function generateAICardHTML(card) {
                 <h3 class="link-title">${card.title}</h3>
                 <p class="link-desc">${card.desc}</p>
             </a>
+        `;
+    } else if (card.type === 'expandable') {
+        let subCardsHTML = '';
+        card.subCards.forEach(subCard => {
+            subCardsHTML += `
+                <div class="sub-card two-line-card" onclick="window.open('${subCard.url}', '_blank')">
+                    <div class="card-header">
+                        <span class="link-icon">${subCard.icon}</span>
+                        <h3 class="link-title">${subCard.title}</h3>
+                    </div>
+                    <p class="link-url">${subCard.desc}</p>
+                </div>
+            `;
+        });
+        
+        return `
+            <div class="card-container">
+                <div class="link-card link-card-with-expand" onclick="window.open('${card.url}', '_blank')">
+                    <span class="link-icon">${card.icon}</span>
+                    <h3 class="link-title">${card.title}</h3>
+                    <p class="link-desc">${card.desc}</p>
+                    <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('${card.id}-subcards', this)" title="展开更多选项">▼</button>
+                </div>
+                <div class="sub-cards" id="${card.id}-subcards">
+                    ${subCardsHTML}
+                </div>
+            </div>
         `;
     }
 }
