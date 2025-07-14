@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=320, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>生理学知识点大纲（临床相关）</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' x='-0.1em' font-size='90'>🩺</text></svg>">
+  <style>
+    /* 主体与章节样式（与原版兼容） */
+    html, body {
+      margin: 0; padding: 0;
+      background: #f4f6fa;
+      color: #222;
+      font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      letter-spacing: 0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      background: #4353ff;
+      color: #fff;
+      text-align: center;
+      padding: 18px 8px 10px 8px;
+      font-size: 1.23rem;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 14px rgba(67,83,255,0.08);
+      position: relative;
+      z-index: 1;
+    }
+main {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 480px;   /* 手机 */
+  margin: 0 auto;
+  padding: 0.6em 0.4em 2em 0.4em;
+}
+@media (min-width: 600px) {
+  main {
+    max-width: 720px; /* 平板 */
+    font-size: 1.08em;
+    padding: 1.2em 1.2em 2.6em 1.2em;
+  }
+}
+@media (min-width: 1000px) {
+  main {
+    max-width: 1000px; /* 电脑 */
+    font-size: 1.15em;
+    padding: 2em 2.4em 3em 2.4em;
+  }
+}
+    .chapter {
+      margin: 1.1em 0 1.7em 0;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 1px 6px rgba(67,83,255,0.07);
+      padding: 0.7em 0.7em 0.2em 0.9em;
+      overflow: hidden;
+    }
+    .chapter-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #4353ff;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.4em;
+      margin-top: 0.2em;
+      user-select: none;
+      cursor: pointer;
+    }
+    .chapter-title.locked {
+      cursor: default;
+      opacity: 0.95;
+    }
+    .chapter-title .toggle-arrow {
+      display: inline-block;
+      width: 1.2em;
+      text-align: center;
+      color: #aaa;
+      font-size: 1.2em;
+      transition: transform 0.22s;
+      margin-right: 0.2em;
+      margin-left: -0.3em;
+    }
+    .chapter.expanded .chapter-title .toggle-arrow {
+      transform: rotate(90deg);
+      color: #4353ff;
+    }
+    .chapter-content {
+      margin-left: 0.5em;
+      margin-right: 0.1em;
+      transition: max-height 0.32s, opacity 0.18s;
+      overflow: hidden;
+      opacity: 1;
+      max-height: 2000px;
+      display: block;
+    }
+    .chapter.collapsed .chapter-content {
+      max-height: 0;
+      opacity: 0.26;
+      pointer-events: none;
+      transition: max-height 0.22s, opacity 0.13s;
+      display: none;
+    }
+    .level2-title {
+      font-size: 1em;
+      font-weight: 600;
+      margin-top: 0.7em;
+      margin-bottom: 0.13em;
+      color: #2e5aac;
+      display: flex;
+      align-items: center;
+      user-select: none;
+      /* 不可折叠，去掉cursor:pointer */
+    }
+    .level2-content {
+      margin-left: 0.7em;
+      margin-right: 0.1em;
+      border-left: 2.5px solid #e7eafe;
+      padding-left: 0.3em;
+      opacity: 1;
+      overflow: visible;
+      max-height: none;
+      display: block;
+    }
+    .level3-title {
+      font-size: 0.97em;
+      font-weight: 500;
+      color: #4e6b99;
+      margin-top: 0.47em;
+      margin-bottom: 0.1em;
+      display: flex;
+      align-items: center;
+      user-select: none;
+      /* 不可折叠，去掉cursor:pointer */
+    }
+    .level3-content {
+      margin-left: 0.6em;
+      border-left: 2px solid #e7eafe;
+      padding-left: 0.23em;
+      opacity: 1;
+      overflow: visible;
+      max-height: none;
+      display: block;
+    }
+    .level4-content {
+      margin-left: 0.7em;
+      margin-bottom: 0.13em;
+      font-size: 0.98em;
+      border-left: 2px solid #f6f6ff;
+      padding-left: 0.23em;
+      opacity: 1;
+      overflow: visible;
+      max-height: none;
+      display: block;
+    }
+    ul,ol {
+      margin: 0.08em 0 0.16em 1.1em;
+      padding-left: 1em;
+      font-size: 0.99em;
+    }
+    li { line-height: 1.57; margin-bottom: 0.06em;}
+    .relate {
+      display: block;
+      margin: 0.12em 0 0.12em 0;
+      padding: 0.44em 0.8em 0.44em 2em;
+      position: relative;
+      border-radius: 6px;
+      font-size: 0.95em;
+      background: #eaf6ff;
+      color: #166ab5;
+      border-left: 3px solid #4ab2ff;
+      line-height: 1.7;
+      word-break: break-all;
+    }
+    .relate:before {
+      content: "🔗";
+      position: absolute;
+      left: 0.7em;
+      top: 0.50em;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+    .clinic {
+      font-family: 'FZJZXF', '微软雅黑', 'PingFang SC', Arial, sans-serif !important;
+      background: #fdf7ed !important;
+      color: #b45a03;
+      border-left: 3px solid #ffb871;
+      border-radius: 7px;
+      margin: 0.12em 0 0.33em 0;
+      padding: 0.36em 0.8em 0.36em 2em;
+      font-size: 0.93em;
+      position: relative;
+      line-height: 1.7;
+      word-break: break-all;
+      letter-spacing: 0.01em;
+      font-variant-ligatures: none;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .clinic:before {
+      content: "💡";
+      position: absolute;
+      left: 0.7em;
+      top: 0.52em;
+      font-size: 1.1em;
+      line-height: 1;
+    }
+    #backHomeBtn {
+      position: fixed;
+      top: 11px;
+      left: 4px;
+      z-index: 10000;
+      background: rgba(147,112,219, 0.62);
+      color: #fff;
+      border: none;
+      border-radius: 7px 16px 16px 7px;
+      font-size: 0.9em;
+      font-family: 'FZJZXF', '微软雅黑', Arial, sans-serif;
+      font-weight: bold;
+      min-width: 28px;
+      height: 25px;
+      opacity: 0.95;
+      padding: 2px 8px 2px 16px;
+      display: flex; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+      cursor: pointer;
+      letter-spacing: 1px;
+      user-select: none;
+      margin-bottom: 0;
+    }
+    #backHomeBtn .icon { font-size: 0.8em; margin-right: 0.33em; margin-left: -0.5em; }
+    .expand-tip {
+      margin: 2em 0 1em 0;
+      background: #fffbe7;
+      color: #be7900;
+      font-size: 1.02em;
+      border-left: 6px solid #ffe27a;
+      border-radius: 7px;
+      padding: 1em 1em 1em 2.5em;
+      max-width: 100％;
+      position: relative;
+      box-shadow: 0 2px 10px #ffecb344;
+      line-height: 1.8;
+    }
+    .expand-tip:before {
+      content: "👇🏻";
+      position: absolute;
+      left: 0.5em;
+      font-size: 1.3em;
+    }
+    @media (max-width: 430px) {
+      #backHomeBtn { font-size: 0.82em !important; height: 19px; }
+    }
+    @media (max-width: 340px) {
+      #backHomeBtn { font-size: 0.75em !important; height: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 主页悬浮按钮 -->
+  <button id="backHomeBtn" onclick="window.location.href='../toolsindex.html'">
+    <span class="icon">←主页</span>
+  </button>
+  <header>
+    人体生理学知识点大纲（临床相关版）
+  </header>
+  <main id="mainContent"></main>
+  <script>
+    // =========================
+    // 将 data.chapters 结构粘贴在此处
+const data = {
+  chapters: [
+    {
+      title: "1. 机体稳态（Homeostasis）",
+      expanded: true,
+      levels: [
+        {
+          title: "1.1 内环境（Internal Environment）",
+          expanded: true,
+          children: [
+            {
+              title: "1.1.1 体液的组成与分布",
+              expanded: true,
+              relate: "水盐平衡、肾脏调节",
+              clinic: `
+                <b>脱水/水中毒：</b>脱水表现为皮肤弹性差、口渴、低血压；水中毒常因排水障碍或大量补液，表现为水肿、低钠血症。<br>
+                <b>阿迪森病：</b>肾上腺皮质功能减退，醛固酮分泌减少，导致钠和水重吸收下降、钾排泄减少，出现低钠、高钾、脱水、低血压、皮肤黝黑。<br>
+                <b>烧伤/失血：</b>大量体液丢失会导致低血容量休克，需积极补液、纠正电解质。
+              `,
+              children: [
+                {
+                  title: "1.1.1.1 细胞内液（ICF）",
+                  content: "<ul><li>细胞内液的主要成分及功能。</li></ul>"
+                },
+                {
+                  title: "1.1.1.2 细胞外液（ECF）：血浆、组织液、淋巴",
+                  content: "<ul><li>细胞外液的分布和临床意义。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "1.1.2 内环境的理化特性",
+              expanded: true,
+              relate: "酸碱平衡、细胞跨膜转运",
+              clinic: `
+                <b>酸中毒：</b>如糖尿病酮症酸中毒，表现为呼吸深快、昏迷。<br>
+                <b>碱中毒：</b>多因呕吐、失钾，表现为手足抽搐、惊厥。<br>
+                <b>低钾/高钾血症：</b>可致心律失常、肌无力甚至心脏骤停。<br>
+                <b>血气分析：</b>临床用于判断酸碱失衡，指导治疗。
+              `,
+              children: [
+                {
+                  title: "1.1.2.1 pH及缓冲系统",
+                  content: "<ul><li>血液pH调节机制及缓冲系统组成。</li></ul>"
+                },
+                {
+                  title: "1.1.2.2 渗透压",
+                  content: "<ul><li>渗透压的决定因素及调节。</li></ul>"
+                },
+                {
+                  title: "1.1.2.3 电解质分布",
+                  content: "<ul><li>主要离子在体液中的分布及生理作用。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "1.1.3 内环境的稳态机制",
+              expanded: true,
+              relate: "下丘脑-垂体轴、肾小管重吸收",
+              clinic: `
+                <b>发热/热射病：</b>发热常见于感染；热射病为高温暴露后体温调节失控，危及生命。<br>
+                <b>SIADH：</b>抗利尿激素分泌过多，导致水潴留、低钠血症。<br>
+                <b>尿崩症：</b>抗利尿激素缺乏或作用障碍，表现为多尿、高钠血症、脱水。<br>
+                <b>肾衰竭：</b>可导致水、电解质紊乱和代谢性酸中毒。
+              `,
+              children: [
+                {
+                  title: "1.1.3.1 体温调节",
+                  content: "<ul><li>下丘脑体温中枢与产热/散热机制。</li></ul>"
+                },
+                {
+                  title: "1.1.3.2 水盐代谢调节",
+                  children: [
+                    {
+                      title: "1.1.3.2.1 抗利尿激素（ADH）",
+                      content: "<ul><li>ADH的分泌调节与作用。</li></ul>"
+                    },
+                    {
+                      title: "1.1.3.2.2 醛固酮",
+                      content: "<ul><li>醛固酮的调节机制和临床意义。</li></ul>"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: "1.2 反馈调节（Feedback Regulation）",
+          expanded: true,
+          children: [
+            {
+              title: "1.2.1 负反馈机制",
+              expanded: true,
+              relate: "内分泌系统、神经调节",
+              clinic: `
+                <b>糖尿病：</b>胰岛素分泌或作用障碍，导致高血糖、多尿、多饮。<br>
+                <b>甲亢/甲减：</b>甲状腺激素负反馈调控障碍，表现为代谢增高或降低。<br>
+                <b>高血压：</b>RAAS反馈环节亢进或失调可致继发性高血压。
+              `,
+              children: [
+                {
+                  title: "1.2.1.1 血糖调节（胰岛素、胰高血糖素）",
+                  content: "<ul><li>胰岛素和胰高血糖素调节血糖的负反馈环路。</li></ul>"
+                },
+                {
+                  title: "1.2.1.2 血压调节",
+                  content: "<ul><li>交感神经、肾素-血管紧张素-醛固酮系统（RAAS）调节血压。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "1.2.2 正反馈机制",
+              expanded: true,
+              relate: "内分泌系统、神经兴奋",
+              clinic: `
+                <b>DIC：</b>弥散性血管内凝血，凝血-纤溶正反馈，表现为广泛出血、器官功能障碍。<br>
+                <b>癫痫：</b>脑神经元异常放电，反复正反馈放大，出现抽搐、意识障碍。
+              `,
+              children: [
+                {
+                  title: "1.2.2.1 分娩时催产素作用",
+                  content: "<ul><li>催产素促进宫缩的正反馈循环。</li></ul>"
+                },
+                {
+                  title: "1.2.2.2 动作电位去极化过程",
+                  content: "<ul><li>Na+内流导致的去极化持续增强。</li></ul>"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "2. 细胞生理（Cellular Physiology）",
+      expanded: true,
+      levels: [
+        {
+          title: "2.1 细胞结构（Cell Structure）",
+          expanded: true,
+          children: [
+            {
+              title: "2.1.1 细胞膜组成",
+              expanded: true,
+              relate: "能量代谢、细胞凋亡",
+              clinic: "",
+              children: [
+                {
+                  title: "2.1.1.1 膜蛋白功能（通道、受体、酶等）",
+                  content: "<ul><li>细胞膜蛋白的主要类型及作用。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.1.2 细胞器",
+              expanded: true,
+              relate: "能量代谢、细胞凋亡",
+              clinic: `
+                <b>线粒体病：</b>线粒体功能障碍，表现为肌无力、神经损害、心肌病等。<br>
+                <b>戈谢病/庞贝病：</b>溶酶体酶缺陷，致代谢产物堆积，出现肝脾肿大、骨骼异常。
+              `,
+              children: [
+                {
+                  title: "2.1.2.1 线粒体（能量代谢）",
+                  content: "<ul><li>线粒体在ATP合成中的作用。</li></ul>"
+                },
+                {
+                  title: "2.1.2.2 内质网、溶酶体",
+                  content: "<ul><li>内质网、溶酶体的结构和功能。</li></ul>"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: "2.2 跨膜转运（Membrane Transport）",
+          expanded: true,
+          children: [
+            {
+              title: "2.2.1 被动转运",
+              expanded: true,
+              relate: "",
+              clinic: "",
+              children: [
+                {
+                  title: "2.2.1.1 单纯扩散（氧气、二氧化碳）",
+                  content: "<ul><li>气体分子通过膜的自由扩散。</li></ul>"
+                },
+                {
+                  title: "2.2.1.2 易化扩散（葡萄糖转运）",
+                  content: "<ul><li>载体蛋白介导的被动转运。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.2.2 主动转运",
+              expanded: true,
+              relate: "肾小管重吸收、神经兴奋传导",
+              clinic: `
+                <b>囊性纤维化：</b>CFTR氯通道基因突变，致呼吸道和消化道分泌物黏稠、反复感染、吸收不良。<br>
+                <b>利尿剂副作用：</b>如呋塞米抑制肾小管Na⁺重吸收，易致低钾、低钠、脱水、心律失常。<br>
+                <b>周期性麻痹：</b>钾通道异常，发作性四肢无力，发作时多伴低钾或高钾血症。
+              `,
+              children: [
+                {
+                  title: "2.2.2.1 一级主动转运（如Na⁺/K⁺泵）",
+                  content: "<ul><li>能量直接来自ATP水解。</li></ul>"
+                },
+                {
+                  title: "2.2.2.2 二级主动转运（肾小管葡萄糖重吸收）",
+                  content: "<ul><li>利用离子梯度驱动物质转运。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.2.3 胞吞与胞吐",
+              expanded: true,
+              relate: "",
+              clinic: "",
+              children: [
+                {
+                  title: "2.2.3.1 巨噬细胞吞噬细菌",
+                  content: "<ul><li>胞吞作用在免疫防御中的意义。</li></ul>"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: "2.3 静息电位（Resting Membrane Potential）",
+          expanded: true,
+          children: [
+            {
+              title: "2.3.1 形成机制",
+              expanded: true,
+              relate: "动作电位、心电生理",
+              clinic: "",
+              children: [
+                {
+                  title: "2.3.1.1 离子分布（Na⁺、K⁺、Cl⁻）",
+                  content: "<ul><li>细胞内外主要离子的浓度分布。</li></ul>"
+                },
+                {
+                  title: "2.3.1.2 膜通透性",
+                  content: "<ul><li>不同离子对膜的通透性差异。</li></ul>"
+                },
+                {
+                  title: "2.3.1.3 钠钾泵",
+                  content: "<ul><li>维持静息电位和细胞内外离子平衡。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.3.2 临床意义",
+              expanded: true,
+              relate: "",
+              clinic: `
+                <b>高钾/低钾血症：</b>高钾血症可致心律失常、心脏骤停，低钾可致肌无力、心律失常。<br>
+                <b>局麻药：</b>阻断Na⁺通道，抑制神经冲动传导，用于局部麻醉、镇痛。
+              `,
+              children: []
+            }
+          ]
+        },
+        {
+          title: "2.4 动作电位（Action Potential）",
+          expanded: true,
+          children: [
+            {
+              title: "2.4.1 发生过程",
+              expanded: true,
+              relate: "",
+              clinic: "",
+              children: [
+                {
+                  title: "2.4.1.1 阈电位、去极化、复极化、超极化",
+                  content: "<ul><li>动作电位的四个基本阶段。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.4.2 不应期",
+              expanded: true,
+              relate: "",
+              clinic: "",
+              children: [
+                {
+                  title: "2.4.2.1 绝对/相对不应期",
+                  content: "<ul><li>心肌和神经动作电位期间的不可激发和相对可激发时相。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "2.4.3 药理相关",
+              expanded: true,
+              relate: "心肌动作电位、神经传导",
+              clinic: `
+                <b>癫痫：</b>神经元异常同步放电，表现为抽搐、意识障碍，药物多抑制Na+通道。<br>
+                <b>心律失常：</b>心肌动作电位异常导致，各类抗心律失常药物作用于Na+、K+、Ca2+通道。
+              `,
+              children: [
+                {
+                  title: "2.4.3.1 局麻药、抗癫痫药、抗心律失常药作用机制",
+                  content: "<ul><li>药物对Na+、K+、Ca2+通道的影响。</li></ul>"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+{
+      title: "3. 血液系统（Blood System）",
+      expanded: false,
+      levels: [
+        {
+          title: "3.1 血液的组成与功能",
+          expanded: true,
+          children: [
+            {
+              title: "3.1.1 血浆成分",
+              relate: "肾脏分泌EPO、免疫系统、凝血机制",
+              clinic: `
+                <b>低白蛋白血症：</b>见于肝硬化、肾病综合征，表现为水肿、腹水。<br>
+                <b>高纤维蛋白原：</b>急性炎症反应时升高，提示风险增加。<br>
+                <b>高球蛋白血症：</b>常见于慢性感染、肿瘤（如多发性骨髓瘤）。
+              `,
+              children: [
+                {
+                  title: "3.1.1.1 血浆蛋白（白蛋白、球蛋白、纤维蛋白原）",
+                  content: "<ul><li>血浆蛋白的功能：维持胶体渗透压、参与免疫、凝血。</li></ul>"
+                }
+              ]
+            },
+            {
+              title: "3.1.2 血细胞",
+              children: [
+                {
+                  title: "3.1.2.1 红细胞",
+                  children: [
+                    { title: "3.1.2.1.1 结构（无核、双凹盘状）", content: "<ul><li>利于气体交换和变形通过毛细血管。</li></ul>" },
+                    { title: "3.1.2.1.2 血红蛋白结构与功能", content: "<ul><li>血红蛋白参与氧、CO2运输，维持血液pH。</li></ul>" },
+                    { title: "3.1.2.1.3 氧和二氧化碳的运输", content: "<ul><li>氧合、脱氧、Bohr效应。</li></ul>" },
+                    { title: "3.1.2.1.4 红细胞生成与调控（促红细胞生成素）", content: "<ul><li>肾脏分泌EPO调控造血。</li></ul>" }
+                  ],
+                  relate: "气体运输、肾脏调节、缓冲功能",
+                  clinic: `
+                    <b>贫血：</b>红细胞或血红蛋白减少，见于缺铁、慢性病、溶血等。<br>
+                    <b>多血症：</b>红细胞生成过多，见于慢性缺氧、骨髓病变。
+                  `
+                },
+                {
+                  title: "3.1.2.2 白细胞",
+                  children: [
+                    { title: "3.1.2.2.1 粒细胞、单核细胞、淋巴细胞", content: "<ul><li>各类白细胞的免疫功能。</li></ul>" },
+                    { title: "3.1.2.2.2 免疫应答", content: "<ul><li>体液免疫、细胞免疫及其意义。</li></ul>" }
+                  ],
+                  relate: "免疫防御、炎症反应",
+                  clinic: `
+                    <b>白细胞减少：</b>易感染，见于放化疗、再障等。<br>
+                    <b>白血病：</b>恶性增殖，表现为贫血、感染、出血。
+                  `
+                },
+                {
+                  title: "3.1.2.3 血小板",
+                  children: [
+                    { title: "3.1.2.3.1 止血机制", content: "<ul><li>血小板黏附、聚集、释放反应。</li></ul>" },
+                    { title: "3.1.2.3.2 凝血机制概述", content: "<ul><li>内源、外源、共同途径，纤维蛋白形成。</li></ul>" }
+                  ],
+                  relate: "止血、凝血",
+                  clinic: `
+                    <b>血小板减少症：</b>出血倾向，见于ITP、药物等。<br>
+                    <b>血友病：</b>凝血因子遗传缺陷，反复关节、肌肉出血。
+                  `
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "4. 循环系统（Circulatory System）",
+      expanded: false,
+      levels: [
+        {
+          title: "4.1 心脏结构与功能",
+          expanded: true,
+          children: [
+            {
+              title: "4.1.1 心肌细胞",
+              children: [
+                { title: "4.1.1.1 自动节律性、传导性、收缩性", content: "<ul><li>窦房结起搏、房室传导、心肌收缩。</li></ul>" },
+                { title: "4.1.1.2 兴奋-收缩耦联", content: "<ul><li>钙离子在心肌收缩中的作用。</li></ul>" }
+              ],
+              relate: "动作电位、神经调节",
+              clinic: `
+                <b>心律失常：</b>心脏起搏、传导异常引发心悸、晕厥、猝死。<br>
+                <b>心力衰竭：</b>心肌收缩力下降，表现为呼吸困难、水肿。
+              `
+            },
+            {
+              title: "4.1.2 心脏泵血功能",
+              children: [
+                { title: "4.1.2.1 心动周期（收缩期、舒张期）", content: "<ul><li>心房收缩、心室收缩、心室舒张。</li></ul>" },
+                { title: "4.1.2.2 心输出量（CO）及调节因素", 
+                  children: [
+                    { title: "4.1.2.2.1 心率、搏出量、前后负荷", content: "<ul><li>影响心输出量的主要因素。</li></ul>" }
+                  ]
+                }
+              ],
+              relate: "循环血量、神经体液调节",
+              clinic: `
+                <b>休克：</b>心输出量急剧下降，组织灌注不足，多见于失血、心梗、感染等。<br>
+                <b>瓣膜病：</b>瓣膜狭窄/关闭不全，影响心脏泵血效率。
+              `
+            }
+          ]
+        },
+        {
+          title: "4.2 血压调节",
+          expanded: true,
+          children: [
+            {
+              title: "4.2.1 血压的形成与影响因素",
+              children: [
+                { title: "4.2.1.1 外周阻力", content: "<ul><li>小动脉对血压的决定性作用。</li></ul>" },
+                { title: "4.2.1.2 心输出量", content: "<ul><li>心输出量与血压的关系。</li></ul>" }
+              ],
+              relate: "肾脏调节、内分泌系统",
+              clinic: `
+                <b>高血压：</b>常见慢性疾病，长期可致心脑肾损害。<br>
+                <b>低血压/休克：</b>多因失血、心脏衰竭或感染，需及时识别和处理。
+              `
+            },
+            {
+              title: "4.2.2 血压调节机制",
+              children: [
+                { title: "4.2.2.1 神经调节（交感/副交感）", content: "<ul><li>压力感受器、化学感受器反射。</li></ul>" },
+                { title: "4.2.2.2 体液调节（肾素-血管紧张素系统）", content: "<ul><li>RAAS对血压长期调节。</li></ul>" }
+              ],
+              relate: "神经体液调节",
+              clinic: `
+                <b>肾性高血压：</b>肾实质损害或肾血管狭窄，RAAS激活所致。<br>
+                <b>嗜铬细胞瘤：</b>分泌大量肾上腺素，发作性高血压、头痛、心悸。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "5. 呼吸系统（Respiratory System）",
+      expanded: false,
+      levels: [
+        {
+          title: "5.1 呼吸的基本过程",
+          expanded: true,
+          children: [
+            {
+              title: "5.1.1 外呼吸与内呼吸",
+              children: [
+                { title: "5.1.1.1 气体交换部位：肺泡-毛细血管", content: "<ul><li>肺泡-毛细血管气体交换机制。</li></ul>" }
+              ],
+              relate: "血液气体运输、心肺循环",
+              clinic: `
+                <b>COPD：</b>慢阻肺，气道狭窄，气体交换障碍，表现为咳嗽、气短。<br>
+                <b>肺栓塞：</b>肺动脉阻塞，突发呼吸困难、胸痛、低氧血症。
+              `
+            }
+          ]
+        },
+        {
+          title: "5.2 肺通气",
+          expanded: true,
+          children: [
+            {
+              title: "5.2.1 吸气与呼气的力学",
+              children: [
+                { title: "5.2.1.1 胸廓运动、肺顺应性、弹性回缩力", content: "<ul><li>吸气需肌力，呼气多为被动过程。</li></ul>" }
+              ],
+              relate: "呼吸肌、胸膜腔压力",
+              clinic: `
+                <b>气胸：</b>胸膜腔进入气体，压缩肺组织，表现为突发胸痛、气促。<br>
+                <b>肺气肿：</b>肺顺应性增高，呼气困难，桶状胸。
+              `
+            },
+            {
+              title: "5.2.2 肺功能参数",
+              children: [
+                { title: "5.2.2.1 肺活量、潮气量、残气量等", content: "<ul><li>各项肺功能参数的正常值和意义。</li></ul>" }
+              ],
+              relate: "通气、换气",
+              clinic: `
+                <b>限制性肺疾病：</b>肺活量降低，常见于肺纤维化。<br>
+                <b>阻塞性肺疾病：</b>FEV1/FVC下降，见于哮喘、COPD。
+              `
+            }
+          ]
+        },
+        {
+          title: "5.3 气体交换与运输",
+          expanded: true,
+          children: [
+            {
+              title: "5.3.1 氧的运输",
+              children: [
+                { title: "5.3.1.1 血红蛋白与氧解离曲线", content: "<ul><li>氧合血红蛋白与氧分压的关系，影响因素。</li></ul>" }
+              ],
+              relate: "红细胞功能、酸碱平衡",
+              clinic: `
+                <b>一氧化碳中毒：</b>CO与血红蛋白结合，导致组织缺氧，表现为头痛、昏迷。<br>
+                <b>缺氧：</b>见于高原、窒息、呼吸衰竭等，表现为紫绀、意识障碍。
+              `
+            },
+            {
+              title: "5.3.2 二氧化碳的运输",
+              children: [
+                { title: "5.3.2.1 血浆溶解、碳酸氢盐", content: "<ul><li>CO2以碳酸氢盐为主运输，部分溶于血浆。</li></ul>" }
+              ],
+              relate: "酸碱平衡、肺功能",
+              clinic: `
+                <b>高碳酸血症：</b>常见于慢性呼吸衰竭，表现为呼吸困难、意识障碍。<br>
+                <b>呼吸性酸中毒：</b>CO2潴留导致血pH下降，需及时处理。
+              `
+            }
+          ]
+        },
+        {
+          title: "5.4 呼吸调节",
+          expanded: true,
+          children: [
+            {
+              title: "5.4.1 神经调节",
+              children: [
+                { title: "5.4.1.1 延髓呼吸中枢", content: "<ul><li>基本节律产生与高级调控。</li></ul>" }
+              ],
+              relate: "中枢神经系统",
+              clinic: `
+                <b>脑干损伤：</b>呼吸中枢受损，可致呼吸暂停、危及生命。<br>
+                <b>中枢性呼吸衰竭：</b>常见于药物中毒、颅脑损伤等。
+              `
+            },
+            {
+              title: "5.4.2 化学调节",
+              children: [
+                { title: "5.4.2.1 CO₂、H⁺、O₂对呼吸的影响", content: "<ul><li>化学感受器调节呼吸速率和深度。</li></ul>" }
+              ],
+              relate: "酸碱平衡、血气分析",
+              clinic: `
+                <b>慢性阻塞性肺疾病：</b>长期CO2潴留，外周化学感受器对低O2更敏感，给氧需谨慎。<br>
+                <b>呼吸性碱中毒：</b>过度通气导致CO2过度排出，见于焦虑、发热等。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "6. 消化系统（Digestive System）",
+      expanded: false,
+      levels: [
+        {
+          title: "6.1 消化腺分泌与调节",
+          expanded: true,
+          children: [
+            {
+              title: "6.1.1 唾液腺、胃腺、胰腺、肝脏",
+              relate: "神经体液调节、内分泌系统",
+              clinic: `
+                <b>急性胰腺炎：</b>胰酶自身消化胰腺组织，表现为腹痛、休克。<br>
+                <b>消化性溃疡：</b>胃酸、胃蛋白酶分泌增多或黏膜防御减弱，致胃/十二指肠黏膜破损。<br>
+                <b>胆石症：</b>胆固醇结石堵塞胆道，出现绞痛、黄疸。
+              `,
+              children: [
+                { title: "6.1.1.1 酶分泌与作用", content: "<ul><li>各腺体分泌消化酶分解营养物质。</li></ul>" },
+                { title: "6.1.1.2 pH调节", content: "<ul><li>胃酸与碱性胰液调节消化道pH。</li></ul>" }
+              ]
+            }
+          ]
+        },
+        {
+          title: "6.2 胃肠道运动",
+          expanded: true,
+          children: [
+            {
+              title: "6.2.1 平滑肌自主节律",
+              children: [
+                { title: "6.2.1.1 慢波与动作电位", content: "<ul><li>胃肠道自主节律的生理意义。</li></ul>" }
+              ],
+              relate: "自主神经、消化激素",
+              clinic: `
+                <b>肠梗阻：</b>机械性梗阻表现为阵发性腹痛、呕吐、腹胀、停止排气。<br>
+                <b>麻痹性肠梗阻：</b>多因术后、炎症，肠蠕动消失，腹胀、无气肠鸣音。
+              `
+            },
+            {
+              title: "6.2.2 神经/激素调节",
+              children: [
+                { title: "6.2.2.1 迷走神经", content: "<ul><li>迷走神经促进消化腺分泌和胃肠运动。</li></ul>" },
+                { title: "6.2.2.2 肠激素（胃泌素、胆囊收缩素等）", content: "<ul><li>调节胃肠运动和分泌。</li></ul>" }
+              ],
+              relate: "神经—激素调控",
+              clinic: `
+                <b>便秘：</b>排便次数减少，粪便干燥，多见于肠动力障碍、饮食纤维不足。<br>
+                <b>腹泻：</b>肠蠕动增强、吸收障碍或感染所致。
+              `
+            }
+          ]
+        },
+        {
+          title: "6.3 营养物质的消化与吸收",
+          expanded: true,
+          children: [
+            {
+              title: "6.3.1 糖、脂肪、蛋白质的消化",
+              children: [],
+              relate: "消化酶、吸收机制",
+              clinic: `
+                <b>乳糖不耐受：</b>乳糖酶缺乏致腹胀、腹泻。<br>
+                <b>吸收不良综合征：</b>小肠黏膜病变，表现为腹泻、消瘦、营养不良。
+              `
+            },
+            {
+              title: "6.3.2 吸收机制",
+              children: [
+                { title: "6.3.2.1 小肠绒毛与吸收", content: "<ul><li>小肠绒毛增大吸收面积。</li></ul>" },
+                { title: "6.3.2.2 主动转运与易化扩散", content: "<ul><li>不同营养物质采用不同吸收方式。</li></ul>" }
+              ],
+              relate: "跨膜转运、能量代谢",
+              clinic: `
+                <b>慢性腹泻：</b>多因素导致，须结合吸收功能检测鉴别。<br>
+                <b>脂肪泻：</b>见于胰腺功能减退、胆道梗阻，排油脂便。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "7. 能量代谢与体温调节",
+      expanded: false,
+      levels: [
+        {
+          title: "7.1 能量代谢",
+          expanded: true,
+          children: [
+            {
+              title: "7.1.1 基础代谢率",
+              children: [
+                { title: "7.1.1.1 影响因素：年龄、性别、甲状腺功能", content: "<ul><li>基础代谢率反映机体安静状态下能量消耗。</li></ul>" }
+              ],
+              relate: "甲状腺激素、线粒体功能",
+              clinic: `
+                <b>甲状腺功能亢进：</b>基础代谢率升高，表现为多汗、消瘦、心悸。<br>
+                <b>甲状腺功能减退：</b>基础代谢率降低，表现为畏寒、乏力、体重增加。
+              `
+            },
+            {
+              title: "7.1.2 营养物质氧化与能量产生",
+              children: [
+                { title: "7.1.2.1 有氧/无氧氧化", content: "<ul><li>有氧代谢产能高，无氧代谢产乳酸。</li></ul>" },
+                { title: "7.1.2.2 ATP合成", content: "<ul><li>氧化磷酸化与底物水平磷酸化。</li></ul>" }
+              ],
+              relate: "线粒体、血氧供应",
+              clinic: `
+                <b>糖尿病酮症酸中毒：</b>葡萄糖利用障碍，脂肪大量分解产酮体，出现呼吸深快、酮臭。<br>
+                <b>乳酸酸中毒：</b>组织缺氧导致乳酸堆积，见于休克、重症感染等。
+              `
+            }
+          ]
+        },
+        {
+          title: "7.2 体温调节",
+          expanded: true,
+          children: [
+            {
+              title: "7.2.1 产热与散热机制",
+              children: [
+                { title: "7.2.1.1 产热：肌肉收缩、基础代谢", content: "<ul><li>寒冷刺激时产热增加。</li></ul>" },
+                { title: "7.2.1.2 散热：辐射、对流、蒸发", content: "<ul><li>高温时以汗液蒸发散热为主。</li></ul>" }
+              ],
+              relate: "神经调节、能量代谢",
+              clinic: `
+                <b>中暑/热射病：</b>高温下散热障碍，体温超过40℃，可致多器官衰竭。<br>
+                <b>低体温症：</b>体温调节功能障碍，表现为意识障碍、心律失常。
+              `
+            },
+            {
+              title: "7.2.2 下丘脑调节",
+              children: [],
+              relate: "神经调节、热平衡",
+              clinic: `
+                <b>中枢性高热：</b>下丘脑体温中枢损伤，常见于颅脑外伤、脑出血。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "8. 泌尿系统（Urinary System）",
+      expanded: false,
+      levels: [
+        {
+          title: "8.1 肾单位结构与功能",
+          expanded: true,
+          children: [
+            {
+              title: "8.1.1 肾小体（肾小球+肾小囊）",
+              content: "<ul><li>肾小球滤过血浆生成原尿，滤过膜异常可致蛋白尿。</li></ul>",
+              relate: "肾小球滤过、肾脏病",
+              clinic: `
+                <b>肾小球肾炎：</b>免疫损伤肾小球，表现为血尿、蛋白尿、浮肿、高血压。
+              `
+            },
+            {
+              title: "8.1.2 肾小管（近曲小管、亨利袢、远曲小管、集合管）",
+              content: "<ul><li>重吸收水、电解质、葡萄糖等，分泌代谢废物。</li></ul>",
+              relate: "肾小管重吸收、分泌",
+              clinic: `
+                <b>肾小管性酸中毒：</b>H⁺分泌或HCO₃⁻重吸收障碍，表现为代谢性酸中毒、低钾血症。
+              `
+            }
+          ]
+        },
+        {
+          title: "8.2 肾小球滤过",
+          expanded: true,
+          children: [
+            {
+              title: "8.2.1 滤过膜结构",
+              content: "<ul><li>肾小球滤过屏障的解剖特征。</li></ul>",
+              relate: "肾脏调节、血压调节",
+              clinic: `
+                <b>肾病综合征：</b>肾小球滤过屏障损伤，出现大量蛋白尿、水肿、高脂血症。<br>
+                <b>急性肾损伤：</b>GFR急剧下降，表现为少尿、氮质血症。
+              `
+            },
+            {
+              title: "8.2.2 滤过率（GFR）及影响因素",
+              children: [
+                { title: "8.2.2.1 血流动力学调节", content: "<ul><li>入球、出球小动脉调节GFR。</li></ul>" }
+              ],
+              relate: "肾脏调节、血压调节",
+              clinic: `
+                <b>肾小球肾炎、肾病综合征：</b>滤过障碍，表现为血尿、蛋白尿、水肿。<br>
+                <b>急性肾损伤：</b>GFR急剧下降，需积极处理病因、维持水盐平衡。
+              `
+            }
+          ]
+        },
+        {
+          title: "8.3 肾小管重吸收与分泌",
+          expanded: true,
+          children: [
+            {
+              title: "8.3.1 钠、水、葡萄糖等的重吸收机制",
+              children: [
+                { title: "8.3.1.1 近曲小管：主动转运、协同转运", content: "<ul><li>近曲小管高效重吸收，易受损害。</li></ul>" },
+                { title: "8.3.1.2 远曲小管和集合管：激素调节（ADH、醛固酮）", content: "<ul><li>激素调节水和电解质重吸收。</li></ul>" }
+              ],
+              relate: "跨膜转运、酸碱平衡",
+              clinic: `
+                <b>糖尿病肾病：</b>肾小球和肾小管受损，早期出现微量白蛋白尿。<br>
+                <b>利尿剂：</b>如呋塞米、氢氯噻嗪、螺内酯等，应用于心衰、高血压，但可导致低钾、低钠、代谢性碱中毒等副作用。
+              `
+            },
+            {
+              title: "8.3.2 酸碱平衡调节",
+              children: [
+                { title: "8.3.2.1 H⁺分泌、HCO₃⁻重吸收", content: "<ul><li>维持血液酸碱平衡，防止酸中毒。</li></ul>" }
+              ],
+              relate: "跨膜转运、酸碱平衡",
+              clinic: `
+                <b>肾小管性酸中毒：</b>肾小管不能正常排H⁺或重吸收HCO₃⁻，出现代谢性酸中毒。<br>
+                <b>糖尿病肾病：</b>长期高血糖致肾小球、肾小管损伤，表现为蛋白尿、肾功能减退。
+              `
+            },
+            {
+              title: "8.3.3 利尿药作用机制",
+              content: "<ul><li>不同部位利尿剂作用机制及适应症、副作用。</li></ul>",
+              relate: "跨膜转运、能量代谢、酸碱平衡",
+              clinic: `
+                <b>利尿剂在心衰、高血压中的应用：</b>减少体内水钠潴留，降低心脏负荷。<br>
+                <b>利尿剂副作用：</b>低钾、低钠、脱水，心律失常风险增加。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "9. 感觉器官（Sensory Organs）",
+      expanded: false,
+      levels: [
+        {
+          title: "9.1 感受器",
+          expanded: true,
+          children: [
+            {
+              title: "9.1.1 机械感受器（如巴氏小体）",
+              content: "<ul><li>压力、触觉感受器的结构和功能。</li></ul>",
+              relate: "神经系统、反射弧",
+              clinic: `
+                <b>感觉障碍：</b>周围神经损伤、脊髓病变可导致相应部位感觉丧失或异常。<br>
+                <b>神经病理性疼痛：</b>神经损伤后异常感觉信号，表现为慢性疼痛。
+              `
+            },
+            {
+              title: "9.1.2 化学感受器（如味觉）",
+              content: "<ul><li>味觉、嗅觉感受器的化学感受机制。</li></ul>",
+              relate: "神经系统、反射弧",
+              clinic: `
+                <b>感觉障碍的定位诊断：</b>根据感觉缺失部位判断神经损伤位置。
+              `
+            },
+            {
+              title: "9.1.3 感受器的适应现象",
+              content: "<ul><li>持续刺激下感受器敏感性的变化。</li></ul>",
+              relate: "神经系统、反射弧",
+              clinic: `
+                <b>神经病理性疼痛的发生机制：</b>感受器适应性改变导致异常疼痛感知。
+              `
+            }
+          ]
+        },
+        {
+          title: "9.2 视觉系统",
+          expanded: true,
+          children: [
+            {
+              title: "9.2.1 眼的结构",
+              children: [
+                { title: "9.2.1.1 角膜、晶状体、视网膜", content: "<ul><li>眼球各部分结构及其屈光作用。</li></ul>" },
+                { title: "9.2.1.2 视杆细胞、视锥细胞", content: "<ul><li>暗视觉和明视觉的细胞基础。</li></ul>" }
+              ],
+              relate: "神经系统、感受器",
+              clinic: `
+                <b>近视、远视：</b>屈光不正导致的视力问题，需配镜或手术矫正。<br>
+                <b>青光眼：</b>房水循环障碍致眼压升高，损伤视神经，表现为视野缺损、视力下降。
+              `
+            },
+            {
+              title: "9.2.2 视网膜感光机制",
+              children: [
+                { title: "9.2.2.1 光化学反应", content: "<ul><li>视紫红质在光照下的化学变化。</li></ul>" },
+                { title: "9.2.2.2 视觉传导通路", content: "<ul><li>从视网膜到大脑视觉皮层的信号传递。</li></ul>" }
+              ],
+              relate: "神经系统、感受器",
+              clinic: `
+                <b>视网膜脱离：</b>视网膜与色素上皮分离，表现为视野缺损、视力急剧下降。<br>
+                <b>糖尿病视网膜病变：</b>高血糖损伤视网膜毛细血管，出现出血、渗出、失明风险。
+              `
+            }
+          ]
+        },
+        {
+          title: "9.3 听觉系统",
+          expanded: true,
+          children: [
+            {
+              title: "9.3.1 耳的结构（外耳、中耳、内耳）",
+              content: "<ul><li>各部位结构损伤可导致不同类型耳聋。</li></ul>",
+              relate: "神经系统、感受器",
+              clinic: `
+                <b>传导性耳聋：</b>外耳、中耳病变，阻碍声波传导，常见于中耳炎。<br>
+                <b>感音神经性耳聋：</b>内耳或听神经损害，表现为耳鸣、听力下降。
+              `
+            },
+            {
+              title: "9.3.2 听觉生理过程",
+              children: [
+                { title: "9.3.2.1 声波传导", content: "<ul><li>耳蜗将机械振动转化为神经冲动。</li></ul>" },
+                { title: "9.3.2.2 毛细胞感受与神经冲动产生", content: "<ul><li>毛细胞损伤可致听觉障碍。</li></ul>" }
+              ],
+              relate: "神经系统、感受器",
+              clinic: `
+                <b>梅尼埃病：</b>内耳淋巴积液增加，反复眩晕、听力波动。<br>
+                <b>耳毒性药物损伤：</b>如氨基糖苷类抗生素可损伤内耳毛细胞，导致听力损失。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "10. 神经系统（Nervous System）",
+      expanded: false,
+      levels: [
+        {
+          title: "10.1 神经纤维",
+          expanded: true,
+          children: [
+            {
+              title: "10.1.1 有髓/无髓纤维",
+              content: "<ul><li>有髓纤维跳跃式传导，传导速度快。</li></ul>",
+              relate: "静息电位、动作电位",
+              clinic: `
+                <b>多发性硬化：</b>中枢神经髓鞘脱失，表现为瘫痪、视力障碍、共济失调。<br>
+                <b>格林-巴利综合征：</b>外周神经脱髓鞘，急性进行性肢体无力、呼吸衰竭。
+              `
+            },
+            {
+              title: "10.1.2 跳跃式传导",
+              content: "<ul><li>髓鞘节点兴奋，信号传递效率高。</li></ul>",
+              relate: "静息电位、动作电位",
+              clinic: `
+                <b>脱髓鞘疾病：</b>多发性硬化症（MS）、格林-巴利综合征，表现为肢体麻木、无力、运动障碍。
+              `
+            }
+          ]
+        },
+        {
+          title: "10.2 突触传递",
+          expanded: true,
+          children: [
+            {
+              title: "10.2.1 突触结构",
+              content: "<ul><li>化学、电脉冲突触的结构及功能。</li></ul>",
+              relate: "学习记忆、精神疾病",
+              clinic: `
+                <b>重症肌无力：</b>突触后膜乙酰胆碱受体抗体，肌肉疲劳、无力。<br>
+                <b>帕金森病：</b>黑质多巴胺神经元变性，表现为震颤、运动迟缓、肌强直。
+              `
+            },
+            {
+              title: "10.2.2 神经递质",
+              children: [
+                { title: "10.2.2.1 兴奋性与抑制性递质", content: "<ul><li>谷氨酸、乙酰胆碱（兴奋）；GABA、甘氨酸（抑制）。</li></ul>" },
+                { title: "10.2.2.2 药物影响（麻醉药、抗抑郁药）", content: "<ul><li>药物通过影响递质释放、受体或重摄取发挥作用。</li></ul>" }
+              ],
+              relate: "学习记忆、精神疾病",
+              clinic: `
+                <b>重症肌无力：</b>乙酰胆碱受体抗体阻断神经-肌肉信号，表现为肌无力、易疲劳。<br>
+                <b>帕金森病：</b>黑质多巴胺缺乏，表现为运动迟缓、震颤、肌强直。<br>
+                <b>抗抑郁药机制：</b>多作用于突触递质重摄取，改善情绪障碍。
+              `
+            },
+            {
+              title: "10.2.3 突触可塑性",
+              content: "<ul><li>学习、记忆的生理基础。</li></ul>",
+              relate: "学习记忆、精神疾病",
+              clinic: `
+                <b>阿尔茨海默病：</b>突触功能退化，记忆力减退、认知障碍。
+              `
+            }
+          ]
+        },
+        {
+          title: "10.3 反射弧",
+          expanded: true,
+          children: [
+            {
+              title: "10.3.1 组成（感受器、传入神经、中枢、传出神经、效应器）",
+              content: "<ul><li>反射弧的五个基本环节。</li></ul>",
+              relate: "外周神经、脊髓",
+              clinic: `
+                <b>脊髓损伤：</b>反射弧可保留（去脑僵直），表现为肌张力增高。<br>
+                <b>锥体束损伤：</b>表现为巴宾斯基征阳性、腱反射亢进。
+              `
+            },
+            {
+              title: "10.3.2 单突触与多突触反射",
+              children: [
+                { title: "10.3.2.1 膝跳反射、巴宾斯基征", content: "<ul><li>单突触反射、上/下运动神经元损伤鉴别。</li></ul>" }
+              ],
+              relate: "外周神经、脊髓",
+              clinic: `
+                <b>锥体束损伤体征：</b>巴宾斯基征阳性，提示上运动神经元损伤。<br>
+                <b>脊髓损伤与反射改变：</b>反射消失或亢进，伴感觉运动障碍。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "11. 内分泌系统（Endocrine System）",
+      expanded: false,
+      levels: [
+        {
+          title: "11.1 内分泌腺结构与功能",
+          expanded: true,
+          children: [
+            {
+              title: "11.1.1 甲状腺、肾上腺、胰腺、性腺、下丘脑-垂体",
+              content: "<ul><li>主要内分泌腺体及其分泌的激素和靶器官。</li></ul>",
+              relate: "激素调节、靶器官反馈",
+              clinic: `
+                <b>甲亢/甲减：</b>甲亢表现为心悸、多汗、消瘦，甲减为乏力、畏寒、便秘。<br>
+                <b>库欣综合征：</b>肾上腺皮质醇增多，表现为满月脸、水牛背、多毛、血压升高。<br>
+                <b>醛固酮增多症：</b>表现为高血压、低钾、代谢性碱中毒。<br>
+                <b>糖尿病：</b>高血糖，三多一少，长期并发症包括肾病、视网膜病变、神经病变。<br>
+                <b>垂体瘤：</b>可引起多种激素过多或缺乏综合征，如泌乳素瘤、库欣病等。
+              `
+            }
+          ]
+        },
+        {
+          title: "11.2 激素作用机制",
+          expanded: true,
+          children: [
+            {
+              title: "11.2.1 膜受体/胞内受体",
+              content: "<ul><li>受体分布决定激素作用的速度和持续时间。</li></ul>",
+              relate: "内环境稳态",
+              clinic: `
+                <b>口服避孕药：</b>雌孕激素抑制排卵，可致月经紊乱、血栓风险增加。<br>
+                <b>生长激素异常：</b>过多致肢端肥大症，缺乏致侏儒症。<br>
+                <b>肾上腺危象：</b>皮质激素急剧缺乏，危及生命，表现为休克、低血糖。
+              `
+            },
+            {
+              title: "11.2.2 反馈调节",
+              children: [
+                { title: "11.2.2.1 下丘脑-垂体-靶腺轴", content: "<ul><li>多级反馈调节，维持激素水平稳定。</li></ul>" }
+              ],
+              relate: "内环境稳态",
+              clinic: `
+                <b>激素替代治疗：</b>根据反馈调节原理，补充缺乏的激素。<br>
+                <b>激素抑制试验：</b>利用负反馈机制诊断内分泌疾病。
+              `
+            }
+          ]
+        }
+      ]
+    },
+    {
+      title: "12. 生殖系统（Reproductive System）",
+      expanded: false,
+      levels: [
+        {
+          title: "12.1 男性生殖系统",
+          expanded: true,
+          children: [
+            {
+              title: "12.1.1 睾丸功能",
+              children: [
+                { title: "12.1.1.1 精子发生", content: "<ul><li>精原细胞分化为成熟精子。</li></ul>" },
+                { title: "12.1.1.2 雄激素合成与作用", content: "<ul><li>促进第二性征、性器官发育和生精。</li></ul>" },
+                { title: "12.1.1.3 激素调节：LH、FSH、GnRH", content: "<ul><li>下丘脑-垂体-性腺轴调节精子与雄激素合成。</li></ul>" }
+              ],
+              relate: "内分泌系统",
+              clinic: `
+                <b>男性不育：</b>精子生成障碍、激素异常、前列腺病变等均可致不育。<br>
+                <b>前列腺增生：</b>老年男性常见，表现为排尿困难、夜尿增多。<br>
+                <b>睾丸炎：</b>感染引起睾丸肿大、疼痛，可影响生育。<br>
+                <b>性激素异常：</b>导致发育异常、性功能障碍。
+              `
+            }
+          ]
+        },
+        {
+          title: "12.2 女性生殖系统",
+          expanded: true,
+          children: [
+            {
+              title: "12.2.1 卵巢功能",
+              children: [
+                { title: "12.2.1.1 卵泡发育、排卵", content: "<ul><li>卵泡成熟、排卵、黄体形成。</li></ul>" },
+                { title: "12.2.1.2 雌激素、孕激素合成与作用", content: "<ul><li>雌激素促进女性第二性征，孕激素维持妊娠。</li></ul>" }
+              ],
+              relate: "激素反馈、能量代谢",
+              clinic: `
+                <b>多囊卵巢综合征：</b>多囊卵巢、雄激素增多、无排卵，表现为月经紊乱、多毛、不孕。<br>
+                <b>闭经：</b>原发或继发性，多因下丘脑-垂体-卵巢轴功能异常或器质性病变。<br>
+                <b>月经失调：</b>激素失衡、子宫内膜病变等可致周期异常。
+              `
+            },
+            {
+              title: "12.2.2 月经周期调节",
+              children: [
+                { title: "12.2.2.1 下丘脑-垂体-卵巢轴", content: "<ul><li>周期性变化调控排卵和子宫内膜变化。</li></ul>" }
+              ],
+              relate: "激素反馈、能量代谢",
+              clinic: `
+                <b>妊娠：</b>激素变化维持胚胎发育，妊娠期生理变化。<br>
+                <b>流产：</b>早期妊娠失败，多与激素水平不足或胚胎异常有关。<br>
+                <b>围产期并发症：</b>妊娠期高血压、糖尿病等的内分泌基础。
+              `
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+    // =========================
+
+    // 保存3-12章的展开状态
+    let chapterExpandState = {};
+
+    // 生成唯一ID（用于节点和手动展开状态）
+    function genId(prefix) {
+      return prefix + '-' + Math.random().toString(36).slice(2,7);
+    }
+
+    // 渲染四级（始终展开，不可折叠）
+    function renderLevel4(level4) {
+      return `<div class="level4-content">
+        ${level4.title ? ('<b>' + level4.title + '</b>') : ''}${level4.content || ''}
+      </div>`;
+    }
+
+    // 渲染三级（始终展开，不可折叠）
+    function renderLevel3(level3) {
+      let html = '';
+      if (level3.title) {
+        html += `<div class="level3-title">${level3.title}</div>`;
+      }
+      html += `<div class="level3-content">`;
+      if (level3.children && level3.children.length) {
+        html += level3.children.map(renderLevel4).join('');
+        if (level3.relate) html += `<div class="relate">主要关联知识点：${level3.relate}</div>`;
+        if (level3.clinic) html += `<div class="clinic">${level3.clinic}</div>`;
+      } else {
+        html += (level3.content || '');
+        if (level3.relate) html += `<div class="relate">主要关联知识点：${level3.relate}</div>`;
+        if (level3.clinic) html += `<div class="clinic">${level3.clinic}</div>`;
+      }
+      html += `</div>`;
+      return `<div class="level3 always-expanded">${html}</div>`;
+    }
+
+    // 渲染二级（始终展开，不可折叠）
+    function renderLevel2(level2) {
+      let html = '';
+      if (level2.title) {
+        html += `<div class="level2-title">${level2.title}</div>`;
+      }
+      html += `<div class="level2-content">`;
+      if (level2.children && level2.children.length) {
+        html += level2.children.map(renderLevel3).join('');
+      } else if (level2.content) {
+        html += level2.content;
+      }
+      html += '</div>';
+      return `<div class="level2 always-expanded">${html}</div>`;
+    }
+
+// 渲染单个章节
+function renderChapter(chapter, idx) {
+  const id = 'chapter-'+idx;
+  // 默认1-2章展开，3-12章收起
+  let expanded = chapterExpandState[id];
+  if (expanded === undefined) expanded = (idx < 2);
+  // 所有章节都可以点击标题展开/收起
+  let html = `<section class="chapter${expanded ? " expanded" : " collapsed"}" id="${id}">`;
+  html += `<div class="chapter-title" onclick="toggleChapter('${id}')">`;
+  html += `<span class="toggle-arrow">${expanded ? "▶" : "▶"}</span>${chapter.title}</div>`;
+  html += `<div class="chapter-content" style="display:${expanded?'block':'none'};">`;
+  if (chapter.levels && chapter.levels.length) {
+    html += chapter.levels.map(renderLevel2).join('');
+  }
+  html += '</div></section>';
+  return html;
+}
+
+    // 渲染所有章节
+    function renderAllChapters() {
+      const main = document.getElementById('mainContent');
+      main.innerHTML = data.chapters.map((ch, idx) => renderChapter(ch, idx)).join('');
+      // 插入提示
+      const tip = document.createElement('div');
+      tip.className = 'expand-tip';
+      tip.innerHTML = '以下章节请点击展开';
+      main.insertBefore(tip, main.children[2]);
+    }
+
+    // 章节展开/收起（仅限3-12章）
+    window.toggleChapter = function(id) {
+      chapterExpandState[id] = !chapterExpandState[id];
+      renderAllChapters();
+    };
+
+    // 首次渲染
+    renderAllChapters();
+  </script>
+</body>
+</html>
