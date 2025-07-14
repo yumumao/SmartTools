@@ -261,11 +261,11 @@ main {
 </head>
 <body>
   <!-- 主页悬浮按钮 -->
-  <button id="backHomeBtn" onclick="window.location.href='../toolsindex.html'">
-    <span class="icon">←主页</span>
-  </button>
+<button id="backHomeBtn" onclick="goBack()">
+  <span class="icon">←返回</span>
+</button>
   <header>
-    人体生理学知识点大纲（临床相关版）
+    生理学知识点大纲（关联临床版）
   </header>
   <main id="mainContent"></main>
   <script>
@@ -1451,6 +1451,19 @@ function renderChapter(chapter, idx) {
 
     // 首次渲染
     renderAllChapters();
+function goBack() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const from = urlParams.get('from');
+  
+  if (from === 'tools') {
+    window.location.href = '../toolsindex.html';
+  } else if (from === 'index') {
+    window.location.href = '../index.html';
+  } else {
+    // 默认返回 toolsindex.html
+    window.location.href = '../toolsindex.html';
+  }
+}    
   </script>
 </body>
 </html>
