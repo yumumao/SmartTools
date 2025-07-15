@@ -1457,11 +1457,12 @@ function renderChapter(chapter, idx) {
 
     // 首次渲染
     renderAllChapters();
+    
 function goBack() {
   const urlParams = new URLSearchParams(window.location.search);
   const from = urlParams.get('from');
   
-  if (from === 'tools') {
+  if (from === 'tools' || from === 'toolsindex') {
     window.location.href = '../toolsindex.html';
   } else if (from === 'index') {
     window.location.href = '../index.html';
