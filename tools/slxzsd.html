@@ -209,29 +209,35 @@ main {
       line-height: 1;
     }
     #backHomeBtn {
-      position: fixed;
-      top: 11px;
-      left: 4px;
-      z-index: 10000;
-      background: rgba(147,112,219, 0.62);
-      color: #fff;
-      border: none;
-      border-radius: 7px 16px 16px 7px;
-      font-size: 0.9em;
-      font-family: 'FZJZXF', '微软雅黑', Arial, sans-serif;
-      font-weight: bold;
-      min-width: 28px;
-      height: 25px;
-      opacity: 0.95;
-      padding: 2px 8px 2px 16px;
-      display: flex; align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.22);
-      cursor: pointer;
-      letter-spacing: 1px;
-      user-select: none;
-      margin-bottom: 0;
+  position: fixed;
+  bottom: 33px;
+  left: -15px;
+  z-index: 10000;
+  padding: 4px 8px;
+  background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
+  color: #f5f5f5; /* 更浅的文字 */
+  border: none;
+  border-radius: 4px 8px 8px 4px; /* 增加圆角 */
+  font-size: 13px;
+  font-weight: bold;
+  font-family: "微软雅黑", Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(2px); /* 添加毛玻璃模糊 */
+  text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
+               0 0 4px rgba(80, 80, 80, 0.3);
     }
-    #backHomeBtn .icon { font-size: 0.8em; margin-right: 0.33em; margin-left: -0.5em; }
+    #backHomeBtn:hover {
+  left: 0px; /* 或者设置为 5px，让按钮向右移动更多 */
+  background-color: rgba(127, 112, 225, 0.6); /* 悬停时背景稍微不透明一些 */
+  transform: translateX(1px); /* 额外向右移动 1px */
+}
+    #backHomeBtn .icon { 
+    font-size: 0.9em; 
+    margin-right: 0.15em; 
+    margin-left: 0.1em; 
+    }
     .expand-tip {
       margin: 2em 0 1em 0;
       background: #fffbe7;
