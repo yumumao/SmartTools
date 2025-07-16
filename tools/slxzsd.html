@@ -238,6 +238,37 @@ main {
     margin-right: 0.15em; 
     margin-left: 0.1em; 
     }
+    /* 右下方简版按钮 */
+    #toSimpleBtn {
+  position: fixed;
+  bottom: 33px;
+  right: -15px;
+  z-index: 10000;
+  padding: 4px 8px;
+  background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
+  color: #f5f5f5; /* 更浅的文字 */
+  border: none;
+  border-radius: 8px 4px 4px 8px; /* 镜像对称的圆角 */
+  font-size: 13px;
+  font-weight: bold;
+  font-family: "微软雅黑", Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(2px); /* 添加毛玻璃模糊 */
+  text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
+               0 0 4px rgba(80, 80, 80, 0.3);
+    }
+    #toSimpleBtn:hover {
+  right: 0px; /* 悬停时向左移动 */
+  background-color: rgba(127, 112, 225, 0.6); /* 悬停时背景稍微不透明一些 */
+  transform: translateX(-1px); /* 额外向左移动 1px */
+}
+    #toSimpleBtn .icon { 
+    font-size: 0.9em; 
+    margin-left: 0.15em; 
+    margin-right: 0.1em; 
+    }
     .expand-tip {
       margin: 2em 0 1em 0;
       background: #fffbe7;
@@ -259,9 +290,11 @@ main {
     }
     @media (max-width: 430px) {
       #backHomeBtn { font-size: 0.82em !important; height: 19px; }
+      #toSimpleBtn { font-size: 0.82em !important; height: 19px; }
     }
     @media (max-width: 340px) {
       #backHomeBtn { font-size: 0.75em !important; height: 16px; }
+      #toSimpleBtn { font-size: 0.75em !important; height: 16px; }
     }
   </style>
 </head>
@@ -269,6 +302,10 @@ main {
   <!-- 主页悬浮按钮 -->
 <button id="backHomeBtn" onclick="goBack()">
   <span class="icon">←返回</span>
+</button>
+  <!-- 简版悬浮按钮 -->
+<button id="toSimpleBtn" onclick="goToSimple()">
+  <span class="icon">简版→</span>
 </button>
   <header>
     生理学知识点大纲（关联临床版）
@@ -293,7 +330,7 @@ const data = {
               relate: "水盐平衡、肾脏调节",
               clinic: `
                 <b>脱水/水中毒：</b>脱水表现为皮肤弹性差、口渴、低血压；水中毒常因排水障碍或大量补液，表现为水肿、低钠血症。<br>
-                <b>阿迪森病：</b>肾上腺皮质功能减退，醛固酮分泌减少，导致钠和水重吸收下降、钾排泄减少，出现低钠、高钾、脱水、低血压、皮肤黝黑。<br>
+                <b>Addison病（肾上腺皮质功能减退症）：</b>肾上腺皮质功能减退，醛固酮分泌减少，导致钠和水重吸收下降、钾排泄减少，出现低钠、高钾、脱水、低血压、皮肤黝黑。<br>
                 <b>烧伤/失血：</b>大量体液丢失会导致低血容量休克，需积极补液、纠正电解质。
               `,
               children: [
@@ -338,7 +375,7 @@ const data = {
               relate: "下丘脑-垂体轴、肾小管重吸收",
               clinic: `
                 <b>发热/热射病：</b>发热常见于感染；热射病为高温暴露后体温调节失控，危及生命。<br>
-                <b>SIADH：</b>抗利尿激素分泌过多，导致水潴留、低钠血症。<br>
+                <b>SIADH（抗利尿激素不适当分泌综合征）：</b>抗利尿激素分泌过多，导致水潴留、低钠血症。<br>
                 <b>尿崩症：</b>抗利尿激素缺乏或作用障碍，表现为多尿、高钠血症、脱水。<br>
                 <b>肾衰竭：</b>可导致水、电解质紊乱和代谢性酸中毒。
               `,
@@ -351,7 +388,7 @@ const data = {
                   title: "1.1.3.2 水盐代谢调节",
                   children: [
                     {
-                      title: "1.1.3.2.1 抗利尿激素（ADH）",
+                      title: "1.1.3.2.1 抗利尿激素（ADH, VPH, Arginine Vasopressin，精氨酸加压素）",
                       content: "<ul><li>ADH的分泌调节与作用。</li></ul>"
                     },
                     {
@@ -507,7 +544,7 @@ const data = {
           ]
         },
         {
-          title: "2.3 静息电位（Resting Membrane Potential）",
+          title: "2.3 静息电位（Resting Potential）",
           expanded: true,
           children: [
             {
@@ -650,7 +687,7 @@ const data = {
                   ],
                   relate: "止血、凝血",
                   clinic: `
-                    <b>血小板减少症：</b>出血倾向，见于ITP、药物等。<br>
+                    <b>血小板减少症：</b>出血倾向，见于ITP（免疫性血小板减少性紫癜）、药物等。<br>
                     <b>血友病：</b>凝血因子遗传缺陷，反复关节、肌肉出血。
                   `
                 }
@@ -711,7 +748,8 @@ const data = {
               relate: "肾脏调节、内分泌系统",
               clinic: `
                 <b>高血压：</b>常见慢性疾病，长期可致心脑肾损害。<br>
-                <b>低血压/休克：</b>多因失血、心脏衰竭或感染，需及时识别和处理。
+                <b>低血压/休克：</b>多因失血、心脏衰竭或感染，需及时识别和处理。<br>
+                <b>休克类型（失血/心源/感染）：</b>原因（容量/泵功能/血管扩张）<br>联系血压形成，治疗：止血扩容/正性肌力/缩血管。
               `
             },
             {
@@ -752,13 +790,13 @@ const data = {
           ]
         },
         {
-          title: "5.2 肺通气",
+          title: "5.2 肺通气、换气",
           expanded: true,
           children: [
             {
               title: "5.2.1 吸气与呼气的力学",
               children: [
-                { title: "5.2.1.1 胸廓运动、肺顺应性、弹性回缩力", content: "<ul><li>吸气需肌力，呼气多为被动过程。</li></ul>" }
+                { title: "5.2.1.1 胸廓运动、肺顺应性、弹性回缩力", content: "<ul><li>吸气需肌力，平静呼气为被动过程。</li></ul>" }
               ],
               relate: "呼吸肌、胸膜腔压力",
               clinic: `
@@ -767,9 +805,25 @@ const data = {
               `
             },
             {
-              title: "5.2.2 肺功能参数",
+  title: "5.2.2 肺换气",
+  children: [
+    { 
+      title: "5.2.2.1 气体交换原理", 
+      content: "<ul><li>肺泡与毛细血管间依分压梯度扩散，实现氧气摄入和CO₂排出。</li></ul>" 
+    }
+  ],
+  relate: "氧气扩散、二氧化碳排出、通气/血流比",
+  clinic: `
+    <b>肺纤维化：</b>肺泡间隔增厚，气体交换障碍，易引发低氧血症。<br>
+    <b>肺栓塞：</b>局部血流受阻，通气/灌注失衡，影响氧合。<br>
+    <b>ARDS：</b>感染、创伤等引起，肺泡损伤和弥散性肺炎，严重的氧合不足和换气障碍。<br>
+    <b>肺水肿：</b>心源性非心源性，肺间质和肺泡液体积聚，气体交换受限和呼吸困难。
+  `
+}, 
+            {
+              title: "5.2.3 肺功能参数",
               children: [
-                { title: "5.2.2.1 肺活量、潮气量、残气量等", content: "<ul><li>各项肺功能参数的正常值和意义。</li></ul>" }
+                { title: "5.2.3.1 肺活量、潮气量、残气量等", content: "<ul><li>各项肺功能参数的正常值和意义。</li></ul>" }
               ],
               relate: "通气、换气",
               clinic: `
@@ -780,7 +834,7 @@ const data = {
           ]
         },
         {
-          title: "5.3 气体交换与运输",
+          title: "5.3 气体运输",
           expanded: true,
           children: [
             {
@@ -802,7 +856,7 @@ const data = {
               relate: "酸碱平衡、肺功能",
               clinic: `
                 <b>高碳酸血症：</b>常见于慢性呼吸衰竭，表现为呼吸困难、意识障碍。<br>
-                <b>呼吸性酸中毒：</b>CO2潴留导致血pH下降，需及时处理。
+                <b>呼吸性酸中毒：</b>CO₂潴留导致血pH下降，需及时处理。
               `
             }
           ]
@@ -829,8 +883,8 @@ const data = {
               ],
               relate: "酸碱平衡、血气分析",
               clinic: `
-                <b>慢性阻塞性肺疾病：</b>长期CO2潴留，外周化学感受器对低O2更敏感，给氧需谨慎。<br>
-                <b>呼吸性碱中毒：</b>过度通气导致CO2过度排出，见于焦虑、发热等。
+                <b>慢性阻塞性肺疾病：</b>长期CO₂潴留，外周化学感受器对低O₂更敏感，给氧需谨慎。<br>
+                <b>呼吸性碱中毒：</b>过度通气导致CO₂过度排出，见于焦虑、发热等。
               `
             }
           ]
@@ -964,6 +1018,7 @@ const data = {
               relate: "神经调节、能量代谢",
               clinic: `
                 <b>中暑/热射病：</b>高温下散热障碍，体温超过40℃，可致多器官衰竭。<br>
+                <b>发热：</b>调定点变化、各种感染。<br>
                 <b>低体温症：</b>体温调节功能障碍，表现为意识障碍、心律失常。
               `
             },
@@ -1014,8 +1069,9 @@ const data = {
               content: "<ul><li>肾小球滤过屏障的解剖特征。</li></ul>",
               relate: "肾脏调节、血压调节",
               clinic: `
-                <b>肾病综合征：</b>肾小球滤过屏障损伤，出现大量蛋白尿、水肿、高脂血症。<br>
-                <b>急性肾损伤：</b>GFR急剧下降，表现为少尿、氮质血症。
+                <b>肾病综合征：</b>肾小球滤过屏障损伤（足细胞及基底膜），出现大量蛋白尿、水肿、高脂血症。<br>
+                <b>肾小球肾炎：</b>炎症损伤导致滤过膜受损和滤过面积减少，轻度至中度蛋白尿。<br>
+                <b>急性肾损伤：</b>GFR急剧下降，表现为少尿、氮质血症，血肌酐升高、尿量骤减，区分前肾、内源性和后肾原因，早期对因处理，低血容量、尿路梗阻。
               `
             },
             {
@@ -1178,18 +1234,11 @@ const data = {
               content: "<ul><li>有髓纤维跳跃式传导，传导速度快。</li></ul>",
               relate: "静息电位、动作电位",
               clinic: `
-                <b>多发性硬化：</b>中枢神经髓鞘脱失，表现为瘫痪、视力障碍、共济失调。<br>
-                <b>格林-巴利综合征：</b>外周神经脱髓鞘，急性进行性肢体无力、呼吸衰竭。
+                <b>脱髓鞘疾病：</b><br>
+                <b>多发性硬化（MS）：</b>中枢神经髓鞘脱失，表现为瘫痪、视力障碍、共济失调。<br>
+                <b>格林-巴利综合征（AIDP，急性炎性脱髓鞘性多发性神经病）：</b>外周神经脱髓鞘，急性进行性肢体无力、呼吸衰竭。
               `
             },
-            {
-              title: "10.1.2 跳跃式传导",
-              content: "<ul><li>髓鞘节点兴奋，信号传递效率高。</li></ul>",
-              relate: "静息电位、动作电位",
-              clinic: `
-                <b>脱髓鞘疾病：</b>多发性硬化症（MS）、格林-巴利综合征，表现为肢体麻木、无力、运动障碍。
-              `
-            }
           ]
         },
         {
@@ -1248,7 +1297,7 @@ const data = {
               ],
               relate: "外周神经、脊髓",
               clinic: `
-                <b>锥体束损伤体征：</b>巴宾斯基征阳性，提示上运动神经元损伤。<br>
+                <b>皮层脊髓束损伤体征：</b>巴宾斯基征阳性，提示上运动神经元损伤，屈肌反射，平时受高位中枢抑制。（其他上运动神经元、锥体束表述）<br>
                 <b>脊髓损伤与反射改变：</b>反射消失或亢进，伴感觉运动障碍。
               `
             }
@@ -1358,7 +1407,7 @@ const data = {
               clinic: `
                 <b>妊娠：</b>激素变化维持胚胎发育，妊娠期生理变化。<br>
                 <b>流产：</b>早期妊娠失败，多与激素水平不足或胚胎异常有关。<br>
-                <b>围产期并发症：</b>妊娠期高血压、糖尿病等的内分泌基础。
+                <b>围产期并发症：</b>妊娠期高血压、糖尿病等的内分泌基础（胎盘激素如雌激素、孕激素致内皮细胞功能障碍、胰岛素抵抗）。
               `
             }
           ]
@@ -1470,6 +1519,10 @@ function goBack() {
     // 默认返回 toolsindex.html
     window.location.href = '../toolsindex.html';
   }
+}
+
+function goToSimple() {
+  window.location.href = 'slx_1.html';
 }    
   </script>
 </body>

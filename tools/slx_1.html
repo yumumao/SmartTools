@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>生理学知识点联系临床</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      --main-bg: #fafbfc;
+      --main: #2465b3;
+      --sub: #388e3c;
+      --clinical: #ef6c00;
+      --border-color: #e0e0e0;
+      --info: #1976d2;
+      --font: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+      --related-bg: #eaf4fb;
+      --clinical-bg: #fff5e6;
+      --divider: #e0e0e0;
+    }
+    html, body {
+      background: var(--main-bg);
+      color: #263238;
+      font-family: var(--font);
+      margin: 0;
+      padding: 0;
+      font-size: 17px;
+      line-height: 1.68;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 28px 8px 40px 8px;
+    }
+    h1, h2, h3, h4 {
+      font-family: var(--font);
+      margin-top: 2.1em;
+      margin-bottom: 0.7em;
+      font-weight: 700;
+    }
+    h1 {
+      color: var(--main);
+      font-size: 2.2em;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-top: 0.5em;
+      margin-bottom: 1.3em;
+      border-bottom: 2px solid var(--main);
+      padding-bottom: 0.4em;
+    }
+    h2 {
+      color: var(--sub);
+      font-size: 1.6em;
+      border-left: 6px solid var(--sub);
+      padding-left: 0.45em;
+      background: #f4f7f5;
+      border-radius: 4px;
+      margin-top: 1.3em;
+      margin-bottom: 0.5em;
+    }
+    h3 {
+      color: var(--main);
+      font-size: 1.13em;
+      border-left: 4px solid var(--main);
+      padding-left: 0.45em;
+      background: #f6f8fa;
+      border-radius: 4px;
+      margin-top: 1em;
+      margin-bottom: 0.4em;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    h4 {
+      color: #616161;
+      font-size: 1em;
+      margin-bottom: 0.12em;
+      margin-top: 0.6em;
+      border-left: 3px solid #bdbdbd;
+      padding-left: 0.45em;
+      letter-spacing: 0.5px;
+    }
+    ul, ol {
+      margin: 0.2em 0 0.6em 2em;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 0.17em;
+    }
+    .section-divider {
+      border: 0;
+      border-top: 1px dashed var(--border-color);
+      margin: 1.2em 0 1.1em 0;
+    }
+    .related {
+      background: var(--related-bg);
+      border-left: 4px solid var(--info);
+      border-radius: 6px;
+      padding: 0.7em 1em 0.6em 1em;
+      margin: 0.7em 0 0.3em 0;
+      font-size: 1em;
+      color: var(--info);
+      position: relative;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .related::before {
+      content: '🔗 主要关联知识点';
+      font-weight: 600;
+      color: var(--info);
+      font-size: 1em;
+      display: block;
+      margin-bottom: 0.13em;
+    }
+    .clinical-block {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-bottom: 0.3em;
+    }
+    .clinical {
+      background: var(--clinical-bg);
+      border-left: 4px solid var(--clinical);
+      border-radius: 6px;
+      padding: 0.7em 1em 0.6em 1em;
+      font-size: 1em;
+      color: var(--clinical);
+      position: relative;
+      margin: 0.6em 0 0.3em 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .clinical::before {
+      content: '⚕️ 临床相关';
+      font-weight: 600;
+      color: var(--clinical);
+      font-size: 1em;
+      display: block;
+      margin-bottom: 0.13em;
+    }
+    .clinical-divider {
+      border: none;
+      border-top: 1px solid var(--divider);
+      margin: 0.6em 0 0.6em 0;
+      height: 0;
+    }
+    p {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    /* 悬浮按钮样式 */
+    #backBtn {
+      position: fixed;
+      bottom: 33px;
+      left: -15px;
+      z-index: 10000;
+      padding: 4px 8px;
+      background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
+      color: #f5f5f5; /* 更浅的文字 */
+      border: none;
+      border-radius: 4px 8px 8px 4px; /* 增加圆角 */
+      font-size: 13px;
+      font-weight: bold;
+      font-family: "微软雅黑", Arial, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(2px); /* 添加毛玻璃模糊 */
+      text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
+                   0 0 4px rgba(80, 80, 80, 0.3);
+    }
+    #backBtn:hover {
+      left: 0px; /* 或者设置为 5px，让按钮向右移动更多 */
+      background-color: rgba(127, 112, 225, 0.6); /* 悬停时背景稍微不透明一些 */
+      transform: translateX(1px); /* 额外向右移动 1px */
+    }
+    #backBtn .icon { 
+      font-size: 0.9em; 
+      margin-right: 0.15em; 
+      margin-left: 0.1em; 
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.28em; }
+      h2 { font-size: 1.07em; }
+      h3 { font-size: 1em; }
+      h4 { font-size: 0.92em; }
+      body { padding: 7px 12px 12px 12px; } /* 增加左边距从2px到12px */
+      #backBtn { font-size: 0.82em !important; height: 19px; }
+    }
+    @media (max-width: 340px) {
+      #backBtn { font-size: 0.75em !important; height: 16px; }
+    }
+    @media print {
+      html, body {
+        background: #fff !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .related, .clinical {
+        /* 保留底色 */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .section-divider {
+        border-top: 1px solid #bbb !important;
+      }
+      h1, h2, h3, h4 {
+        color: #000 !important;
+        background: none !important;
+      }
+      h3, .clinical-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      #backBtn {
+        display: none !important; /* 打印时隐藏按钮 */
+      }
+    }
+    code, pre {
+      font-family: 'Fira Mono', 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
+      background: #f4f4f4;
+      color: #b71c1c;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 悬浮按钮 -->
+<button id="backBtn" onclick="goBack()">
+  <span class="icon">←返回</span>
+</button>
+
+<h1>生理学知识点联系临床</h1>
+
+<h2>1. 机体稳态（Homeostasis）</h2>
+
+<h3>1.1 内环境（Internal Environment）</h3>
+<h4>1.1.1 体液的组成与分布</h4>
+<ul>
+  <li>1.1.1.1 细胞内液（ICF）</li>
+  <li>1.1.1.2 细胞外液（ECF）：血浆、组织液、淋巴</li>
+</ul>
+<div class="related">
+  水盐平衡、肾脏调节
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    脱水与水中毒的类型与临床表现（等渗、低渗、高渗）<br>
+    低钠血症、低钾血症/高钠血症等电解质紊乱的原因与处理<br>
+    失血、烧伤等大量体液丢失后的变化
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h4>1.1.2 内环境的理化特性</h4>
+<ul>
+  <li>1.1.2.1 pH及缓冲系统</li>
+  <li>1.1.2.2 渗透压</li>
+  <li>1.1.2.3 电解质分布</li>
+</ul>
+<div class="related">
+  酸碱平衡、细胞跨膜转运
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    酸中毒（如糖尿病酮症酸中毒）、碱中毒（如呕吐引起的代谢性碱中毒）<br>
+    电解质紊乱对神经、肌肉和心脏的影响<br>
+    血气分析的应用
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h4>1.1.3 内环境的稳态机制</h4>
+<ul>
+  <li>1.1.3.1 体温调节</li>
+  <li>1.1.3.2 水盐代谢调节
+    <ul>
+      <li>1.1.3.2.1 抗利尿激素（ADH, VPH, Arginine Vasopressin，精氨酸加压素）</li>
+      <li>1.1.3.2.2 醛固酮</li>
+    </ul>
+  </li>
+</ul>
+<div class="related">
+  下丘脑-垂体轴、肾小管重吸收
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    发热、热射病、寒战的机制与急救<br>
+    SIADH（抗利尿激素不适当分泌综合征）、尿崩症的鉴别与处理<br>
+    Addison病（肾上腺皮质功能减退症）对水盐平衡的影响<br>
+    急慢性肾衰竭体液和电解质紊乱
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h3>1.2 反馈调节（Feedback Regulation）</h3>
+<h4>1.2.1 负反馈机制</h4>
+<ul>
+  <li>1.2.1.1 血糖调节（胰岛素、胰高血糖素）</li>
+  <li>1.2.1.2 血压调节</li>
+</ul>
+<div class="related">
+  内分泌系统、神经调节
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    糖尿病的反馈障碍及胰岛素抵抗<br>
+    甲亢/甲减的反馈调节异常<br>
+    高血压与肾素-血管紧张素-醛固酮系统的关系
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h4>1.2.2 正反馈机制</h4>
+<ul>
+  <li>1.2.2.1 分娩时催产素作用</li>
+  <li>1.2.2.2 动作电位去极化过程</li>
+</ul>
+<div class="related">
+  内分泌系统、神经兴奋
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    DIC（弥散性血管内凝血）中的正反馈<br>
+    癫痫异常电活动的正反馈机制
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>2. 细胞生理（Cellular Physiology）</h2>
+<h3>2.1 细胞结构（Cell Structure）</h3>
+<h4>2.1.1 细胞膜组成（脂双层、蛋白质）</h4>
+<ul>
+  <li>2.1.1.1 膜蛋白功能（通道、受体、酶等）</li>
+</ul>
+<h3>2.2 跨膜转运（Membrane Transport）</h3>
+<h4>2.2.1 被动转运</h4>
+<ul>
+  <li>2.2.1.1 单纯扩散（如氧气、二氧化碳）</li>
+  <li>2.2.1.2 易化扩散（如葡萄糖转运）</li>
+</ul>
+<h4>2.2.2 主动转运</h4>
+<ul>
+  <li>2.2.2.1 一级主动转运（如Na⁺/K⁺泵）</li>
+  <li>2.2.2.2 二级主动转运（肾小管葡萄糖重吸收等）</li>
+</ul>
+<h4>2.2.3 胞吞与胞吐</h4>
+<ul>
+  <li>2.2.3.1 巨噬细胞吞噬细菌</li>
+</ul>
+<div class="related">
+  肾小管重吸收、神经兴奋传导
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    利尿剂（如呋塞米）作用靶点及副作用<br>
+    遗传性膜通道病（如周期性麻痹）
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>2.3 静息电位（Resting Potential）</h3>
+<h4>2.3.1 形成机制</h4>
+<ul>
+  <li>2.3.1.1 离子分布（Na⁺、K⁺、Cl⁻）</li>
+  <li>2.3.1.2 膜通透性</li>
+  <li>2.3.1.3 钠钾泵</li>
+</ul>
+<h4>2.3.2 临床意义</h4>
+<div class="related">
+  动作电位、心电生理
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    高钾/低钾血症引发的心律失常<br>
+    局部麻醉药阻断神经传导的机制
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>2.4 动作电位（Action Potential）</h3>
+<h4>2.4.1 发生过程</h4>
+<ul>
+  <li>2.4.1.1 阈电位、去极化、复极化、超极化</li>
+</ul>
+<h4>2.4.2 不应期</h4>
+<ul>
+  <li>2.4.2.1 绝对/相对不应期</li>
+</ul>
+<h4>2.4.3 药理相关</h4>
+<ul>
+  <li>2.4.3.1 局麻药、抗癫痫药、抗心律失常药作用机制</li>
+</ul>
+<div class="related">
+  心肌动作电位、神经传导
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    癫痫发作机制与药物治疗<br>
+    部分心律失常与心肌细胞动作电位关联（联系循环系统）
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>3. 血液系统（Blood）</h2>
+<h3>3.1 血液的组成与功能</h3>
+<h4>3.1.1 血浆成分</h4>
+<ul>
+  <li>3.1.1.1 血浆蛋白（白蛋白、球蛋白、纤维蛋白原）</li>
+</ul>
+<h4>3.1.2 血细胞</h4>
+<ul>
+  <li>3.1.2.1 红细胞
+    <ul>
+      <li>3.1.2.1.1 结构（无核、双凹盘状）</li>
+      <li>3.1.2.1.2 血红蛋白的结构与功能</li>
+      <li>3.1.2.1.3 氧和二氧化碳的运输</li>
+      <li>3.1.2.1.4 红细胞生成与调控（促红细胞生成素）</li>
+    </ul>
+  </li>
+  <li>3.1.2.2 白细胞
+    <ul>
+      <li>3.1.2.2.1 粒细胞、单核细胞、淋巴细胞</li>
+      <li>3.1.2.2.2 免疫应答</li>
+    </ul>
+  </li>
+  <li>3.1.2.3 血小板
+    <ul>
+      <li>3.1.2.3.1 止血机制</li>
+      <li>3.1.2.3.2 凝血机制概述</li>
+    </ul>
+  </li>
+</ul>
+<div class="related">
+  肾脏分泌EPO、免疫系统、凝血机制
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    贫血类型（缺铁性、溶血性、再障等）鉴别<br>
+    慢性肾衰竭导致的肾性贫血<br>
+    白血病、粒细胞缺乏症、感染性疾病的血象变化<br>
+    ITP（免疫性血小板减少性紫癜）、血友病、DIC等出血性疾病机制和表现
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>4. 循环系统（Circulatory System）</h2>
+<h3>4.1 心脏结构与功能</h3>
+<h4>4.1.1 心肌细胞</h4>
+<ul>
+  <li>4.1.1.1 自动节律性、传导性、收缩性</li>
+  <li>4.1.1.2 兴奋-收缩耦联</li>
+</ul>
+<h4>4.1.2 心脏泵血功能</h4>
+<ul>
+  <li>4.1.2.1 心动周期（收缩期、舒张期）</li>
+  <li>4.1.2.2 心输出量（CO）及调节因素
+    <ul>
+      <li>4.1.2.2.1 心率、搏出量、前后负荷</li>
+    </ul>
+  </li>
+</ul>
+<h4>4.1.3 临床相关</h4>
+<div class="related">
+  神经体液调节、循环血量
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    心力衰竭（左/右心衰）表现和检查指标（搏出量、射血分数）<br>
+    心源性休克的发生机制与处理<br>
+    房颤、早搏等常见心律失常生理基础
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>4.2 血压调节</h3>
+<h4>4.2.1 血压的形成与影响因素</h4>
+<ul>
+  <li>4.2.1.1 外周阻力</li>
+  <li>4.2.1.2 心输出量</li>
+</ul>
+<h4>4.2.2 血压调节机制</h4>
+<ul>
+  <li>4.2.2.1 神经调节（交感/副交感）</li>
+  <li>4.2.2.2 体液调节（肾素-血管紧张素系统）</li>
+</ul>
+<h4>4.2.3 临床相关</h4>
+<div class="related">
+  肾脏调节、内分泌系统
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    高血压的分级、继发性高血压常见原因（肾性、内分泌性）<br>
+    低血压/休克的类型（失血性/心源性/感染性）原因联系血压形成机制（容量/泵功能/血管扩张，治疗：止血扩容、正性肌力、缩血管）
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>5. 呼吸系统（Respiratory System）</h2>
+<h3>5.1 呼吸的基本过程</h3>
+<h4>5.1.1 外呼吸与内呼吸</h4>
+<ul>
+  <li>5.1.1.1 气体交换部位：肺泡-毛细血管</li>
+</ul>
+<div class="related">
+  血液气体运输、心肺循环
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    支气管哮喘、COPD、换气障碍ARDS<br>
+    肺栓塞对气体交换的影响
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>5.2 肺通气、换气</h3>
+<h4>5.2.1 吸气与呼气的力学</h4>
+<ul>
+  <li>5.2.1.1 胸廓运动、肺顺应性、弹性回缩力</li>
+</ul>
+<h4>5.2.2 气体交换</h4>
+<ul>
+  <li>5.2.2.1 氧气扩散、二氧化碳排出、通气/血流比</li>
+</ul>
+<h4>5.2.2 肺功能参数</h4>
+<ul>
+  <li>5.2.2.1 肺活量、潮气量、残气量等</li>
+</ul>
+<h4>5.2.3 临床相关</h4>
+<div class="related">
+  呼吸肌、胸膜腔负压、呼吸膜
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    肺气肿、肺纤维化、气胸的肺功能表现<br>
+    机械通气适应症和基础<br>
+    ARDS、肺水肿的气体交换障碍
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>5.3 气体运输</h3>
+<h4>5.3.1 氧的运输</h4>
+<ul>
+  <li>5.3.1.1 血红蛋白与氧解离曲线</li>
+</ul>
+<h4>5.3.2 二氧化碳的运输</h4>
+<ul>
+  <li>5.3.2.1 血浆溶解、碳酸氢盐</li>
+</ul>
+<h4>5.3.3 临床相关</h4>
+<div class="related">
+  酸碱平衡、红细胞功能
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    一氧化碳中毒导致缺氧机制<br>
+    高原性缺氧<br>
+    呼吸性酸中毒 pH值下降
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>5.4 呼吸调节</h3>
+<h4>5.4.1 神经调节</h4>
+<ul>
+  <li>5.4.1.1 延髓呼吸中枢</li>
+</ul>
+<h4>5.4.2 化学调节</h4>
+<ul>
+  <li>5.4.2.1 CO₂、H⁺、O₂对呼吸的影响</li>
+</ul>
+<h4>5.4.3 临床相关</h4>
+<div class="related">
+  酸碱平衡、血气分析
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    呼吸性酸中毒/碱中毒的诊断与处理<br>
+    慢性阻塞性疾病患者呼吸驱动改变
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>6. 消化系统（Digestive System）</h2>
+<h3>6.1 消化腺分泌与调节</h3>
+<h4>6.1.1 唾液腺、胃腺、胰腺、肝脏</h4>
+<ul>
+  <li>6.1.1.1 酶分泌与作用</li>
+  <li>6.1.1.2 pH调节</li>
+</ul>
+<div class="related">
+  神经体液调节、内分泌系统
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    急性胰腺炎、消化性溃疡的发生机制<br>
+    胃酸分泌过多/过少的相关疾病
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>6.2 胃肠道运动</h3>
+<h4>6.2.1 平滑肌自主节律</h4>
+<ul>
+  <li>6.2.1.1 慢波与动作电位</li>
+</ul>
+<h4>6.2.2 神经/激素调节</h4>
+<ul>
+  <li>6.2.2.1 迷走神经</li>
+  <li>6.2.2.2 肠激素（胃泌素、胆囊收缩素等）</li>
+</ul>
+<div class="related">
+  自主神经、消化激素
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    肠梗阻与麻痹性肠梗阻的鉴别<br>
+    便秘、腹泻的机制与常见病因
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>6.3 营养物质的消化与吸收</h3>
+<h4>6.3.1 糖、脂肪、蛋白质的消化</h4>
+<h4>6.3.2 吸收机制</h4>
+<ul>
+  <li>6.3.2.1 小肠绒毛与吸收</li>
+  <li>6.3.2.2 主动转运与易化扩散</li>
+</ul>
+<div class="related">
+  跨膜转运、能量代谢
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    乳糖不耐受、吸收不良综合征<br>
+    慢性腹泻的机制与鉴别
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>7. 能量代谢与体温调节</h2>
+<h3>7.1 能量代谢</h3>
+<h4>7.1.1 基础代谢率</h4>
+<ul>
+  <li>7.1.1.1 影响因素：年龄、性别、甲状腺功能</li>
+</ul>
+<h4>7.1.2 营养物质氧化与能量产生</h4>
+<ul>
+  <li>7.1.2.1 有氧/无氧氧化</li>
+  <li>7.1.2.2 ATP合成</li>
+</ul>
+<div class="related">
+  线粒体功能、甲状腺激素
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    甲亢/甲减对基础代谢的影响<br>
+    糖尿病酮症酸中毒的能量代谢基础
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>7.2 体温调节</h3>
+<h4>7.2.1 产热与散热机制</h4>
+<ul>
+  <li>7.2.1.1 产热：肌肉收缩、基础代谢</li>
+  <li>7.2.1.2 散热：辐射、对流、蒸发</li>
+</ul>
+<h4>7.2.2 下丘脑调节</h4>
+<div class="related">
+  神经调节、能量代谢
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    中枢性高热、热射病、低体温症<br>
+    发热原理，治疗与产热散热因素的关系
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>8. 泌尿系统（Urinary System）</h2>
+<h3>8.1 肾单位结构与功能</h3>
+<h4>8.1.1 肾小体（肾小球+肾小囊）</h4>
+<h4>8.1.2 肾小管（近曲小管、亨利袢、远曲小管、集合管）</h4>
+<h3>8.2 肾小球滤过</h3>
+<h4>8.2.1 滤过膜结构</h4>
+<h4>8.2.2 滤过率（GFR）及影响因素</h4>
+<ul>
+  <li>8.2.2.1 血流动力学调节</li>
+</ul>
+<div class="related">
+  肾脏调节、血压调节
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    肾小球肾炎、肾病综合征的滤过障碍<br>
+    急性肾损伤的诊断与处理
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>8.3 肾小管重吸收与分泌</h3>
+<h4>8.3.1 钠、水、葡萄糖等的重吸收机制</h4>
+<ul>
+  <li>8.3.1.1 近曲小管：主动转运、协同转运</li>
+  <li>8.3.1.2 远曲小管和集合管：激素调节（ADH、醛固酮）</li>
+</ul>
+<h4>8.3.2 酸碱平衡调节</h4>
+<ul>
+  <li>8.3.2.1 H⁺分泌、HCO₃⁻重吸收</li>
+</ul>
+<h4>8.3.3 利尿药作用机制</h4>
+<div class="related">
+  跨膜转运、能量代谢、酸碱平衡
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    肾小管性酸中毒、糖尿病肾病<br>
+    利尿剂在心衰、高血压中的应用与副作用（低钾、脱水）
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>9. 感觉器官（Sensory Organs）</h2>
+<h3>9.1 感受器</h3>
+<h4>9.1.1 机械感受器（如巴氏小体）</h4>
+<h4>9.1.2 化学感受器（如味觉）</h4>
+<h4>9.1.3 感受器的适应现象</h4>
+<div class="related">
+  神经系统、反射弧
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    感觉障碍的定位诊断<br>
+    神经病理性疼痛的发生机制
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>9.2 视觉系统</h3>
+<h4>9.2.1 眼的结构</h4>
+<ul>
+  <li>9.2.1.1 角膜、晶状体、视网膜</li>
+  <li>9.2.1.2 视杆细胞、视锥细胞</li>
+</ul>
+<h4>9.2.2 视网膜感光机制</h4>
+<ul>
+  <li>9.2.2.1 光化学反应</li>
+  <li>9.2.2.2 视觉传导通路</li>
+</ul>
+<div class="related">
+  神经系统、感受器
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    近视、远视、老视的机制<br>
+    视网膜脱离、糖尿病视网膜病变
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>9.3 听觉系统</h3>
+<h4>9.3.1 耳的结构（外耳、中耳、内耳）</h4>
+<h4>9.3.2 听觉生理过程</h4>
+<ul>
+  <li>9.3.2.1 声波传导</li>
+  <li>9.3.2.2 毛细胞感受与神经冲动产生</li>
+</ul>
+<div class="related">
+  神经系统、感受器
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    传导性耳聋、感音神经性耳聋、耳毒性药物<br>
+    梅尼埃病（内淋巴水肿）、耳石症
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>10. 神经系统（Nervous System）</h2>
+<h3>10.1 神经纤维</h3>
+<h4>10.1.1 有髓/无髓纤维</h4>
+<h4>10.1.2 跳跃式传导</h4>
+<div class="related">
+  静息电位、动作电位
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    格林-巴利综合征（急性炎性脱髓鞘性多发性神经病）、MS（多发性硬化）等脱髓鞘疾病的机制
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>10.2 突触传递</h3>
+<h4>10.2.1 突触结构</h4>
+<h4>10.2.2 神经递质</h4>
+<ul>
+  <li>10.2.2.1 兴奋性与抑制性递质</li>
+  <li>10.2.2.2 药物影响（麻醉药、抗抑郁药）</li>
+</ul>
+<h4>10.2.3 突触可塑性</h4>
+<div class="related">
+  学习记忆、精神疾病
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    重症肌无力的突触障碍<br>
+    帕金森病（多巴胺失衡）、抗抑郁药机制
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>10.3 反射弧</h3>
+<h4>10.3.1 组成（感受器、传入神经、中枢、传出神经、效应器）</h4>
+<h4>10.3.2 单突触与多突触反射</h4>
+<ul>
+  <li>10.3.2.1 膝跳反射、巴宾斯基征</li>
+</ul>
+<div class="related">
+  外周神经、脊髓
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    皮层脊髓束（巴宾斯基征，上运动神经元）<br>
+    脊髓损伤与反射改变（去大脑僵直）
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>11. 内分泌系统（Endocrine System）</h2>
+<h3>11.1 内分泌腺结构与功能</h3>
+<h4>11.1.1 甲状腺、肾上腺、胰腺、性腺、下丘脑-垂体</h4>
+<div class="related">
+  激素调节、靶器官反馈
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    甲亢/甲减、库欣综合征、醛固酮增多症、糖尿病<br>
+    垂体瘤的表现及诊断
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>11.2 激素作用机制</h3>
+<h4>11.2.1 膜受体/胞内受体</h4>
+<h4>11.2.2 反馈调节</h4>
+<ul>
+  <li>11.2.2.1 下丘脑-垂体-靶腺轴</li>
+</ul>
+<div class="related">
+  内环境稳态
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    口服避孕药、生长激素异常、肾上腺危象
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<hr class="section-divider">
+
+<h2>12. 生殖系统（Reproductive System）</h2>
+<h3>12.1 男性生殖系统</h3>
+<h4>12.1.1 睾丸功能</h4>
+<ul>
+  <li>12.1.1.1 精子发生</li>
+  <li>12.1.1.2 雄激素合成与作用</li>
+  <li>12.1.1.3 激素调节：LH、FSH、GnRH</li>
+</ul>
+<div class="related">
+  内分泌系统
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    男性不育、睾丸炎、性激素异常导致的发育异常<br>
+    前列腺增生与雄激素作用
+  </div>
+  <hr class="clinical-divider">
+</div>
+<h3>12.2 女性生殖系统</h3>
+<h4>12.2.1 卵巢功能</h4>
+<ul>
+  <li>12.2.1.1 卵泡发育、排卵</li>
+  <li>12.2.1.2 雌激素、孕激素合成与作用</li>
+</ul>
+<h4>12.2.2 月经周期调节</h4>
+<ul>
+  <li>12.2.2.1 下丘脑-垂体-卵巢轴</li>
+</ul>
+<div class="related">
+  激素反馈、能量代谢
+</div>
+<div class="clinical-block">
+  <div class="clinical">
+    多囊卵巢综合征、闭经、月经失调<br>
+    妊娠、流产、围产期并发症的内分泌基础
+  </div>
+  <hr class="clinical-divider">
+</div>
+
+<script>
+function goBack() {
+  window.location.href = 'slxzsd.html';
+}
+</script>
+
+</body>
+</html>
