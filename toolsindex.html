@@ -48,36 +48,32 @@
         }
 
         .title .smart {
-    /* 回退方案：不支持background-clip的浏览器显示白色 */
-    color: white;
-    /* 现代浏览器的渐变效果 */
-    background: linear-gradient(45deg, #fff, #e8f4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    }
-/* 支持background-clip的浏览器才应用透明色 */
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-    .title .smart {
-        color: transparent;
-    }
-}
-.title .tools {
-    /* 回退方案：不支持background-clip的浏览器显示白色 */
-    color: white;
-    /* 现代浏览器的渐变效果 */
-    background: linear-gradient(45deg, #fff, #f0f8ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
+            color: white;
+            background: linear-gradient(45deg, #fff, #e8f4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-/* 支持background-clip的浏览器才应用透明色 */
-@supports (background-clip: text) or (-webkit-background-clip: text) {
-    .title .tools {
-        color: transparent;
-    }
-}
+        @supports (background-clip: text) or (-webkit-background-clip: text) {
+            .title .smart {
+                color: transparent;
+            }
+        }
+
+        .title .tools {
+            color: white;
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @supports (background-clip: text) or (-webkit-background-clip: text) {
+            .title .tools {
+                color: transparent;
+            }
+        }
 
         .subtitle {
             color: rgba(255, 255, 255, 0.8);
@@ -140,6 +136,16 @@
             transition: gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
+        .card-container {
+            position: relative;
+            overflow: visible;
+            z-index: 1;
+        }
+
+        .card-container.expanded {
+            z-index: 20;
+        }
+
         .tool-card {
             background: white;
             border-radius: 16px;
@@ -147,16 +153,116 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             text-decoration: none;
             color: inherit;
-            /* 只保留大小变化的过渡和原始hover效果 */
             transition: transform 0.2s ease, box-shadow 0.2s ease,
                        padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                        border-radius 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            z-index: 1;
         }
 
-        /* 恢复原始的hover效果 - 只有translateY和box-shadow */
         .tool-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+
+        .tool-card.math-card {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .expand-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.3s ease;
+        }
+
+        .card-container.expanded .expand-indicator {
+            transform: rotate(180deg);
+        }
+
+        /* 更快的动画速度 */
+        .floating-sub-cards {
+            position: absolute;
+            top: 70%;
+            left: 5%;
+            right: 5%;
+            width: 90%;
+            z-index: 100;
+            max-height: 0;
+            overflow: hidden;
+            transform-origin: top center;
+            transform: scaleY(0);
+            transition: max-height 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                       transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .floating-sub-cards.show {
+            max-height: 200px;
+            transform: scaleY(1);
+        }
+
+        /* 修复容器底部圆角问题 - 改用上下不同的内边距 */
+        .sub-cards-wrapper {
+            background: rgba(113, 137, 245, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 12px 0 12px; /* 上左右12px，下0px */
+            border: 2px solid rgba(200, 210, 220, 0.3);
+            will-change: auto;
+            overflow: hidden;
+        }
+
+        .sub-card {
+            background: rgba(240, 242, 247, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(180, 190, 200, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 52px;
+        }
+
+        /* 最后一个卡片保持底部间距，这样就正好填满容器 */
+        .sub-card:last-child {
+            margin-bottom: 12px; /* 恢复底部间距，正好填满容器的高度 */
+        }
+
+        .sub-card:hover {
+            background: rgba(240, 242, 247, 0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 
+                    0 0 15px rgba(113, 137, 245, 0.5),
+                    0 0 30px rgba(113, 137, 245, 0.2),
+                    inset 0 1px 3px rgba(255, 255, 255, 0.5);
+            z-index: 2;
+        }
+
+        .sub-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .sub-card-desc {
+            font-size: 12px;
+            color: #666;
         }
 
         .tool-icon {
@@ -191,7 +297,7 @@
             font-size: 12px;
         }
 
-        /* 响应式布局 - 小屏手机 */
+        /* 响应式布局 */
         @media (max-width: 320px) {
             .container {
                 padding-top: 10px;
@@ -242,9 +348,42 @@
                 gap: 12px;
                 grid-template-columns: 1fr;
             }
+
+            .floating-sub-cards {
+                top: 75%;
+                left: 7.5%;
+                right: 7.5%;
+                width: 85%;
+            }
+
+            .floating-sub-cards.show {
+                max-height: 160px;
+            }
+
+            /* 小屏幕也应用相同的修复 */
+            .sub-cards-wrapper {
+                padding: 10px 10px 0 10px; /* 小屏幕：上左右10px，下0px */
+            }
+
+            .sub-card {
+                padding: 10px 16px;
+                margin-bottom: 6px;
+                min-height: 48px;
+            }
+
+            .sub-card:last-child {
+                margin-bottom: 10px; /* 小屏幕：最后一个卡片底部间距10px */
+            }
+
+            .sub-card-title {
+                font-size: 13px;
+            }
+
+            .sub-card-desc {
+                font-size: 11px;
+            }
         }
 
-        /* 响应式布局 - 平板或手机 */
         @media (min-width: 321px) and (max-width: 799px) {
             .container {
                 max-width: 600px;
@@ -266,7 +405,6 @@
             }
         }
 
-        /* 响应式布局 - 中等屏幕 */
         @media (min-width: 800px) and (max-width: 1199px) {
             .container {
                 max-width: 800px;
@@ -304,7 +442,6 @@
             }
         }
 
-        /* 响应式布局 - 超宽屏幕 */
         @media (min-width: 1200px) {
             .container {
                 max-width: 1200px;
@@ -349,7 +486,6 @@
             }
         }
 
-        /* 触摸设备优化 */
         @media (hover: none) and (pointer: coarse) {
             .tool-card:active {
                 transform: scale(0.98);
@@ -379,11 +515,27 @@
                 <p class="tool-desc">可以进行拟人估算计算</p>
             </a>
 
-            <a href="tools/math3.html" class="tool-card">
-                <span class="tool-icon">📚</span>
-                <h3 class="tool-title">口算练习</h3>
-                <p class="tool-desc">生成每日口算练习-三(下)</p>
-            </a>
+            <div class="card-container">
+                <div class="tool-card math-card" onclick="toggleMathCard(this)">
+                    <span class="tool-icon">📚</span>
+                    <h3 class="tool-title">口算练习</h3>
+                    <p class="tool-desc">生成每日口算练习题目</p>
+                    <span class="expand-indicator">▼</span>
+                </div>
+                
+                <div class="floating-sub-cards">
+                    <div class="sub-cards-wrapper">
+                        <div class="sub-card" onclick="window.location.href='tools/math3-4.html'">
+                            <div class="sub-card-title">三转四年级</div>
+                            <div class="sub-card-desc">升学过渡练习</div>
+                        </div>
+                        <div class="sub-card" onclick="window.location.href='tools/math3.html'">
+                            <div class="sub-card-title">三年级(下)</div>
+                            <div class="sub-card-desc">下学期练习题</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <a href="tools/9gg3.html" class="tool-card">
                 <span class="tool-icon">📜</span>
@@ -408,5 +560,50 @@
             <p>m(AT)mrr.cc</p>
         </div>
     </div>
+
+    <script>
+        function toggleMathCard(card) {
+            const container = card.closest('.card-container');
+            const subCards = container.querySelector('.floating-sub-cards');
+            const isExpanded = container.classList.contains('expanded');
+            
+            // 关闭其他已展开的卡片
+            document.querySelectorAll('.card-container.expanded').forEach(otherContainer => {
+                if (otherContainer !== container) {
+                    const otherSubCards = otherContainer.querySelector('.floating-sub-cards');
+                    otherContainer.classList.remove('expanded');
+                    otherSubCards.classList.remove('show');
+                }
+            });
+            
+            if (isExpanded) {
+                // 收起
+                container.classList.remove('expanded');
+                subCards.classList.remove('show');
+            } else {
+                // 展开
+                container.classList.add('expanded');
+                subCards.classList.add('show');
+            }
+        }
+
+        // 点击页面其他地方关闭展开的卡片
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.card-container')) {
+                document.querySelectorAll('.card-container.expanded').forEach(container => {
+                    const subCards = container.querySelector('.floating-sub-cards');
+                    container.classList.remove('expanded');
+                    subCards.classList.remove('show');
+                });
+            }
+        });
+
+        // 阻止次级卡片的点击事件冒泡
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.floating-sub-cards')) {
+                e.stopPropagation();
+            }
+        });
+    </script>
 </body>
 </html>
