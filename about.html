@@ -6,8 +6,23 @@
     <title>ℹ️关于 SmartTools</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' x='-0.11em' font-size='90'>😺ℹ️</text></svg>">
     <style>
+        /* 自定义字体声明 */
+        @font-face {
+            font-family: 'Yanti';
+            src: url('tools/font/yanti.woff2') format('woff2'),
+                 url('tools/font/yanti.ttf') format('truetype');
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'FZJZXF';
+            src: url('tools/font/FZJZXF.woff2') format('woff2'),
+                 url('tools/font/FZJZXF.ttf') format('truetype');
+            font-display: swap;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            font-family: '微软雅黑', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             line-height: 1.6;
             max-width: 800px;
             margin: 0 auto;
@@ -38,54 +53,93 @@
         }
         
         h1 {
+            font-family: '微软雅黑', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             color: #333;
             border-bottom: 2px solid #667eea;
             padding-bottom: 5px;
         }
         
-        h2 {
-            color: #555;
-            margin-top: 5px;
+        .subtitle {
+            color: #444;
+            margin-bottom: 25px;
         }
         
-        .tool-section {
-            margin-bottom: 25px;
+        .tools-grid {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .tool-card {
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
             border-left: 4px solid #667eea;
         }
         
-        .features {
-            background-color: #e8f4fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+        .tool-title {
+            font-family: 'Yanti', '微软雅黑', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .highlights {
-            background-color: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+        .tool-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
         }
         
-        ul {
-            margin: 10px 0;
-            padding-left: 20px;
+        .tool-description {
+            font-family: 'FZJZXF', '微软雅黑', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            color: #222;
+            margin: 0;
+            line-height: 1.6;
         }
         
-        li {
-            margin: 5px 0;
+        .tool-description ul {
+            margin: 0;
+            padding-left: 16px;
+            list-style-type: disc;
+        }
+        
+        .tool-description li {
+            margin-bottom: 3px;
         }
         
         .footer {
+            font-family: '微软雅黑', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             text-align: center;
             margin-top: 30px;
             padding-top: 15px;
             border-top: 1px solid #eee;
-            color: #666;
+            color: #333;
             font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+            
+            .tool-card {
+                padding: 16px;
+            }
         }
     </style>
 </head>
@@ -94,90 +148,80 @@
         <a href="toolsindex.html" class="back-btn">← 返回主页</a>
         
         <h1>SmartTools</h1>
-        
-        <p>随手写给自家小朋友使用的在线小工具，已有工具如下：</p>
+        <p class="subtitle">随手写给自家小朋友使用的在线小工具，已有工具如下：</p>
 
-        <div class="tool-section">
-            <h2>1. 估算计算器</h2>
-            <p>一款专门用于训练数学估算能力的智能计算器，帮助孩子掌握数学估算技巧。</p>
-            
-            <div class="features">
-                <strong>主要功能：</strong>
-                <ul>
-                    <li>支持加减乘除四则运算的估算</li>
-                    <li>提供多种估算方法（首位估算法、整十数法、次位取整法等）</li>
-                    <li>显示详细的估算过程和解释</li>
-                    <li>同时显示精确结果和估算结果供对比</li>
-                    <li>支持键盘输入，操作简便</li>
-                </ul>
+        <div class="tools-grid">
+            <div class="tool-card">
+                <h2 class="tool-title">
+                    <span class="tool-number">1</span>
+                    估算计算器
+                </h2>
+                <div class="tool-description">
+                    <ul>
+                        <li>智能估算训练工具，支持四则运算多种估算方法（首位估算、整十数法等）</li>
+                        <li>自动选择最优估算结果，提供详细步骤说明和精确对比</li>
+                        <li>帮助孩子掌握数学估算技巧，支持键盘输入操作简便</li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="highlights">
-                <strong>特色：</strong>
-                <ul>
-                    <li>智能选择最优估算结果</li>
-                    <li>提供多个候选估算值</li>
-                    <li>详细的估算步骤说明，便于理解和学习</li>
-                </ul>
-            </div>
-        </div>
 
-        <div class="tool-section">
-            <h2>2. 每日数学练习</h2>
-            <p>自动生成小学生数学每日口算练习题目，包含题目和标准答案。</p>
-            
-            <div class="features">
-                <strong>主要功能：</strong>
-                <ul>
-                    <li>自动生成口算练习题</li>
-                    <li>竖式计算题、脱式计算题及应用题等</li>
-                    <li>同时生成对应的答案解析</li>
-                    <li>打印友好的页面设计</li>
-                </ul>
+            <div class="tool-card">
+                <h2 class="tool-title">
+                    <span class="tool-number">2</span>
+                    每日数学练习
+                </h2>
+                <div class="tool-description">
+                    <ul>
+                        <li>自动生成小学口算、竖式、脱式及应用题练习</li>
+                        <li>题目难度符合教学要求，题型丰富涵盖基础到复杂运算</li>
+                        <li>提供完整答案解析和竖式计算过程，打印友好设计方便日常练习</li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="highlights">
-                <strong>特色：</strong>
-                <ul>
-                    <li>题目难度符合小学生教学要求</li>
-                    <li>题型丰富，涵盖基础计算到复杂运算</li>
-                    <li>答案包含完整的竖式计算过程</li>
-                    <li>支持直接打印，方便日常练习</li>
-                </ul>
-            </div>
-        </div>
 
-        <div class="tool-section">
-            <h2>3. 诗词九宫格</h2>
-            <p>通过九宫格游戏的方式帮助孩子记忆和学习古诗词，寓教于乐。</p>
-            
-            <div class="features">
-                <strong>主要功能：</strong>
-                <ul>
-                    <li>内置1-6年级上下册诗词库（按每周一首编排）</li>
-                    <li>随机诗词功能（调用今日诗词API）</li>
-                    <li>自动生成九宫格汉字游戏</li>
-                    <li>点击汉字可随机替换</li>
-                    <li>提供完整诗词答案查看</li>
-                    <li>支持百度搜索诗词详细信息</li>
-                </ul>
+            <div class="tool-card">
+                <h2 class="tool-title">
+                    <span class="tool-number">3</span>
+                    诗词九宫格
+                </h2>
+                <div class="tool-description">
+                    <ul>
+                        <li>游戏化古诗词学习工具，内置1-6年级诗词库按周编排</li>
+                        <li>九宫格汉字随机打乱增加趣味，支持在线获取随机诗词和自定义输入</li>
+                        <li>可查看完整答案，一键百度搜索详情，寓教于乐提高记忆效果</li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="highlights">
-                <strong>特色：</strong>
-                <ul>
-                    <li>诗词库按年级和学期系统整理</li>
-                    <li>九宫格汉字随机打乱，增加趣味性</li>
-                    <li>支持自定义输入诗词内容</li>
-                    <li>游戏化学习方式，提高记忆效果</li>
-                    <li>界面简洁美观，适合小朋友使用</li>
-                </ul>
+
+            <div class="tool-card">
+                <h2 class="tool-title">
+                    <span class="tool-number">4</span>
+                    生理学知识点大纲
+                </h2>
+                <div class="tool-description">
+                    <ul>
+                        <li>系统整理人体生理学各章节知识要点，结合临床实际应用</li>
+                        <li>涵盖细胞生理、循环系统、呼吸系统等12个核心章节</li>
+                        <li>每个知识点配备临床关联实例和疾病对照，便于理解记忆和应用</li>
+                    </ul>
+                </div>
             </div>
+
+            <div class="tool-card">
+                <h2 class="tool-title">
+                    <span class="tool-number">5</span>
+                    在线收藏夹
+                </h2>
+                <div class="tool-description">
+                    <ul>
+                        <li>自用网站链接收藏</li>
+                    </ul>
+                </div>
+            </div>            
         </div>
 
         <div class="footer">
-            <p>这些工具都采用响应式设计，支持手机和电脑使用，无需安装，打开即用。<br>
-            适合家长和老师辅导孩子学习使用。</p>
+            <p>响应式设计 • 无需安装 • 打开即用</p>
             <p>m(AT)mrr.cc</p>
         </div>
     </div>
