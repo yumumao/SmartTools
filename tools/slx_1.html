@@ -184,10 +184,18 @@
       h3 { font-size: 1em; }
       h4 { font-size: 0.92em; }
       body { padding: 7px 12px 12px 12px; } /* 增加左边距从2px到12px */
-      #backBtn { font-size: 0.82em !important; height: 19px; }
+      #backBtn { 
+    font-size: 0.82em !important; 
+    min-height: 24px; /* 改为最小高度 */
+    padding: 6px 8px; /* 小屏幕时稍微减少内边距 */
+  }
     }
     @media (max-width: 340px) {
-      #backBtn { font-size: 0.75em !important; height: 16px; }
+      #backBtn { 
+    font-size: 0.75em !important; 
+    min-height: 20px; /* 改为最小高度 */
+    padding: 5px 6px; /* 超小屏幕时进一步减少内边距 */
+  }
     }
     @media print {
       html, body {
