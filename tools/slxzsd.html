@@ -84,25 +84,32 @@ main {
       margin-right: 0.2em;
       margin-left: -0.3em;
     }
+    /* 修复箭头显示逻辑 */
     .chapter.expanded .chapter-title .toggle-arrow {
       transform: rotate(90deg);
       color: #4353ff;
+    }
+    .chapter.collapsed .chapter-title .toggle-arrow {
+      transform: rotate(0deg);
+      color: #aaa;
     }
     .chapter-content {
       margin-left: 0.5em;
       margin-right: 0.1em;
       transition: max-height 0.32s, opacity 0.18s;
-      overflow: hidden;
+      overflow: visible; /* 改为 visible，避免内容被截断 */
       opacity: 1;
-      max-height: 2000px;
+      max-height: none; /* 移除高度限制 */
       display: block;
     }
+    /* 修复收起状态 */
     .chapter.collapsed .chapter-content {
       max-height: 0;
       opacity: 0.26;
       pointer-events: none;
       transition: max-height 0.22s, opacity 0.13s;
       display: none;
+      overflow: hidden; /* 收起时才隐藏溢出 */
     }
     .level2-title {
       font-size: 1em;
@@ -213,12 +220,12 @@ main {
   bottom: 33px;
   left: -15px;
   z-index: 10000;
-  padding: 4px 8px;
+  padding: 4px 4px;
   background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
   color: #f5f5f5; /* 更浅的文字 */
   border: none;
-  border-radius: 4px 8px 8px 4px; /* 增加圆角 */
-  font-size: 13px;
+  border-radius: 2px 8px 8px 2px; /* 增加圆角 */
+  font-size: 14px;
   font-weight: bold;
   font-family: "微软雅黑", Arial, sans-serif;
   cursor: pointer;
@@ -244,12 +251,12 @@ main {
   bottom: 33px;
   right: -15px;
   z-index: 10000;
-  padding: 4px 8px;
+  padding: 4px 4px;
   background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
   color: #f5f5f5; /* 更浅的文字 */
   border: none;
-  border-radius: 8px 4px 4px 8px; /* 镜像对称的圆角 */
-  font-size: 13px;
+  border-radius: 8px 2px 2px 8px; /* 镜像对称的圆角 */
+  font-size: 14px;
   font-weight: bold;
   font-family: "微软雅黑", Arial, sans-serif;
   cursor: pointer;
@@ -935,7 +942,7 @@ const data = {
                 { title: "6.2.2.1 迷走神经", content: "<ul><li>迷走神经促进消化腺分泌和胃肠运动。</li></ul>" },
                 { title: "6.2.2.2 肠激素（胃泌素、胆囊收缩素等）", content: "<ul><li>调节胃肠运动和分泌。</li></ul>" }
               ],
-              relate: "神经—激素调控",
+              relate: "神经--激素调控",
               clinic: `
                 <b>便秘：</b>排便次数减少，粪便干燥，多见于肠动力障碍、饮食纤维不足。<br>
                 <b>腹泻：</b>肠蠕动增强、吸收障碍或感染所致。
@@ -1475,10 +1482,10 @@ function renderChapter(chapter, idx) {
   // 默认1-2章展开，3-12章收起
   let expanded = chapterExpandState[id];
   if (expanded === undefined) expanded = (idx < 2);
-  // 所有章节都可以点击标题展开/收起
+  
   let html = `<section class="chapter${expanded ? " expanded" : " collapsed"}" id="${id}">`;
   html += `<div class="chapter-title" onclick="toggleChapter('${id}')">`;
-  html += `<span class="toggle-arrow">${expanded ? "▶" : "▶"}</span>${chapter.title}</div>`;
+  html += `<span class="toggle-arrow">▶</span>${chapter.title}</div>`;
   html += `<div class="chapter-content" style="display:${expanded?'block':'none'};">`;
   if (chapter.levels && chapter.levels.length) {
     html += chapter.levels.map(renderLevel2).join('');
