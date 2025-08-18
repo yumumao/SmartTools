@@ -2189,28 +2189,30 @@ function updateAIStructure() {
 }
 // ===================== 结束：网络资源分类的JS代码 =====================
 
-        // 修改后的视频聚合数据（磁力熊和低端影视改为简单卡片）
+        // 修改后的视频聚合数据（将前两项合并为LunaTV）
         const videoData = [
             {
-                id: 'MoonTV',
-                icon: '🌘',
-                title: 'MoonTV',
-                desc: '',
-                descClickable: 'm.f66.fun',
-                descUrl: 'https://m.n29.net',
+                id: 'lunatv',
+                icon: '🌗',
+                title: 'LunaTV',
+                desc: '综合影视平台',
                 url: 'https://m.f66.fun/',
-                type: 'desc-clickable'
-            },    
-            {
-                id: 'libreTV',
-                icon: '📺',
-                title: 'LibreTV',
-                desc: '',
-                descClickable: 'tv.f66.fun',
-                descUrl: 'http://f66.fun/tv',
-                url: 'https://tv.f66.fun/',
-                type: 'desc-clickable'
-            },        
+                type: 'expandable',
+                subCards: [
+                    {
+                        icon: '📺',
+                        title: 'LibreTV',
+                        desc: 'tv.f66.fun',
+                        url: 'https://tv.f66.fun/'
+                    },
+                    {
+                        icon: '🌘',
+                        title: 'MoonTV',
+                        desc: 'm2.f66.fun',
+                        url: 'https://m2.f66.fun/'
+                    }
+                ]
+            },
             {
                 id: 'yingshiselin',
                 icon: '🌲',
@@ -2452,15 +2454,29 @@ function updateAIStructure() {
             } else if (card.type === 'expandable') {
                 let subCardsHTML = '';
                 card.subCards.forEach(subCard => {
-                    subCardsHTML += `
-                        <div class="sub-card compact-card" onclick="window.open('${subCard.url}', '_blank')">
-                            <span class="link-icon">${subCard.icon}</span>
-                            <div class="link-content">
-                                <span class="link-url">${subCard.content}</span>
-                                ${subCard.note ? `<span class="link-note">${subCard.note}</span>` : ''}
+                    if (subCard.content) {
+                        // 使用compact-card样式（为原有的链接地址格式）
+                        subCardsHTML += `
+                            <div class="sub-card compact-card" onclick="window.open('${subCard.url}', '_blank')">
+                                <span class="link-icon">${subCard.icon}</span>
+                                <div class="link-content">
+                                    <span class="link-url">${subCard.content}</span>
+                                    ${subCard.note ? `<span class="link-note">${subCard.note}</span>` : ''}
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        // 使用two-line-card样式（为新的标题+描述格式）
+                        subCardsHTML += `
+                            <div class="sub-card two-line-card" onclick="window.open('${subCard.url}', '_blank')">
+                                <div class="card-header">
+                                    <span class="link-icon">${subCard.icon}</span>
+                                    <h3 class="link-title">${subCard.title}</h3>
+                                </div>
+                                <p class="link-url">${subCard.desc}</p>
+                            </div>
+                        `;
+                    }
                 });
                 
                 return `
