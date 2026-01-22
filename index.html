@@ -1877,9 +1877,29 @@ const onlineAIData = [
         id: 'qwen',
         icon: '🧞',
         title: 'Qwen',
-        desc: '阿里千问',
+        desc: '阿里千问等集合',
         url: 'https://chat.qwen.ai/',
-        type: 'simple'
+        type: 'expandable',
+        subCards: [
+            {
+                icon: '🤿',
+                title: 'DeepSeek',
+                desc: '深度求索',
+                url: 'https://www.deepseek.com/'
+            },
+            {
+                icon: '🍏',
+                title: '腾讯元宝',
+                desc: '腾讯AI助手',
+                url: 'https://yuanbao.tencent.com/',
+            },
+            {
+                icon: '💁‍',
+                title: '豆包',
+                desc: '字节跳动AI助手',
+                url: 'https://www.doubao.com/',
+            }
+        ]
     },
     {
         id: 'poe',
@@ -1889,12 +1909,6 @@ const onlineAIData = [
         url: 'https://poe.com/',
         type: 'expandable',
         subCards: [
-            {
-                icon: '🤿',
-                title: 'DeepSeek',
-                desc: '深度求索',
-                url: 'https://www.deepseek.com/'
-            },
             {
                 icon: '💬',
                 title: 'ChatGPT',
@@ -1916,18 +1930,10 @@ const onlineAIData = [
         ]
     },
     {
-        id: 'yuanbao',
-        icon: '🍏',
-        title: '腾讯元宝',
-        desc: '腾讯AI助手',
-        url: 'https://yuanbao.tencent.com/',
-        type: 'simple'
-    },
-    {
         id: 'mitasearch',
         icon: '🔎',
         title: '秘塔搜索',
-        desc: 'AI搜索引擎',
+        desc: 'AI实用工具',
         url: 'https://metaso.cn/',
         type: 'expandable',
         subCards: [
@@ -1942,25 +1948,21 @@ const onlineAIData = [
                 title: 'Perplexity',
                 desc: 'AI搜索',
                 url: 'https://www.perplexity.ai/'
-            }
+            }, 
+            {
+                icon: '👁️‍🗨️',
+                title: 'BibiGPT',
+                desc: '音视频AI总结',
+                url: 'https://bibigpt.co/',
+            },
+            {
+                icon: '🐈',
+                title: '若愚',
+                desc: '文档翻译',
+                url: 'https://ruoyu.dingyu.me/',
+            }        
         ]
-    },    
-    {
-        id: 'bibigpt',
-        icon: '👁️‍🗨️',
-        title: 'BibiGPT',
-        desc: '音视频AI总结',
-        url: 'https://bibigpt.co/',
-        type: 'simple'
-    },
-    {
-        id: 'doubao',
-        icon: '💁‍',
-        title: '豆包',
-        desc: '字节跳动AI助手',
-        url: 'https://www.doubao.com/',
-        type: 'simple'
-    },
+    },   
     {
         id: 'cloudflare',
         icon: '🌩️',
@@ -1978,19 +1980,27 @@ const onlineAIData = [
         type: 'simple'
     },     
     {
-        id: 'clawcloud',
-        icon: '🐾',
-        title: 'ClawCloud',
-        desc: 'ClawCloud',
-        url: 'https://run.claw.cloud/',
+        id: 'vercel',
+        icon: '▲',
+        title: 'Vercel',
+        desc: 'vercel',
+        url: ' https://vercel.com/',
         type: 'simple'
     }, 
     {
-        id: 'ruoyu',
-        icon: '🐈',
-        title: '若愚',
-        desc: '文档翻译',
-        url: 'https://ruoyu.dingyu.me/',
+        id: 'zeabur',
+        icon: '𝒁',
+        title: 'Zeabur',
+        desc: 'zeabur',
+        url: 'https://zeabur.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'upstash',
+        icon: '🌀',
+        title: 'Upstash',
+        desc: 'upstash',
+        url: 'https://upstash.com/',
         type: 'simple'
     }
 ];
@@ -2020,9 +2030,9 @@ function generateAIStructure(layout) {
         }
         
     } else if (layout === 'tablet') {
-        // 平板：显示前6个，折叠后面
-        const visibleCards = onlineAIData.slice(0, 6);
-        const hiddenCards = onlineAIData.slice(6);
+        // 平板：显示前3个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 3);
+        const hiddenCards = onlineAIData.slice(3);
         
         html += '<div class="links-grid">';
         visibleCards.forEach(card => {
@@ -2037,9 +2047,9 @@ function generateAIStructure(layout) {
         }
         
     } else {
-        // 桌面：显示前8个，折叠后面
-        const visibleCards = onlineAIData.slice(0, 8);
-        const hiddenCards = onlineAIData.slice(8);
+        // 桌面：显示前4个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 4);
+        const hiddenCards = onlineAIData.slice(4);
         
         html += '<div class="links-grid">';
         visibleCards.forEach(card => {
