@@ -1829,7 +1829,6 @@
     </div>
     <script>
         let currentExpanded = null;
-        let currentAIExpanded = null; // 新增：专门管理网络资源分类的展开状态
         let currentLayout = 'mobile'; // mobile, tablet, desktop
 
         // 修改后的邮箱数据，增加第5个邮箱
@@ -2184,7 +2183,7 @@ function toggleAISection(sectionId, button) {
             setTimeout(() => {
                 collapseBtn.style.display = 'flex';
                 collapseBtn.classList.remove('moving');
-            }, 400);
+            }, 800);
         }, 200);
     }
 }
@@ -2630,53 +2629,35 @@ function updateAIStructure() {
             window.open(url, '_blank');
         }
 
-function toggleSubCards(subcardId, button) {
-    const subcards = document.getElementById(subcardId);
-    const overlay = document.getElementById('overlay');
-    const cardContainer = button.closest('.card-container');
-    const isExpanded = subcards.classList.contains('expanded');
-    
-    // 判断是否属于AI分类的子卡片
-    const isAICard = subcardId.includes('qwen') || subcardId.includes('poe') || subcardId.includes('mitasearch');
-    
-    // 根据分类使用不同的状态变量
-    const relevantExpanded = isAICard ? currentAIExpanded : currentExpanded;
-    
-    if (relevantExpanded && relevantExpanded !== subcardId) {
-        const otherSubcards = document.getElementById(relevantExpanded);
-        const otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
-        const otherContainer = otherButton.closest('.card-container');
-        otherSubcards.classList.remove('expanded');
-        otherButton.classList.remove('expanded');
-        otherContainer.classList.remove('active');
-    }
-    
-    if (isExpanded) {
-        subcards.classList.remove('expanded');
-        button.classList.remove('expanded');
-        cardContainer.classList.remove('active');
-        overlay.classList.remove('active');
-        
-        // 根据分类清空相应的状态变量
-        if (isAICard) {
-            currentAIExpanded = null;
-        } else {
-            currentExpanded = null;
+        function toggleSubCards(subcardId, button) {
+            const subcards = document.getElementById(subcardId);
+            const overlay = document.getElementById('overlay');
+            const cardContainer = button.closest('.card-container');
+            const isExpanded = subcards.classList.contains('expanded');
+            
+            if (currentExpanded && currentExpanded !== subcardId) {
+                const otherSubcards = document.getElementById(currentExpanded);
+                const otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
+                const otherContainer = otherButton.closest('.card-container');
+                otherSubcards.classList.remove('expanded');
+                otherButton.classList.remove('expanded');
+                otherContainer.classList.remove('active');
+            }
+            
+            if (isExpanded) {
+                subcards.classList.remove('expanded');
+                button.classList.remove('expanded');
+                cardContainer.classList.remove('active');
+                overlay.classList.remove('active');
+                currentExpanded = null;
+            } else {
+                subcards.classList.add('expanded');
+                button.classList.add('expanded');
+                cardContainer.classList.add('active');
+                overlay.classList.add('active');
+                currentExpanded = subcardId;
+            }
         }
-    } else {
-        subcards.classList.add('expanded');
-        button.classList.add('expanded');
-        cardContainer.classList.add('active');
-        overlay.classList.add('active');
-        
-        // 根据分类设置相应的状态变量
-        if (isAICard) {
-            currentAIExpanded = subcardId;
-        } else {
-            currentExpanded = subcardId;
-        }
-    }
-}
 
         // 视频聚合的切换函数 - 修改版本
         function toggleSection(sectionId, button) {
@@ -2718,36 +2699,23 @@ function toggleSubCards(subcardId, button) {
                     setTimeout(() => {
                         collapseBtn.style.display = 'flex';
                         collapseBtn.classList.remove('moving');
-                    }, 400);
+                    }, 800);
                 }, 200);
             }
         }
 
-document.getElementById('overlay').addEventListener('click', function() {
-    // 处理视频聚合分类的展开项
-    if (currentExpanded) {
-        const subcards = document.getElementById(currentExpanded);
-        const button = subcards.parentElement.querySelector('.expand-btn');
-        const cardContainer = button.closest('.card-container');
-        subcards.classList.remove('expanded');
-        button.classList.remove('expanded');
-        cardContainer.classList.remove('active');
-        currentExpanded = null;
-    }
-    
-    // 处理网络资源分类的展开项
-    if (currentAIExpanded) {
-        const subcards = document.getElementById(currentAIExpanded);
-        const button = subcards.parentElement.querySelector('.expand-btn');
-        const cardContainer = button.closest('.card-container');
-        subcards.classList.remove('expanded');
-        button.classList.remove('expanded');
-        cardContainer.classList.remove('active');
-        currentAIExpanded = null;
-    }
-    
-    this.classList.remove('active');
-});
+        document.getElementById('overlay').addEventListener('click', function() {
+            if (currentExpanded) {
+                const subcards = document.getElementById(currentExpanded);
+                const button = subcards.parentElement.querySelector('.expand-btn');
+                const cardContainer = button.closest('.card-container');
+                subcards.classList.remove('expanded');
+                button.classList.remove('expanded');
+                cardContainer.classList.remove('active');
+                this.classList.remove('active');
+                currentExpanded = null;
+            }
+        });
 
         // 使用事件委托处理动态生成的sub-cards
         document.addEventListener('click', function(e) {
