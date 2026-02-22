@@ -187,7 +187,7 @@
             transform: rotate(180deg);
         }
 
-        /* ===== 子菜单浮层 ===== */
+        /* 更快的动画速度 */
         .floating-sub-cards {
             position: absolute;
             top: 70%;
@@ -195,80 +195,33 @@
             right: 5%;
             width: 90%;
             z-index: 100;
-            display: none;
-            pointer-events: none;
+            max-height: 0;
             overflow: hidden;
-            transition: max-height 0.13s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top center;
+            transform: scaleY(0);
+            transition: max-height 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                       transform 0.2s cubic-bezier(0.68, -0.5, 0.291, 1.4);
         }
 
         .floating-sub-cards.show {
-            pointer-events: auto;
+            max-height: 200px;
+            transform: scaleY(1);
         }
 
-        .floating-sub-cards.flip-up {
-            top: auto;
-            bottom: 70%;
-        }
-
-        /* 果冻：仅 translateY，不影响 backdrop-filter */
-        @keyframes jellyDown {
-            0%   { transform: translateY(-5px); }
-            55%  { transform: translateY(0); }
-            75%  { transform: translateY(2.5px); }
-            90%  { transform: translateY(-0.8px); }
-            100% { transform: translateY(0); }
-        }
-
-        @keyframes jellyUp {
-            0%   { transform: translateY(5px); }
-            55%  { transform: translateY(0); }
-            75%  { transform: translateY(-2.5px); }
-            90%  { transform: translateY(0.8px); }
-            100% { transform: translateY(0); }
-        }
-
-        .floating-sub-cards.jelly-down .sub-cards-wrapper {
-            animation: jellyDown 0.23s ease forwards;
-        }
-
-        .floating-sub-cards.jelly-up .sub-cards-wrapper {
-            animation: jellyUp 0.23s ease forwards;
-        }
-
+        /* 修复容器底部圆角问题 - 改用上下不同的内边距 */
         .sub-cards-wrapper {
             background: rgba(113, 137, 245, 0.15);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-radius: 12px;
-            padding: 12px 12px 0 12px;
+            padding: 12px 12px 0 12px; /* 上左右12px，下0px */
             border: 2px solid rgba(200, 210, 220, 0.3);
             will-change: auto;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-
-        .sub-cards-wrapper::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .sub-cards-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-            border-radius: 10px;
-        }
-
-        .sub-cards-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(113, 137, 245, 0.35);
-            border-radius: 10px;
-        }
-
-        .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
-            background: rgba(113, 137, 245, 0.55);
+            overflow: hidden;
         }
 
         .sub-card {
             background: rgba(240, 242, 247, 0.85);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border-radius: 8px;
             padding: 12px 20px;
             margin-bottom: 8px;
@@ -286,14 +239,15 @@
             min-height: 52px;
         }
 
+        /* 最后一个卡片保持底部间距，这样就正好填满容器 */
         .sub-card:last-child {
-            margin-bottom: 12px;
+            margin-bottom: 12px; /* 恢复底部间距，正好填满容器的高度 */
         }
 
         .sub-card:hover {
             background: rgba(240, 242, 247, 0.95);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 
                     0 0 15px rgba(113, 137, 245, 0.5),
                     0 0 30px rgba(113, 137, 245, 0.2),
                     inset 0 1px 3px rgba(255, 255, 255, 0.5);
@@ -344,15 +298,16 @@
             font-size: 12px;
         }
 
+        /* 响应式布局 */
         @media (max-width: 320px) {
             .container {
                 padding-top: 10px;
             }
-
+            
             .title {
                 font-size: 24px;
             }
-
+            
             .tool-card {
                 padding: 15px;
             }
@@ -402,8 +357,13 @@
                 width: 85%;
             }
 
+            .floating-sub-cards.show {
+                max-height: 160px;
+            }
+
+            /* 小屏幕也应用相同的修复 */
             .sub-cards-wrapper {
-                padding: 10px 10px 0 10px;
+                padding: 10px 10px 0 10px; /* 小屏幕：上左右10px，下0px */
             }
 
             .sub-card {
@@ -413,7 +373,7 @@
             }
 
             .sub-card:last-child {
-                margin-bottom: 10px;
+                margin-bottom: 10px; /* 小屏幕：最后一个卡片底部间距10px */
             }
 
             .sub-card-title {
@@ -542,7 +502,7 @@
                 <span class="smart"><span class="highlight">S</span><b>mart</b></span><span class="tools"><span class="highlight">T</span><b>ools</b></span>
             </h1>
             <p class="subtitle">实用小工具集合</p>
-
+            
             <div class="nav-cards">
                 <a href="about.html" class="nav-card">📄 简介</a>
                 <a href="index.html" class="nav-card">🔖 收藏夹</a>
@@ -566,19 +526,19 @@
                 <span class="tool-icon">🩺</span>
                 <h3 class="tool-title">生理知识点</h3>
                 <p class="tool-desc">关联临床</p>
-            </a>
+            </a>     
 
-            <a href="https://wn.n29.net/" target="_blank" rel="noopener" class="tool-card">
+            <a href="https://wn.n29.net/" class="tool-card">
                 <span class="tool-icon">🗳</span>
                 <h3 class="tool-title">Wrong-notebook</h3>
                 <p class="tool-desc">AI错题本</p>
-            </a>
+            </a>    
 
-            <a href="https://vbw.n29.net/" target="_blank" rel="noopener" class="tool-card">
+            <a href="https://vbw.n29.net/" class="tool-card">
                 <span class="tool-icon">🛡</span>
                 <h3 class="tool-title">Vaultwarden</h3>
                 <p class="tool-desc">Bitwarden密码管理</p>
-            </a>
+            </a>     
 
             <div class="card-container">
                 <div class="tool-card math-card" onclick="toggleMathCard(this)">
@@ -587,32 +547,32 @@
                     <p class="tool-desc">聚合影视资源</p>
                     <span class="expand-indicator">▼</span>
                 </div>
-
+                
                 <div class="floating-sub-cards">
                     <div class="sub-cards-wrapper">
-                        <div class="sub-card" onclick="window.open('https://m.f66.fun/','_blank')">
+                        <div class="sub-card" onclick="https://m.f66.fun/">
                             <div class="sub-card-title">🌗LunaTV-Zb</div>
                             <div class="sub-card-desc">m.f66.fun</div>
                         </div>
-                        <div class="sub-card" onclick="window.open('https://k.f66.fun/','_blank')">
+                        <div class="sub-card" onclick="https://k.f66.fun/">
                             <div class="sub-card-title">🧝🏽KatTV-V</div>
                             <div class="sub-card-desc">k.f66.fun</div>
                         </div>
-                        <div class="sub-card" onclick="window.open('https://m2.f66.fun/','_blank')">
+                        <div class="sub-card" onclick="https://m2.f66.fun/">
                             <div class="sub-card-title">🌜️MoonTV²-CC</div>
                             <div class="sub-card-desc">m2.f66.fun</div>
                         </div>
-                        <div class="sub-card" onclick="window.open('https://xy.f66.fun/','_blank')">
+                        <div class="sub-card" onclick="https://xy.f66.fun/">
                             <div class="sub-card-title">🌈小雅</div>
                             <div class="sub-card-desc">xy.f66.fun</div>
-                        </div>
-                        <div class="sub-card" onclick="window.open('https://pso.992929.xyz/','_blank')">
+                        </div>                           
+                        <div class="sub-card" onclick="https://pso.992929.xyz/">
                             <div class="sub-card-title">🔍盘搜</div>
                             <div class="sub-card-desc">网盘搜索</div>
-                        </div>
+                        </div>                
                     </div>
                 </div>
-            </div>
+            </div>   
 
             <div class="card-container">
                 <div class="tool-card math-card" onclick="toggleMathCard(this)">
@@ -621,7 +581,7 @@
                     <p class="tool-desc">生成每日口算练习题目</p>
                     <span class="expand-indicator">▼</span>
                 </div>
-
+                
                 <div class="floating-sub-cards">
                     <div class="sub-cards-wrapper">
                         <div class="sub-card" onclick="window.location.href='tools/math3-4.html'">
@@ -641,7 +601,7 @@
                 <h3 class="tool-title">在线收藏夹</h3>
                 <p class="tool-desc">常用网站链接收藏</p>
             </a>
-
+                   
         </div>
 
         <div class="footer">
@@ -650,101 +610,47 @@
     </div>
 
     <script>
-        function openCard(card, container, subCards) {
-            var cardRect = card.getBoundingClientRect();
-            var viewportHeight = window.innerHeight;
-            var spaceBelow = viewportHeight - cardRect.bottom;
-            var spaceAbove = cardRect.top;
-
-            subCards.classList.remove('show', 'flip-up', 'jelly-down', 'jelly-up');
-            var isFlipUp = spaceBelow < 240 && spaceAbove > spaceBelow;
-            if (isFlipUp) {
-                subCards.classList.add('flip-up');
-            }
-
-            // 限制 wrapper 滚动高度
-            var wrapper = subCards.querySelector('.sub-cards-wrapper');
-            var available = Math.max(spaceBelow, spaceAbove) - 30;
-            wrapper.style.maxHeight = Math.min(available, viewportHeight * 0.5) + 'px';
-
-            // 先展示并测量真实高度
-            subCards.style.display = 'block';
-            subCards.style.maxHeight = 'none';
-            void subCards.offsetHeight;
-            var targetHeight = subCards.offsetHeight;
-
-            // 从 0 开始过渡到真实高度
-            subCards.style.maxHeight = '0px';
-            void subCards.offsetHeight;
-
-            container.classList.add('expanded');
-            subCards.classList.add('show');
-            subCards.style.maxHeight = targetHeight + 'px';
-
-            // 触发果冻
-            subCards.classList.add(isFlipUp ? 'jelly-up' : 'jelly-down');
-        }
-
-        function closeCard(container, immediate) {
-            var subCards = container.querySelector('.floating-sub-cards');
-            container.classList.remove('expanded');
-            subCards.classList.remove('show', 'jelly-down', 'jelly-up');
-            subCards.style.maxHeight = '0px';
-
-            if (immediate) {
-                subCards.style.display = 'none';
-                subCards.classList.remove('flip-up');
-                subCards.style.maxHeight = '';
-                return;
-            }
-
-            function onDone(e) {
-                if (e && e.propertyName !== 'max-height') return;
-                subCards.removeEventListener('transitionend', onDone);
-                subCards.style.display = 'none';
-                subCards.classList.remove('flip-up');
-                subCards.style.maxHeight = '';
-            }
-            subCards.addEventListener('transitionend', onDone);
-
-            // 兜底
-            setTimeout(function () {
-                if (subCards.style.display !== 'none') {
-                    onDone();
-                }
-            }, 400);
-        }
-
         function toggleMathCard(card) {
-            var container = card.closest('.card-container');
-            var subCards = container.querySelector('.floating-sub-cards');
-            var isExpanded = container.classList.contains('expanded');
-
-            document.querySelectorAll('.card-container.expanded').forEach(function (other) {
-                if (other !== container) {
-                    closeCard(other);
+            const container = card.closest('.card-container');
+            const subCards = container.querySelector('.floating-sub-cards');
+            const isExpanded = container.classList.contains('expanded');
+            
+            // 关闭其他已展开的卡片
+            document.querySelectorAll('.card-container.expanded').forEach(otherContainer => {
+                if (otherContainer !== container) {
+                    const otherSubCards = otherContainer.querySelector('.floating-sub-cards');
+                    otherContainer.classList.remove('expanded');
+                    otherSubCards.classList.remove('show');
                 }
             });
-
+            
             if (isExpanded) {
-                closeCard(container);
+                // 收起
+                container.classList.remove('expanded');
+                subCards.classList.remove('show');
             } else {
-                openCard(card, container, subCards);
+                // 展开
+                container.classList.add('expanded');
+                subCards.classList.add('show');
             }
         }
 
-        document.addEventListener('click', function (e) {
+        // 点击页面其他地方关闭展开的卡片
+        document.addEventListener('click', function(e) {
             if (!e.target.closest('.card-container')) {
-                document.querySelectorAll('.card-container.expanded').forEach(function (container) {
-                    closeCard(container);
+                document.querySelectorAll('.card-container.expanded').forEach(container => {
+                    const subCards = container.querySelector('.floating-sub-cards');
+                    container.classList.remove('expanded');
+                    subCards.classList.remove('show');
                 });
             }
         });
 
-        document.querySelectorAll('.floating-sub-cards').forEach(function (el) {
-            el.addEventListener('click', function (e) {
+        // 阻止次级卡片的点击事件冒泡
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.floating-sub-cards')) {
                 e.stopPropagation();
-            });
+            }
         });
     </script>
 </body>
