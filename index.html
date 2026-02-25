@@ -781,9 +781,9 @@
             transform: translateY(-10px) scaleY(0.4);
             transform-origin: top center;
             /* 关键改动：更强的弹性曲线，时间稍长 */
-            transition: opacity 0.13s cubic-bezier(0.24, 1.42, 0.64, 1), 
-                         visibility 0.13s cubic-bezier(0.24, 1.42, 0.64, 1),
-                         transform 0.13s cubic-bezier(0.34, 1.42, 0.64, 1);
+            transition: opacity 0.18s cubic-bezier(0.24, 1.39, 0.64, 1), 
+                         visibility 0.18s cubic-bezier(0.24, 1.39, 0.64, 1),
+                         transform 0.18s cubic-bezier(0.24, 1.39, 0.64, 1);
             padding: 8px;
             background: rgba(220, 225, 235, 0.2);
             backdrop-filter: blur(8px);
@@ -837,13 +837,13 @@
 
         /* 隐藏卡片区域的sub-card不需要动画延迟 */
         .hidden-cards .sub-card {
-            animation: jellyUp 0.23s ease-out forwards;
+            animation: jellyUp 0.33s ease-out forwards;
             animation-delay: 0s !important;
         }
 
         /* 非隐藏区域保持原有动画 */
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card {
-            animation: jellyDown 0.33s ease-out forwards;
+            animation: jellyDown 0.43s ease-out forwards;
         }
 
         .sub-card.backup-card {
