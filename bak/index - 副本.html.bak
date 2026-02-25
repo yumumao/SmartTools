@@ -334,17 +334,17 @@
 
 /* 关键：为展开完成的卡片强制添加过渡效果和悬停能力 */
 .hidden-cards.expanded.hover-ready .link-card {
-    animation-name: none !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    animation-name: none !important; /* 只清除动画名称，保持其他属性 */
+    opacity: 1 !important; /* 确保可见 */
+    transform: translateY(0) !important; /* 确保在正确位置 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important; /* 强制添加过渡 */
 }
 
 .hidden-cards.expanded.hover-ready .card-container .link-card {
-    animation-name: none !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    animation-name: none !important; /* 只清除动画名称，保持其他属性 */
+    opacity: 1 !important; /* 确保可见 */
+    transform: translateY(0) !important; /* 确保在正确位置 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important; /* 强制添加过渡 */
 }
 
 /* 展开后的悬停效果 */
@@ -496,32 +496,11 @@
             padding-right: 55px;
         }
 
-        /* ===== 右侧1/3展开热区视觉提示 ===== */
-        .link-card-with-expand .expand-zone {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 40%;
-            height: 100%;
-            border-radius: 0 10px 10px 0;
-            cursor: pointer;
-            z-index: 2;
-            transition: background 0.25s ease;
-        }
-
-        .link-card-with-expand .expand-zone:hover {
-            background: rgba(102, 126, 234, 0.06);
-        }
-
-        .link-card-with-expand .expand-zone:active {
-            background: rgba(102, 126, 234, 0.12);
-        }
-
-        /* 邮箱卡片特殊样式 */
+        /* 邮箱卡片特殊样式 - 修改为55%宽度 */
         .email-card {
             position: relative;
             padding: 16px;
-            padding-right: 55%;
+            padding-right: 55%; /* 从50%改为55% */
             overflow: hidden;
             border-bottom: 3px solid rgba(102, 126, 234, 0.6);
         }
@@ -554,7 +533,7 @@
             height: 100%;
             display: flex;
             z-index: 1;
-            width: 55%;
+            width: 55%; /* 从50%改为55% */
         }
 
         .email-tab {
@@ -575,7 +554,7 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-origin: left center;
             border-radius: 0 10px 10px 0;
-            white-space: nowrap;
+            white-space: nowrap; /* 添加强制不换行 */
         }
 
         /* 未选中标签的阴影 */
@@ -588,10 +567,12 @@
             border-radius: 0 10px 10px 2px;
         }
 
+        /* 激活状态样式 - 从右到左的渐变色，左侧更浅，无左边框 */
         .email-tab.active {
             background: linear-gradient(to left, rgba(102, 126, 234, 0.35), rgba(102, 126, 234, 0.01));
             color: #4a5bcc;
             border-left: none;
+            /* 选中标签的阴影效果 */
             box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.15), 
                         inset 0px 1px 0px 0px rgba(0, 0, 0, 0.1),
                         0 0 0 1px rgba(102, 126, 234, 0.0);
@@ -599,40 +580,147 @@
             border-top: 0px solid rgba(102, 126, 234, 0.4);
             border-bottom: 2px solid rgba(102, 126, 234, 0.2);
             font-weight: block;
+            /* 添加文字阴影 */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             border-radius: 0 15px 15px 0;
         }
 
-        /* 标签位置布局 */
-        .email-tabs.active-0 .email-tab[data-email="0"] { right: 80%; width: 20%; z-index: 15; }
-        .email-tabs.active-0 .email-tab[data-email="1"] { right: 60%; width: 20%; z-index: 13; }
-        .email-tabs.active-0 .email-tab[data-email="2"] { right: 40%; width: 20%; z-index: 12; }
-        .email-tabs.active-0 .email-tab[data-email="3"] { right: 20%; width: 20%; z-index: 11; }
-        .email-tabs.active-0 .email-tab[data-email="4"] { right: 0%; width: 20%; z-index: 10; }
+        /* 标签位置布局 - 5个标签，每个占20%宽度 */
+        
+        /* 默认位置 (选中第一个) */
+        .email-tabs.active-0 .email-tab[data-email="0"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-0 .email-tab[data-email="1"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-0 .email-tab[data-email="2"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-0 .email-tab[data-email="3"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-0 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        .email-tabs.active-1 .email-tab[data-email="1"] { right: 80%; width: 20%; z-index: 15; }
-        .email-tabs.active-1 .email-tab[data-email="0"] { right: 60%; width: 20%; z-index: 13; }
-        .email-tabs.active-1 .email-tab[data-email="2"] { right: 40%; width: 20%; z-index: 12; }
-        .email-tabs.active-1 .email-tab[data-email="3"] { right: 20%; width: 20%; z-index: 11; }
-        .email-tabs.active-1 .email-tab[data-email="4"] { right: 0%; width: 20%; z-index: 10; }
+        /* 选中第二个：2-1-3-4-5 */
+        .email-tabs.active-1 .email-tab[data-email="1"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-1 .email-tab[data-email="0"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-1 .email-tab[data-email="2"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-1 .email-tab[data-email="3"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-1 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        .email-tabs.active-2 .email-tab[data-email="2"] { right: 80%; width: 20%; z-index: 15; }
-        .email-tabs.active-2 .email-tab[data-email="0"] { right: 60%; width: 20%; z-index: 13; }
-        .email-tabs.active-2 .email-tab[data-email="1"] { right: 40%; width: 20%; z-index: 12; }
-        .email-tabs.active-2 .email-tab[data-email="3"] { right: 20%; width: 20%; z-index: 11; }
-        .email-tabs.active-2 .email-tab[data-email="4"] { right: 0%; width: 20%; z-index: 10; }
+        /* 选中第三个：3-1-2-4-5 */
+        .email-tabs.active-2 .email-tab[data-email="2"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-2 .email-tab[data-email="0"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-2 .email-tab[data-email="1"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-2 .email-tab[data-email="3"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-2 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        .email-tabs.active-3 .email-tab[data-email="3"] { right: 80%; width: 20%; z-index: 15; }
-        .email-tabs.active-3 .email-tab[data-email="0"] { right: 60%; width: 20%; z-index: 13; }
-        .email-tabs.active-3 .email-tab[data-email="1"] { right: 40%; width: 20%; z-index: 12; }
-        .email-tabs.active-3 .email-tab[data-email="2"] { right: 20%; width: 20%; z-index: 11; }
-        .email-tabs.active-3 .email-tab[data-email="4"] { right: 0%; width: 20%; z-index: 10; }
+        /* 选中第四个：4-1-2-3-5 */
+        .email-tabs.active-3 .email-tab[data-email="3"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-3 .email-tab[data-email="0"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-3 .email-tab[data-email="1"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-3 .email-tab[data-email="2"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-3 .email-tab[data-email="4"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
-        .email-tabs.active-4 .email-tab[data-email="4"] { right: 80%; width: 20%; z-index: 15; }
-        .email-tabs.active-4 .email-tab[data-email="0"] { right: 60%; width: 20%; z-index: 13; }
-        .email-tabs.active-4 .email-tab[data-email="1"] { right: 40%; width: 20%; z-index: 12; }
-        .email-tabs.active-4 .email-tab[data-email="2"] { right: 20%; width: 20%; z-index: 11; }
-        .email-tabs.active-4 .email-tab[data-email="3"] { right: 0%; width: 20%; z-index: 10; }
+        /* 选中第五个：5-1-2-3-4 */
+        .email-tabs.active-4 .email-tab[data-email="4"] {
+            right: 80%;
+            width: 20%;
+            z-index: 15;
+        }
+        .email-tabs.active-4 .email-tab[data-email="0"] {
+            right: 60%;
+            width: 20%;
+            z-index: 13;
+        }
+        .email-tabs.active-4 .email-tab[data-email="1"] {
+            right: 40%;
+            width: 20%;
+            z-index: 12;
+        }
+        .email-tabs.active-4 .email-tab[data-email="2"] {
+            right: 20%;
+            width: 20%;
+            z-index: 11;
+        }
+        .email-tabs.active-4 .email-tab[data-email="3"] {
+            right: 0%;
+            width: 20%;
+            z-index: 10;
+        }
 
         .email-tab:hover:not(.active) {
             background: rgba(102, 126, 234, 0.2);
@@ -645,7 +733,7 @@
 
         .expand-btn {
             position: absolute;
-            right: 26px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -663,7 +751,6 @@
             transition: all 0.3s ease;
             box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.3);
             z-index: 3;
-            pointer-events: none; /* 改为不接收点击，由expand-zone统一处理 */
         }
 
         .expand-btn:hover {
@@ -687,11 +774,13 @@
             left: 2.5%;
             right: 2.5%;
             z-index: 30;
-            margin-top: -8px;
+            margin-top: -8px; /* 向上轻微重叠 */
             opacity: 0;
             visibility: hidden;
+            /* 关键改动：增大位移 + 加入缩放 */
             transform: translateY(-10px) scaleY(0.4);
             transform-origin: top center;
+            /* 关键改动：更强的弹性曲线，时间稍长 */
             transition: opacity 0.18s cubic-bezier(0.24, 1.39, 0.64, 1), 
                          visibility 0.18s cubic-bezier(0.24, 1.39, 0.64, 1),
                          transform 0.18s cubic-bezier(0.24, 1.39, 0.64, 1);
@@ -746,11 +835,13 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
+        /* 隐藏卡片区域的sub-card不需要动画延迟 */
         .hidden-cards .sub-card {
             animation: jellyUp 0.33s ease-out forwards;
             animation-delay: 0s !important;
         }
 
+        /* 非隐藏区域保持原有动画 */
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card {
             animation: jellyDown 0.43s ease-out forwards;
         }
@@ -839,9 +930,9 @@
             background: rgba(240, 242, 247, 0.95) !important;
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 
-                    0 0 15px rgba(102, 126, 234, 0.5),
-                    0 0 30px rgba(102, 126, 234, 0.2),
-                    inset 0 1px 3px rgba(255, 255, 255, 0.5);
+                    0 0 15px rgba(102, 126, 234, 0.5), /* 添加蓝色发光效果 */
+                    0 0 30px rgba(102, 126, 234, 0.2), /* 添加更大范围的发光 */
+                    inset 0 1px 3px rgba(255, 255, 255, 0.5); /* 内部高光 */
             z-index: 2;
         }
 
@@ -1018,7 +1109,7 @@
 }
         .email-card.contact-card {
             padding: 14px 16px;
-            padding-right: 55%;
+            padding-right: 55%; /* 从50%改为55% */
         }
 
         .email-contact-header {
@@ -1075,10 +1166,11 @@
                 margin-bottom: 13px;
             }
             
+            /* 联系方式在3列布局下：2个卡片占满整个宽度 */
             .contact-row {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 16px;
-                max-width: 100%;
+                max-width: 100%; /* 占满整个宽度 */
             }
         }
 
@@ -1098,10 +1190,11 @@
                 gap: 20px;
             }
 
+            /* 联系方式在4列布局下：2个卡片占3列的宽度 */
             .contact-row {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 20px;
-                max-width: calc(75% + 10px);
+                max-width: calc(75% + 10px); /* 4列中3列的宽度 */
             }
 
             .section-title {
@@ -1120,12 +1213,12 @@
             
             .email-card {
                 padding: 18px;
-                padding-right: 55%;
+                padding-right: 55%; /* 从50%改为55% */
             }
 
             .email-card.contact-card {
                 padding: 18px;
-                padding-right: 55%;
+                padding-right: 55%; /* 从50%改为55% */
             }
 
             .link-card-with-expand {
@@ -1133,11 +1226,11 @@
             }
 
             .expand-btn {
-                right: 28px;
+                right: 18px;
                 width: 36px;
                 height: 28px;
                 font-size: 15px;
-                margin: -3px 0;
+                margin: -3px 0;     /* 稍微增加负边距 */
             }
 
             .link-icon {
@@ -1182,7 +1275,7 @@
             }
         }
 
-        /* 移动端响应式 */
+        /* 移动端响应式 - 保持最少2个卡片每行 */
         @media (max-width: 480px) {
             .container {
                 width: 96%;
@@ -1209,14 +1302,15 @@
 
             .email-card {
                 padding: 12px;
-                padding-right: 60%;
+                padding-right: 60%; /* 从50%改为60% */
             }
 
             .email-card.contact-card {
                 padding: 12px 12px;
-                padding-right: 60%;
+                padding-right: 60%; /* 从50%改为60% */
             }
 
+            /* 移动端保持2列 */
             .links-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
@@ -1227,6 +1321,7 @@
                 gap: 12px;
             }
 
+            /* 联系方式在移动端单独占一行 */
             .contact-row {
                 grid-template-columns: 1fr !important;
                 max-width: none !important;
@@ -1239,11 +1334,11 @@
             }
 
             .expand-btn {
-                right: 22px;
+                right: 12px;
                 width: 30px;
                 height: 22px;
                 font-size: 12px;
-                margin: -2px 0;
+                margin: -2px 0;     /* 稍微增加负边距 */
             }
 
             .sub-card {
@@ -1391,24 +1486,24 @@
   left: 10px;
   z-index: 10000;
   padding: 4px 10px;
-  background-color: rgba(127, 112, 225, 0.3);
-  color: #f5f5f5;
+  background-color: rgba(127, 112, 225, 0.3); /* 更高透明度 + 稍微偏蓝紫 */
+  color: #f5f5f5; /* 更浅的文字 */
   border: none;
-  border-radius: 8px;
+  border-radius: 8px; /* 增加圆角 */
   font-size: 13px;
   font-weight: bold;
   font-family: "微软雅黑", Arial, sans-serif;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px); /* 添加毛玻璃模糊 */
   text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
                0 0 4px rgba(80, 80, 80, 0.3);
 }
 
 #backHomeBtn:hover {
-  background-color: rgba(127, 112, 220, 0.6);
-  color: #fff;
+  background-color: rgba(127, 112, 220, 0.6); /* 更不透明 */
+  color: #fff; /* 更白一点 */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   text-shadow: 0 0 3px rgba(100, 100, 100, 0.6),
                0 0 6px rgba(80, 80, 80, 0.5);
@@ -1417,7 +1512,8 @@
 </head>
 <body>
     <div class="overlay" id="overlay"></div>
-    <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
+    <!-- 左上角返回主页按钮 -->
+<button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
     <div class="container">
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
@@ -1440,12 +1536,11 @@
                     <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://mrr.cc/la', '_blank')">to2.top/la</p>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://www.jianguoyun.com/p/DRNDENoQyu2zDBjYlZ0GIAA', 'zz-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.jianguoyun.com/p/DRNDENoQyu2zDBjYlZ0GIAA', '_blank')">
                         <span class="link-icon">💾</span>
                         <h3 class="link-title">zz在线U盘</h3>
                         <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://to2.top/u', '_blank')">to2.top/u</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('zz-subcards', this)"></div>
-                        <button class="expand-btn" title="展开备用地址">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('zz-subcards', this)" title="展开备用地址">▼</button>
                     </div>
                     <div class="sub-cards" id="zz-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://www.jianguoyun.com/p/DemLEOwQpYHpBRiwtscFIAA', '_blank')">
@@ -1472,14 +1567,13 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://o.n29.net/', 'cloud-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://o.n29.net/', '_blank')">
                             <span class="link-icon" aria-hidden="true">
                             <img src="https://o.n29.net/p/00%E5%AE%B6%E5%BA%AD%E4%BA%91%E7%A1%AC%E7%9B%9800/%E5%AD%98%E5%82%A8/A1/Share/pubphoto/catcloud.png?sign=vwyhzmBGhTCy_XAWy9wsDkPnuzk0JIZ3ddGOcQFGCPU=:0" alt="" />
                             </span>
                         <h3 class="link-title">Oplist云硬盘</h3>
                         <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('https://n29.net/', '_blank')">n29.net</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('cloud-subcards', this)"></div>
-                        <button class="expand-btn" title="展开备用地址">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('cloud-subcards', this)" title="展开备用地址">▼</button>
                     </div>
                     <div class="sub-cards" id="cloud-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://992929.xyz/', '_blank')">
@@ -1523,12 +1617,11 @@
             <h2 class="section-title">📚 授课资料</h2>
             <div class="links-grid">
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://gdpu.fanya.chaoxing.com/', 'physiology-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://gdpu.fanya.chaoxing.com/', '_blank')">
                         <span class="link-icon">👨‍⚕</span>
                         <h3 class="link-title">超星平台</h3>
                         <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('https://gdpu.fanya.chaoxing.com/', '_blank')">广药@超星</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('physiology-subcards', this)"></div>
-                        <button class="expand-btn" title="展开更多课程">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('physiology-subcards', this)" title="展开更多课程">▼</button>
                     </div>
                     <div class="sub-cards" id="physiology-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://mooc1.chaoxing.com/mooc-ans/course/214155769.html', '_blank')">
@@ -1548,12 +1641,11 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://webvpn.gdpu.edu.cn/', 'vpn-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://webvpn.gdpu.edu.cn/', '_blank')">
                         <span class="link-icon">🔒</span>
                         <h3 class="link-title">广药VPN</h3>
                         <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://172.21.199.252/', '_blank')">内网登录</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('vpn-subcards', this)"></div>
-                        <button class="expand-btn" title="展开相关链接">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('vpn-subcards', this)" title="展开相关链接">▼</button>
                     </div>
                     <div class="sub-cards" id="vpn-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://portal.gdpu.edu.cn/#/index', '_blank')">
@@ -1573,12 +1665,11 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://www.jianguoyun.com/p/DczPqnIQyu2zDBi3oYMGIAA', 'ppt-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.jianguoyun.com/p/DczPqnIQyu2zDBi3oYMGIAA', '_blank')">
                         <span class="link-icon">👨🏻‍🏫</span>
                         <h3 class="link-title">生理学PPT</h3>
                         <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('http://f66.fun/slx', '_blank')">f66.fun/slx</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('ppt-subcards', this)"></div>
-                        <button class="expand-btn" title="展开实验视频">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('ppt-subcards', this)" title="展开实验视频">▼</button>
                     </div>
                     <div class="sub-cards" id="ppt-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://www.jianguoyun.com/p/DRHT5LcQzLmCCRj5x6kF', '_blank')">
@@ -1612,12 +1703,11 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://www.medsci.cn/medsci-tools', 'medical-tools-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.medsci.cn/medsci-tools', '_blank')">
                         <span class="link-icon">🏥</span>
                         <h3 class="link-title">在线医学工具</h3>
                         <p class="link-desc">算/表/统</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('medical-tools-subcards', this)"></div>
-                        <button class="expand-btn" title="展开更多工具">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('medical-tools-subcards', this)" title="展开更多工具">▼</button>
                     </div>
                     <div class="sub-cards" id="medical-tools-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://m.medsci.cn/scale/index.do', '_blank')">
@@ -1651,12 +1741,11 @@
                     </div>
                 </div>
                 <div class="card-container">
-                    <div class="link-card link-card-with-expand" onclick="handleCardClick(event, 'https://www.geogebra.org/', 'calc-subcards')">
+                    <div class="link-card link-card-with-expand" onclick="window.open('https://www.geogebra.org/', '_blank')">
                         <span class="link-icon">👨🏻‍🔧</span>
                         <h3 class="link-title">在线工具</h3>
                         <p class="link-desc">在线算/小工具</p>
-                        <div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone('calc-subcards', this)"></div>
-                        <button class="expand-btn" title="展开计算工具">▼</button>
+                        <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('calc-subcards', this)" title="展开计算工具">▼</button>
                     </div>
                     <div class="sub-cards" id="calc-subcards">
                         <div class="sub-card two-line-card" onclick="window.open('https://www.desmos.com/calculator?lang=zh-CN', '_blank')">
@@ -1708,6 +1797,7 @@
 <!-- ===================== 开始：网络资源分类 ===================== -->
 <div class="section">
     <h2 class="section-title">🖥️ 网络资源</h2>
+    <!-- 动态生成的网络资源分类将在这里插入 -->
     <div id="online-ai-content"></div>
 </div>
 <!-- ===================== 结束：网络资源分类 ===================== -->
@@ -1715,6 +1805,7 @@
 <!-- ===================== 开始：视频聚合分类 ===================== -->
         <div class="section">
             <h2 class="section-title">🎬 视频聚合</h2>
+            <!-- 动态生成的视频聚合内容将在这里插入 -->
             <div id="video-content"></div>
         </div>
 <!-- ===================== 结束：视频聚合分类 ===================== -->
@@ -1759,167 +1850,367 @@
     </div>
     <script>
         let currentExpanded = null;
-        let currentAIExpanded = null;
-        let currentLayout = 'mobile';
+        let currentAIExpanded = null; // 新增：专门管理网络资源分类的展开状态
+        let currentLayout = 'mobile'; // mobile, tablet, desktop
 
+        // 修改后的邮箱数据，增加第5个邮箱
         const emailData = [
-            { icon: '✉️', title: '邮箱1', address: 'aabb(AT)cc.cc', url: 'http://aabb.cc.cc', mailto: 'http://aabb.cc.cc' },
-            { icon: '📪', title: '邮箱2', address: 'aaabbb(AT)cc.cc', url: 'http://aaabbb.cc.cc', mailto: 'http://aaabbb.cc.cc' },
-            { icon: '📬', title: '邮箱3', address: 'cocoa(AT)cc.cc', url: 'http://cocoa.cc.cc', mailto: 'http://cocoa.cc.cc' },
-            { icon: '📭', title: '邮箱4', address: 'abab(AT)cc.cc', url: 'http://abab.cc.cc', mailto: 'http://abab.cc.cc' },
-            { icon: '📠', title: '邮箱5', address: 'yumumao(AT)cc.cc', url: 'http://yumumao.cc.cc', mailto: 'http://yumumao.cc.cc' }
+            {
+                icon: '✉️',
+                title: '邮箱1',
+                address: 'aabb(AT)cc.cc',
+                url: 'http://aabb.cc.cc',
+                mailto: 'http://aabb.cc.cc'
+            },
+            {
+                icon: '📪',
+                title: '邮箱2',
+                address: 'aaabbb(AT)cc.cc',
+                url: 'http://aaabbb.cc.cc',
+                mailto: 'http://aaabbb.cc.cc'
+            },
+            {
+                icon: '📬',
+                title: '邮箱3',
+                address: 'cocoa(AT)cc.cc',
+                url: 'http://cocoa.cc.cc',
+                mailto: 'http://cocoa.cc.cc'
+            },
+            {
+                icon: '📭',
+                title: '邮箱4',
+                address: 'abab(AT)cc.cc',
+                url: 'http://abab.cc.cc',
+                mailto: 'http://abab.cc.cc'
+            },
+            {
+                icon: '📠',
+                title: '邮箱5',
+                address: 'yumumao(AT)cc.cc',
+                url: 'http://yumumao.cc.cc',
+                mailto: 'http://yumumao.cc.cc'
+            }
         ];
 
-// ===================== 新增：右侧1/3热区点击处理 =====================
-// 卡片整体点击 — 判断点击位置决定行为
-function handleCardClick(event, url, subcardId) {
-    var card = event.currentTarget;
-    var rect = card.getBoundingClientRect();
-    var clickX = event.clientX - rect.left;
-    // 点击右侧1/3 → 展开子菜单
-    if (clickX > rect.width * 3 / 5) {
-        var btn = card.querySelector('.expand-btn');
-        if (btn) toggleSubCards(subcardId, btn);
-    } else {
-        // 左侧2/3 → 打开链接
-        window.open(url, '_blank');
-    }
-}
-
-// expand-zone 层（静态HTML卡片中使用）的点击处理
-function handleExpandZone(subcardId, zone) {
-    var btn = zone.closest('.link-card').querySelector('.expand-btn');
-    if (btn) toggleSubCards(subcardId, btn);
-}
-// ===================== 结束：右侧1/3热区点击处理 =====================
-
 // ===================== 开始：网络资源分类的JS代码 =====================
+// 修改后的网络资源数据
 const onlineAIData = [
     {
-        id: 'qwen', icon: '🧞', title: 'Qwen', desc: '阿里千问等集合',
-        url: 'https://chat.qwen.ai/', type: 'expandable',
+        id: 'qwen',
+        icon: '🧞',
+        title: 'Qwen',
+        desc: '阿里千问等集合',
+        url: 'https://chat.qwen.ai/',
+        type: 'expandable',
         subCards: [
-            { icon: '🤿', title: 'DeepSeek', desc: '深度求索', url: 'https://www.deepseek.com/' },
-            { icon: '🍏', title: '腾讯元宝', desc: '腾讯AI助手', url: 'https://yuanbao.tencent.com/' },
-            { icon: '💁‍', title: '豆包', desc: '字节跳动AI助手', url: 'https://www.doubao.com/' }
+            {
+                icon: '🤿',
+                title: 'DeepSeek',
+                desc: '深度求索',
+                url: 'https://www.deepseek.com/'
+            },
+            {
+                icon: '🍏',
+                title: '腾讯元宝',
+                desc: '腾讯AI助手',
+                url: 'https://yuanbao.tencent.com/',
+            },
+            {
+                icon: '💁‍',
+                title: '豆包',
+                desc: '字节跳动AI助手',
+                url: 'https://www.doubao.com/',
+            }
         ]
     },
     {
-        id: 'poe', icon: '🧙‍', title: 'POE', desc: 'AI助手集合',
-        url: 'https://poe.com/', type: 'expandable',
+        id: 'poe',
+        icon: '🧙‍',
+        title: 'POE',
+        desc: 'AI助手集合',
+        url: 'https://poe.com/',
+        type: 'expandable',
         subCards: [
-            { icon: '✦', title: 'Gemini', desc: 'G家的AI', url: 'https://gemini.google.com/' },
-            { icon: '💬', title: 'ChatGPT', desc: 'OpenAI聊天机器人', url: 'https://chat.openai.com/' },
-            { icon: '🦊', title: 'Grok', desc: 'xAI的AI助手', url: 'https://grok.com/' },
-            { icon: '🎆', title: 'Claude', desc: '擅长写代码', url: 'https://www.anthropic.com/claude' }
+            {
+                icon: '✦',
+                title: 'Gemini',
+                desc: 'G家的AI',
+                url: 'https://gemini.google.com/'
+            },
+            {
+                icon: '💬',
+                title: 'ChatGPT',
+                desc: 'OpenAI聊天机器人',
+                url: 'https://chat.openai.com/'
+            },
+            {
+                icon: '🦊',
+                title: 'Grok',
+                desc: 'xAI的AI助手',
+                url: 'https://grok.com/'
+            },
+            {
+                icon: '🎆',
+                title: 'Claude',
+                desc: '擅长写代码',
+                url: 'https://www.anthropic.com/claude'
+            }
         ]
     },
     {
-        id: 'mitasearch', icon: '🔎', title: '秘塔搜索', desc: 'AI实用工具',
-        url: 'https://metaso.cn/', type: 'expandable',
+        id: 'mitasearch',
+        icon: '🔎',
+        title: '秘塔搜索',
+        desc: 'AI实用工具',
+        url: 'https://metaso.cn/',
+        type: 'expandable',
         subCards: [
-            { icon: '🔬', title: '纳米搜索', desc: 'AI搜索工具', url: 'https://www.n.cn/' },
-            { icon: '✵', title: 'Perplexity', desc: 'AI搜索', url: 'https://www.perplexity.ai/' },
-            { icon: '👁️‍🗨️', title: 'BibiGPT', desc: '音视频AI总结', url: 'https://bibigpt.co/' },
-            { icon: '🐈', title: '若愚', desc: '文档翻译', url: 'https://ruoyu.dingyu.me/' }
+            {
+                icon: '🔬',
+                title: '纳米搜索',
+                desc: 'AI搜索工具',
+                url: 'https://www.n.cn/'
+            },
+            {
+                icon: '✵',
+                title: 'Perplexity',
+                desc: 'AI搜索',
+                url: 'https://www.perplexity.ai/'
+            }, 
+            {
+                icon: '👁️‍🗨️',
+                title: 'BibiGPT',
+                desc: '音视频AI总结',
+                url: 'https://bibigpt.co/',
+            },
+            {
+                icon: '🐈',
+                title: '若愚',
+                desc: '文档翻译',
+                url: 'https://ruoyu.dingyu.me/',
+            }        
         ]
-    },
-    { id: 'cloudflare', icon: '🌩️', title: 'Cloudflare', desc: 'Cloudflare', url: 'https://www.cloudflare.com/', type: 'simple' },
-    { id: 'freedidi', icon: '👫🏻', title: '零度博客', desc: '零度博客', url: 'https://www.freedidi.com/', type: 'simple' },
-    { id: 'vercel', icon: '▲', title: 'Vercel', desc: 'vercel', url: 'https://vercel.com/', type: 'simple' },
-    { id: 'zeabur', icon: '𝒁', title: 'Zeabur', desc: 'zeabur', url: 'https://zeabur.com/', type: 'simple' },
-    { id: 'upstash', icon: '🌀', title: 'Upstash', desc: 'upstash', url: 'https://upstash.com/', type: 'simple' },
-    { id: 'vaultwarden', icon: '🛡', title: 'Vaultwarden', desc: 'Bitwarden密码管理', url: 'https://vbw.n29.net/', type: 'simple' }
+    },   
+    {
+        id: 'cloudflare',
+        icon: '🌩️',
+        title: 'Cloudflare',
+        desc: 'Cloudflare',
+        url: 'https://www.cloudflare.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'freedidi',
+        icon: '👫🏻',
+        title: '零度博客',
+        desc: '零度博客',
+        url: 'https://www.freedidi.com/',
+        type: 'simple'
+    },     
+    {
+        id: 'vercel',
+        icon: '▲',
+        title: 'Vercel',
+        desc: 'vercel',
+        url: ' https://vercel.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'zeabur',
+        icon: '𝒁',
+        title: 'Zeabur',
+        desc: 'zeabur',
+        url: 'https://zeabur.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'upstash',
+        icon: '🌀',
+        title: 'Upstash',
+        desc: 'upstash',
+        url: 'https://upstash.com/',
+        type: 'simple'
+    }, 
+    {
+        id: 'vaultwarden',
+        icon: '🛡',
+        title: 'Vaultwarden',
+        desc: 'Bitwarden密码管理',
+        url: 'https://vbw.n29.net/',
+        type: 'simple'
+    }    
 ];
 
+// 为网络资源创建独立的布局状态
 let currentAILayout = 'mobile';
 
+// 生成网络资源 HTML结构（完全复用视频聚合的逻辑）
 function generateAIStructure(layout) {
     let html = '';
-    var visibleCount = (layout === 'tablet') ? 3 : 4;
-    var visibleCards = onlineAIData.slice(0, visibleCount);
-    var hiddenCards = onlineAIData.slice(visibleCount);
-
-    html += '<div class="links-grid">';
-    visibleCards.forEach(function(card) { html += generateAICardHTML(card); });
-    html += '</div>';
-
-    if (hiddenCards.length > 0) {
-        html += generateAIExpandButton();
-        html += generateAIHiddenCardsHTML(hiddenCards, layout);
-        html += generateAICollapseButton();
+    
+    if (layout === 'mobile') {
+        // 移动端：显示前4个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 4);
+        const hiddenCards = onlineAIData.slice(4);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
+        
+    } else if (layout === 'tablet') {
+        // 平板：显示前3个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 3);
+        const hiddenCards = onlineAIData.slice(3);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
+        
+    } else {
+        // 桌面：显示前4个，折叠后面
+        const visibleCards = onlineAIData.slice(0, 4);
+        const hiddenCards = onlineAIData.slice(4);
+        
+        html += '<div class="links-grid">';
+        visibleCards.forEach(card => {
+            html += generateAICardHTML(card);
+        });
+        html += '</div>';
+        
+        if (hiddenCards.length > 0) {
+            html += generateAIExpandButton();
+            html += generateAIHiddenCardsHTML(hiddenCards, layout);
+            html += generateAICollapseButton();
+        }
     }
+    
     return html;
 }
 
+// 生成单个AI卡片HTML
 function generateAICardHTML(card) {
     if (card.type === 'simple') {
-        return '<a href="' + card.url + '" target="_blank" class="link-card">' +
-            '<span class="link-icon">' + card.icon + '</span>' +
-            '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc">' + card.desc + '</p></a>';
+        return `
+            <a href="${card.url}" target="_blank" class="link-card">
+                <span class="link-icon">${card.icon}</span>
+                <h3 class="link-title">${card.title}</h3>
+                <p class="link-desc">${card.desc}</p>
+            </a>
+        `;
     } else if (card.type === 'expandable') {
-        var subCardsHTML = '';
-        card.subCards.forEach(function(subCard) {
-            subCardsHTML += '<div class="sub-card two-line-card" onclick="window.open(\'' + subCard.url + '\', \'_blank\')">' +
-                '<div class="card-header"><span class="link-icon">' + subCard.icon + '</span>' +
-                '<h3 class="link-title">' + subCard.title + '</h3></div>' +
-                '<p class="link-url">' + subCard.desc + '</p></div>';
+        let subCardsHTML = '';
+        card.subCards.forEach(subCard => {
+            subCardsHTML += `
+                <div class="sub-card two-line-card" onclick="window.open('${subCard.url}', '_blank')">
+                    <div class="card-header">
+                        <span class="link-icon">${subCard.icon}</span>
+                        <h3 class="link-title">${subCard.title}</h3>
+                    </div>
+                    <p class="link-url">${subCard.desc}</p>
+                </div>
+            `;
         });
-        return '<div class="card-container">' +
-            '<div class="link-card link-card-with-expand" onclick="handleCardClick(event, \'' + card.url + '\', \'' + card.id + '-subcards\')">' +
-            '<span class="link-icon">' + card.icon + '</span>' +
-            '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc">' + card.desc + '</p>' +
-            '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + card.id + '-subcards\', this)"></div>' +
-            '<button class="expand-btn" title="展开更多选项">▼</button></div>' +
-            '<div class="sub-cards" id="' + card.id + '-subcards">' + subCardsHTML + '</div></div>';
+        
+        return `
+            <div class="card-container">
+                <div class="link-card link-card-with-expand" onclick="window.open('${card.url}', '_blank')">
+                    <span class="link-icon">${card.icon}</span>
+                    <h3 class="link-title">${card.title}</h3>
+                    <p class="link-desc">${card.desc}</p>
+                    <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('${card.id}-subcards', this)" title="展开更多选项">▼</button>
+                </div>
+                <div class="sub-cards" id="${card.id}-subcards">
+                    ${subCardsHTML}
+                </div>
+            </div>
+        `;
     }
 }
 
+// 生成AI展开按钮
 function generateAIExpandButton() {
-    return '<button class="expand-section-btn" onclick="toggleAISection(\'ai-hidden-cards\', this)" id="ai-expand-btn">' +
-        '<span>展开卡片</span><span class="arrow">▼</span></button>';
+    return `
+        <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-expand-btn">
+            <span>展开卡片</span>
+            <span class="arrow">▼</span>
+        </button>
+    `;
 }
 
+// 生成AI折叠卡片区域
 function generateAIHiddenCardsHTML(cards, layout) {
-    var html = '<div class="hidden-cards" id="ai-hidden-cards">';
-    cards.forEach(function(card) { html += generateAICardHTML(card); });
+    let html = '<div class="hidden-cards" id="ai-hidden-cards">';
+    cards.forEach(card => {
+        html += generateAICardHTML(card);
+    });
     html += '</div>';
     return html;
 }
 
+// 生成AI折叠按钮
 function generateAICollapseButton() {
-    return '<button class="expand-section-btn" onclick="toggleAISection(\'ai-hidden-cards\', this)" id="ai-collapse-btn" style="display: none;">' +
-        '<span>折叠卡片</span><span class="arrow">▲</span></button>';
+    return `
+        <button class="expand-section-btn" onclick="toggleAISection('ai-hidden-cards', this)" id="ai-collapse-btn" style="display: none;">
+            <span>折叠卡片</span>
+            <span class="arrow">▲</span>
+        </button>
+    `;
 }
 
+// AI分类独立的切换函数
 function toggleAISection(sectionId, button) {
-    var section = document.getElementById(sectionId);
-    var expandBtn = document.getElementById('ai-expand-btn');
-    var collapseBtn = document.getElementById('ai-collapse-btn');
-    var isExpanded = section.classList.contains('expanded');
-
+    const section = document.getElementById(sectionId);
+    const expandBtn = document.getElementById('ai-expand-btn');
+    const collapseBtn = document.getElementById('ai-collapse-btn');
+    const isExpanded = section.classList.contains('expanded');
+    
     if (isExpanded) {
+        // 折叠操作：移除hover-ready类
         section.classList.remove('hover-ready');
         section.classList.add('collapsing');
         collapseBtn.classList.add('moving');
-        setTimeout(function() {
+        
+        setTimeout(() => {
             section.classList.remove('expanded', 'collapsing');
             collapseBtn.style.display = 'none';
             collapseBtn.classList.remove('moving');
-            setTimeout(function() {
+            
+            setTimeout(() => {
                 expandBtn.style.display = 'flex';
                 expandBtn.classList.remove('moving');
             }, 100);
         }, 600);
+        
     } else {
+        // 展开操作
         expandBtn.classList.add('moving');
-        setTimeout(function() {
+        
+        setTimeout(() => {
             expandBtn.style.display = 'none';
             section.classList.add('expanded');
-            setTimeout(function() { section.classList.add('hover-ready'); }, 2500);
-            setTimeout(function() {
+            
+            // 关键：等待所有动画完成后添加hover-ready类
+            setTimeout(() => {
+                section.classList.add('hover-ready');
+            }, 2500); // 等待最长延迟(2.1s) + 动画时长(0.6s)
+            
+            setTimeout(() => {
                 collapseBtn.style.display = 'flex';
                 collapseBtn.classList.remove('moving');
             }, 400);
@@ -1927,199 +2218,451 @@ function toggleAISection(sectionId, button) {
     }
 }
 
+// 更新AI分类结构（使用独立的布局状态）
 function updateAIStructure() {
-    var newLayout = detectLayout();
+    const newLayout = detectLayout();
     if (newLayout !== currentAILayout) {
         currentAILayout = newLayout;
-        document.getElementById('online-ai-content').innerHTML = generateAIStructure(currentAILayout);
+        const aiContent = document.getElementById('online-ai-content');
+        aiContent.innerHTML = generateAIStructure(currentAILayout);
     }
 }
 // ===================== 结束：网络资源分类的JS代码 =====================
 
+        // 修改后的视频聚合数据（合并为LunaTV）
         const videoData = [
             {
-                id: 'lunatv', icon: '🌗', title: 'LunaTV-Zb', desc: '综合影视平台',
-                url: 'https://m.f66.fun/', type: 'expandable',
+                id: 'lunatv',
+                icon: '🌗',
+                title: 'LunaTV-Zb',
+                desc: '综合影视平台',
+                url: 'https://m.f66.fun/',
+                type: 'expandable',
                 subCards: [
-                    { icon: '🧝🏽‍', title: 'KatTV-V', desc: 'k.f66.fun', url: 'https://k.f66.fun/' },
-                    { icon: '🌜️', title: 'MoonTV²-CC', desc: 'm2.f66.fun', url: 'https://m2.f66.fun/' },
-                    { icon: '🌈', title: 'xiaoya', desc: 'xy.f66.fun', url: 'https://xy.f66.fun/' },
-                    { icon: '🔍', title: 'pansou', desc: '网盘搜索', url: 'https://pso.992929.xyz/' },
-                    { icon: '🥽', title: 'nullbrsou', desc: 'nullbr搜索', url: 'https://nso.992929.xyz/' }
+                    {
+                        icon: '🧝🏽‍',                 
+                        title: 'KatTV-V',
+                        desc: 'k.f66.fun',
+                        url: 'https://k.f66.fun/'
+                    },
+                    {
+                        icon: '🌜️',
+                        title: 'MoonTV²-CC',
+                        desc: 'm2.f66.fun',
+                        url: 'https://m2.f66.fun/'
+                    },
+                    {
+                        icon: '🌈',
+                        title: 'xiaoya',
+                        desc: 'xy.f66.fun',
+                        url: 'https://xy.f66.fun/'
+                    }, 
+                    {
+                        icon: '🔍',
+                        title: 'pansou',
+                        desc: '网盘搜索',
+                        url: 'https://pso.992929.xyz/'
+                    },
+                    {
+                        icon: '🥽',
+                        title: 'nullbrsou',
+                        desc: 'nullbr搜索',
+                        url: 'https://nso.992929.xyz/'
+                    }                                        
                 ]
             },
             {
-                id: 'yingshiselin', icon: '🌲', title: '影视森林', desc: '资源导航',
-                url: 'https://www.549.tv/', type: 'expandable',
+                id: 'yingshiselin',
+                icon: '🌲',
+                title: '影视森林',
+                desc: '资源导航',
+                url: 'https://www.549.tv/',
+                type: 'expandable',
                 subCards: [
-                    { icon: '🔗', content: 'www.549.fr', url: 'https://www.549.fr/' },
-                    { icon: '🔗', content: 'www.548549.xyz', url: 'https://www.548549.xyz/' }
+                    {
+                        icon: '🔗',
+                        content: 'www.549.fr',
+                        url: 'https://www.549.fr/'
+                    }, 
+                    {
+                        icon: '🔗',
+                        content: 'www.548549.xyz',
+                        url: 'https://www.548549.xyz/'
+                    }                    
                 ]
             },
             {
-                id: 'guanying', icon: '🎥', title: '观 影', desc: '影视大全',
-                url: 'https://www.gying.page/', type: 'expandable',
+                id: 'guanying',
+                icon: '🎥',
+                title: '观 影',
+                desc: '影视大全',
+                url: 'https://www.gying.page/',
+                type: 'expandable',
                 subCards: [
-                    { icon: '🎬', content: 'gying.si', url: 'https://gying.si' },
-                    { icon: '🍿', content: 'gying.org', url: 'https://www.gying.org/' },
-                    { icon: '🎭', content: 'gyg.la', url: 'https://gyg.la' },
-                    { icon: '🎪', content: 'gyg.si', url: 'https://gyg.si' }
+                    {
+                        icon: '🎬',
+                        content: 'gying.si',
+                        url: 'https://gying.si'
+                    },
+                    {
+                        icon: '🍿',
+                        content: 'gying.org',
+                        url: 'https://www.gying.org/'
+                    },
+                    {
+                        icon: '🎭',
+                        content: 'gyg.la',
+                        url: 'https://gyg.la'
+                    },
+                    {
+                        icon: '🎪',
+                        content: 'gyg.si',
+                        url: 'https://gyg.si'
+                    }
                 ]
             },
-            { id: 'xiuluoyingshi', icon: '📺', title: '修罗影视', desc: '资源丰富', url: 'https://xlys.me/', type: 'simple' },
-            { id: 'cilixiong', icon: '🐻', title: '磁力熊', desc: '', descClickable: 'cilixiong.cc（备用）', descUrl: 'https://www.cilixiong.cc/', url: 'https://www.cilixiong.org/', type: 'desc-clickable' },
-            { id: 'maitianyingshi', icon: '‍🌾', title: '麦田影院', desc: '', descClickable: 'mtyy.tv（网址发布）', descUrl: 'https://www.mtyy.tv/', url: 'https://mtyy5.com/', type: 'desc-clickable' },
-            { id: 'changzhanquan', icon: '🎨', title: '厂长资源', desc: '影视在线观看', url: 'https://cz01.vip/', type: 'simple' },
-            { id: 'seedhub', icon: '🍃', title: 'SeedHub(下载站)', desc: '网盘下载', url: 'https://www.seedhub.cc/', type: 'simple' },
-            { id: 'butailing', icon: '🔻', title: '不太灵(下载站)', desc: '小众影视下载', url: 'https://www.6bt0.com/', type: 'simple' },
-            { id: '4kyingshi', icon: '🎬', title: '4K影视', desc: '高清在线影视', url: 'https://www.4kvm.tv/', type: 'simple' },
-            { id: 'dianyingtiantang', icon: '🏰', title: '电影天堂', desc: '经典影视下载', url: 'https://www.dygod.net/', type: 'simple' },
-            { id: 'moovie', icon: '🐮', title: 'Moovie', desc: '影视聚合搜索', url: 'https://moovie.c2v2.com/', type: 'simple' },
-            { id: '7080wang', icon: '📹', title: '7080网', desc: '怀旧影视资源', url: 'https://7080.wang/', type: 'simple' },
-            { id: 'fantaiying', icon: '🍚', title: '饭太硬(导航)', desc: '影视资源导航', descClickable: '备用网址', descUrl: 'https://tvboxconf.clbug.com/', url: 'https://www.饭太硬.com/', type: 'desc-clickable' }
+            {
+                id: 'xiuluoyingshi',
+                icon: '📺',
+                title: '修罗影视',
+                desc: '资源丰富',
+                url: 'https://xlys.me/',
+                type: 'simple'
+            },            
+            {
+                id: 'cilixiong',
+                icon: '🐻',
+                title: '磁力熊',
+                desc: '',
+                descClickable: 'cilixiong.cc（备用）',
+                descUrl: 'https://www.cilixiong.cc/',
+                url: 'https://www.cilixiong.org/',
+                type: 'desc-clickable'
+            },
+            {
+                id: 'maitianyingshi',
+                icon: '‍🌾',
+                title: '麦田影院',
+                desc: '',
+                descClickable: 'mtyy.tv（网址发布）',
+                descUrl: 'https://www.mtyy.tv/',
+                url: 'https://mtyy5.com/',
+                type: 'desc-clickable'
+            },
+            {
+                id: 'changzhanquan',
+                icon: '🎨',
+                title: '厂长资源',
+                desc: '影视在线观看',
+                url: 'https://cz01.vip/',
+                type: 'simple'
+            },
+            {
+                id: 'seedhub',
+                icon: '🍃',
+                title: 'SeedHub(下载站)',
+                desc: '网盘下载',
+                url: 'https://www.seedhub.cc/',
+                type: 'simple'
+            },            
+            {
+                id: 'butailing',
+                icon: '🔻',
+                title: '不太灵(下载站)',
+                desc: '小众影视下载',
+                url: 'https://www.6bt0.com/',
+                type: 'simple'
+            },
+            {
+                id: '4kyingshi',
+                icon: '🎬',
+                title: '4K影视',
+                desc: '高清在线影视',
+                url: 'https://www.4kvm.tv/',
+                type: 'simple'
+            },
+            {
+                id: 'dianyingtiantang',
+                icon: '🏰',
+                title: '电影天堂',
+                desc: '经典影视下载',
+                url: 'https://www.dygod.net/',
+                type: 'simple'
+            },
+            {
+                id: 'moovie',
+                icon: '🐮',
+                title: 'Moovie',
+                desc: '影视聚合搜索',
+                url: 'https://moovie.c2v2.com/',
+                type: 'simple'
+            },
+            {
+                id: '7080wang',
+                icon: '📹',
+                title: '7080网',
+                desc: '怀旧影视资源',
+                url: 'https://7080.wang/',
+                type: 'simple'
+            },
+            {
+                id: 'fantaiying',
+                icon: '🍚',
+                title: '饭太硬(导航)',
+                desc: '影视资源导航',
+                descClickable: '备用网址',
+                descUrl: 'https://tvboxconf.clbug.com/',
+                url: 'https://www.饭太硬.com/',
+                type: 'desc-clickable'
+            }
         ];
 
         let currentEmailData = emailData[0];
         let isAnimating = false;
 
+        // 检测当前布局
         function detectLayout() {
-            var width = window.innerWidth;
-            if (width <= 480) return 'mobile';
-            else if (width <= 799) return 'tablet';
-            else return 'desktop';
+            const width = window.innerWidth;
+            if (width <= 480) {
+                return 'mobile';
+            } else if (width <= 799) {
+                return 'tablet';
+            } else {
+                return 'desktop';
+            }
         }
 
+        // 生成视频聚合HTML结构
         function generateVideoStructure(layout) {
-            var html = '';
-            var visibleCount = (layout === 'mobile') ? 4 : (layout === 'tablet') ? 6 : 8;
-            var visibleCards = videoData.slice(0, visibleCount);
-            var hiddenCards = videoData.slice(visibleCount);
-
-            html += '<div class="links-grid">';
-            visibleCards.forEach(function(card) { html += generateCardHTML(card); });
-            html += '</div>';
-
-            html += generateExpandButton();
-            html += generateHiddenCardsHTML(hiddenCards, layout);
-            html += generateCollapseButton();
+            let html = '';
+            
+            if (layout === 'mobile') {
+                // 移动端：显示前4个，折叠后面
+                const visibleCards = videoData.slice(0, 4);
+                const hiddenCards = videoData.slice(4);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+                
+            } else if (layout === 'tablet') {
+                // 平板：显示前6个，折叠后面
+                const visibleCards = videoData.slice(0, 6);
+                const hiddenCards = videoData.slice(6);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+                
+            } else {
+                // 桌面：显示前8个，折叠后面
+                const visibleCards = videoData.slice(0, 8);
+                const hiddenCards = videoData.slice(8);
+                
+                html += '<div class="links-grid">';
+                visibleCards.forEach(card => {
+                    html += generateCardHTML(card);
+                });
+                html += '</div>';
+                
+                html += generateExpandButton();
+                html += generateHiddenCardsHTML(hiddenCards, layout);
+                html += generateCollapseButton();
+            }
+            
             return html;
         }
 
+        // 修改后的生成单个卡片HTML函数
         function generateCardHTML(card) {
             if (card.type === 'simple') {
-                return '<a href="' + card.url + '" target="_blank" class="link-card">' +
-                    '<span class="link-icon">' + card.icon + '</span>' +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    '<p class="link-desc">' + card.desc + '</p></a>';
+                return `
+                    <a href="${card.url}" target="_blank" class="link-card">
+                        <span class="link-icon">${card.icon}</span>
+                        <h3 class="link-title">${card.title}</h3>
+                        <p class="link-desc">${card.desc}</p>
+                    </a>
+                `;
             } else if (card.type === 'desc-clickable') {
-                return '<div class="link-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
-                    '<span class="link-icon">' + card.icon + '</span>' +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p></div>';
+                return `
+                    <div class="link-card" onclick="window.open('${card.url}', '_blank')">
+                        <span class="link-icon">${card.icon}</span>
+                        <h3 class="link-title">${card.title}</h3>
+                        <p class="link-desc-clickable" onclick="event.stopPropagation(); window.open('${card.descUrl}', '_blank')">${card.descClickable}</p>
+                    </div>
+                `;
             } else if (card.type === 'expandable') {
-                var subCardsHTML = '';
-                card.subCards.forEach(function(subCard) {
+                let subCardsHTML = '';
+                card.subCards.forEach(subCard => {
                     if (subCard.content) {
-                        subCardsHTML += '<div class="sub-card compact-card" onclick="window.open(\'' + subCard.url + '\', \'_blank\')">' +
-                            '<span class="link-icon">' + subCard.icon + '</span>' +
-                            '<div class="link-content"><span class="link-url">' + subCard.content + '</span>' +
-                            (subCard.note ? '<span class="link-note">' + subCard.note + '</span>' : '') +
-                            '</div></div>';
+                        // 使用compact-card样式（为原有的链接地址格式）
+                        subCardsHTML += `
+                            <div class="sub-card compact-card" onclick="window.open('${subCard.url}', '_blank')">
+                                <span class="link-icon">${subCard.icon}</span>
+                                <div class="link-content">
+                                    <span class="link-url">${subCard.content}</span>
+                                    ${subCard.note ? `<span class="link-note">${subCard.note}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
                     } else {
-                        subCardsHTML += '<div class="sub-card two-line-card" onclick="window.open(\'' + subCard.url + '\', \'_blank\')">' +
-                            '<div class="card-header"><span class="link-icon">' + subCard.icon + '</span>' +
-                            '<h3 class="link-title">' + subCard.title + '</h3></div>' +
-                            '<p class="link-url">' + subCard.desc + '</p></div>';
+                        // 使用two-line-card样式（为新的标题+描述格式）
+                        subCardsHTML += `
+                            <div class="sub-card two-line-card" onclick="window.open('${subCard.url}', '_blank')">
+                                <div class="card-header">
+                                    <span class="link-icon">${subCard.icon}</span>
+                                    <h3 class="link-title">${subCard.title}</h3>
+                                </div>
+                                <p class="link-url">${subCard.desc}</p>
+                            </div>
+                        `;
                     }
                 });
-
-                return '<div class="card-container">' +
-                    '<div class="link-card link-card-with-expand" onclick="handleCardClick(event, \'' + card.url + '\', \'' + card.id + '-subcards\')">' +
-                    '<span class="link-icon">' + card.icon + '</span>' +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    '<p class="link-desc">' + card.desc + '</p>' +
-                    '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + card.id + '-subcards\', this)"></div>' +
-                    '<button class="expand-btn" title="展开备用地址">▼</button></div>' +
-                    '<div class="sub-cards" id="' + card.id + '-subcards">' + subCardsHTML + '</div></div>';
+                
+                return `
+                    <div class="card-container">
+                        <div class="link-card link-card-with-expand" onclick="window.open('${card.url}', '_blank')">
+                            <span class="link-icon">${card.icon}</span>
+                            <h3 class="link-title">${card.title}</h3>
+                            <p class="link-desc">${card.desc}</p>
+                            <button class="expand-btn" onclick="event.stopPropagation(); toggleSubCards('${card.id}-subcards', this)" title="展开备用地址">▼</button>
+                        </div>
+                        <div class="sub-cards" id="${card.id}-subcards">
+                            ${subCardsHTML}
+                        </div>
+                    </div>
+                `;
             }
         }
 
+        // 生成展开按钮
         function generateExpandButton() {
-            return '<button class="expand-section-btn" onclick="toggleSection(\'video-hidden-cards\', this)" id="video-expand-btn">' +
-                '<span>展开卡片</span><span class="arrow">▼</span></button>';
+            return `
+                <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-expand-btn">
+                    <span>展开卡片</span>
+                    <span class="arrow">▼</span>
+                </button>
+            `;
         }
 
+        // 生成折叠卡片区域
         function generateHiddenCardsHTML(cards, layout) {
-            var html = '<div class="hidden-cards" id="video-hidden-cards">';
-            cards.forEach(function(card) { html += generateCardHTML(card); });
+            let html = '<div class="hidden-cards" id="video-hidden-cards">';
+            cards.forEach(card => {
+                html += generateCardHTML(card);
+            });
             html += '</div>';
             return html;
         }
 
+        // 生成折叠按钮
         function generateCollapseButton() {
-            return '<button class="expand-section-btn" onclick="toggleSection(\'video-hidden-cards\', this)" id="video-collapse-btn" style="display: none;">' +
-                '<span>折叠卡片</span><span class="arrow">▲</span></button>';
+            return `
+                <button class="expand-section-btn" onclick="toggleSection('video-hidden-cards', this)" id="video-collapse-btn" style="display: none;">
+                    <span>折叠卡片</span>
+                    <span class="arrow">▲</span>
+                </button>
+            `;
         }
 
+        // 更新视频聚合结构
         function updateVideoStructure() {
-            var newLayout = detectLayout();
+            const newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
-                document.getElementById('video-content').innerHTML = generateVideoStructure(currentLayout);
+                const videoContent = document.getElementById('video-content');
+                videoContent.innerHTML = generateVideoStructure(currentLayout);
             }
         }
 
+        // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
-            currentAILayout = detectLayout();
-            document.getElementById('video-content').innerHTML = generateVideoStructure(currentLayout);
-            document.getElementById('online-ai-content').innerHTML = generateAIStructure(currentAILayout);
+            currentAILayout = detectLayout(); // 初始化AI布局状态
+            const videoContent = document.getElementById('video-content');
+            videoContent.innerHTML = generateVideoStructure(currentLayout);
+            // 初始化网络资源分类
+            const aiContent = document.getElementById('online-ai-content');
+            aiContent.innerHTML = generateAIStructure(currentAILayout);           
         });
 
+        // 监听窗口大小变化
         window.addEventListener('resize', function() {
             updateVideoStructure();
+            // 更新网络资源分类结构
             updateAIStructure();
         });
 
         function switchEmail(index) {
             if (isAnimating) return;
-            var currentIndex = emailData.findIndex(function(email) { return email === currentEmailData; });
+            
+            const currentIndex = emailData.findIndex(email => email === currentEmailData);
             if (currentIndex === index) return;
-
+            
             isAnimating = true;
-            var mainContent = document.getElementById('email-main-content');
+            const mainContent = document.getElementById('email-main-content');
+            
+            // 开始滑出动画
             mainContent.classList.add('slide-out');
-
-            setTimeout(function() {
+            
+            setTimeout(() => {
+                // 更新数据
                 currentEmailData = emailData[index];
+                
+                // 更新主卡片内容
                 document.getElementById('email-icon').textContent = currentEmailData.icon;
                 document.getElementById('email-title').textContent = currentEmailData.title;
                 document.getElementById('email-address').textContent = currentEmailData.address;
-
-                var addressElement = document.getElementById('email-address');
+                
+                // 更新邮箱地址的点击事件
+                const addressElement = document.getElementById('email-address');
                 addressElement.onclick = function(event) {
                     event.stopPropagation();
                     window.open(currentEmailData.url, '_blank');
                 };
-
+                
+                // 准备滑入动画
                 mainContent.classList.remove('slide-out');
                 mainContent.classList.add('slide-in');
-
-                setTimeout(function() {
+                
+                // 触发滑入动画
+                setTimeout(() => {
                     mainContent.classList.remove('slide-in');
                     mainContent.classList.add('slide-in-active');
-                    setTimeout(function() {
+                    
+                    // 完成动画
+                    setTimeout(() => {
                         mainContent.classList.remove('slide-in-active');
                         isAnimating = false;
                     }, 400);
                 }, 50);
+                
             }, 200);
-
-            document.querySelectorAll('.email-tab').forEach(function(tab, i) {
-                if (i === index) tab.classList.add('active');
-                else tab.classList.remove('active');
+            
+            // 更新叠瓦状态
+            document.querySelectorAll('.email-tab').forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
             });
-            document.getElementById('email-tabs').className = 'email-tabs active-' + index;
+            
+            // 更新容器的类名来控制叠瓦位置
+            const tabsContainer = document.getElementById('email-tabs');
+            tabsContainer.className = `email-tabs active-${index}`;
         }
 
         function openEmail(url) {
@@ -2127,66 +2670,91 @@ function updateAIStructure() {
         }
 
 function toggleSubCards(subcardId, button) {
-    var subcards = document.getElementById(subcardId);
-    var overlay = document.getElementById('overlay');
-    var cardContainer = button.closest('.card-container');
-    var isExpanded = subcards.classList.contains('expanded');
-
-    var isAICard = subcardId.includes('qwen') || subcardId.includes('poe') || subcardId.includes('mitasearch');
-    var relevantExpanded = isAICard ? currentAIExpanded : currentExpanded;
-
+    const subcards = document.getElementById(subcardId);
+    const overlay = document.getElementById('overlay');
+    const cardContainer = button.closest('.card-container');
+    const isExpanded = subcards.classList.contains('expanded');
+    
+    // 判断是否属于AI分类的子卡片
+    const isAICard = subcardId.includes('qwen') || subcardId.includes('poe') || subcardId.includes('mitasearch');
+    
+    // 根据分类使用不同的状态变量
+    const relevantExpanded = isAICard ? currentAIExpanded : currentExpanded;
+    
     if (relevantExpanded && relevantExpanded !== subcardId) {
-        var otherSubcards = document.getElementById(relevantExpanded);
-        var otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
-        var otherContainer = otherButton.closest('.card-container');
+        const otherSubcards = document.getElementById(relevantExpanded);
+        const otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
+        const otherContainer = otherButton.closest('.card-container');
         otherSubcards.classList.remove('expanded');
         otherButton.classList.remove('expanded');
         otherContainer.classList.remove('active');
     }
-
+    
     if (isExpanded) {
         subcards.classList.remove('expanded');
         button.classList.remove('expanded');
         cardContainer.classList.remove('active');
         overlay.classList.remove('active');
-        if (isAICard) currentAIExpanded = null;
-        else currentExpanded = null;
+        
+        // 根据分类清空相应的状态变量
+        if (isAICard) {
+            currentAIExpanded = null;
+        } else {
+            currentExpanded = null;
+        }
     } else {
         subcards.classList.add('expanded');
         button.classList.add('expanded');
         cardContainer.classList.add('active');
         overlay.classList.add('active');
-        if (isAICard) currentAIExpanded = subcardId;
-        else currentExpanded = subcardId;
+        
+        // 根据分类设置相应的状态变量
+        if (isAICard) {
+            currentAIExpanded = subcardId;
+        } else {
+            currentExpanded = subcardId;
+        }
     }
 }
 
+        // 视频聚合的切换函数 - 修改版本
         function toggleSection(sectionId, button) {
-            var section = document.getElementById(sectionId);
-            var expandBtn = document.getElementById('video-expand-btn');
-            var collapseBtn = document.getElementById('video-collapse-btn');
-            var isExpanded = section.classList.contains('expanded');
-
+            const section = document.getElementById(sectionId);
+            const expandBtn = document.getElementById('video-expand-btn');
+            const collapseBtn = document.getElementById('video-collapse-btn');
+            const isExpanded = section.classList.contains('expanded');
+            
             if (isExpanded) {
+                // 折叠操作：移除hover-ready类
                 section.classList.remove('hover-ready');
                 section.classList.add('collapsing');
                 collapseBtn.classList.add('moving');
-                setTimeout(function() {
+                
+                setTimeout(() => {
                     section.classList.remove('expanded', 'collapsing');
                     collapseBtn.style.display = 'none';
                     collapseBtn.classList.remove('moving');
-                    setTimeout(function() {
+                    
+                    setTimeout(() => {
                         expandBtn.style.display = 'flex';
                         expandBtn.classList.remove('moving');
                     }, 100);
                 }, 600);
+                
             } else {
+                // 展开操作
                 expandBtn.classList.add('moving');
-                setTimeout(function() {
+                
+                setTimeout(() => {
                     expandBtn.style.display = 'none';
                     section.classList.add('expanded');
-                    setTimeout(function() { section.classList.add('hover-ready'); }, 2500);
-                    setTimeout(function() {
+                    
+                    // 关键：等待所有动画完成后添加hover-ready类
+                    setTimeout(() => {
+                        section.classList.add('hover-ready');
+                    }, 2500); // 等待最长延迟(2.1s) + 动画时长(0.6s)
+                    
+                    setTimeout(() => {
                         collapseBtn.style.display = 'flex';
                         collapseBtn.classList.remove('moving');
                     }, 400);
@@ -2195,27 +2763,32 @@ function toggleSubCards(subcardId, button) {
         }
 
 document.getElementById('overlay').addEventListener('click', function() {
+    // 处理视频聚合分类的展开项
     if (currentExpanded) {
-        var subcards = document.getElementById(currentExpanded);
-        var button = subcards.parentElement.querySelector('.expand-btn');
-        var cardContainer = button.closest('.card-container');
+        const subcards = document.getElementById(currentExpanded);
+        const button = subcards.parentElement.querySelector('.expand-btn');
+        const cardContainer = button.closest('.card-container');
         subcards.classList.remove('expanded');
         button.classList.remove('expanded');
         cardContainer.classList.remove('active');
         currentExpanded = null;
     }
+    
+    // 处理网络资源分类的展开项
     if (currentAIExpanded) {
-        var subcards2 = document.getElementById(currentAIExpanded);
-        var button2 = subcards2.parentElement.querySelector('.expand-btn');
-        var cardContainer2 = button2.closest('.card-container');
-        subcards2.classList.remove('expanded');
-        button2.classList.remove('expanded');
-        cardContainer2.classList.remove('active');
+        const subcards = document.getElementById(currentAIExpanded);
+        const button = subcards.parentElement.querySelector('.expand-btn');
+        const cardContainer = button.closest('.card-container');
+        subcards.classList.remove('expanded');
+        button.classList.remove('expanded');
+        cardContainer.classList.remove('active');
         currentAIExpanded = null;
     }
+    
     this.classList.remove('active');
 });
 
+        // 使用事件委托处理动态生成的sub-cards
         document.addEventListener('click', function(e) {
             if (e.target.closest('.sub-cards')) {
                 e.stopPropagation();
