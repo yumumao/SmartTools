@@ -777,10 +777,13 @@
             margin-top: -8px; /* 向上轻微重叠 */
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-10px);
-            transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        visibility 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                        transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* 关键改动：增大位移 + 加入缩放 */
+            transform: translateY(-10px) scaleY(0.4);
+            transform-origin: top center;
+            /* 关键改动：更强的弹性曲线，时间稍长 */
+            transition: opacity 0.13s cubic-bezier(0.24, 1.42, 0.64, 1), 
+                         visibility 0.13s cubic-bezier(0.24, 1.42, 0.64, 1),
+                         transform 0.13s cubic-bezier(0.34, 1.42, 0.64, 1);
             padding: 8px;
             background: rgba(220, 225, 235, 0.2);
             backdrop-filter: blur(8px);
@@ -807,8 +810,8 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(180, 190, 200, 0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease,
-                       padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                       margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+            margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
             opacity: 0;
             transform: translateX(-20px);
@@ -816,15 +819,31 @@
             z-index: 1;
         }
 
+        @keyframes jellyDown {
+            0%   { opacity: 0; transform: translateY(-6px); }
+            55%  { opacity: 1; transform: translateY(0); }
+            75%  { opacity: 1; transform: translateY(3.5px); }
+            90%  { opacity: 1; transform: translateY(-1px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes jellyUp {
+            0%   { opacity: 0; transform: translateY(6px); }
+            55%  { opacity: 1; transform: translateY(0); }
+            75%  { opacity: 1; transform: translateY(-3.5px); }
+            90%  { opacity: 1; transform: translateY(1px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
         /* 隐藏卡片区域的sub-card不需要动画延迟 */
         .hidden-cards .sub-card {
-            animation: slideInLeft 0.5s ease forwards;
+            animation: jellyUp 0.23s ease-out forwards;
             animation-delay: 0s !important;
         }
 
         /* 非隐藏区域保持原有动画 */
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card {
-            animation: slideInLeft 0.5s ease forwards;
+            animation: jellyDown 0.33s ease-out forwards;
         }
 
         .sub-card.backup-card {
@@ -918,42 +937,30 @@
         }
 
         /* 非隐藏区域的动画延迟 */
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(6) {
-            animation-delay: 0.6s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(7) {
-            animation-delay: 0.7s;
-        }
-
-        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(8) {
-            animation-delay: 0.8s;
-        }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(1) { animation-delay: 0.05s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(2) { animation-delay: 0.1s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(3) { animation-delay: 0.15s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(4) { animation-delay: 0.2s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(5) { animation-delay: 0.25s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(6) { animation-delay: 0.3s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(7) { animation-delay: 0.35s; }
+        .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(8) { animation-delay: 0.4s; }
 
         @keyframes slideInLeft {
-            to {
+            0% {
+                opacity: 0;
+                transform: translateX(-35px) scale(0.92);
+            }
+            50% {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateX(6px) scale(1.03);
+            }
+            75% {
+                transform: translateX(-3px) scale(0.99);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
             }
         }
 
@@ -2348,14 +2355,6 @@ function updateAIStructure() {
                 title: '厂长资源',
                 desc: '影视在线观看',
                 url: 'https://cz01.vip/',
-                type: 'simple'
-            },
-            {
-                id: 'liangziziyuan',
-                icon: '🎞️',
-                title: '量子资源',
-                desc: 'lzizy1-8.com',
-                url: 'https://lzizy.net/',
                 type: 'simple'
             },
             {
