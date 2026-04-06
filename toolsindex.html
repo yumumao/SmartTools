@@ -165,7 +165,12 @@
         .card-container.expanded {
             z-index: 20;
         }
-
+        
+        .card-container.expanded > .tool-card {
+            filter: brightness(0.92);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
         .tool-card {
             background: white;
             border-radius: 16px;
@@ -285,7 +290,7 @@
         }
 
         .sub-card {
-            background: rgba(240, 242, 247, 0.85);
+            background: rgba(240, 242, 247, 0.88);
             backdrop-filter: none;
             -webkit-backdrop-filter: blur(10px);
             border-radius: 8px;
@@ -310,7 +315,7 @@
         }
 
         .sub-card:hover {
-            background: rgba(240, 242, 247, 0.95);
+            background: rgba(240, 242, 247, 0.98);
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
                     0 0 15px rgba(113, 137, 245, 0.5),

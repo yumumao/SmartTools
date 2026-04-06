@@ -632,6 +632,11 @@
             z-index: 20;
         }
 
+        .card-container.active > .link-card {
+            filter: brightness(0.92);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
         .hidden-cards .card-container {
             z-index: 2;
         }
@@ -899,7 +904,7 @@
            子卡片样式（三种布局：两行式、紧凑式、备用式）
            ================================================================ */
         .sub-card {
-            background: rgba(240, 242, 247, 0.86);
+            background: rgba(240, 242, 247, 0.88);
             backdrop-filter: none;
             border-radius: 8px;
             padding: 10px 14px;
@@ -1028,7 +1033,7 @@
 
         /* 子卡片 hover 发光效果 */
         .sub-card:hover {
-            background: rgba(240, 242, 247, 0.95) !important;
+            background: rgba(240, 242, 247, 0.98) !important;
             transform: translateY(-1px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15),
                     0 0 15px rgba(102, 126, 234, 0.5),
