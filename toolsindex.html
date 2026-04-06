@@ -21,6 +21,25 @@
             padding: 20px;
         }
 
+        /* ===== 遮罩层 ===== */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.22);
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .container {
             max-width: 400px;
             margin: 0 auto;
@@ -536,6 +555,8 @@
     </style>
 </head>
 <body>
+    <div class="overlay" id="overlay"></div>
+
     <div class="container">
         <div class="header">
             <h1 class="title">
@@ -650,6 +671,16 @@
     </div>
 
     <script>
+        var overlay = document.getElementById('overlay');
+
+        function showOverlay() {
+            overlay.classList.add('active');
+        }
+
+        function hideOverlay() {
+            overlay.classList.remove('active');
+        }
+
         function openCard(card, container, subCards) {
             var cardRect = card.getBoundingClientRect();
             var viewportHeight = window.innerHeight;
@@ -683,6 +714,9 @@
 
             // 触发果冻
             subCards.classList.add(isFlipUp ? 'jelly-up' : 'jelly-down');
+
+            // 显示遮罩
+            showOverlay();
         }
 
         function closeCard(container, immediate) {
@@ -690,6 +724,12 @@
             container.classList.remove('expanded');
             subCards.classList.remove('show', 'jelly-down', 'jelly-up');
             subCards.style.maxHeight = '0px';
+
+            // 隐藏遮罩（仅当没有其他展开的卡片时）
+            var stillExpanded = document.querySelectorAll('.card-container.expanded');
+            if (stillExpanded.length === 0) {
+                hideOverlay();
+            }
 
             if (immediate) {
                 subCards.style.display = 'none';
@@ -715,6 +755,13 @@
             }, 400);
         }
 
+        function closeAllCards() {
+            document.querySelectorAll('.card-container.expanded').forEach(function (container) {
+                closeCard(container);
+            });
+            hideOverlay();
+        }
+
         function toggleMathCard(card) {
             var container = card.closest('.card-container');
             var subCards = container.querySelector('.floating-sub-cards');
@@ -733,11 +780,14 @@
             }
         }
 
+        // 点击遮罩关闭所有子菜单
+        overlay.addEventListener('click', function () {
+            closeAllCards();
+        });
+
         document.addEventListener('click', function (e) {
-            if (!e.target.closest('.card-container')) {
-                document.querySelectorAll('.card-container.expanded').forEach(function (container) {
-                    closeCard(container);
-                });
+            if (!e.target.closest('.card-container') && e.target !== overlay) {
+                closeAllCards();
             }
         });
 
