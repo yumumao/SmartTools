@@ -181,7 +181,8 @@ var onlineAIData = [
     { id: 'vercel', icon: '▲', title: 'Vercel', desc: 'vercel', url: 'https://vercel.com/', type: 'simple' },
     { id: 'zeabur', icon: '𝒁', title: 'Zeabur', desc: 'zeabur', url: 'https://zeabur.com/', type: 'simple' },
     { id: 'upstash', icon: '🌀', title: 'Upstash', desc: 'upstash', url: 'https://upstash.com/', type: 'simple' },
-    { id: 'vaultwarden', icon: '🛡', title: 'Vaultwarden', desc: 'Bitwarden密码管理', url: 'https://vbw.n29.net/', type: 'simple' }
+    { id: 'vaultwarden', icon: '🛡', title: 'Vaultwarden', desc: 'Bitwarden密码管理', url: 'https://vbw.n29.net/', type: 'simple' }, 
+    { id: 'AddressGeneratorFe', icon: '🗺️', title: 'AddressGenerator', desc: '地址生成器', url: 'https://addr.f66.fun/', type: 'simple' }
 ];
 
 // ==================== 视频聚合 ====================

@@ -594,17 +594,31 @@
                 <p class="tool-desc">关联临床</p>
             </a>
 
-            <a href="https://wn.n29.net/" target="_blank" rel="noopener" class="tool-card">
-                <span class="tool-icon">🗳</span>
-                <h3 class="tool-title">智能错题本</h3>
-                <p class="tool-desc">AI错题本</p>
-            </a>
+            <div class="card-container">
+                <div class="tool-card math-card" onclick="toggleMathCard(this)">
+                    <span class="tool-icon">🧭‍</span>
+                    <h3 class="tool-title">自用服务</h3>
+                    <p class="tool-desc">自用服务资源</p>
+                    <span class="expand-indicator">▼</span>
+                </div>
 
-            <a href="https://vbw.n29.net/" target="_blank" rel="noopener" class="tool-card">
-                <span class="tool-icon">🛡</span>
-                <h3 class="tool-title">Vaultwarden</h3>
-                <p class="tool-desc">Bitwarden密码管理</p>
-            </a>
+                <div class="floating-sub-cards">
+                    <div class="sub-cards-wrapper">
+                        <div class="sub-card" onclick="window.open('https://wn.n29.net/','_blank')">
+                            <div class="sub-card-title">🗳AI错题本</div>
+                            <div class="sub-card-desc">wn.n29.net</div>
+                        </div>
+                        <div class="sub-card" onclick="window.open('https://vbw.n29.net/','_blank')">
+                            <div class="sub-card-title">🛡Bitwarden密码管理</div>
+                            <div class="sub-card-desc">vbw.n29.net</div>
+                        </div>
+                        <div class="sub-card" onclick="window.open('https://addr.f66.fun/','_blank')">
+                            <div class="sub-card-title">🗺️地址生成器</div>
+                            <div class="sub-card-desc">addr.f66.fun</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="card-container">
                 <div class="tool-card math-card" onclick="toggleMathCard(this)">
