@@ -2022,6 +2022,22 @@
         }
 
         /**
+         * 大屏幕默认展开：跳过动画，直接展示所有隐藏卡片
+         * 隐藏"展开"按钮，显示"折叠"按钮，并立即启用 hover 效果
+         */
+        function autoExpandSection(prefix) {
+            var section = document.getElementById(prefix + '-hidden-cards');
+            var expandBtn = document.getElementById(prefix + '-expand-btn');
+            var collapseBtn = document.getElementById(prefix + '-collapse-btn');
+            if (!section || !expandBtn) return;
+            expandBtn.style.display = 'none';
+            section.classList.add('expanded', 'hover-ready');
+            if (collapseBtn) {
+                collapseBtn.style.display = 'flex';
+            }
+        }
+
+        /**
          * 邮箱标签页切换
          * 滑出旧内容 → 更新数据 → 滑入新内容
          */
@@ -2102,6 +2118,12 @@
             // 动态分类：根据屏幕尺寸决定默认显示数量
             document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai', onlineAIData, currentLayout);
             document.getElementById('video-content').innerHTML = generateDynamicGrid('video', videoData, currentLayout);
+
+            // 大屏幕默认展开折叠区域（跳过入场动画，直接全部可见）
+            if (currentLayout === 'desktop') {
+                autoExpandSection('ai');
+                autoExpandSection('video');
+            }
         });
 
         // 窗口尺寸变化时，重新渲染动态分类（避免卡片数量与列数不匹配）
@@ -2116,6 +2138,12 @@
                 }
                 document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai', onlineAIData, currentLayout);
                 document.getElementById('video-content').innerHTML = generateDynamicGrid('video', videoData, currentLayout);
+
+                // 切换到大屏幕时自动展开折叠区域
+                if (currentLayout === 'desktop') {
+                    autoExpandSection('ai');
+                    autoExpandSection('video');
+                }
             }
         });
 
