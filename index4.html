@@ -10,11 +10,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ================================================================
-           FRAMER DESIGN SYSTEM
-           Bold black & blue · Motion-first · Design-forward
-           Primary: #0099FF · Surface: #000 · Font: Inter
-           ================================================================ */
         :root {
             --fr-blue: #0099FF;
             --fr-blue-light: #33adff;
@@ -50,7 +45,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ── 顶部蓝色光条 ── */
         body::before {
             content: '';
             position: fixed;
@@ -61,7 +55,6 @@
             pointer-events: none;
         }
 
-        /* ── 网格背景 ── */
         body::after {
             content: '';
             position: fixed;
@@ -81,9 +74,6 @@
             transition: max-width 0.4s var(--fr-ease);
         }
 
-        /* ================================================================
-           页头标题 & 页脚
-           ================================================================ */
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -107,9 +97,6 @@
             font-size: 12px;
         }
 
-        /* ================================================================
-           data.js 加载失败 — 错误提示页
-           ================================================================ */
         .error-container {
             display: flex;
             flex-direction: column;
@@ -227,9 +214,6 @@
             box-shadow: 0 4px 20px rgba(0, 153, 255, 0.3);
         }
 
-        /* ================================================================
-           图标样式 — emoji / 图片 / 内联 SVG 三种格式
-           ================================================================ */
         .link-icon {
             display: inline-flex;
             width: 1.2em;
@@ -257,9 +241,6 @@
             display: block;
         }
 
-        /* ================================================================
-           导航按钮（返回/前往小工具）
-           ================================================================ */
         .back-nav {
             display: flex;
             justify-content: center;
@@ -304,9 +285,6 @@
             box-shadow: 0 4px 16px rgba(0, 153, 255, 0.1);
         }
 
-        /* ================================================================
-           分类区块（section）& 区块标题
-           ================================================================ */
         .section {
             margin-bottom: 30px;
             transition: margin-bottom 0.4s var(--fr-ease);
@@ -323,9 +301,6 @@
                        margin-bottom 0.4s var(--fr-ease);
         }
 
-        /* ================================================================
-           展开/折叠 区块按钮
-           ================================================================ */
         .expand-section-btn {
             background: var(--fr-surface-2);
             border: 1px solid var(--fr-border);
@@ -391,9 +366,6 @@
         #video-collapse-btn { margin-top: 8px; margin-bottom: 15px; }
         #ai-collapse-btn { margin-top: 8px; margin-bottom: 15px; }
 
-        /* ================================================================
-           卡片网格布局
-           ================================================================ */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -414,9 +386,6 @@
             margin: 0 auto;
         }
 
-        /* ================================================================
-           隐藏卡片区域（展开/折叠动画）
-           ================================================================ */
         .hidden-cards {
             display: none;
             margin-top: 19px;
@@ -549,15 +518,19 @@
 
         .hidden-cards.expanded.hover-ready .link-card:hover {
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.12) !important;
+            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.32) !important;
             border-color: var(--fr-blue-border) !important;
+            border-right-color: rgba(0, 153, 255, 0.85) !important;
+            border-bottom-color: rgba(0, 153, 255, 0.85) !important;
             z-index: 2 !important;
         }
 
         .hidden-cards.expanded.hover-ready .card-container .link-card:hover {
             transform: translateY(-3px) !important;
-            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.12) !important;
+            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.32) !important;
             border-color: var(--fr-blue-border) !important;
+            border-right-color: rgba(0, 153, 255, 0.85) !important;
+            border-bottom-color: rgba(0, 153, 255, 0.85) !important;
             z-index: 2 !important;
         }
 
@@ -565,7 +538,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- 折叠退场动画 --- */
         .hidden-cards.collapsing .link-card,
         .hidden-cards.collapsing .card-container {
             animation: slideOutUpRow 0.4s ease forwards;
@@ -625,9 +597,6 @@
             to { opacity: 0; transform: translateY(-20px); }
         }
 
-        /* ================================================================
-           卡片容器
-           ================================================================ */
         .card-container {
             position: relative;
             overflow: visible;
@@ -640,6 +609,8 @@
 
         .card-container.active > .link-card {
             border-color: var(--fr-blue-border-strong);
+            border-right-color: rgba(0, 153, 255, 0.95);
+            border-bottom-color: rgba(0, 153, 255, 0.95);
             box-shadow: 0 0 20px rgba(0, 153, 255, 0.1);
         }
 
@@ -647,11 +618,13 @@
         .hidden-cards .card-container.active { z-index: 60; }
 
         /* ================================================================
-           主卡片样式
+           主卡片样式 — 新增右侧和底部亮蓝色细边
            ================================================================ */
         .link-card {
             background: var(--fr-surface-2);
             border: 1px solid var(--fr-border);
+            border-right: 1px solid rgba(0, 153, 255, 0.40);
+            border-bottom: 1px solid rgba(0, 153, 255, 0.40);
             border-radius: var(--fr-radius);
             padding: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -669,8 +642,10 @@
 
         .link-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.12);
+            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.32);
             border-color: var(--fr-blue-border);
+            border-right-color: rgba(0, 153, 255, 0.85);
+            border-bottom-color: rgba(0, 153, 255, 0.85);
             z-index: 2;
         }
 
@@ -706,7 +681,7 @@
             padding: 16px;
             padding-right: 55%;
             overflow: hidden;
-            border-bottom: 2px solid var(--fr-blue);
+            border-bottom: 1px solid var(--fr-blue-border);
         }
 
         .email-main-content {
@@ -782,7 +757,6 @@
             border-radius: 0 15px 15px 0;
         }
 
-        /* --- 标签页位置矩阵 --- */
         .email-tabs.active-0 .email-tab[data-email="0"] { right: 80%; width: 20%; z-index: 15; }
         .email-tabs.active-0 .email-tab[data-email="1"] { right: 60%; width: 20%; z-index: 13; }
         .email-tabs.active-0 .email-tab[data-email="2"] { right: 40%; width: 20%; z-index: 12; }
@@ -814,7 +788,7 @@
         .email-tabs.active-4 .email-tab[data-email="3"] { right: 0%; width: 20%; z-index: 10; }
 
         .email-tab:hover:not(.active) {
-            background: rgba(0, 153, 255, 0.12);
+            background: rgba(0, 153, 255, 0.32);
             transform: translateX(-2px);
         }
 
@@ -823,16 +797,16 @@
         }
 
         /* ================================================================
-           展开箭头按钮（卡片右侧的 ▼ 按钮）
+           展开箭头按钮 — 浅灰底 + 蓝色光晕 + 蓝色发光三角
            ================================================================ */
         .expand-btn {
             position: absolute;
             right: 22px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--fr-blue);
-            color: white;
-            border: none;
+            background: rgba(180, 180, 180, 0.13);
+            color: var(--fr-blue);
+            border: 1px solid var(--fr-blue-border);
             border-radius: var(--fr-radius-s);
             width: 34px;
             height: 26px;
@@ -843,24 +817,35 @@
             font-size: 14px;
             font-weight: bold;
             transition: all 0.3s var(--fr-ease);
-            box-shadow: 0 2px 8px rgba(0, 153, 255, 0.3);
+            box-shadow: 0 0 10px rgba(0, 153, 255, 0.20),
+                        0 0 20px rgba(0, 153, 255, 0.08),
+                        0 2px 8px rgba(0, 0, 0, 0.15);
             z-index: 3;
             pointer-events: none;
-            opacity: 0.62;
+            opacity: 0.85;
+            text-shadow: 0 0 6px rgba(0, 153, 255, 0.55),
+                         0 0 12px rgba(0, 153, 255, 0.25);
         }
 
         .expand-btn:hover {
-            background: var(--fr-blue-light);
+            background: rgba(180, 180, 180, 0.18);
             transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 4px 16px rgba(0, 153, 255, 0.4);
+            box-shadow: 0 0 14px rgba(0, 153, 255, 0.30),
+                        0 0 28px rgba(0, 153, 255, 0.32),
+                        0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: var(--fr-blue-border-strong);
         }
 
         .expand-btn.expanded {
-            background: var(--fr-blue-dim);
+            background: rgba(180, 180, 180, 0.13);
+            color: var(--fr-blue);
             transform: translateY(-50%) rotate(180deg);
+            text-shadow: 0 0 6px rgba(0, 153, 255, 0.55),
+                         0 0 12px rgba(0, 153, 255, 0.25);
         }
 
         .expand-btn.expanded:hover {
+            background: rgba(180, 180, 180, 0.18);
             transform: translateY(-50%) rotate(180deg) scale(1.1);
         }
 
@@ -897,9 +882,6 @@
             transform: translateY(0);
         }
 
-        /* ================================================================
-           子卡片样式
-           ================================================================ */
         .sub-card {
             background: var(--fr-surface-3);
             border: 1px solid var(--fr-border);
@@ -1023,14 +1005,13 @@
             transition: font-size 0.4s var(--fr-ease);
         }
 
-        /* 子卡片 hover 蓝色辉光 */
         .sub-card:hover {
             background: var(--fr-surface-4) !important;
             transform: translateY(-1px);
             border-color: var(--fr-blue-border) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-                    0 0 12px rgba(0, 153, 255, 0.15),
-                    0 0 24px rgba(0, 153, 255, 0.06);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6),
+                    0 0 12px rgba(0, 153, 255, 0.45),
+                    0 0 24px rgba(0, 153, 255, 0.36);
             z-index: 2;
         }
 
@@ -1052,9 +1033,6 @@
 
         .sub-card:last-child { margin-bottom: 0; }
 
-        /* ================================================================
-           遮罩层
-           ================================================================ */
         .overlay {
             position: fixed;
             top: 0;
@@ -1074,9 +1052,6 @@
             background: rgba(0, 0, 0, 0.55);
         }
 
-        /* ================================================================
-           主卡片内部元素：图标、标题、描述
-           ================================================================ */
         .link-icon {
             font-size: 20px;
             margin-bottom: 6px;
@@ -1159,9 +1134,6 @@
         .link-desc-clickable:hover { color: var(--fr-blue-light); }
         .sub-card .link-desc-clickable:hover { color: var(--fr-blue-light); }
 
-        /* ================================================================
-           联系方式卡片
-           ================================================================ */
         .contact-card {
             padding: 14px 16px;
         }
@@ -1237,11 +1209,8 @@
 
         .email-contact-desc:hover { color: var(--fr-blue-light); }
 
-        /* ================================================================
-           响应式断点
-           ================================================================ */
+        /* ── 响应式 ── */
 
-        /* --- 平板 --- */
         @media (min-width: 481px) and (max-width: 799px) {
             .container { max-width: 600px; }
 
@@ -1264,7 +1233,6 @@
             }
         }
 
-        /* --- 桌面 --- */
         @media (min-width: 800px) {
             .container { max-width: 1200px; }
 
@@ -1316,7 +1284,6 @@
             }
         }
 
-        /* --- 手机 --- */
         @media (max-width: 480px) {
             .container { width: 96%; max-width: none; padding: 0; }
             body { padding: 10px; padding-bottom: 30px; }
@@ -1332,7 +1299,7 @@
             }
 
             .header {
-                padding-top: 36px;   /* 手机端可以稍微紧凑一点 */
+                padding-top: 36px;
             }
 
             .hidden-cards.expanded {
@@ -1417,9 +1384,6 @@
             .style-switcher { min-width: 96px; }
         }
 
-        /* ================================================================
-           左下角固定"主页"按钮
-           ================================================================ */
         #backHomeBtn {
             position: fixed;
             bottom: 33px;
@@ -1448,9 +1412,6 @@
             box-shadow: 0 4px 16px rgba(0, 153, 255, 0.15);
         }
 
-        /* ================================================================
-           页面风格切换下拉
-           ================================================================ */
         .style-switcher {
             position: absolute;
             top: 0;
@@ -1564,7 +1525,6 @@
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
 
-            <!-- 风格切换下拉 -->
             <div class="style-switcher" id="styleSwitcher">
                 <button class="style-btn" id="styleBtn"
                         onclick="toggleStyleMenu(event)"
@@ -1586,31 +1546,26 @@
             </div>
         </div>
 
-        <!-- ==================== 在线U盘 ==================== -->
         <div class="section">
             <h2 class="section-title">☁️ 在线U盘</h2>
             <div id="usb-drive-content"></div>
         </div>
 
-        <!-- ==================== 授课资料 ==================== -->
         <div class="section">
             <h2 class="section-title">📚 授课资料</h2>
             <div id="teaching-content"></div>
         </div>
 
-        <!-- ==================== 网络资源 ==================== -->
         <div class="section">
             <h2 class="section-title">🖥️ 网络资源</h2>
             <div id="online-ai-content"></div>
         </div>
 
-        <!-- ==================== 视频聚合 ==================== -->
         <div class="section">
             <h2 class="section-title">🎬 视频聚合</h2>
             <div id="video-content"></div>
         </div>
 
-        <!-- ==================== 联系方式 ==================== -->
         <div class="section">
             <h2 class="section-title">📧 联系方式</h2>
             <div id="contact-content"></div>
@@ -1623,11 +1578,8 @@
 
     <script src="data.js"></script>
     <script>
-        // ====== 记住当前风格页面 ======
-            try { localStorage.setItem('fav_last_style', 'index4.html'); } catch(e) {}    
-        // ================================================================
-        // 数据加载检查
-        // ================================================================
+        try { localStorage.setItem('fav_last_style', 'index4.html'); } catch(e) {}    
+
         if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
             document.querySelector('.container').innerHTML =
                 '<div class="error-container">' +
@@ -1647,9 +1599,6 @@
             throw new Error('数据文件 未加载');
         }
 
-        // ================================================================
-        // 风格切换下拉菜单
-        // ================================================================
         function toggleStyleMenu(event) {
             event.stopPropagation();
             var switcher = document.getElementById('styleSwitcher');
@@ -1667,17 +1616,11 @@
             }
         });
 
-        // ================================================================
-        // 全局状态
-        // ================================================================
         var currentExpanded = null;
         var currentLayout = 'mobile';
         var currentEmailData = emailData[0];
         var isAnimating = false;
 
-        // ================================================================
-        // 工具函数
-        // ================================================================
         function detectLayout() {
             var w = window.innerWidth;
             if (w <= 480) return 'mobile';
@@ -1697,9 +1640,6 @@
             return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
         }
 
-        // ================================================================
-        // 卡片 HTML 生成
-        // ================================================================
         function generateCardHTML(card) {
             if (card.type === 'simple') {
                 return '<a href="' + card.url + '" target="_blank" class="link-card">' +
@@ -1753,9 +1693,6 @@
                 '<p class="link-url">' + (sc.desc || '') + '</p></div>';
         }
 
-        // ================================================================
-        // 网格生成
-        // ================================================================
         function generateStaticGrid(data) {
             var html = '<div class="links-grid">';
             data.forEach(function(card) { html += generateCardHTML(card); });
@@ -1794,9 +1731,6 @@
             return html;
         }
 
-        // ================================================================
-        // 联系方式区块
-        // ================================================================
         function generateEmailCardHTML() {
             var tabsHTML = '';
             emailData.forEach(function(em, i) {
@@ -1834,9 +1768,6 @@
             return html;
         }
 
-        // ================================================================
-        // 交互逻辑
-        // ================================================================
         function handleCardClick(event, url, subcardId) {
             var card = event.currentTarget;
             var rect = card.getBoundingClientRect();
@@ -1988,9 +1919,6 @@
             window.open(url, '_blank');
         }
 
-        // ================================================================
-        // 初始化 & 事件监听
-        // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
 
