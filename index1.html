@@ -42,6 +42,7 @@
             text-align: center;
             margin-bottom: 20px;
             position: relative;
+            padding-top: 42px;
         }
 
         .title {
@@ -1602,17 +1603,18 @@
 
             /* ★ 改动2（响应式补充）：小屏风格切换按钮稍小 */
             .style-btn {
-                font-size: 12px;
-                padding: 6px 9px;
+                font-size: 11px;
+                padding: 4px 8px;
+                gap: 3px;
             }
 
             .style-opt {
-                font-size: 12px;
-                padding: 8px 10px;
+                font-size: 11px;
+                padding: 6px 8px;
             }
 
             .style-switcher {
-                min-width: 96px;
+                min-width: unset;
             }
         }
 
@@ -1653,23 +1655,22 @@
            ================================================================ */
         .style-switcher {
             position: absolute;
-            top: 0;
+            top: 1px;
             right: 0;
             z-index: 200;
-            min-width: 108px;
+            min-width: unset;
         }
 
         .style-btn {
-            width: 100%;
             background: rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.35);
             color: white;
-            border-radius: 10px;
-            padding: 7px 11px;
-            font-size: 13px;
-            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 13px 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1715,6 +1716,8 @@
             overflow: hidden;
             box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
             animation: menuFadeIn 0.18s ease;
+            padding: 4px;
+            border-radius: 10px;
         }
 
         @keyframes menuFadeIn {
@@ -1727,9 +1730,13 @@
         }
 
         .style-opt {
-            display: block;
-            padding: 9px 12px;
-            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 9px;
+            font-size: 12px;
+            border-radius: 7px;
+            width: 100%;
             font-weight: 500;
             color: rgba(33, 33, 33, 0.85);
             text-decoration: none;
@@ -1773,12 +1780,12 @@
                 <button class="style-btn" id="styleBtn"
                         onclick="toggleStyleMenu(event)"
                         aria-haspopup="listbox" aria-expanded="false">
-                    <span>🎨 渐蓝紫</span>
+                    <span>🌌 Nebula</span>
                     <span class="style-caret">▾</span>
                 </button>
                 <div class="style-menu" id="styleMenu" role="listbox">
                     <!-- 当前页：渐变风格，标记为已选中，不可点击 -->
-                    <div class="style-opt style-opt-active" role="option" aria-selected="true">🎨 渐蓝紫</div>
+                    <div class="style-opt style-opt-active" role="option" aria-selected="true">🌌 Nebula</div>
                     <!-- 跳转到 Notion 风格页 -->
                     <a href="index2.html" class="style-opt" role="option">📋 Notion</a>
                     <a href="index3.html" class="style-opt" role="option">💜 Stripe</a>
