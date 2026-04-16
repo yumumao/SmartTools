@@ -478,18 +478,29 @@
         .expand-btn {
             position: absolute; right: 18px; top: 50%;
             transform: translateY(-50%);
-            background: var(--ac-bg); color: var(--ac);
-            border: none; border-radius: 6px;
-            width: 30px; height: 22px;
+            background: transparent; 
+            border: 1px dashed #9282BE;
+            border-radius: 6px;
+            width: 25px; height: 17px;
             cursor: pointer; display: flex;
             align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 600;
             transition: all .2s ease;
             z-index: 3; pointer-events: none;
         }
 
+        .expand-btn::after {
+            content: '';
+            display: block;
+            width: 8px; height: 8px;
+            border-bottom: 1px dashed #9282BE;
+            border-right: 1px dashed #9282BE;
+            transform: rotate(45deg);
+            margin-top: -5px;
+        }
+
         .expand-btn.expanded {
-            background: var(--ac); color: #fff;
+            background: transparent;
+            border-color: #C2B2EE;
             transform: translateY(-50%) rotate(180deg);
         }
 
@@ -1054,7 +1065,7 @@
                     '<h3 class="link-title">' + card.title + '</h3>' +
                     descHTML +
                     '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + card.id + '-subcards\', this)"></div>' +
-                    '<button class="expand-btn" title="展开更多">▼</button></div>' +
+                    '<button class="expand-btn" title="展开更多"></button></div>' +
                     '<div class="sub-cards" id="' + card.id + '-subcards">' + subHTML + '</div></div>';
             }
             return '';
