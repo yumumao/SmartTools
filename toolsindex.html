@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ============================================================
+         * [0] 全局重置 Reset
+         * ============================================================ */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -20,16 +23,9 @@
             transition: background 0.55s ease, color 0.55s ease;
         }
 
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.25s ease, visibility 0.25s ease, background 0.55s ease;
-        }
-        .overlay.active { opacity: 1; visibility: visible; }
-
+        /* ============================================================
+         * [1] 布局容器 Layout
+         * ============================================================ */
         .container {
             max-width: 400px;
             margin: 0 auto;
@@ -55,6 +51,28 @@
             transition: color 0.55s ease;
         }
 
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            transition: color 0.55s ease;
+        }
+
+        /* 遮罩层 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s ease, visibility 0.25s ease, background 0.55s ease;
+        }
+        .overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        /* ============================================================
+         * [2] 导航卡片 Nav Cards
+         * ============================================================ */
         .nav-cards {
             display: flex;
             gap: 12px;
@@ -84,6 +102,9 @@
         }
         .nav-card:hover::before { left: 100%; }
 
+        /* ============================================================
+         * [3] 工具卡片 Tool Cards
+         * ============================================================ */
         .tools-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -117,14 +138,6 @@
             z-index: 2;
         }
 
-        .expand-indicator {
-            position: absolute;
-            top: 20px; right: 20px;
-            font-size: 12px;
-            transition: transform 0.3s ease, color 0.55s ease;
-        }
-        .card-container.expanded .expand-indicator { transform: rotate(180deg); }
-
         .tool-icon {
             font-size: 28px;
             margin-bottom: 10px;
@@ -146,6 +159,24 @@
             transition: font-size 0.4s ease, color 0.55s ease;
         }
 
+        /* 展开指示箭头 */
+        .expand-indicator {
+            position: absolute;
+            top: 20px; right: 20px;
+            font-size: 12px;
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        color 0.25s ease;
+        }
+        .tool-card.math-card:hover .expand-indicator { transform: scale(1.15); }
+        .card-container.expanded .expand-indicator { transform: rotate(180deg); }
+        .card-container.expanded .tool-card.math-card:hover .expand-indicator {
+            transform: rotate(180deg) scale(1.15);
+        }
+
+        /* ============================================================
+         * [4] 浮动子卡片 Floating Sub-cards
+         * ============================================================ */
         .floating-sub-cards {
             position: absolute;
             top: 70%; left: 5%; right: 5%; width: 90%;
@@ -153,27 +184,12 @@
             display: none;
             pointer-events: none;
             overflow: hidden;
-            transition: max-height 0.13s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            transition: max-height 0.13s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.3s ease;
         }
         .floating-sub-cards.show { pointer-events: auto; }
         .floating-sub-cards.flip-up { top: auto; bottom: 70%; }
-
-        @keyframes jellyDown {
-            0%   { transform: translateY(-6px); }
-            55%  { transform: translateY(0); }
-            75%  { transform: translateY(3.5px); }
-            90%  { transform: translateY(-1px); }
-            100% { transform: translateY(0); }
-        }
-        @keyframes jellyUp {
-            0%   { transform: translateY(6px); }
-            55%  { transform: translateY(0); }
-            75%  { transform: translateY(-3.5px); }
-            90%  { transform: translateY(1px); }
-            100% { transform: translateY(0); }
-        }
-        .floating-sub-cards.jelly-down .sub-cards-wrapper { animation: jellyDown 0.23s ease forwards; }
-        .floating-sub-cards.jelly-up .sub-cards-wrapper { animation: jellyUp 0.23s ease forwards; }
 
         .sub-cards-wrapper {
             border-radius: 12px;
@@ -181,6 +197,7 @@
             will-change: auto;
             overflow-y: auto;
             overscroll-behavior: contain;
+            clip-path: inset(0 round 12px);
             transition: background 0.55s ease, border-color 0.55s ease;
         }
         .sub-cards-wrapper::-webkit-scrollbar { width: 5px; }
@@ -216,13 +233,9 @@
             transition: color 0.55s ease;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            transition: color 0.55s ease;
-        }
-
+        /* ============================================================
+         * [5] 主题切换按钮 Theme Toggle
+         * ============================================================ */
         .theme-toggle {
             position: fixed;
             top: 14px; right: 14px;
@@ -250,6 +263,31 @@
             transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
+        /* ============================================================
+         * [6] 动画 Animations
+         * ============================================================ */
+        @keyframes jellyDown {
+            0%   { transform: translateY(-6px); }
+            55%  { transform: translateY(0); }
+            75%  { transform: translateY(3.5px); }
+            90%  { transform: translateY(-1px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes jellyUp {
+            0%   { transform: translateY(6px); }
+            55%  { transform: translateY(0); }
+            75%  { transform: translateY(-3.5px); }
+            90%  { transform: translateY(1px); }
+            100% { transform: translateY(0); }
+        }
+        .floating-sub-cards.jelly-down .sub-cards-wrapper { animation: jellyDown 0.23s ease forwards; }
+        .floating-sub-cards.jelly-up .sub-cards-wrapper   { animation: jellyUp 0.23s ease forwards; }
+
+        @keyframes stripeShift {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+
         @media (hover: none) and (pointer: coarse) {
             .tool-card:active {
                 transform: scale(0.98);
@@ -257,11 +295,9 @@
             }
         }
 
-        @keyframes stripeShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
+        /* ============================================================
+         * [7] 响应式 Responsive
+         * ============================================================ */
         @media (max-width: 320px) {
             body { padding: 10px; }
             .container { padding-top: 10px; }
@@ -317,6 +353,18 @@
             .theme-toggle { width: 46px; height: 46px; font-size: 22px; top: 20px; right: 20px; }
         }
 
+        /* ╔══════════════════════════════════════════════════════════╗
+         * ║                  主题模块 THEME MODULES                  ║
+         * ║  每个主题按 【背景 / 标题 / 导航卡 / 工具卡 /            ║
+         * ║               子卡片浮层 / 子卡片 / 其他】 顺序组织      ║
+         * ╚══════════════════════════════════════════════════════════╝ */
+
+
+        /* ============================================================
+         * 🌌 THEME: NEBULA（星云渐变 · 毛玻璃）
+         * ============================================================ */
+
+        /* --- 背景 --- */
         body[data-theme="nebula"] {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -324,6 +372,8 @@
         }
         body[data-theme="nebula"]::before,
         body[data-theme="nebula"]::after { display: none; }
+
+        /* --- 标题 --- */
         body[data-theme="nebula"] .title { color: white; }
         body[data-theme="nebula"] .title .smart {
             background: linear-gradient(45deg, #fff, #e8f4ff);
@@ -340,6 +390,8 @@
             text-shadow: 0 2px 8px rgba(255, 255, 255, 0.5);
         }
         body[data-theme="nebula"] .subtitle { color: rgba(255, 255, 255, 0.8); }
+
+        /* --- 导航卡 --- */
         body[data-theme="nebula"] .nav-card {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -355,6 +407,8 @@
             box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.4);
         }
+
+        /* --- 工具卡 --- */
         body[data-theme="nebula"] .tool-card {
             background: white;
             border: 1px solid transparent;
@@ -364,12 +418,17 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
         body[data-theme="nebula"] .tool-title { color: #333; }
-        body[data-theme="nebula"] .tool-desc { color: #666; }
+        body[data-theme="nebula"] .tool-desc  { color: #666; }
         body[data-theme="nebula"] .expand-indicator { color: #999; }
+        body[data-theme="nebula"] .tool-card.math-card:hover .expand-indicator {
+            color: #667eea;
+        }
         body[data-theme="nebula"] .card-container.expanded > .tool-card {
             filter: brightness(0.92);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
+
+        /* --- 子卡片浮层 --- */
         body[data-theme="nebula"] .sub-cards-wrapper {
             background: rgba(113, 137, 245, 0.33);
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(10px);
@@ -381,6 +440,8 @@
         body[data-theme="nebula"] .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
             background: rgba(113, 137, 245, 0.55);
         }
+
+        /* --- 子卡片 --- */
         body[data-theme="nebula"] .sub-card {
             background: rgba(240, 242, 247, 0.87);
             border: 1px solid rgba(180, 190, 200, 0.1);
@@ -395,7 +456,9 @@
                         inset 0 1px 3px rgba(255, 255, 255, 0.5);
         }
         body[data-theme="nebula"] .sub-card-title { color: #333; }
-        body[data-theme="nebula"] .sub-card-desc { color: #666; }
+        body[data-theme="nebula"] .sub-card-desc  { color: #666; }
+
+        /* --- 其他 --- */
         body[data-theme="nebula"] .overlay.active { background: rgba(0, 0, 0, 0.22); }
         body[data-theme="nebula"] .footer { color: rgba(255, 255, 255, 0.6); }
         body[data-theme="nebula"] .theme-toggle {
@@ -407,6 +470,12 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
+
+        /* ============================================================
+         * 🖤 THEME: DARK（Framer 暗色 · 蓝色霓虹）
+         * ============================================================ */
+
+        /* --- 背景（含网格 + 顶部扫描线） --- */
         body[data-theme="dark"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             background-color: #000000;
@@ -436,6 +505,8 @@
             pointer-events: none;
             z-index: -1;
         }
+
+        /* --- 标题 --- */
         body[data-theme="dark"] .title { color: #ffffff; }
         body[data-theme="dark"] .title .smart,
         body[data-theme="dark"] .title .tools {
@@ -447,6 +518,8 @@
             text-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
         }
         body[data-theme="dark"] .subtitle { color: rgba(255, 255, 255, 0.45); letter-spacing: 2px; }
+
+        /* --- 导航卡 --- */
         body[data-theme="dark"] .nav-card {
             background: #111111;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -467,6 +540,8 @@
             border-bottom-color: rgba(0, 153, 255, 0.85);
             box-shadow: 0 6px 24px rgba(0, 153, 255, 0.18);
         }
+
+        /* --- 工具卡 --- */
         body[data-theme="dark"] .tool-card {
             background: #111111;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -482,8 +557,13 @@
             border-bottom-color: rgba(0, 153, 255, 0.85);
         }
         body[data-theme="dark"] .tool-title { color: #ffffff; }
-        body[data-theme="dark"] .tool-desc { color: rgba(255, 255, 255, 0.55); }
+        body[data-theme="dark"] .tool-desc  { color: rgba(255, 255, 255, 0.55); }
         body[data-theme="dark"] .expand-indicator { color: rgba(0, 153, 255, 0.50); }
+        body[data-theme="dark"] .tool-card.math-card:hover .expand-indicator {
+            color: #0099FF;
+            text-shadow: 0 0 10px rgba(0, 153, 255, 0.65),
+                         0 0 18px rgba(0, 153, 255, 0.35);
+        }
         body[data-theme="dark"] .card-container.expanded > .tool-card {
             filter: none;
             border-color: rgba(0, 153, 255, 0.50);
@@ -491,10 +571,18 @@
             border-bottom-color: rgba(0, 153, 255, 0.95);
             box-shadow: 0 0 20px rgba(0, 153, 255, 0.15), 0 4px 16px rgba(0, 0, 0, 0.4);
         }
+
+        /* --- 子卡片浮层 ★ 蓝色霓虹光晕（挂在父层避免被 clip-path 裁切） --- */
+        body[data-theme="dark"] .floating-sub-cards {
+            box-shadow: 0 0 18px rgba(0, 153, 255, 0.45),
+                        0 0 36px rgba(0, 153, 255, 0.25),
+                        0 0 60px rgba(0, 153, 255, 0.12),
+                        0 6px 20px rgba(0, 0, 0, 0.45);
+        }
         body[data-theme="dark"] .sub-cards-wrapper {
             background: rgba(17, 17, 17, 0.92);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 153, 255, 0.28);
+            border: 1.5px solid rgba(0, 153, 255, 0.45);
         }
         body[data-theme="dark"] .sub-cards-wrapper::-webkit-scrollbar-thumb {
             background: rgba(0, 153, 255, 0.20);
@@ -502,6 +590,8 @@
         body[data-theme="dark"] .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 153, 255, 0.40);
         }
+
+        /* --- 子卡片 --- */
         body[data-theme="dark"] .sub-card {
             background: #191919;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -516,7 +606,9 @@
                         0 0 24px rgba(0, 153, 255, 0.18);
         }
         body[data-theme="dark"] .sub-card-title { color: #ffffff; }
-        body[data-theme="dark"] .sub-card-desc { color: rgba(255, 255, 255, 0.50); }
+        body[data-theme="dark"] .sub-card-desc  { color: rgba(255, 255, 255, 0.50); }
+
+        /* --- 其他 --- */
         body[data-theme="dark"] .overlay.active { background: rgba(0, 0, 0, 0.55); }
         body[data-theme="dark"] .footer { color: rgba(255, 255, 255, 0.30); }
         body[data-theme="dark"] .theme-toggle {
@@ -530,9 +622,15 @@
         }
         @media (min-width: 1200px) {
             body[data-theme="dark"] .tool-card { border-radius: 14px; }
-            body[data-theme="dark"] .nav-card { border-radius: 14px; }
+            body[data-theme="dark"] .nav-card  { border-radius: 14px; }
         }
 
+
+        /* ============================================================
+         * 🌿 THEME: MINT（Mintlify · 清新绿）
+         * ============================================================ */
+
+        /* --- 背景（顶部彩条 + 光晕） --- */
         body[data-theme="mint"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             background: #FAFBFC;
@@ -558,6 +656,8 @@
             pointer-events: none;
             z-index: 0;
         }
+
+        /* --- 标题 --- */
         body[data-theme="mint"] .title { color: #111827; }
         body[data-theme="mint"] .title .smart,
         body[data-theme="mint"] .title .tools {
@@ -569,6 +669,8 @@
             text-shadow: none;
         }
         body[data-theme="mint"] .subtitle { color: #6B7280; }
+
+        /* --- 导航卡 --- */
         body[data-theme="mint"] .nav-card {
             background: #FFFFFF;
             border: 1px solid rgba(0, 0, 0, 0.07);
@@ -592,16 +694,15 @@
             transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
                         transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        body[data-theme="mint"] .nav-card:hover::after {
-            opacity: 1;
-            transform: scaleY(1);
-        }
+        body[data-theme="mint"] .nav-card:hover::after { opacity: 1; transform: scaleY(1); }
         body[data-theme="mint"] .nav-card:hover {
             color: #0D9373;
             border-color: rgba(13, 147, 115, 0.25);
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
             background: #FFFFFF;
         }
+
+        /* --- 工具卡（含左侧绿色 accent 条） --- */
         body[data-theme="mint"] .tool-card {
             background: #FFFFFF;
             border: 1px solid rgba(0, 0, 0, 0.07);
@@ -621,17 +722,17 @@
             transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
                         transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        body[data-theme="mint"] .tool-card:hover::after {
-            opacity: 1;
-            transform: scaleY(1);
-        }
+        body[data-theme="mint"] .tool-card:hover::after { opacity: 1; transform: scaleY(1); }
         body[data-theme="mint"] .tool-card:hover {
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
             border-color: rgba(13, 147, 115, 0.25);
         }
         body[data-theme="mint"] .tool-title { color: #111827; }
-        body[data-theme="mint"] .tool-desc { color: #6B7280; }
+        body[data-theme="mint"] .tool-desc  { color: #6B7280; }
         body[data-theme="mint"] .expand-indicator { color: #9CA3AF; }
+        body[data-theme="mint"] .tool-card.math-card:hover .expand-indicator {
+            color: #0D9373;
+        }
         body[data-theme="mint"] .card-container.expanded > .tool-card {
             filter: none;
             border-color: rgba(13, 147, 115, 0.40);
@@ -642,11 +743,13 @@
             opacity: 1;
             transform: scaleY(1);
         }
+
+        /* --- 子卡片浮层 --- */
         body[data-theme="mint"] .sub-cards-wrapper {
             background: rgba(255, 255, 255, 0.15);
             -webkit-backdrop-filter: blur(12px) saturate(1.4);
             backdrop-filter: blur(12px) saturate(1.4);
-            border: 1px solid rgba(255, 255, 255, 0.35);
+            border: 1.5px solid rgba(13, 147, 115, 0.28);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08),
                         inset 0 0 0 1px rgba(255, 255, 255, 0.25),
                         0 0 1px 0 rgba(0, 0, 0, 0.06);
@@ -657,6 +760,8 @@
         body[data-theme="mint"] .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
             background: rgba(13, 147, 115, 0.40);
         }
+
+        /* --- 子卡片 --- */
         body[data-theme="mint"] .sub-card {
             background: rgb(250, 255, 255);
             border: 1px solid rgba(0, 0, 0, 0.07);
@@ -682,6 +787,8 @@
         body[data-theme="mint"] .sub-card:hover .sub-card-title { color: #087F5B; }
         body[data-theme="mint"] .sub-card-desc { color: #6B7280; }
         body[data-theme="mint"] .sub-card:hover .sub-card-desc { color: #0D9373; }
+
+        /* --- 其他 --- */
         body[data-theme="mint"] .overlay.active { background: rgba(6, 140, 108, 0.15); }
         body[data-theme="mint"] .footer { color: #9CA3AF; }
         body[data-theme="mint"] .theme-toggle {
@@ -695,9 +802,15 @@
         }
         @media (min-width: 1200px) {
             body[data-theme="mint"] .tool-card { border-radius: 14px; }
-            body[data-theme="mint"] .nav-card { border-radius: 12px; }
+            body[data-theme="mint"] .nav-card  { border-radius: 12px; }
         }
 
+
+        /* ============================================================
+         * 📄 THEME: NOTION（Notion · 纸感紫）
+         * ============================================================ */
+
+        /* --- 背景 --- */
         body[data-theme="notion"] {
             font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
                          "Segoe UI", "PingFang SC", "Hiragino Sans GB",
@@ -724,6 +837,8 @@
             pointer-events: none;
             z-index: 0;
         }
+
+        /* --- 标题 --- */
         body[data-theme="notion"] .title { color: #37352F; }
         body[data-theme="notion"] .title .smart,
         body[data-theme="notion"] .title .tools {
@@ -735,6 +850,8 @@
             text-shadow: none;
         }
         body[data-theme="notion"] .subtitle { color: #787774; }
+
+        /* --- 导航卡 --- */
         body[data-theme="notion"] .nav-card {
             background: #FFFFFF;
             border: 1px solid #DDD9D3;
@@ -775,6 +892,8 @@
                         0 0 0 1px rgba(55, 53, 47, 0.05),
                         inset 0 1px 0 rgba(255, 255, 255, 0.95);
         }
+
+        /* --- 工具卡（左侧虚线 accent + 右侧虚线 + 底部虚线分割） --- */
         body[data-theme="notion"] .tool-card {
             background: #FFFFFF;
             border: 1px solid #DDD9D3;
@@ -811,8 +930,11 @@
                         inset 0 1px 0 rgba(255, 255, 255, 0.95);
         }
         body[data-theme="notion"] .tool-title { color: #37352F; }
-        body[data-theme="notion"] .tool-desc { color: #787774; }
+        body[data-theme="notion"] .tool-desc  { color: #787774; }
         body[data-theme="notion"] .expand-indicator { color: #BCBAB6; }
+        body[data-theme="notion"] .tool-card.math-card:hover .expand-indicator {
+            color: #6E56CF;
+        }
         body[data-theme="notion"] .card-container.expanded > .tool-card {
             filter: none;
             border-color: #6E56CF;
@@ -823,6 +945,8 @@
             opacity: 1;
             transform: translateY(-50%) scaleY(1);
         }
+
+        /* 右侧虚线装饰 */
         body[data-theme="notion"] .card-container .tool-card::before {
             content: '';
             position: absolute;
@@ -845,6 +969,8 @@
             top: 10%;
             bottom: 10%;
         }
+
+        /* 描述下方紫色虚线 */
         body[data-theme="notion"] .tool-card .tool-desc {
             position: relative;
             padding-bottom: 10px;
@@ -857,6 +983,8 @@
             width: 95%;
             border-bottom: 1px dashed rgba(110, 86, 207, 0.62);
         }
+
+        /* --- 子卡片浮层 --- */
         body[data-theme="notion"] .sub-cards-wrapper {
             background: #FFFFFF;
             border: 1.5px solid #DDD9D3;
@@ -872,6 +1000,8 @@
         body[data-theme="notion"] .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
             background: rgba(110, 86, 207, 0.40);
         }
+
+        /* --- 子卡片 --- */
         body[data-theme="notion"] .sub-card {
             background: #F7F6F3;
             border: 1px solid #DDD9D3;
@@ -896,8 +1026,10 @@
         }
         body[data-theme="notion"] .sub-card-title { color: #37352F; }
         body[data-theme="notion"] .sub-card:hover .sub-card-title { color: #5946B2; }
-        body[data-theme="notion"] .sub-card-desc { color: #787774; }
+        body[data-theme="notion"] .sub-card-desc  { color: #787774; }
         body[data-theme="notion"] .sub-card:hover .sub-card-desc { color: #6E56CF; }
+
+        /* --- 其他 --- */
         body[data-theme="notion"] .overlay.active { background: rgba(55, 53, 47, 0.22); }
         body[data-theme="notion"] .footer { color: #BCBAB6; }
         body[data-theme="notion"] .theme-toggle {
@@ -912,9 +1044,15 @@
         }
         @media (min-width: 1200px) {
             body[data-theme="notion"] .tool-card { border-radius: 12px; }
-            body[data-theme="notion"] .nav-card { border-radius: 12px; }
+            body[data-theme="notion"] .nav-card  { border-radius: 12px; }
         }
 
+
+        /* ============================================================
+         * 💎 THEME: STRIPE（Stripe · 深蓝紫渐变）
+         * ============================================================ */
+
+        /* --- 背景（顶部流光彩条 + 点阵） --- */
         body[data-theme="stripe"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             background-color: #0A2540;
@@ -943,6 +1081,8 @@
             pointer-events: none;
             z-index: -1;
         }
+
+        /* --- 标题 --- */
         body[data-theme="stripe"] .title { color: #ffffff; }
         body[data-theme="stripe"] .title .smart,
         body[data-theme="stripe"] .title .tools {
@@ -955,6 +1095,8 @@
             text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
         }
         body[data-theme="stripe"] .subtitle { color: rgba(255, 255, 255, 0.55); letter-spacing: 1.5px; }
+
+        /* --- 导航卡 --- */
         body[data-theme="stripe"] .nav-card {
             background: rgba(99, 91, 255, 0.1);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -972,6 +1114,8 @@
             border-color: rgba(99, 91, 255, 0.4);
             color: white;
         }
+
+        /* --- 工具卡 --- */
         body[data-theme="stripe"] .tool-card {
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(99, 91, 255, 0.08);
@@ -983,17 +1127,27 @@
             border-color: rgba(99, 91, 255, 0.2);
         }
         body[data-theme="stripe"] .tool-title { color: #0A2540; }
-        body[data-theme="stripe"] .tool-desc { color: #425466; }
+        body[data-theme="stripe"] .tool-desc  { color: #425466; }
         body[data-theme="stripe"] .expand-indicator { color: rgba(99, 91, 255, 0.50); }
+        body[data-theme="stripe"] .tool-card.math-card:hover .expand-indicator {
+            color: #635BFF;
+        }
         body[data-theme="stripe"] .card-container.expanded > .tool-card {
             filter: none;
             border-color: rgba(99, 91, 255, 0.3);
             box-shadow: 0 8px 28px rgba(99, 91, 255, 0.15);
         }
+
+        /* --- 子卡片浮层 ★ 紫色柔光 --- */
+        body[data-theme="stripe"] .floating-sub-cards {
+            box-shadow: 0 0 20px rgba(99, 91, 255, 0.30),
+                        0 0 40px rgba(99, 91, 255, 0.15),
+                        0 8px 28px rgba(0, 0, 0, 0.35);
+        }
         body[data-theme="stripe"] .sub-cards-wrapper {
             background: rgba(15, 40, 70, 0.6);
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(99, 91, 255, 0.15);
+            border: 1.5px solid rgba(99, 91, 255, 0.32);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         body[data-theme="stripe"] .sub-cards-wrapper::-webkit-scrollbar-thumb {
@@ -1002,6 +1156,8 @@
         body[data-theme="stripe"] .sub-cards-wrapper::-webkit-scrollbar-thumb:hover {
             background: rgba(99, 91, 255, 0.45);
         }
+
+        /* --- 子卡片 --- */
         body[data-theme="stripe"] .sub-card {
             background: rgba(255, 255, 255, 0.92);
             border: 1px solid rgba(99, 91, 255, 0.06);
@@ -1023,8 +1179,10 @@
         }
         body[data-theme="stripe"] .sub-card-title { color: #0A2540; }
         body[data-theme="stripe"] .sub-card:hover .sub-card-title { color: #4338ca; }
-        body[data-theme="stripe"] .sub-card-desc { color: #425466; }
+        body[data-theme="stripe"] .sub-card-desc  { color: #425466; }
         body[data-theme="stripe"] .sub-card:hover .sub-card-desc { color: #635BFF; }
+
+        /* --- 其他 --- */
         body[data-theme="stripe"] .overlay.active { background: rgba(5, 15, 30, 0.45); }
         body[data-theme="stripe"] .footer { color: rgba(255, 255, 255, 0.35); }
         body[data-theme="stripe"] .theme-toggle {
@@ -1038,7 +1196,7 @@
         }
         @media (min-width: 1200px) {
             body[data-theme="stripe"] .tool-card { border-radius: 14px; }
-            body[data-theme="stripe"] .nav-card { border-radius: 14px; }
+            body[data-theme="stripe"] .nav-card  { border-radius: 14px; }
         }
     </style>
 </head>
@@ -1059,18 +1217,16 @@
                 'index4.html': 'dark',
                 'index5.html': 'mint'
             };
-            var validThemes = ['nebula','notion','stripe','dark','mint']; /* ★ 新增 */
+            var validThemes = ['nebula','notion','stripe','dark','mint'];
 
             var theme = null;
 
-            /* ★ 新增：最高优先级 —— 直接读 ?theme= */
             try {
                 var p = new URLSearchParams(window.location.search);
                 var t = p.get('theme');
                 if (t && validThemes.indexOf(t) !== -1) theme = t;
             } catch(e) {}
 
-            /* 原有逻辑：读 ?from= */
             if (!theme) {
                 try {
                     var p2 = new URLSearchParams(window.location.search);
@@ -1090,22 +1246,28 @@
                 } catch(e) {}
             }
 
+            // 4. 从 fav_last_style 识别来源（仅当值有更新，即为"新鲜"的跳转）
             if (!theme) {
                 try {
                     var ls = localStorage.getItem('fav_last_style');
-                    if (ls && favMap[ls]) theme = favMap[ls];
+                    var consumedFav = localStorage.getItem('smarttools_fav_consumed');
+                    if (ls && favMap[ls] && ls !== consumedFav) {
+                        theme = favMap[ls];
+                        localStorage.setItem('smarttools_fav_consumed', ls);
+                    }
                 } catch(e) {}
             }
 
+            // 5. 最后回退到用户上次手动切换保存的主题
             if (!theme) {
                 try { theme = localStorage.getItem('smarttools_theme'); } catch(e) {}
             }
+            
+                        if (!theme) theme = 'mint';
 
-            if (!theme) theme = 'mint';
-
-            document.body.setAttribute('data-theme', theme);
-            try { localStorage.setItem('smarttools_theme', theme); } catch(e) {}
-        })();
+                        document.body.setAttribute('data-theme', theme);
+                        try { localStorage.setItem('smarttools_theme', theme); } catch(e) {}
+                    })();
     </script>
 
     <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">
@@ -1213,7 +1375,6 @@
                 </div>
                 <div class="floating-sub-cards">
                     <div class="sub-cards-wrapper">
-                        <!-- ★ 改：navigateTo 替换 window.location.href -->
                         <div class="sub-card" onclick="navigateTo('tools/math3-4.html')">
                             <div class="sub-card-title">三转四年级</div>
                             <div class="sub-card-desc">升学过渡练习</div>
@@ -1388,14 +1549,12 @@
             el.addEventListener('click', function(e) { e.stopPropagation(); });
         });
 
-        /* ★ 新增：内部跳转辅助函数，自动追加 ?theme= */
         function navigateTo(url) {
             var theme = themes[currentThemeIndex].id;
             var sep = url.indexOf('?') === -1 ? '?' : '&';
             window.location.href = url + sep + 'theme=' + theme;
         }
 
-        /* ★ 新增：拦截所有 <a> 的站内链接，自动带 theme 参数 */
         document.addEventListener('click', function(e) {
             var a = e.target.closest('a[href]');
             if (!a) return;
