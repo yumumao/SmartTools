@@ -13,7 +13,7 @@
         /* ============================================================
          * [0] 全局重置 Reset
          * ============================================================ */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             min-height: 100vh;
@@ -288,11 +288,21 @@
             50%      { background-position: 100% 50%; }
         }
 
-        @media (hover: none) and (pointer: coarse) {
-            .tool-card:active {
-                transform: scale(0.98);
-                transition: transform 0.1s ease;
-            }
+        /* 点击/按压反馈：鼠标点击 & 手指触摸通用（hover 仍保留给支持悬停的设备） */
+        .nav-card:active {
+            transform: scale(0.97);
+            transition: transform 0.08s ease;
+        }
+        .tool-card:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+        .sub-card:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+        .theme-toggle:active {
+            transform: scale(0.92);
         }
 
         /* ============================================================
