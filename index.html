@@ -3,82 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💖在线收藏夹 - 跳转中...</title>
+    <title>💖跳转中...</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' x='-0.11em' font-size='90'>😺🏷</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
-            background: #FAFBFC;
+            background: #0e0e12;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            color: #6B7280;
+            color: #9ca3af;
+            overflow: hidden;
         }
 
+        /* ═══ 背景：慢速流动渐变 ═══ */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                #667eea22, #764ba222, #635BFF22,
+                #0099FF22, #0D937322, #667eea22
+            );
+            animation: bgSpin 12s linear infinite;
+            z-index: 0;
+        }
+        @keyframes bgSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ═══ 主容器 ═══ */
         .loader {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .loader .emoji {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: block;
-            animation: bounce 1s ease-in-out infinite;
-        }
-
-        .loader .text {
-            font-size: 14px;
-            letter-spacing: 0.02em;
+            animation: fadeIn 0.4s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50%      { transform: translateY(-8px); }
+        /* ═══ 中心书签图标 ═══ */
+        .center-icon {
+            font-size: 44px;
+            display: block;
+            margin-bottom: 8px;
+            animation: pulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px rgba(255,255,255,0.15));
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.12); }
         }
 
+        /* ═══ 环绕轨道容器 ═══ */
+        .orbit-ring {
+            position: relative;
+            width: 160px; height: 160px;
+            margin: 0 auto 20px;
+        }
+
+        /* 轨道虚线圈 */
+        .orbit-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1.5px dashed rgba(255,255,255,0.08);
+            border-radius: 50%;
+            animation: orbitTrack 8s linear infinite;
+        }
+        @keyframes orbitTrack {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ═══ 环绕的主题 emoji ═══ */
+        .orbit-emoji {
+            position: absolute;
+            font-size: 22px;
+            width: 40px; height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 每个 emoji 绕中心转 */
+            top: 50%; left: 50%;
+            margin: -20px 0 0 -20px;
+            animation: orbitMove 5s linear infinite;
+            filter: drop-shadow(0 0 6px var(--glow));
+        }
+
+        /* 5个 emoji，均分360° */
+        .orbit-emoji:nth-child(1) { --glow: #667eea88; animation-delay:  0s;    }
+        .orbit-emoji:nth-child(2) { --glow: #6E56CF88; animation-delay: -1s;    }
+        .orbit-emoji:nth-child(3) { --glow: #635BFF88; animation-delay: -2s;    }
+        .orbit-emoji:nth-child(4) { --glow: #0099FF88; animation-delay: -3s;    }
+        .orbit-emoji:nth-child(5) { --glow: #0D937388; animation-delay: -4s;    }
+
+        @keyframes orbitMove {
+            0%   { transform: rotate(0deg)   translateX(68px) rotate(0deg)   scale(0.85); opacity: 0.65; }
+            50%  { transform: rotate(180deg) translateX(68px) rotate(-180deg) scale(1.15); opacity: 1;    }
+            100% { transform: rotate(360deg) translateX(68px) rotate(-360deg) scale(0.85); opacity: 0.65; }
+        }
+
+        /* ═══ 色块闪烁条 ═══ */
+        .color-bar {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .color-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            animation: dotFlash 2.5s ease-in-out infinite;
+        }
+        .color-dot:nth-child(1) { background: #667eea; animation-delay: 0s;    }
+        .color-dot:nth-child(2) { background: #6E56CF; animation-delay: 0.5s;  }
+        .color-dot:nth-child(3) { background: #635BFF; animation-delay: 1s;    }
+        .color-dot:nth-child(4) { background: #0099FF; animation-delay: 1.5s;  }
+        .color-dot:nth-child(5) { background: #0D9373; animation-delay: 2s;    }
+
+        @keyframes dotFlash {
+            0%, 100% { transform: scale(1);   opacity: 0.3; }
+            50%      { transform: scale(2.2); opacity: 1;   box-shadow: 0 0 8px currentColor; }
+        }
+
+        /* ═══ 文字 ═══ */
+        .text {
+            font-size: 13px;
+            letter-spacing: 0.06em;
+            color: rgba(255,255,255,0.35);
+        }
+
+        /* ═══ noscript 回退 ═══ */
         noscript .fallback {
             text-align: center;
             padding: 40px 20px;
         }
-
         noscript .fallback h2 {
-            color: #111827;
+            color: #e5e7eb;
             margin-bottom: 20px;
             font-size: 20px;
         }
-
         noscript .fallback a {
             display: inline-block;
             margin: 6px 8px;
             padding: 10px 22px;
-            background: #0D9373;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
-            transition: background 0.2s;
+            transition: background 0.2s, border-color 0.2s;
         }
-
         noscript .fallback a:hover {
-            background: #087F5B;
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.3);
         }
     </style>
+
+    <!-- ★ 跳转逻辑：完全不变，瞬间执行 -->
+    <script>
+    (function() {
+        var themeToPage = {
+            'nebula': 'index1.html',
+            'notion': 'index2.html',
+            'stripe': 'index3.html',
+            'dark':   'index4.html',
+            'mint':   'index5.html'
+        };
+        var theme = null;
+
+        try {
+            theme = new URLSearchParams(window.location.search).get('theme');
+        } catch(e) {}
+
+        if (!theme || !themeToPage[theme]) {
+            try { theme = localStorage.getItem('smarttools_theme'); } catch(e) {}
+        }
+
+        if (theme && themeToPage[theme]) {
+            window.location.replace(themeToPage[theme]);
+        }
+    })();
+    </script>
 </head>
 <body>
 
     <div class="loader" id="loader">
-        <span class="emoji">⭐️</span>
-        <p class="text">正在跳转收藏夹…</p>
+        <!-- 中心图标 -->
+        <span class="center-icon">⭐️</span>
+
+        <!-- 环绕轨道 -->
+        <div class="orbit-ring">
+            <span class="orbit-emoji">🌌</span>
+            <span class="orbit-emoji">📄</span>
+            <span class="orbit-emoji">💎</span>
+            <span class="orbit-emoji">🖤</span>
+            <span class="orbit-emoji">🌿</span>
+        </div>
+
+        <!-- 色块闪烁 -->
+        <div class="color-bar">
+            <span class="color-dot"></span>
+            <span class="color-dot"></span>
+            <span class="color-dot"></span>
+            <span class="color-dot"></span>
+            <span class="color-dot"></span>
+        </div>
+
+        <p class="text">正在跳转…</p>
     </div>
 
     <noscript>
@@ -92,29 +234,26 @@
         </div>
     </noscript>
 
+    <!-- ★ 兜底跳转：也完全不变 -->
     <script>
-        (function () {
-            var DEFAULT_PAGE = 'index5.html';
-            var STORAGE_KEY  = 'fav_last_style';
+    (function () {
+        var DEFAULT_PAGE = 'index5.html';
+        var STORAGE_KEY  = 'fav_last_style';
+        var target = DEFAULT_PAGE;
 
-            var target = DEFAULT_PAGE;
-
-            try {
-                var saved = localStorage.getItem(STORAGE_KEY);
-                // 只允许跳转到合法的风格页面
-                var allowed = [
-                    'index1.html', 'index2.html', 'index3.html',
-                    'index4.html', 'index5.html'
-                ];
-                if (saved && allowed.indexOf(saved) !== -1) {
-                    target = saved;
-                }
-            } catch (e) {
-                // localStorage 不可用时，使用默认页
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            var allowed = [
+                'index1.html', 'index2.html', 'index3.html',
+                'index4.html', 'index5.html'
+            ];
+            if (saved && allowed.indexOf(saved) !== -1) {
+                target = saved;
             }
+        } catch (e) {}
 
-            window.location.replace(target);
-        })();
+        window.location.replace(target);
+    })();
     </script>
 
 </body>
