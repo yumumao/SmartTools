@@ -246,9 +246,12 @@
             justify-content: center;
         }
 
+        /* ★ 修改：加蓝色右/下边框 */
         .back-link {
             background: var(--fr-surface-2);
             border: 1px solid var(--fr-border);
+            border-right: 1px solid rgba(0, 153, 255, 0.40);
+            border-bottom: 1px solid rgba(0, 153, 255, 0.40);
             color: var(--fr-text-2);
             text-decoration: none;
             border-radius: 10px;
@@ -277,12 +280,15 @@
 
         .back-link:hover::before { left: 100%; }
 
+        /* ★ 修改：悬停时更亮边框 + 光晕 */
         .back-link:hover {
             background: var(--fr-surface-3);
             color: var(--fr-text-1);
             border-color: var(--fr-blue-border);
+            border-right-color: rgba(0, 153, 255, 0.85);
+            border-bottom-color: rgba(0, 153, 255, 0.85);
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0, 153, 255, 0.1);
+            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.32);
         }
 
         .section {
@@ -1465,12 +1471,15 @@
             min-width: 108px;
         }
 
+        /* ★ 修改：加蓝色右/下边框 */
         .style-btn {
             width: 100%;
             background: var(--fr-surface-2);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--fr-border);
+            border-right: 1px solid rgba(0, 153, 255, 0.40);
+            border-bottom: 1px solid rgba(0, 153, 255, 0.40);
             color: var(--fr-text-2);
             border-radius: 10px;
             padding: 7px 11px;
@@ -1482,17 +1491,20 @@
             justify-content: space-between;
             gap: 5px;
             white-space: nowrap;
-            transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            transition: all 0.3s var(--fr-ease);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             font-family: inherit;
             letter-spacing: -0.01em;
         }
 
+        /* ★ 修改：悬停时更亮边框 + 光晕 */
         .style-btn:hover {
             background: var(--fr-surface-3);
-            border-color: var(--fr-border-hover);
+            border-color: var(--fr-blue-border);
+            border-right-color: rgba(0, 153, 255, 0.85);
+            border-bottom-color: rgba(0, 153, 255, 0.85);
             color: var(--fr-text-1);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 24px rgba(0, 153, 255, 0.32);
         }
 
         .style-caret {

@@ -765,9 +765,10 @@
         }
 
         .link-card-with-expand:hover .expand-btn:not(.expanded) {
-            opacity: 0.6;
-            color: var(--mt-green);
+            opacity: 0.8;
+            color: var(--mt-green-dim);
             animation: chevronFloat 1.8s ease-in-out infinite;
+            transform: translateY(-50%) scale(1.1); /* 新增：稍微放大 */
         }
 
         .link-card-with-expand .expand-zone:hover ~ .expand-btn:not(.expanded) {
@@ -793,8 +794,8 @@
         }
 
         @keyframes chevronFloat {
-            0%, 100% { transform: translateY(-50%) translateY(0); }
-            50%      { transform: translateY(-50%) translateY(3px); }
+            0%, 100% { transform: translateY(-50%) translateY(0) scale(1.1); }
+            50%      { transform: translateY(-50%) translateY(3px) scale(1.1); }
         }
 
         /* ========== 子卡片容器 — 毛玻璃效果 ========== */
