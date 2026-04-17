@@ -617,9 +617,6 @@
         .hidden-cards .card-container { z-index: 2; }
         .hidden-cards .card-container.active { z-index: 60; }
 
-        /* ================================================================
-           主卡片样式 — 新增右侧和底部亮蓝色细边
-           ================================================================ */
         .link-card {
             background: var(--fr-surface-2);
             border: 1px solid var(--fr-border);
@@ -673,9 +670,6 @@
             background: rgba(0, 153, 255, 0.10);
         }
 
-        /* ================================================================
-           邮箱卡片（带多标签页切换）
-           ================================================================ */
         .email-card {
             position: relative;
             padding: 16px;
@@ -797,7 +791,7 @@
         }
 
         /* ================================================================
-           展开箭头按钮 — 浅灰底 + 蓝色光晕 + 蓝色发光三角
+           展开箭头按钮 — 默认暗蓝
            ================================================================ */
         .expand-btn {
             position: absolute;
@@ -805,48 +799,69 @@
             top: 50%;
             transform: translateY(-50%);
             background: rgba(180, 180, 180, 0.13);
-            color: var(--fr-blue);
+            color: #005a99;
             border: 1px solid var(--fr-blue-border);
             border-radius: var(--fr-radius-s);
-            width: 34px;
-            height: 26px;
+            width: 30px;
+            height: 22px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: bold;
             transition: all 0.3s var(--fr-ease);
-            box-shadow: 0 0 10px rgba(0, 153, 255, 0.20),
-                        0 0 20px rgba(0, 153, 255, 0.08),
+            box-shadow: 0 0 12px rgba(0, 153, 255, 0.28),
+                        0 0 24px rgba(0, 153, 255, 0.12),
                         0 2px 8px rgba(0, 0, 0, 0.15);
             z-index: 3;
             pointer-events: none;
             opacity: 0.85;
-            text-shadow: 0 0 6px rgba(0, 153, 255, 0.55),
-                         0 0 12px rgba(0, 153, 255, 0.25);
+            text-shadow: 0 0 8px rgba(0, 153, 255, 0.70),
+                         0 0 18px rgba(0, 153, 255, 0.45),
+                         0 0 32px rgba(0, 153, 255, 0.20);
         }
 
-        .expand-btn:hover {
-            background: rgba(180, 180, 180, 0.18);
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 0 14px rgba(0, 153, 255, 0.30),
-                        0 0 28px rgba(0, 153, 255, 0.32),
-                        0 4px 12px rgba(0, 0, 0, 0.2);
+        /* ── 悬停：中等亮度（通过 expand-zone 兄弟选择器触发） ── */
+        .expand-zone:hover + .expand-btn {
+            background: rgba(180, 180, 180, 0.16);
+            color: #1a9bff;
+            opacity: 0.95;
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 0 14px rgba(0, 153, 255, 0.38),
+                        0 0 28px rgba(0, 153, 255, 0.18),
+                        0 2px 8px rgba(0, 0, 0, 0.18);
             border-color: var(--fr-blue-border-strong);
+            text-shadow: 0 0 8px rgba(26, 155, 255, 0.85),
+                         0 0 20px rgba(26, 155, 255, 0.55),
+                         0 0 36px rgba(0, 153, 255, 0.25);
         }
 
+        /* ── 展开后（已点击）：亮 ── */
         .expand-btn.expanded {
-            background: rgba(180, 180, 180, 0.13);
-            color: var(--fr-blue);
+            background: rgba(180, 180, 180, 0.16);
+            color: #33adff;
+            opacity: 1;
             transform: translateY(-50%) rotate(180deg);
-            text-shadow: 0 0 6px rgba(0, 153, 255, 0.55),
-                         0 0 12px rgba(0, 153, 255, 0.25);
+            box-shadow: 0 0 14px rgba(0, 153, 255, 0.40),
+                        0 0 28px rgba(0, 153, 255, 0.18),
+                        0 2px 8px rgba(0, 0, 0, 0.15);
+            text-shadow: 0 0 10px rgba(51, 173, 255, 0.90),
+                         0 0 22px rgba(51, 173, 255, 0.60),
+                         0 0 40px rgba(0, 153, 255, 0.30);
         }
 
-        .expand-btn.expanded:hover {
-            background: rgba(180, 180, 180, 0.18);
-            transform: translateY(-50%) rotate(180deg) scale(1.1);
+        /* ── 展开后 + 悬停：最亮（通过 expand-zone 兄弟选择器触发） ── */
+        .expand-zone:hover + .expand-btn.expanded {
+            background: rgba(180, 180, 180, 0.20);
+            color: #55b8ff;
+            transform: translateY(-50%) rotate(180deg) scale(1.05);
+            box-shadow: 0 0 18px rgba(0, 153, 255, 0.48),
+                        0 0 34px rgba(0, 153, 255, 0.22),
+                        0 4px 12px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 0 10px rgba(85, 184, 255, 0.95),
+                         0 0 24px rgba(51, 173, 255, 0.65),
+                         0 0 44px rgba(0, 153, 255, 0.32);
         }
 
         /* ================================================================
@@ -1261,9 +1276,9 @@
 
             .expand-btn {
                 right: 28px;
-                width: 36px;
-                height: 28px;
-                font-size: 15px;
+                width: 32px;
+                height: 24px;
+                font-size: 12px;
                 margin: -3px 0;
             }
 
@@ -1320,9 +1335,9 @@
 
             .expand-btn {
                 right: 17px;
-                width: 30px;
-                height: 22px;
-                font-size: 12px;
+                width: 26px;
+                height: 18px;
+                font-size: 9px;
                 margin: -2px 0;
             }
 
