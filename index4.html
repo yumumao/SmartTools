@@ -822,7 +822,22 @@
                          0 0 32px rgba(0, 153, 255, 0.20);
         }
 
-        /* ── 悬停：中等亮度（通过 expand-zone 兄弟选择器触发） ── */
+        /* ── 整卡悬停：微亮（新增） ── */
+        .link-card-with-expand:hover .expand-btn {
+            background: rgba(180, 180, 180, 0.15);
+            color: #1a9bff;
+            opacity: 0.95;
+            transform: translateY(-50%) scale(1.02);
+            box-shadow: 0 0 13px rgba(0, 153, 255, 0.32),
+                        0 0 26px rgba(0, 153, 255, 0.15),
+                        0 2px 8px rgba(0, 0, 0, 0.16);
+            border-color: var(--fr-blue-border);
+            text-shadow: 0 0 8px rgba(13, 138, 230, 0.80),
+                         0 0 18px rgba(0, 153, 255, 0.50),
+                         0 0 34px rgba(0, 153, 255, 0.22);
+        }
+
+        /* ── 右侧悬停：更亮（通过 expand-zone 兄弟选择器触发） ── */
         .expand-zone:hover + .expand-btn {
             background: rgba(180, 180, 180, 0.16);
             color: #1a9bff;
@@ -851,7 +866,20 @@
                          0 0 40px rgba(0, 153, 255, 0.30);
         }
 
-        /* ── 展开后 + 悬停：最亮（通过 expand-zone 兄弟选择器触发） ── */
+        /* ── 展开后 + 整卡悬停：微亮（新增） ── */
+        .link-card-with-expand:hover .expand-btn.expanded {
+            background: rgba(180, 180, 180, 0.18);
+            color: #55b8ff;
+            transform: translateY(-50%) rotate(180deg) scale(1.02);
+            box-shadow: 0 0 16px rgba(0, 153, 255, 0.44),
+                        0 0 30px rgba(0, 153, 255, 0.20),
+                        0 3px 10px rgba(0, 0, 0, 0.18);
+            text-shadow: 0 0 10px rgba(68, 176, 255, 0.92),
+                         0 0 22px rgba(51, 173, 255, 0.62),
+                         0 0 42px rgba(0, 153, 255, 0.28);
+        }
+
+        /* ── 展开后 + 右侧悬停：最亮（通过 expand-zone 兄弟选择器触发） ── */
         .expand-zone:hover + .expand-btn.expanded {
             background: rgba(180, 180, 180, 0.20);
             color: #55b8ff;
@@ -1059,12 +1087,14 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            pointer-events: none;
         }
 
         .overlay.active {
             opacity: 1;
             visibility: visible;
             background: rgba(0, 0, 0, 0.55);
+            pointer-events: auto;
         }
 
         .link-icon {
