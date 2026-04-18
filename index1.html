@@ -37,12 +37,11 @@
         /* ================================================================
            页头标题 & 页脚
            ================================================================ */
-        /* ★ 改动1：加 position: relative，供内部绝对定位的切换按钮使用 */
         .header {
             text-align: center;
             margin-bottom: 20px;
             position: relative;
-            padding-top: 42px;
+            padding-top: 0;
         }
 
         .title {
@@ -1606,7 +1605,7 @@
                 font-size: 13px;
             }
 
-            /* ★ 改动2（响应式补充）：小屏风格切换按钮稍小 */
+            /* 小屏风格切换按钮稍小 */
             .style-btn {
                 font-size: 11px;
                 padding: 4px 8px;
@@ -1615,11 +1614,7 @@
 
             .style-opt {
                 font-size: 11px;
-                padding: 6px 8px;
-            }
-
-            .style-switcher {
-                min-width: unset;
+                padding: 5px 7px;
             }
         }
 
@@ -1656,42 +1651,44 @@
         }
 
         /* ================================================================
-           ★ 改动2：页面风格切换下拉（右上角，绝对定位于 .header 内）
+           右上角固定风格切换（与左下角主页按钮视觉统一）
            ================================================================ */
         .style-switcher {
-            position: absolute;
-            top: 1px;
-            right: 0;
-            z-index: 200;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10000;
             min-width: unset;
         }
 
         .style-btn {
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            color: white;
+            background-color: rgba(127, 112, 225, 0.3);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border: none;
+            color: #f5f5f5;
             border-radius: 8px;
-            padding: 6px 13px 6px 12px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: "微软雅黑", Arial, sans-serif;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 5px;
             white-space: nowrap;
-            transition: background 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.25);
-            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
+                         0 0 4px rgba(80, 80, 80, 0.3);
         }
 
         .style-btn:hover {
-            background: rgba(255, 255, 255, 0.28);
-            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background-color: rgba(127, 112, 220, 0.6);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 3px rgba(100, 100, 100, 0.6),
+                         0 0 6px rgba(80, 80, 80, 0.5);
         }
 
         .style-caret {
@@ -1706,23 +1703,22 @@
             transform: rotate(180deg);
         }
 
-        /* 下拉菜单：left:0; right:0 → 与按钮等宽 */
         .style-menu {
             display: none;
             position: absolute;
             top: calc(100% + 5px);
-            left: 0;
+            left: auto;
             right: 0;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.38);
-            border-radius: 10px;
+            min-width: 100%;
+            background-color: rgba(127, 112, 225, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: none;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
             animation: menuFadeIn 0.18s ease;
             padding: 4px;
-            border-radius: 10px;
         }
 
         @keyframes menuFadeIn {
@@ -1740,32 +1736,36 @@
             gap: 6px;
             padding: 6px 9px;
             font-size: 12px;
-            border-radius: 7px;
+            border-radius: 6px;
             width: 100%;
-            font-weight: 500;
-            color: rgba(33, 33, 33, 0.85);
+            font-weight: bold;
+            color: #f5f5f5;
             text-decoration: none;
             cursor: pointer;
             transition: background 0.15s ease;
             white-space: nowrap;
-            font-family: inherit;
+            font-family: "微软雅黑", Arial, sans-serif;
+            text-shadow: 0 0 2px rgba(100, 100, 100, 0.4),
+                         0 0 4px rgba(80, 80, 80, 0.3);
         }
 
         .style-opt:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         /* 当前页选项：高亮显示，禁止再次点击 */
         .style-opt-active {
-            background: rgba(255, 255, 255, 0.22);
-            color: #227eea;
-            font-weight: 700;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
             cursor: default;
+            text-shadow: 0 0 3px rgba(100, 100, 100, 0.6),
+                         0 0 6px rgba(80, 80, 80, 0.5);
         }
 
         .style-opt-active:hover {
-            background: rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.12);
         }
+
 /* ================================================================
  * [✨ 交互增强] 去触屏灰色高亮 + 按压反馈 + 波纹容器
  * ================================================================ */
@@ -1836,10 +1836,10 @@ a, button, [onclick], [role="option"],
     opacity: 0.4;
 }
 
-/* 下拉菜单项：保持紫色波纹（因为菜单项本身是浅底） */
+/* 下拉菜单项：白色波纹（菜单底色为半透明紫） */
 .style-opt .ripple {
-    background-color: #667eea;
-    opacity: 0.25;
+    background-color: #ffffff;
+    opacity: 0.3;
 }
 
 /* —— ④ 防止选中 —— */
@@ -1890,7 +1890,7 @@ a, button, [onclick], [role="option"],
     .link-card.email-card:focus {
         transform: none !important;
     }
-}        
+}
     </style>
 </head>
 <body>
@@ -1900,29 +1900,29 @@ a, button, [onclick], [role="option"],
     <!-- 左下角固定导航按钮 -->
     <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
 
+    <!-- 右上角固定风格切换按钮 -->
+    <div class="style-switcher" id="styleSwitcher">
+        <button class="style-btn" id="styleBtn"
+                onclick="toggleStyleMenu(event)"
+                aria-haspopup="listbox" aria-expanded="false">
+            <span>🌌 Nebula</span>
+            <span class="style-caret">▾</span>
+        </button>
+        <div class="style-menu" id="styleMenu" role="listbox">
+            <!-- 当前页：渐变风格，标记为已选中，不可点击 -->
+            <div class="style-opt style-opt-active" role="option" aria-selected="true">🌌 Nebula</div>
+            <!-- 跳转到其他风格页 -->
+            <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
+            <a href="index3.html" class="style-opt" role="option">💎 Stripe</a>
+            <a href="index4.html" class="style-opt" role="option">🖤 Framer</a>
+            <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>
+        </div>
+    </div>
+
     <div class="container">
         <!-- ==================== 页头 ==================== -->
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
-
-            <!-- ★ 改动3：风格切换下拉，右上角绝对定位，菜单与按钮等宽 -->
-            <div class="style-switcher" id="styleSwitcher">
-                <button class="style-btn" id="styleBtn"
-                        onclick="toggleStyleMenu(event)"
-                        aria-haspopup="listbox" aria-expanded="false">
-                    <span>🌌 Nebula</span>
-                    <span class="style-caret">▾</span>
-                </button>
-                <div class="style-menu" id="styleMenu" role="listbox">
-                    <!-- 当前页：渐变风格，标记为已选中，不可点击 -->
-                    <div class="style-opt style-opt-active" role="option" aria-selected="true">🌌 Nebula</div>
-                    <!-- 跳转到 Notion 风格页 -->
-                    <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
-                    <a href="index3.html" class="style-opt" role="option">💎 Stripe</a>
-                    <a href="index4.html" class="style-opt" role="option">🖤 Framer</a>
-                    <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>
-                </div>
-            </div>
 
             <div class="back-nav">
                 <a href="toolsindex.html" class="back-link">← 前往小工具</a>
@@ -1995,7 +1995,7 @@ a, button, [onclick], [role="option"],
         }
 
         // ================================================================
-        // ★ 改动4：风格切换下拉菜单开关逻辑
+        // 风格切换下拉菜单开关逻辑
         // ================================================================
 
         /**
@@ -2544,7 +2544,7 @@ a, button, [onclick], [role="option"],
             createRipple(e, target);
         }, { passive: true });
     }
-})();        
+})();
     </script>
 </body>
 </html>
