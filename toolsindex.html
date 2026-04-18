@@ -254,7 +254,6 @@
                         box-shadow 0.3s ease, transform 0.2s ease;
         }
         .theme-toggle:hover { transform: scale(1.12); }
-        .theme-toggle:active { transform: scale(0.92); }
 
         .theme-icon {
             display: flex;
@@ -286,23 +285,6 @@
         @keyframes stripeShift {
             0%, 100% { background-position: 0% 50%; }
             50%      { background-position: 100% 50%; }
-        }
-
-        /* 点击/按压反馈：鼠标点击 & 手指触摸通用（hover 仍保留给支持悬停的设备） */
-        .nav-card:active {
-            transform: scale(0.97);
-            transition: transform 0.08s ease;
-        }
-        .tool-card:active {
-            transform: scale(0.98);
-            transition: transform 0.1s ease;
-        }
-        .sub-card:active {
-            transform: scale(0.98);
-            transition: transform 0.1s ease;
-        }
-        .theme-toggle:active {
-            transform: scale(0.92);
         }
 
         /* ============================================================

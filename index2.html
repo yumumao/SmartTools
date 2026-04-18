@@ -908,12 +908,13 @@
         #backHomeBtn {
             position: fixed; bottom: 30px; left: 10px;
             z-index: 10000; padding: 5px 12px;
-            background: var(--bg-card); color: var(--tx2);
+            background: rgba(255, 255, 255, 0.25);
             border: 1px solid var(--bd); border-radius: 8px;
             font-size: 12px; font-weight: 500;
             font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             cursor: pointer; box-shadow: var(--sh-sm);
             transition: all .18s ease;
+            backdrop-filter: blur(2px);
         }
 
         #backHomeBtn:hover {
@@ -1009,56 +1010,18 @@ a, button, [onclick], [role="option"],
     opacity: 0.22;
 }
 
-/* —— ④ 按压反馈（active 缩放） —— */
+/* —— 按压反馈（active 缩放）—— */
 .link-card,
 .sub-card,
 .back-link,
 .expand-section-btn,
 .style-btn,
 .style-opt,
+.email-tab,
 #backHomeBtn,
 .error-home-btn {
     -webkit-user-select: none;
     user-select: none;
-}
-
-.link-card:active {
-    transform: translateY(0) scale(0.99) !important;
-    transition: transform 0.1s ease !important;
-}
-
-.sub-card:active {
-    transform: translateY(-1px) scale(0.985) !important;
-    transition: transform 0.1s ease !important;
-}
-
-.back-link:active,
-.expand-section-btn:active {
-    transform: translateY(0) scale(0.98) !important;
-    transition: transform 0.1s ease !important;
-}
-
-.style-btn:active,
-#backHomeBtn:active,
-.error-home-btn:active {
-    transform: scale(0.97) !important;
-    transition: transform 0.1s ease !important;
-}
-
-.style-opt:active {
-    transform: scale(0.985);
-    transition: transform 0.1s ease;
-}
-
-/* email-tab 已有复杂位置变换，用 filter 代替 transform */
-.email-tab:active {
-    filter: brightness(0.92);
-    transition: filter 0.1s ease;
-}
-
-/* 禁用态（当前选中的 style-opt）不响应按压 */
-.style-opt-active:active {
-    transform: none !important;
 }
 
 /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */

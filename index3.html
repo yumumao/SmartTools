@@ -1096,7 +1096,7 @@
             opacity: 1;
             visibility: visible;
             background: rgba(5, 15, 30, 0.45);
-            pointer-events: none;
+            pointer-events: auto;
         }
 
         /* ================================================================
@@ -1639,7 +1639,7 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(2px);
         }
 
         #backHomeBtn:hover {
@@ -1834,7 +1834,7 @@
             opacity: 0.35;
         }
 
-        /* —— ④ 按压反馈（active 缩放） —— */
+        /* —— ④ 防止卡片文字选中 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1846,39 +1846,6 @@
         .error-home-btn {
             -webkit-user-select: none;
             user-select: none;
-        }
-
-        .link-card:active {
-            transform: translateY(0) scale(0.99) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .sub-card:active {
-            transform: translateY(0) scale(0.985) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .back-link:active,
-        .expand-section-btn:active {
-            transform: translateY(0) scale(0.98) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .style-btn:active,
-        #backHomeBtn:active,
-        .error-home-btn:active {
-            transform: scale(0.97) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .style-opt:active {
-            transform: scale(0.985);
-            transition: transform 0.1s ease;
-        }
-
-        /* 禁用态（当前选中的 style-opt）不响应按压 */
-        .style-opt-active:active {
-            transform: none !important;
         }
 
         /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */

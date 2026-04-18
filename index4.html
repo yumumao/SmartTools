@@ -1426,7 +1426,7 @@
             left: 10px;
             z-index: 10000;
             padding: 4px 10px;
-            background-color: rgba(0, 153, 255, 0.15);
+            background-color: rgba(0, 153, 255, 0.2);
             color: var(--fr-text-2);
             border: 1px solid rgba(0, 153, 255, 0.2);
             border-radius: 8px;
@@ -1436,8 +1436,8 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             transition: all 0.3s var(--fr-ease);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(6px);
             letter-spacing: -0.01em;
         }
 
@@ -1636,7 +1636,7 @@
             opacity: 0.25;
         }
 
-        /* —— ④ 按压反馈（active 缩放） —— */
+        /* —— ④ 防止文字选中 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1648,39 +1648,6 @@
         .error-home-btn {
             -webkit-user-select: none;
             user-select: none;
-        }
-
-        .link-card:active {
-            transform: translateY(0) scale(0.99) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .sub-card:active {
-            transform: translateY(0) scale(0.985) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .back-link:active,
-        .expand-section-btn:active {
-            transform: translateY(0) scale(0.98) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .style-btn:active,
-        #backHomeBtn:active,
-        .error-home-btn:active {
-            transform: scale(0.97) !important;
-            transition: transform 0.1s ease !important;
-        }
-
-        .style-opt:active {
-            transform: scale(0.985);
-            transition: transform 0.1s ease;
-        }
-
-        /* 禁用态（当前选中的 style-opt）不响应按压 */
-        .style-opt-active:active {
-            transform: none !important;
         }
 
         /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
