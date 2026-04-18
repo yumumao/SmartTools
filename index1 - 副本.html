@@ -1851,79 +1851,42 @@ a, button, [onclick], [role="option"],
     user-select: none;
 }
 
-/* ================================================================
- * 统一按压反馈：Press Down 压感（缩放 + 阴影塌陷 + 轻微暗化）
- * 与 hover 浮起形成"浮/压"的完整物理模型
- * ================================================================ */
-
-/* —— ① 白色卡片：压得最深，阴影几乎贴地 —— */
-.link-card:not(.email-card):active {
-    transform: translateY(1px) scale(0.96) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
-    filter: brightness(0.96);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
+.link-card:active {
+    transform: translateY(0) scale(0.99) !important;
+    transition: transform 0.1s ease !important;
 }
 
-/* —— ② 子卡片：稍小幅度，因为它本来就浮在面板上 —— */
 .sub-card:active {
-    transform: translateY(1px) scale(0.97) !important;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12) !important;
-    filter: brightness(0.97);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
+    transform: translateY(0) scale(0.985) !important;
+    transition: transform 0.1s ease !important;
 }
 
-/* —— ③ 毛玻璃半透明按钮：阴影塌陷 + 变暗 —— */
 .back-link:active,
 .expand-section-btn:active {
-    transform: translateY(1px) scale(0.97) !important;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-    filter: brightness(0.9);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
+    transform: translateY(0) scale(0.98) !important;
+    transition: transform 0.1s ease !important;
 }
 
-/* —— ④ 风格切换按钮 & 错误页主页按钮 —— */
 .style-btn:active,
+#backHomeBtn:active,
 .error-home-btn:active {
-    transform: scale(0.94) !important;
-    filter: brightness(0.88);
-    transition: transform 0.08s ease-out,
-                filter 0.08s ease-out !important;
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
 }
 
-/* —— ⑤ 下拉菜单项（背景浅，不需要缩放，用背景变化更自然） —— */
 .style-opt:active {
-    background: rgba(102, 126, 234, 0.18) !important;
-    transform: scale(0.98);
-    transition: background 0.08s ease-out,
-                transform 0.08s ease-out !important;
+    transform: scale(0.985);
+    transition: transform 0.1s ease;
 }
 
-/* —— ⑥ email-tab（保持单独处理，不用缩放，避免破坏位置矩阵） —— */
+/* email-tab 已有复杂的位置变换，单独处理：用 filter 代替 transform */
 .email-tab:active {
-    filter: brightness(0.85);
-    transition: filter 0.08s ease-out !important;
+    filter: brightness(0.9);
+    transition: filter 0.1s ease;
 }
 
-/* —— ⑦ 左下角主页按钮 —— */
-#backHomeBtn:active {
-    transform: scale(0.92) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-    filter: brightness(0.88);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ⑧ 禁用态不响应按压 —— */
+/* 禁用态（当前选中的 style-opt）不响应按压 */
 .style-opt-active:active {
-    background: rgba(255, 255, 255, 0.22) !important;
     transform: none !important;
 }
 

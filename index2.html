@@ -942,9 +942,13 @@ a, button, [onclick], [role="option"],
 .expand-section-btn,
 .style-btn,
 .style-opt,
-#backHomeBtn,
 .error-home-btn {
     position: relative;
+    overflow: hidden;
+}
+
+/* #backHomeBtn 特殊处理：保留 fixed 定位，只加 hidden 用于裁剪波纹 */
+#backHomeBtn {
     overflow: hidden;
 }
 

@@ -1576,11 +1576,15 @@
         .expand-section-btn,
         .style-btn,
         .style-opt,
-        #backHomeBtn,
         .error-home-btn {
             position: relative;
             overflow: hidden;
         }
+
+/* #backHomeBtn 特殊处理：保留 fixed 定位，只加 hidden 用于裁剪波纹 */
+#backHomeBtn {
+    overflow: hidden;
+}
 
         /* card-container 里的主卡片需要特殊处理：
            主卡片自身要 overflow:hidden 才能裁剪波纹，
