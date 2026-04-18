@@ -635,9 +635,12 @@
             z-index: 20;
         }
 
-        .card-container.active > .link-card {
-            filter: brightness(0.92);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        /* 展开态：锁定在"上浮"视觉，不论 hover 与否都保持一致
+           避免反复点击展开按钮时卡片在"hover浮起↔展开落回"之间抖动 */
+        .card-container.active > .link-card,
+        .card-container.active > .link-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
         }
 
         .hidden-cards .card-container {
@@ -1091,12 +1094,14 @@
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            pointer-events: none;
         }
 
         .overlay.active {
             opacity: 1;
             visibility: visible;
             background: rgba(0, 0, 0, 0.22);
+            pointer-events: auto;
         }
 
         /* ================================================================
@@ -1849,82 +1854,6 @@ a, button, [onclick], [role="option"],
 .error-home-btn {
     -webkit-user-select: none;
     user-select: none;
-}
-
-/* ================================================================
- * 统一按压反馈：Press Down 压感（缩放 + 阴影塌陷 + 轻微暗化）
- * 与 hover 浮起形成"浮/压"的完整物理模型
- * ================================================================ */
-
-/* —— ① 白色卡片：压得最深，阴影几乎贴地 —— */
-.link-card:not(.email-card):active {
-    transform: translateY(1px) scale(0.96) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important;
-    filter: brightness(0.96);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ② 子卡片：稍小幅度，因为它本来就浮在面板上 —— */
-.sub-card:active {
-    transform: translateY(1px) scale(0.97) !important;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12) !important;
-    filter: brightness(0.97);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ③ 毛玻璃半透明按钮：阴影塌陷 + 变暗 —— */
-.back-link:active,
-.expand-section-btn:active {
-    transform: translateY(1px) scale(0.97) !important;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-    filter: brightness(0.9);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ④ 风格切换按钮 & 错误页主页按钮 —— */
-.style-btn:active,
-.error-home-btn:active {
-    transform: scale(0.94) !important;
-    filter: brightness(0.88);
-    transition: transform 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ⑤ 下拉菜单项（背景浅，不需要缩放，用背景变化更自然） —— */
-.style-opt:active {
-    background: rgba(102, 126, 234, 0.18) !important;
-    transform: scale(0.98);
-    transition: background 0.08s ease-out,
-                transform 0.08s ease-out !important;
-}
-
-/* —— ⑥ email-tab（保持单独处理，不用缩放，避免破坏位置矩阵） —— */
-.email-tab:active {
-    filter: brightness(0.85);
-    transition: filter 0.08s ease-out !important;
-}
-
-/* —— ⑦ 左下角主页按钮 —— */
-#backHomeBtn:active {
-    transform: scale(0.92) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-    filter: brightness(0.88);
-    transition: transform 0.08s ease-out,
-                box-shadow 0.08s ease-out,
-                filter 0.08s ease-out !important;
-}
-
-/* —— ⑧ 禁用态不响应按压 —— */
-.style-opt-active:active {
-    background: rgba(255, 255, 255, 0.22) !important;
-    transform: none !important;
 }
 
 /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
