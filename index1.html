@@ -1655,8 +1655,8 @@
            ================================================================ */
         .style-switcher {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            top: 28px;
+            right: 20px; 
             z-index: 10000;
             min-width: unset;
         }
@@ -1668,7 +1668,7 @@
             border: none;
             color: #f5f5f5;
             border-radius: 8px;
-            padding: 4px 10px;
+            padding: 5px 10px;
             font-size: 13px;
             font-weight: bold;
             font-family: "微软雅黑", Arial, sans-serif;
@@ -2042,6 +2042,17 @@ a, button, [onclick], [role="option"],
             if (w <= 799) return 'tablet';
             return 'desktop';
         }
+        
+function alignStyleSwitcher() {
+    var container = document.querySelector('.container');
+    var switcher = document.getElementById('styleSwitcher');
+    if (!container || !switcher) return;
+    var rect = container.getBoundingClientRect();
+    switcher.style.right = (document.documentElement.clientWidth - rect.right) + 'px';
+}
+
+alignStyleSwitcher();
+window.addEventListener('resize', alignStyleSwitcher);
 
         /**
          * 渲染卡片图标，支持 4 种格式：
@@ -2433,10 +2444,12 @@ a, button, [onclick], [role="option"],
                 autoExpandSection('ai');
                 autoExpandSection('video');
             }
+            alignStyleSwitcher();
         });
 
         // 窗口尺寸变化时，重新渲染动态分类（避免卡片数量与列数不匹配）
         window.addEventListener('resize', function() {
+            alignStyleSwitcher();
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
