@@ -1761,6 +1761,166 @@
         .style-opt-active:hover {
             background: rgba(255, 255, 255, 0.22);
         }
+/* ================================================================
+ * [✨ 交互增强] 去触屏灰色高亮 + 按压反馈 + 波纹容器
+ * ================================================================ */
+
+/* —— ① 全局去除触屏灰色高亮 —— */
+a, button, [onclick], [role="option"],
+.link-card, .sub-card, .back-link, .expand-section-btn,
+.expand-zone, .email-tab, .style-btn, .style-opt,
+#backHomeBtn, .error-home-btn, .contact-desc,
+.email-contact-desc, .link-desc-clickable {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* —— ② 波纹容器：让所有可点元素能承载 .ripple 子元素 —— */
+.link-card,
+.sub-card,
+.back-link,
+.expand-section-btn,
+.style-btn,
+.style-opt,
+#backHomeBtn,
+.error-home-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+/* card-container 里的主卡片需要特殊处理：
+   主卡片自身要 overflow:hidden 才能裁剪波纹，
+   但 card-container 仍要 overflow:visible 以便子卡片浮出 */
+.card-container > .link-card {
+    overflow: hidden;
+}
+/* 子卡片面板不能被裁掉 */
+.card-container {
+    overflow: visible;
+}
+
+/* —— ③ 波纹本体样式 —— */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-anim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    background-color: #667eea;  /* 默认：Nebula 主题紫 */
+    opacity: 0.35;
+}
+
+@keyframes ripple-anim {
+    to {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* 深色/半透明底的元素：波纹改用白色，更显眼 */
+.back-link .ripple,
+.expand-section-btn .ripple,
+.style-btn .ripple,
+.email-tab .ripple,
+#backHomeBtn .ripple {
+    background-color: #ffffff;
+    opacity: 0.4;
+}
+
+/* 下拉菜单项：保持紫色波纹（因为菜单项本身是浅底） */
+.style-opt .ripple {
+    background-color: #667eea;
+    opacity: 0.25;
+}
+
+/* —— ④ 按压反馈（active 缩放） —— */
+.link-card,
+.sub-card,
+.back-link,
+.expand-section-btn,
+.style-btn,
+.style-opt,
+.email-tab,
+#backHomeBtn,
+.error-home-btn {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.link-card:active {
+    transform: translateY(0) scale(0.99) !important;
+    transition: transform 0.1s ease !important;
+}
+
+.sub-card:active {
+    transform: translateY(0) scale(0.985) !important;
+    transition: transform 0.1s ease !important;
+}
+
+.back-link:active,
+.expand-section-btn:active {
+    transform: translateY(0) scale(0.98) !important;
+    transition: transform 0.1s ease !important;
+}
+
+.style-btn:active,
+#backHomeBtn:active,
+.error-home-btn:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
+}
+
+.style-opt:active {
+    transform: scale(0.985);
+    transition: transform 0.1s ease;
+}
+
+/* email-tab 已有复杂的位置变换，单独处理：用 filter 代替 transform */
+.email-tab:active {
+    filter: brightness(0.9);
+    transition: filter 0.1s ease;
+}
+
+/* 禁用态（当前选中的 style-opt）不响应按压 */
+.style-opt-active:active {
+    transform: none !important;
+}
+
+/* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
+
+/* tab 条：取消按下变暗 */
+.email-tab:active {
+    filter: none !important;
+    transition: none !important;
+}
+
+/* 基础状态 */
+.link-card.email-card {
+    transform: none;
+    transition: transform .18s ease,
+                box-shadow .18s ease,
+                border-color .18s ease,
+                background .18s ease;
+}
+
+/* ✨ 鼠标设备：hover 与 active 视觉完全一致 */
+@media (hover: hover) and (pointer: fine) {
+    .link-card.email-card:hover,
+    .link-card.email-card:active,
+    .link-card.email-card:hover:active,
+    .link-card.email-card:focus {
+        transform: translateY(-2px) !important;
+    }
+}
+
+/* 📱 触屏设备：按下完全不动 */
+@media (hover: none) {
+    .link-card.email-card,
+    .link-card.email-card:active,
+    .link-card.email-card:focus {
+        transform: none !important;
+    }
+}        
     </style>
 </head>
 <body>
@@ -2348,6 +2508,73 @@
                 e.stopPropagation();
             }
         });
+// ================================================================
+// [✨ 波纹效果] 事件委托 + 动态卡片兼容
+// 所有可点元素只要匹配 rippleSelector，按下时自动产生水波纹
+// ================================================================
+(function initRipple() {
+    var rippleSelector = [
+        '.link-card',
+        '.sub-card',
+        '.back-link',
+        '.expand-section-btn',
+        '.style-btn',
+        '.style-opt',
+        '.email-tab',
+        '#backHomeBtn',
+        '.error-home-btn'
+    ].join(',');
+
+    function createRipple(e, target) {
+        // 禁用态的菜单项不产生波纹
+        if (target.classList.contains('style-opt-active')) return;
+
+        var rect = target.getBoundingClientRect();
+        // 支持鼠标 / 触摸两种事件
+        var point = e.touches && e.touches[0] ? e.touches[0] : e;
+        var x = point.clientX - rect.left;
+        var y = point.clientY - rect.top;
+
+        // 直径取对角线以铺满整卡
+        var size = Math.max(rect.width, rect.height) * 2;
+
+        var ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = size + 'px';
+        ripple.style.height = size + 'px';
+        ripple.style.left = (x - size / 2) + 'px';
+        ripple.style.top  = (y - size / 2) + 'px';
+
+        target.appendChild(ripple);
+
+        // 动画结束后移除，避免 DOM 堆积
+        setTimeout(function() {
+            if (ripple && ripple.parentNode) {
+                ripple.parentNode.removeChild(ripple);
+            }
+        }, 850);
+    }
+
+    // 用 pointerdown 一次性覆盖鼠标+触摸+笔
+    // 不支持 PointerEvent 的老浏览器降级到 mousedown + touchstart
+    var supportsPointer = 'PointerEvent' in window;
+    var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
+
+    document.addEventListener(eventName, function(e) {
+        var target = e.target.closest(rippleSelector);
+        if (!target) return;
+        createRipple(e, target);
+    }, { passive: true });
+
+    // 降级：不支持 PointerEvent 时，补 touchstart
+    if (!supportsPointer) {
+        document.addEventListener('touchstart', function(e) {
+            var target = e.target.closest(rippleSelector);
+            if (!target) return;
+            createRipple(e, target);
+        }, { passive: true });
+    }
+})();        
     </script>
 </body>
 </html>

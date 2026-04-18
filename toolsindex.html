@@ -1208,6 +1208,80 @@
             body[data-theme="stripe"] .tool-card { border-radius: 14px; }
             body[data-theme="stripe"] .nav-card  { border-radius: 14px; }
         }
+/* ============================================================
+ * [✨ 波纹颜色修复] Nebula & Stripe
+ * 这两套主题下 body 文字为白色，而工具卡/子卡片为白底，
+ * currentColor 波纹会"白对白"不可见，需显式指定波纹色。
+ * ============================================================ */
+
+/* 🌌 Nebula —— 用主题紫作为波纹 */
+body[data-theme="nebula"] .tool-card .ripple,
+body[data-theme="nebula"] .sub-card .ripple {
+    background-color: #667eea;
+    opacity: 0.28;
+}
+
+/* 💎 Stripe —— 用品牌紫作为波纹 */
+body[data-theme="stripe"] .tool-card .ripple,
+body[data-theme="stripe"] .sub-card .ripple {
+    background-color: #635BFF;
+    opacity: 0.3;
+}
+
+/* 🌿 Mint —— 用主题薄荷绿作为波纹 */
+body[data-theme="mint"] .tool-card .ripple,
+body[data-theme="mint"] .sub-card .ripple {
+    background-color: #10b981;
+    opacity: 0.25;
+}
+        /* ============================================================
+         * [✨ 新增] 波纹效果 Ripple Effect
+         * ============================================================ */
+        /* 波纹容器：动态注入到每个可波纹元素内部，
+           利用 border-radius: inherit 精确沿用宿主圆角，
+           不改变宿主的 overflow，避免破坏 Notion 等主题的外溢装饰线 */
+        .ripple-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden;
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 波纹本体 */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            pointer-events: none;
+            background-color: currentColor;
+            opacity: 0.22;
+            animation: ripple-expand 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        @keyframes ripple-expand {
+            to {
+                transform: scale(2.4);
+                opacity: 0;
+            }
+        }
+
+        /* 尊重"减少动画"偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            .ripple { animation-duration: 1ms; }
+        }
+
+        /* 深色背景主题下略加深波纹 */
+        body[data-theme="dark"] .nav-card .ripple,
+        body[data-theme="dark"] .theme-toggle .ripple,
+        body[data-theme="stripe"] .nav-card .ripple,
+        body[data-theme="stripe"] .theme-toggle .ripple,
+        body[data-theme="nebula"] .nav-card .ripple,
+        body[data-theme="nebula"] .theme-toggle .ripple {
+            opacity: 0.35;
+        }
     </style>
 </head>
 <body>
@@ -1574,6 +1648,69 @@
             e.preventDefault();
             navigateTo(href);
         });
+
+        /* ============================================================
+         * [✨ 新增] 波纹效果 Ripple Effect
+         * 完全追加式，使用事件委托，不改任何现有逻辑
+         * ============================================================ */
+        (function() {
+            'use strict';
+
+            // 需要波纹效果的元素
+            var RIPPLE_SELECTOR = '.tool-card, .nav-card, .sub-card, .theme-toggle';
+
+            // 获取或创建 host 内部的波纹容器（避免破坏 host 的 overflow 设置）
+            function getRippleContainer(host) {
+                var container = host.querySelector(':scope > .ripple-container');
+                if (!container) {
+                    container = document.createElement('span');
+                    container.className = 'ripple-container';
+                    host.appendChild(container);
+                }
+                return container;
+            }
+
+            function createRipple(host, clientX, clientY) {
+                var rect = host.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+
+                var x = clientX - rect.left;
+                var y = clientY - rect.top;
+
+                // 波纹尺寸取元素最长边，保证任意触点都能扩散覆盖
+                var size = Math.max(rect.width, rect.height);
+
+                var container = getRippleContainer(host);
+                var ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                ripple.style.width = size + 'px';
+                ripple.style.height = size + 'px';
+                ripple.style.left = (x - size / 2) + 'px';
+                ripple.style.top = (y - size / 2) + 'px';
+
+                container.appendChild(ripple);
+
+                // 动画结束后自动清理
+                ripple.addEventListener('animationend', function() {
+                    if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+                });
+            }
+
+            // 统一使用 pointerdown（鼠标 + 触摸 + 笔都兼容）
+            // passive: true 表示不阻塞默认行为，不影响原有点击 / 滚动
+            document.addEventListener('pointerdown', function(e) {
+                // 只响应主按键（鼠标左键 / 触摸）
+                if (e.button !== undefined && e.button !== 0) return;
+
+                var host = e.target.closest(RIPPLE_SELECTOR);
+                if (!host) return;
+
+                // 跳过被禁用的元素
+                if (host.hasAttribute('disabled')) return;
+
+                createRipple(host, e.clientX, e.clientY);
+            }, { passive: true });
+        })();
     </script>
 </body>
 </html>
