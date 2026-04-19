@@ -1415,7 +1415,7 @@
             .email-contact-header .link-icon { font-size: 18px; }
             .email-contact-header .link-title { font-size: 13px; }
 
-            .style-btn { font-size: 12px; padding: 6px 9px; }
+            .style-btn { font-size: 12px; padding: 4px 8px; }
             .style-opt { font-size: 12px; padding: 8px 10px; }
             .style-switcher { min-width: 96px; }
         }
@@ -1448,24 +1448,26 @@
             box-shadow: 0 4px 16px rgba(0, 153, 255, 0.15);
         }
 
+        /* ================================================================
+           风格切换下拉 — 悬浮固定版（与 #backHomeBtn 同风格）
+           ================================================================ */
         .style-switcher {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 200;
+            position: fixed;
+            top: 28px;
+            z-index: 10000;
             min-width: 108px;
         }
 
         .style-btn {
             width: 100%;
-            background: var(--fr-surface-2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(17, 17, 17, 0.20);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(6px);
             border: 1px solid var(--fr-border);
             border-right: 1px solid rgba(0, 153, 255, 0.40);
             border-bottom: 1px solid rgba(0, 153, 255, 0.40);
             color: var(--fr-text-2);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 7px 11px;
             font-size: 13px;
             font-weight: 600;
@@ -1476,13 +1478,13 @@
             gap: 5px;
             white-space: nowrap;
             transition: all 0.3s var(--fr-ease);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             font-family: inherit;
             letter-spacing: -0.01em;
         }
 
         .style-btn:hover {
-            background: var(--fr-surface-3);
+            background: rgba(25, 25, 25, 0.25);
             border-color: var(--fr-blue-border);
             border-right-color: rgba(0, 153, 255, 0.85);
             border-bottom-color: rgba(0, 153, 255, 0.85);
@@ -1507,8 +1509,8 @@
             top: calc(100% + 5px);
             left: 0;
             right: 0;
-            background: var(--fr-surface-2);
-            backdrop-filter: blur(20px);
+            background: rgba(17, 17, 17, 0.2);
+            backdrop-filter: blur(2px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--fr-border-hover);
             border-radius: 10px;
@@ -1556,10 +1558,9 @@
         }
 
         /* ================================================================
-         * [✨ 交互增强] 去触屏灰色高亮 + 按压反馈 + 波纹容器（灰色波纹）
+         * 交互增强
          * ================================================================ */
 
-        /* —— ① 全局去除触屏灰色高亮 —— */
         a, button, [onclick], [role="option"],
         .link-card, .sub-card, .back-link, .expand-section-btn,
         .expand-zone, .email-tab, .style-btn, .style-opt,
@@ -1569,7 +1570,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* —— ② 波纹容器：让所有可点元素能承载 .ripple 子元素 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1581,29 +1581,25 @@
             overflow: hidden;
         }
 
-/* #backHomeBtn 特殊处理：保留 fixed 定位，只加 hidden 用于裁剪波纹 */
-#backHomeBtn {
-    overflow: hidden;
-}
+        #backHomeBtn {
+            overflow: hidden;
+        }
 
-        /* card-container 里的主卡片需要特殊处理：
-           主卡片自身要 overflow:hidden 才能裁剪波纹，
-           但 card-container 仍要 overflow:visible 以便子卡片浮出 */
         .card-container > .link-card {
             overflow: hidden;
         }
+
         .card-container {
             overflow: visible;
         }
 
-        /* —— ③ 波纹本体样式（灰色主题，在深色底上表现为柔和白灰） —— */
         .ripple {
             position: absolute;
             border-radius: 50%;
             transform: scale(0);
             animation: ripple-anim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
-            background-color: #cccccc;  /* 灰色波纹 */
+            background-color: #cccccc;
             opacity: 0.25;
         }
 
@@ -1614,7 +1610,6 @@
             }
         }
 
-        /* 深色/半透明底的按钮：波纹用更亮的浅灰，更显眼 */
         .back-link .ripple,
         .expand-section-btn .ripple,
         .style-btn .ripple,
@@ -1624,19 +1619,16 @@
             opacity: 0.30;
         }
 
-        /* 错误页紫底按钮：白波纹最清晰 */
         .error-home-btn .ripple {
             background-color: #ffffff;
             opacity: 0.40;
         }
 
-        /* 下拉菜单项：在深色菜单底上用灰色 */
         .style-opt .ripple {
             background-color: #bfbfbf;
             opacity: 0.25;
         }
 
-        /* —— ④ 防止文字选中 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1650,15 +1642,11 @@
             user-select: none;
         }
 
-        /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
-
-        /* tab 条：取消按下变暗 */
         .email-tab:active {
             filter: none !important;
             transition: none !important;
         }
 
-        /* 基础状态 */
         .link-card.email-card {
             transform: none;
             transition: transform .18s ease,
@@ -1667,7 +1655,6 @@
                         background .18s ease;
         }
 
-        /* ✨ 鼠标设备：hover 与 active 视觉完全一致 */
         @media (hover: hover) and (pointer: fine) {
             .link-card.email-card:hover,
             .link-card.email-card:active,
@@ -1677,7 +1664,6 @@
             }
         }
 
-        /* 📱 触屏设备：按下完全不动 */
         @media (hover: none) {
             .link-card.email-card,
             .link-card.email-card:active,
@@ -1692,26 +1678,26 @@
 
     <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
 
+    <!-- 右上角悬浮风格切换 -->
+    <div class="style-switcher" id="styleSwitcher">
+        <button class="style-btn" id="styleBtn"
+                onclick="toggleStyleMenu(event)"
+                aria-haspopup="listbox" aria-expanded="false">
+            <span>🖤 Framer</span>
+            <span class="style-caret">▾</span>
+        </button>
+        <div class="style-menu" id="styleMenu" role="listbox">
+            <a href="index1.html" class="style-opt" role="option">🌌 Nebula</a>
+            <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
+            <a href="index3.html" class="style-opt" role="option">💎 Stripe</a>
+            <div class="style-opt style-opt-active" role="option" aria-selected="true">🖤 Framer</div>
+            <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
-
-            <div class="style-switcher" id="styleSwitcher">
-                <button class="style-btn" id="styleBtn"
-                        onclick="toggleStyleMenu(event)"
-                        aria-haspopup="listbox" aria-expanded="false">
-                    <span>🖤 Framer</span>
-                    <span class="style-caret">▾</span>
-                </button>
-                <div class="style-menu" id="styleMenu" role="listbox">
-                    <a href="index1.html" class="style-opt" role="option">🌌 Nebula</a>
-                    <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
-                    <a href="index3.html" class="style-opt" role="option">💎 Stripe</a>
-                    <div class="style-opt style-opt-active" role="option" aria-selected="true">🖤 Framer</div>
-                    <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>                    
-                </div>
-            </div>
-
             <div class="back-nav">
                 <a href="toolsindex.html" class="back-link">← 前往小工具</a>
             </div>
@@ -1749,7 +1735,7 @@
 
     <script src="data.js"></script>
     <script>
-        try { localStorage.setItem('fav_last_style', 'index4.html'); } catch(e) {}    
+        try { localStorage.setItem('fav_last_style', 'index4.html'); } catch(e) {}
 
         if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
             document.querySelector('.container').innerHTML =
@@ -1770,6 +1756,9 @@
             throw new Error('数据文件 未加载');
         }
 
+        // ================================================================
+        // 风格切换下拉菜单
+        // ================================================================
         function toggleStyleMenu(event) {
             event.stopPropagation();
             var switcher = document.getElementById('styleSwitcher');
@@ -1787,11 +1776,30 @@
             }
         });
 
+        // ================================================================
+        // 风格切换按钮定位 — 右边缘与 .container 齐平
+        // ================================================================
+        function alignStyleSwitcher() {
+            var switcher = document.getElementById('styleSwitcher');
+            var container = document.querySelector('.container');
+            if (!switcher || !container) return;
+            var containerRect = container.getBoundingClientRect();
+            var viewportWidth = document.documentElement.clientWidth;
+            var rightOffset = Math.max(0, viewportWidth - containerRect.right);
+            switcher.style.right = rightOffset + 'px';
+        }
+
+        // ================================================================
+        // 全局状态
+        // ================================================================
         var currentExpanded = null;
         var currentLayout = 'mobile';
         var currentEmailData = emailData[0];
         var isAnimating = false;
 
+        // ================================================================
+        // 工具函数
+        // ================================================================
         function detectLayout() {
             var w = window.innerWidth;
             if (w <= 480) return 'mobile';
@@ -1811,6 +1819,23 @@
             return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
         }
 
+        function closeCurrentExpanded() {
+            if (!currentExpanded) return;
+            var subcards = document.getElementById(currentExpanded);
+            if (subcards) {
+                var button = subcards.parentElement.querySelector('.expand-btn');
+                var cardContainer = button ? button.closest('.card-container') : null;
+                subcards.classList.remove('expanded');
+                if (button) button.classList.remove('expanded');
+                if (cardContainer) cardContainer.classList.remove('active');
+            }
+            currentExpanded = null;
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // ================================================================
+        // 卡片 HTML 生成
+        // ================================================================
         function generateCardHTML(card) {
             if (card.type === 'simple') {
                 return '<a href="' + card.url + '" target="_blank" class="link-card">' +
@@ -1902,6 +1927,9 @@
             return html;
         }
 
+        // ================================================================
+        // 联系方式
+        // ================================================================
         function generateEmailCardHTML() {
             var tabsHTML = '';
             emailData.forEach(function(em, i) {
@@ -1939,6 +1967,9 @@
             return html;
         }
 
+        // ================================================================
+        // 交互逻辑
+        // ================================================================
         function handleCardClick(event, url, subcardId) {
             var card = event.currentTarget;
             var rect = card.getBoundingClientRect();
@@ -2090,6 +2121,9 @@
             window.open(url, '_blank');
         }
 
+        // ================================================================
+        // 初始化 & 事件监听
+        // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
 
@@ -2104,9 +2138,23 @@
                 autoExpandSection('ai');
                 autoExpandSection('video');
             }
+
+            // 初始定位悬浮切换按钮
+            alignStyleSwitcher();
+
+            // ——— ResizeObserver：容器尺寸变化时自动对齐（含 CSS transition 期间） ———
+            var containerEl = document.querySelector('.container');
+            if (typeof ResizeObserver !== 'undefined' && containerEl) {
+                new ResizeObserver(function() {
+                    alignStyleSwitcher();
+                }).observe(containerEl);
+            }
         });
 
         window.addEventListener('resize', function() {
+            // 每次 resize 都重新定位（兜底，覆盖 ResizeObserver 不支持的情况）
+            alignStyleSwitcher();
+
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
@@ -2125,29 +2173,22 @@
         });
 
         document.getElementById('overlay').addEventListener('click', function() {
-            if (currentExpanded) {
-                var subcards = document.getElementById(currentExpanded);
-                if (subcards) {
-                    var button = subcards.parentElement.querySelector('.expand-btn');
-                    var cardContainer = button.closest('.card-container');
-                    subcards.classList.remove('expanded');
-                    button.classList.remove('expanded');
-                    cardContainer.classList.remove('active');
-                }
-                currentExpanded = null;
-            }
-            this.classList.remove('active');
+            closeCurrentExpanded();
         });
 
         document.addEventListener('click', function(e) {
-            if (e.target.closest('.sub-cards')) {
-                e.stopPropagation();
-            }
+            if (!currentExpanded) return;
+
+            var activeContainer = document.querySelector('.card-container.active');
+            if (!activeContainer) return;
+
+            if (activeContainer.contains(e.target)) return;
+
+            closeCurrentExpanded();
         });
 
         // ================================================================
-        // [✨ 波纹效果] 事件委托 + 动态卡片兼容
-        // 所有可点元素只要匹配 rippleSelector，按下时自动产生水波纹
+        // 波纹效果
         // ================================================================
         (function initRipple() {
             var rippleSelector = [
@@ -2163,16 +2204,13 @@
             ].join(',');
 
             function createRipple(e, target) {
-                // 禁用态的菜单项不产生波纹
                 if (target.classList.contains('style-opt-active')) return;
 
                 var rect = target.getBoundingClientRect();
-                // 支持鼠标 / 触摸两种事件
                 var point = e.touches && e.touches[0] ? e.touches[0] : e;
                 var x = point.clientX - rect.left;
                 var y = point.clientY - rect.top;
 
-                // 直径取对角线以铺满整卡
                 var size = Math.max(rect.width, rect.height) * 2;
 
                 var ripple = document.createElement('span');
@@ -2184,7 +2222,6 @@
 
                 target.appendChild(ripple);
 
-                // 动画结束后移除，避免 DOM 堆积
                 setTimeout(function() {
                     if (ripple && ripple.parentNode) {
                         ripple.parentNode.removeChild(ripple);
@@ -2192,8 +2229,6 @@
                 }, 850);
             }
 
-            // 用 pointerdown 一次性覆盖鼠标+触摸+笔
-            // 不支持 PointerEvent 的老浏览器降级到 mousedown + touchstart
             var supportsPointer = 'PointerEvent' in window;
             var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
 
@@ -2203,7 +2238,6 @@
                 createRipple(e, target);
             }, { passive: true });
 
-            // 降级：不支持 PointerEvent 时，补 touchstart
             if (!supportsPointer) {
                 document.addEventListener('touchstart', function(e) {
                     var target = e.target.closest(rippleSelector);

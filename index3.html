@@ -9,11 +9,6 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' x='-0.11em' font-size='90'>😺🏷</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ================================================================
-           Stripe-Inspired Design System
-           Primary: #635BFF  |  Dark: #0A2540  |  Cyan: #00D4FF
-           ================================================================ */
-
         * {
             margin: 0;
             padding: 0;
@@ -33,7 +28,6 @@
             position: relative;
         }
 
-        /* Subtle dot-grid overlay */
         body::after {
             content: '';
             position: fixed;
@@ -44,7 +38,6 @@
             z-index: -1;
         }
 
-        /* Stripe top gradient bar */
         .stripe-bar {
             position: fixed;
             top: 0;
@@ -69,9 +62,6 @@
             transition: max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* ================================================================
-           页头 & 页脚
-           ================================================================ */
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -99,9 +89,6 @@
             font-weight: 300;
         }
 
-        /* ================================================================
-           data.js 加载失败 — 错误提示页
-           ================================================================ */
         .error-container {
             display: flex;
             flex-direction: column;
@@ -220,9 +207,6 @@
             box-shadow: 0 4px 20px rgba(99, 91, 255, 0.4);
         }
 
-        /* ================================================================
-           图标样式
-           ================================================================ */
         .link-icon {
             display: inline-flex;
             width: 1.2em;
@@ -250,9 +234,6 @@
             display: block;
         }
 
-        /* ================================================================
-           导航按钮
-           ================================================================ */
         .back-nav {
             display: flex;
             justify-content: center;
@@ -299,9 +280,6 @@
             color: white;
         }
 
-        /* ================================================================
-           分类区块 & 区块标题
-           ================================================================ */
         .section {
             margin-bottom: 30px;
             transition: margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -318,9 +296,6 @@
                        margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* ================================================================
-           展开/折叠 区块按钮
-           ================================================================ */
         .expand-section-btn {
             background: rgba(99, 91, 255, 0.12);
             backdrop-filter: blur(10px);
@@ -394,9 +369,6 @@
             margin-bottom: 15px;
         }
 
-        /* ================================================================
-           卡片网格布局
-           ================================================================ */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -417,9 +389,6 @@
             margin: 0 auto;
         }
 
-        /* ================================================================
-           隐藏卡片区域
-           ================================================================ */
         .hidden-cards {
             display: none;
             margin-top: 19px;
@@ -639,9 +608,6 @@
             }
         }
 
-        /* ================================================================
-           卡片容器
-           ================================================================ */
         .card-container {
             position: relative;
             overflow: visible;
@@ -664,9 +630,6 @@
             z-index: 60;
         }
 
-        /* ================================================================
-           主卡片样式 — Stripe 精致白卡
-           ================================================================ */
         .link-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
@@ -715,9 +678,6 @@
             background: rgba(99, 91, 255, 0.08);
         }
 
-        /* ================================================================
-           邮箱卡片
-           ================================================================ */
         .email-card {
             position: relative;
             padding: 16px;
@@ -802,7 +762,6 @@
             border-radius: 0 15px 15px 0;
         }
 
-        /* --- 标签页位置矩阵 --- */
         .email-tabs.active-0 .email-tab[data-email="0"] { right: 80%; width: 20%; z-index: 15; }
         .email-tabs.active-0 .email-tab[data-email="1"] { right: 60%; width: 20%; z-index: 13; }
         .email-tabs.active-0 .email-tab[data-email="2"] { right: 40%; width: 20%; z-index: 12; }
@@ -842,9 +801,6 @@
             transform: translateX(0) scale(1.02);
         }
 
-        /* ================================================================
-           展开箭头按钮 — Stripe 靛紫
-           ================================================================ */
         .expand-btn {
             position: absolute;
             right: 22px;
@@ -883,9 +839,6 @@
             transform: translateY(-50%) rotate(180deg) scale(1.1);
         }
 
-        /* ================================================================
-           子卡片面板
-           ================================================================ */
         .sub-cards {
             position: absolute;
             top: 85%;
@@ -918,9 +871,6 @@
             transform: translateY(0);
         }
 
-        /* ================================================================
-           子卡片样式 — Stripe 深色透明卡片
-           ================================================================ */
         .sub-card {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: none;
@@ -1044,7 +994,6 @@
             transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* 子卡片 hover — Stripe 靛紫光晕 */
         .sub-card:hover {
             background: rgba(255, 255, 255, 0.98) !important;
             transform: translateY(-1px);
@@ -1075,9 +1024,6 @@
             margin-bottom: 0;
         }
 
-        /* ================================================================
-           遮罩层
-           ================================================================ */
         .overlay {
             position: fixed;
             top: 0;
@@ -1099,9 +1045,6 @@
             pointer-events: auto;
         }
 
-        /* ================================================================
-           主卡片内部元素
-           ================================================================ */
         .link-icon {
             font-size: 20px;
             margin-bottom: 6px;
@@ -1186,9 +1129,6 @@
             color: #4338ca;
         }
 
-        /* ================================================================
-           联系方式卡片
-           ================================================================ */
         .contact-card {
             padding: 14px 16px;
         }
@@ -1264,9 +1204,6 @@
             color: #4338ca;
         }
 
-        /* ================================================================
-           响应式 — 平板
-           ================================================================ */
         @media (min-width: 481px) and (max-width: 799px) {
             .container {
                 max-width: 600px;
@@ -1294,9 +1231,6 @@
             }
         }
 
-        /* ================================================================
-           响应式 — 桌面
-           ================================================================ */
         @media (min-width: 800px) {
             .container {
                 max-width: 1200px;
@@ -1396,20 +1330,17 @@
             }
         }
 
-        /* ================================================================
-           响应式 — 手机
-           ================================================================ */
         @media (max-width: 480px) {
             .container {
                 width: 96%;
                 max-width: none;
                 padding: 0;
             }
-            
+
             .header {
-                   padding-top: 36px;
-           }
-           
+                padding-top: 36px;
+            }
+
             body {
                 padding: 10px;
                 padding-top: 13px;
@@ -1607,7 +1538,7 @@
 
             .style-btn {
                 font-size: 12px;
-                padding: 6px 9px;
+                padding: 4px 8px;
             }
 
             .style-opt {
@@ -1620,9 +1551,6 @@
             }
         }
 
-        /* ================================================================
-           左下角固定"主页"按钮 — Stripe 风格
-           ================================================================ */
         #backHomeBtn {
             position: fixed;
             bottom: 33px;
@@ -1650,23 +1578,22 @@
         }
 
         /* ================================================================
-           风格切换下拉 — Stripe 版本
+           风格切换下拉 — 悬浮固定版
            ================================================================ */
         .style-switcher {
-            position: absolute;
-            top: 0;
-            right: 0;
-            z-index: 200;
+            position: fixed;
+            top: 28px;
+            z-index: 10000;
             min-width: 108px;
         }
 
         .style-btn {
             width: 100%;
-            background: rgba(99, 91, 255, 0.12);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(99, 91, 255, 0.25);
-            color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(73, 95, 139, 0.45);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(2px);
+            border: 1px solid rgba(99, 91, 255, 0.2);
+            color: rgba(255, 255, 255, 0.75);
             border-radius: 8px;
             padding: 7px 11px;
             font-size: 13px;
@@ -1677,14 +1604,16 @@
             justify-content: space-between;
             gap: 5px;
             white-space: nowrap;
-            transition: background 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             font-family: inherit;
         }
 
         .style-btn:hover {
-            background: rgba(99, 91, 255, 0.22);
-            box-shadow: 0 4px 16px rgba(99, 91, 255, 0.2);
+            background-color: rgba(99, 91, 255, 0.35);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(99, 91, 255, 0.3);
+            border-color: rgba(99, 91, 255, 0.4);
         }
 
         .style-caret {
@@ -1704,11 +1633,11 @@
             top: calc(100% + 5px);
             left: 0;
             right: 0;
-            background: rgba(15, 40, 70, 0.85);
+            background: rgba(15, 40, 70, 0.35);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(99, 91, 255, 0.2);
-            border-radius: 8px;
+            border-radius: 2px;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             animation: menuFadeIn 0.18s ease;
@@ -1753,10 +1682,9 @@
         }
 
         /* ================================================================
-         * [✨ 交互增强] 去触屏灰色高亮 + 按压反馈 + 波纹容器
+         * 交互增强
          * ================================================================ */
 
-        /* —— ① 全局去除触屏灰色高亮 —— */
         a, button, [onclick], [role="option"],
         .link-card, .sub-card, .back-link, .expand-section-btn,
         .expand-zone, .email-tab, .style-btn, .style-opt,
@@ -1766,7 +1694,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* —— ② 波纹容器：让所有可点元素能承载 .ripple 子元素 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1777,31 +1704,26 @@
             position: relative;
             overflow: hidden;
         }
-        
-/* #backHomeBtn 特殊处理：保留 fixed 定位，只加 hidden 用于裁剪波纹 */
-#backHomeBtn {
-    overflow: hidden;
-}
 
-        /* card-container 里的主卡片需要特殊处理：
-           主卡片自身要 overflow:hidden 才能裁剪波纹，
-           但 card-container 仍要 overflow:visible 以便子卡片浮出 */
+        #backHomeBtn {
+            overflow: hidden;
+        }
+
         .card-container > .link-card {
             overflow: hidden;
         }
-        /* 子卡片面板不能被裁掉 */
+
         .card-container {
             overflow: visible;
         }
 
-        /* —— ③ 波纹本体样式（Stripe 主色 #635BFF） —— */
         .ripple {
             position: absolute;
             border-radius: 50%;
             transform: scale(0);
             animation: ripple-anim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
-            background-color: #635BFF;  /* Stripe 主题靛紫 */
+            background-color: #635BFF;
             opacity: 0.35;
         }
 
@@ -1812,7 +1734,6 @@
             }
         }
 
-        /* 深色/半透明底的元素：波纹改用白色，更显眼 */
         .back-link .ripple,
         .expand-section-btn .ripple,
         .style-btn .ripple,
@@ -1822,19 +1743,16 @@
             opacity: 0.4;
         }
 
-        /* 错误页主页按钮：紫底浅色 -> 用白色波纹 */
         .error-home-btn .ripple {
             background-color: #ffffff;
             opacity: 0.45;
         }
 
-        /* 下拉菜单项：保持紫色波纹（因为菜单项本身是深底） */
         .style-opt .ripple {
             background-color: #a5b4fc;
             opacity: 0.35;
         }
 
-        /* —— ④ 防止卡片文字选中 —— */
         .link-card,
         .sub-card,
         .back-link,
@@ -1848,15 +1766,11 @@
             user-select: none;
         }
 
-        /* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
-
-        /* tab 条：取消按下变暗 */
         .email-tab:active {
             filter: none !important;
             transition: none !important;
         }
 
-        /* 基础状态 */
         .link-card.email-card {
             transform: none;
             transition: transform .18s ease,
@@ -1865,7 +1779,6 @@
                         background .18s ease;
         }
 
-        /* ✨ 鼠标设备：hover 与 active 视觉完全一致 */
         @media (hover: hover) and (pointer: fine) {
             .link-card.email-card:hover,
             .link-card.email-card:active,
@@ -1875,7 +1788,6 @@
             }
         }
 
-        /* 📱 触屏设备：按下完全不动 */
         @media (hover: none) {
             .link-card.email-card,
             .link-card.email-card:active,
@@ -1886,86 +1798,69 @@
     </style>
 </head>
 <body>
-    <!-- Stripe 顶部渐变彩条 -->
     <div class="stripe-bar"></div>
-
-    <!-- 遮罩层 -->
     <div class="overlay" id="overlay"></div>
-
-    <!-- 左下角固定导航按钮 -->
     <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
 
+    <!-- 右上角悬浮风格切换 -->
+    <div class="style-switcher" id="styleSwitcher">
+        <button class="style-btn" id="styleBtn"
+                onclick="toggleStyleMenu(event)"
+                aria-haspopup="listbox" aria-expanded="false">
+            <span>💎 Stripe</span>
+            <span class="style-caret">▾</span>
+        </button>
+        <div class="style-menu" id="styleMenu" role="listbox">
+            <a href="index1.html" class="style-opt" role="option">🌌 Nebula</a>
+            <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
+            <div class="style-opt style-opt-active" role="option" aria-selected="true">💎 Stripe</div>
+            <a href="index4.html" class="style-opt" role="option">🖤 Framer</a>
+            <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- ==================== 页头 ==================== -->
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
-
-            <!-- 风格切换下拉 -->
-            <div class="style-switcher" id="styleSwitcher">
-                <button class="style-btn" id="styleBtn"
-                        onclick="toggleStyleMenu(event)"
-                        aria-haspopup="listbox" aria-expanded="false">
-                    <span>💎 Stripe</span>
-                    <span class="style-caret">▾</span>
-                </button>
-                <div class="style-menu" id="styleMenu" role="listbox">
-                    <a href="index1.html" class="style-opt" role="option">🌌 Nebula</a>
-                    <a href="index2.html" class="style-opt" role="option">📄 Notion</a>                    
-                    <div class="style-opt style-opt-active" role="option" aria-selected="true">💎 Stripe</div>
-                    <a href="index4.html" class="style-opt" role="option">🖤 Framer</a>
-                    <a href="index5.html" class="style-opt" role="option">🌿 Mintlify</a>                    
-                </div>
-            </div>
-
             <div class="back-nav">
                 <a href="toolsindex.html" class="back-link">← 前往小工具</a>
             </div>
         </div>
 
-        <!-- ==================== 在线U盘 ==================== -->
         <div class="section">
             <h2 class="section-title">☁️ 在线U盘</h2>
             <div id="usb-drive-content"></div>
         </div>
 
-        <!-- ==================== 授课资料 ==================== -->
         <div class="section">
             <h2 class="section-title">📚 授课资料</h2>
             <div id="teaching-content"></div>
         </div>
 
-        <!-- ==================== 网络资源 ==================== -->
         <div class="section">
             <h2 class="section-title">🖥️ 网络资源</h2>
             <div id="online-ai-content"></div>
         </div>
 
-        <!-- ==================== 视频聚合 ==================== -->
         <div class="section">
             <h2 class="section-title">🎬 视频聚合</h2>
             <div id="video-content"></div>
         </div>
 
-        <!-- ==================== 联系方式 ==================== -->
         <div class="section">
             <h2 class="section-title">📧 联系方式</h2>
             <div id="contact-content"></div>
         </div>
 
-        <!-- ==================== 页脚 ==================== -->
         <div class="footer">
             <p>m(AT)mrr.cc</p>
         </div>
     </div>
 
-    <!-- 外部数据文件 -->
     <script src="data.js"></script>
     <script>
-        // ====== 记住当前风格页面 ======
-            try { localStorage.setItem('fav_last_style', 'index3.html'); } catch(e) {}    
-        // ================================================================
-        // 数据加载检查
-        // ================================================================
+        try { localStorage.setItem('fav_last_style', 'index3.html'); } catch(e) {}
+
         if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
             document.querySelector('.container').innerHTML =
                 '<div class="error-container">' +
@@ -2006,6 +1901,19 @@
         });
 
         // ================================================================
+        // 风格切换按钮定位 — 右边缘与 .container 齐平
+        // ================================================================
+        function alignStyleSwitcher() {
+            var switcher = document.getElementById('styleSwitcher');
+            var container = document.querySelector('.container');
+            if (!switcher || !container) return;
+            var containerRect = container.getBoundingClientRect();
+            var viewportWidth = document.documentElement.clientWidth;
+            var rightOffset = Math.max(0, viewportWidth - containerRect.right);
+            switcher.style.right = rightOffset + 'px';
+        }
+
+        // ================================================================
         // 全局状态
         // ================================================================
         var currentExpanded = null;
@@ -2035,9 +1943,6 @@
             return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
         }
 
-        // ================================================================
-        // 关闭当前展开的子卡片（通用函数）
-        // ================================================================
         function closeCurrentExpanded() {
             if (!currentExpanded) return;
             var subcards = document.getElementById(currentExpanded);
@@ -2108,9 +2013,6 @@
                 '<p class="link-url">' + (sc.desc || '') + '</p></div>';
         }
 
-        // ================================================================
-        // 网格生成
-        // ================================================================
         function generateStaticGrid(data) {
             var html = '<div class="links-grid">';
             data.forEach(function(card) { html += generateCardHTML(card); });
@@ -2360,9 +2262,23 @@
                 autoExpandSection('ai');
                 autoExpandSection('video');
             }
+
+            // 初始定位悬浮切换按钮
+            alignStyleSwitcher();
+
+            // ——— ResizeObserver：容器尺寸变化时自动对齐（含 CSS transition 期间） ———
+            var containerEl = document.querySelector('.container');
+            if (typeof ResizeObserver !== 'undefined' && containerEl) {
+                new ResizeObserver(function() {
+                    alignStyleSwitcher();
+                }).observe(containerEl);
+            }
         });
 
         window.addEventListener('resize', function() {
+            // 每次 resize 都重新定位（兜底，覆盖 ResizeObserver 不支持的情况）
+            alignStyleSwitcher();
+
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
@@ -2384,27 +2300,19 @@
             closeCurrentExpanded();
         });
 
-        // ================================================================
-        // 🔧 BUG 修复：点击页面其他部分关闭子卡片
-        // 由于 overlay 设了 pointer-events: none，它接收不到点击事件，
-        // 所以改在 document 层面监听，只要点击目标不在当前展开的卡片容器内，就关闭
-        // ================================================================
         document.addEventListener('click', function(e) {
             if (!currentExpanded) return;
 
             var activeContainer = document.querySelector('.card-container.active');
             if (!activeContainer) return;
 
-            // 如果点击发生在当前展开的卡片容器内部（包括子卡片面板），不关闭
             if (activeContainer.contains(e.target)) return;
 
-            // 点击发生在外部 —— 关闭子卡片
             closeCurrentExpanded();
         });
 
         // ================================================================
-        // [✨ 波纹效果] 事件委托 + 动态卡片兼容
-        // 所有可点元素只要匹配 rippleSelector，按下时自动产生水波纹
+        // 波纹效果
         // ================================================================
         (function initRipple() {
             var rippleSelector = [
@@ -2420,16 +2328,13 @@
             ].join(',');
 
             function createRipple(e, target) {
-                // 禁用态的菜单项不产生波纹
                 if (target.classList.contains('style-opt-active')) return;
 
                 var rect = target.getBoundingClientRect();
-                // 支持鼠标 / 触摸两种事件
                 var point = e.touches && e.touches[0] ? e.touches[0] : e;
                 var x = point.clientX - rect.left;
                 var y = point.clientY - rect.top;
 
-                // 直径取对角线以铺满整卡
                 var size = Math.max(rect.width, rect.height) * 2;
 
                 var ripple = document.createElement('span');
@@ -2441,7 +2346,6 @@
 
                 target.appendChild(ripple);
 
-                // 动画结束后移除，避免 DOM 堆积
                 setTimeout(function() {
                     if (ripple && ripple.parentNode) {
                         ripple.parentNode.removeChild(ripple);
@@ -2449,8 +2353,6 @@
                 }, 850);
             }
 
-            // 用 pointerdown 一次性覆盖鼠标+触摸+笔
-            // 不支持 PointerEvent 的老浏览器降级到 mousedown + touchstart
             var supportsPointer = 'PointerEvent' in window;
             var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
 
@@ -2460,7 +2362,6 @@
                 createRipple(e, target);
             }, { passive: true });
 
-            // 降级：不支持 PointerEvent 时，补 touchstart
             if (!supportsPointer) {
                 document.addEventListener('touchstart', function(e) {
                     var target = e.target.closest(rippleSelector);
