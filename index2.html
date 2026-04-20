@@ -510,15 +510,23 @@
             border-color: #B2A2DE;
             transform: translateY(-50%) rotate(180deg);
         }
-        
+
+        /* ── 卡片整体 hover：方框变实线，箭头保持虚线但颜色加深 ── */
         .link-card-with-expand:hover .expand-btn {
             border: 1px solid #B2A2DE;
         }
-        
+
         .link-card-with-expand:hover .expand-btn::after {
+            border-bottom: 1px dashed #A292CE;
+            border-right: 1px dashed #A292CE;
+        }
+
+        /* ── 右侧展开区域 hover：箭头也变实线（覆盖上面的虚线规则） ── */
+        .link-card-with-expand .expand-zone:hover ~ .expand-btn::after {
             border-bottom: 1.5px solid #A292CE;
             border-right: 1.5px solid #A292CE;
         }
+
         /* ================================================================
            子卡片面板
            ================================================================ */
@@ -1176,9 +1184,6 @@ a, button, [onclick], [role="option"],
             return 'desktop';
         }
 
-        /**
-         * 将风格切换按钮的 right 与 .container 右边缘精确对齐
-         */
         function alignStyleSwitcher() {
             var container = document.querySelector('.container');
             var switcher = document.getElementById('styleSwitcher');
@@ -1533,7 +1538,6 @@ a, button, [onclick], [role="option"],
 
             alignStyleSwitcher();
 
-            // ResizeObserver：容器尺寸变化时自动对齐
             var containerEl = document.querySelector('.container');
             if (typeof ResizeObserver !== 'undefined' && containerEl) {
                 new ResizeObserver(function() {
