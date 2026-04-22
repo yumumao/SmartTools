@@ -133,6 +133,7 @@ var teachingData = [
         desc: '在线小工具',
         subCards: [
             { icon: '🧪', title: 'SIMPOP', desc: '中学实验模拟', url: 'https://simpop.org/' },
+            { icon: '🧲', title: 'myphysics', desc: '物理教学资料库', url: 'https://myphysics-lab.com/' },
             { icon: '🛠️', title: '一个木函', desc: '小工具集', url: 'https://ol.woobx.cn/' },
             { icon: '🔄', title: '转换文件格式', desc: '全格式转换', url: 'https://www.aconvert.com/cn/' }
         ]

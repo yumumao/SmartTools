@@ -84,16 +84,16 @@
         .container {
             max-width: 400px;
             margin: 0 auto;
-            padding-top: 15px;
+            padding-top: 5px;
             transition: max-width 0.4s var(--mt-ease);
             position: relative;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
             position: relative;
-            padding-top: 42px;
+            padding-top: 15px;
         }
 
         .title {
@@ -304,13 +304,24 @@
 
         .section-title {
             color: var(--mt-text-1);
-            font-size: 20px;
+            font-size: 10px;
             font-weight: 600;
-            margin-bottom: 15px;
-            text-align: center;
+            margin-bottom: 5px;
+            text-align: left;
             letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
             transition: font-size 0.4s var(--mt-ease),
                        margin-bottom 0.4s var(--mt-ease);
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 80%);
         }
 
         .expand-section-btn {
@@ -1025,6 +1036,7 @@
 
         @media (min-width: 481px) and (max-width: 799px) {
             .container { max-width: 600px; }
+            .section-title { font-size: 11px; margin-bottom: 9px; }
             .links-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
             .hidden-cards.expanded { grid-template-columns: repeat(3, 1fr); gap: 16px; }
             .hidden-cards { margin-top: 16px; margin-bottom: 13px; }
@@ -1036,7 +1048,7 @@
             .links-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
             .hidden-cards.expanded { grid-template-columns: repeat(4, 1fr); gap: 20px; }
             .contact-row { grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: calc(75% + 10px); }
-            .section-title { font-size: 22px; margin-bottom: 18px; }
+            .section-title { font-size: 12px; margin-bottom: 11px; }
             .link-card { padding: 18px; }
             .hidden-cards { margin-top: 20px; margin-bottom: 15px; }
             .email-card { padding: 18px; padding-right: 55%; }
@@ -1056,7 +1068,7 @@
         }
 
         @media (max-width: 480px) {
-            .header { padding-top: 36px; }
+            .header { padding-top: 10px; }
             .container { width: 96%; max-width: none; padding: 0; }
             body { padding: 10px; padding-bottom: 30px; }
             .title { font-size: 24px; }
@@ -1088,7 +1100,7 @@
             .backup-card .link-title { font-size: 11px; }
             .link-desc, .link-desc-clickable { font-size: 10px; }
             .sub-card .link-desc, .sub-card .link-desc-clickable { font-size: 10px; }
-            .section-title { font-size: 18px; }
+            .section-title { font-size: 10px; margin-bottom: 5px; }
             .sub-cards { left: 1%; right: 1%; }
             .expand-section-btn { font-size: 12px; padding: 5px 16px; width: 40%; min-width: 120px; height: 28px; }
             #video-collapse-btn { margin-top: 6px; margin-bottom: 8px; }

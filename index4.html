@@ -39,7 +39,7 @@
             background: var(--fr-surface-0);
             color: var(--fr-text-1);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
             padding-bottom: 60px;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -70,22 +70,22 @@
         .container {
             max-width: 400px;
             margin: 0 auto;
-            padding-top: 15px;
+            padding-top: 4px;
             transition: max-width 0.4s var(--fr-ease);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             position: relative;
-            padding-top: 42px;
+            padding-top: 28px;
         }
 
         .title {
             color: var(--fr-text-1);
             font-size: 28px;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             letter-spacing: -0.03em;
             transition: font-size 0.4s var(--fr-ease);
         }
@@ -294,15 +294,35 @@
             transition: margin-bottom 0.4s var(--fr-ease);
         }
 
+        /* ============ 分类标题：左对齐 + 蓝色渐隐光线 ============ */
         .section-title {
-            color: var(--fr-text-1);
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-align: center;
-            letter-spacing: -0.02em;
+            color: var(--fr-text-2);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-align: left;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
             transition: font-size 0.4s var(--fr-ease),
                        margin-bottom 0.4s var(--fr-ease);
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 0.1;
+            height: 1px;
+            border-radius: 1px;
+            background: linear-gradient(90deg,
+                rgba(0, 153, 255, 0.55),
+                rgba(0, 153, 255, 0.25) 40%,
+                rgba(0, 153, 255, 0.06) 75%,
+                transparent 100%);
+            box-shadow:
+                0 0 4px rgba(0, 153, 255, 0.20),
+                0 0 10px rgba(0, 153, 255, 0.08);
         }
 
         .expand-section-btn {
@@ -1267,6 +1287,8 @@
                 gap: 16px;
                 max-width: 100%;
             }
+
+            .section-title { font-size: 11px; margin-bottom: 9px; }
         }
 
         @media (min-width: 800px) {
@@ -1288,7 +1310,7 @@
                 max-width: calc(75% + 10px);
             }
 
-            .section-title { font-size: 22px; margin-bottom: 18px; }
+            .section-title { font-size: 12px; margin-bottom: 11px; }
             .link-card { padding: 18px; }
             .hidden-cards { margin-top: 20px; margin-bottom: 15px; }
             .email-card { padding: 18px; padding-right: 55%; }
@@ -1318,11 +1340,13 @@
                 padding: 5px 3px;
                 border-radius: 0 12px 12px 0;
             }
+
+            .header { padding-top: 20px; }
         }
 
         @media (max-width: 480px) {
             .container { width: 96%; max-width: none; padding: 0; }
-            body { padding: 10px; padding-bottom: 30px; }
+            body { padding: 6px; padding-bottom: 30px; }
             .title { font-size: 24px; }
             .link-card { padding: 12px; }
             .link-card-with-expand { padding-right: 45px; }
@@ -1335,7 +1359,8 @@
             }
 
             .header {
-                padding-top: 36px;
+                padding-top: 24px;
+                margin-bottom: 10px;
             }
 
             .hidden-cards.expanded {
@@ -1387,7 +1412,7 @@
             .backup-card .link-title { font-size: 11px; }
             .link-desc, .link-desc-clickable { font-size: 10px; }
             .sub-card .link-desc, .sub-card .link-desc-clickable { font-size: 10px; }
-            .section-title { font-size: 18px; }
+            .section-title { font-size: 10px; margin-bottom: 5px; }
             .sub-cards { left: 1%; right: 1%; }
 
             .expand-section-btn {
@@ -1448,9 +1473,6 @@
             box-shadow: 0 4px 16px rgba(0, 153, 255, 0.15);
         }
 
-        /* ================================================================
-           风格切换下拉 — 悬浮固定版（与 #backHomeBtn 同风格）
-           ================================================================ */
         .style-switcher {
             position: fixed;
             top: 28px;
@@ -1556,10 +1578,6 @@
         .style-opt-active:hover {
             background: var(--fr-blue-glow);
         }
-
-        /* ================================================================
-         * 交互增强
-         * ================================================================ */
 
         a, button, [onclick], [role="option"],
         .link-card, .sub-card, .back-link, .expand-section-btn,
@@ -1678,7 +1696,6 @@
 
     <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
 
-    <!-- 右上角悬浮风格切换 -->
     <div class="style-switcher" id="styleSwitcher">
         <button class="style-btn" id="styleBtn"
                 onclick="toggleStyleMenu(event)"
@@ -1756,9 +1773,6 @@
             throw new Error('数据文件 未加载');
         }
 
-        // ================================================================
-        // 风格切换下拉菜单
-        // ================================================================
         function toggleStyleMenu(event) {
             event.stopPropagation();
             var switcher = document.getElementById('styleSwitcher');
@@ -1776,9 +1790,6 @@
             }
         });
 
-        // ================================================================
-        // 风格切换按钮定位 — 右边缘与 .container 齐平
-        // ================================================================
         function alignStyleSwitcher() {
             var switcher = document.getElementById('styleSwitcher');
             var container = document.querySelector('.container');
@@ -1789,17 +1800,11 @@
             switcher.style.right = rightOffset + 'px';
         }
 
-        // ================================================================
-        // 全局状态
-        // ================================================================
         var currentExpanded = null;
         var currentLayout = 'mobile';
         var currentEmailData = emailData[0];
         var isAnimating = false;
 
-        // ================================================================
-        // 工具函数
-        // ================================================================
         function detectLayout() {
             var w = window.innerWidth;
             if (w <= 480) return 'mobile';
@@ -1833,9 +1838,6 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // ================================================================
-        // 卡片 HTML 生成
-        // ================================================================
         function generateCardHTML(card) {
             if (card.type === 'simple') {
                 return '<a href="' + card.url + '" target="_blank" class="link-card">' +
@@ -1927,9 +1929,6 @@
             return html;
         }
 
-        // ================================================================
-        // 联系方式
-        // ================================================================
         function generateEmailCardHTML() {
             var tabsHTML = '';
             emailData.forEach(function(em, i) {
@@ -1967,9 +1966,6 @@
             return html;
         }
 
-        // ================================================================
-        // 交互逻辑
-        // ================================================================
         function handleCardClick(event, url, subcardId) {
             var card = event.currentTarget;
             var rect = card.getBoundingClientRect();
@@ -2121,9 +2117,6 @@
             window.open(url, '_blank');
         }
 
-        // ================================================================
-        // 初始化 & 事件监听
-        // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
 
@@ -2139,10 +2132,8 @@
                 autoExpandSection('video');
             }
 
-            // 初始定位悬浮切换按钮
             alignStyleSwitcher();
 
-            // ——— ResizeObserver：容器尺寸变化时自动对齐（含 CSS transition 期间） ———
             var containerEl = document.querySelector('.container');
             if (typeof ResizeObserver !== 'undefined' && containerEl) {
                 new ResizeObserver(function() {
@@ -2152,7 +2143,6 @@
         });
 
         window.addEventListener('resize', function() {
-            // 每次 resize 都重新定位（兜底，覆盖 ResizeObserver 不支持的情况）
             alignStyleSwitcher();
 
             var newLayout = detectLayout();
@@ -2187,9 +2177,6 @@
             closeCurrentExpanded();
         });
 
-        // ================================================================
-        // 波纹效果
-        // ================================================================
         (function initRipple() {
             var rippleSelector = [
                 '.link-card',
