@@ -312,7 +312,7 @@
 
         .section-title::after {
             content: '';
-            flex: 0.1;
+            flex: 0.25;
             height: 1px;
             border-radius: 1px;
             background: linear-gradient(90deg,
@@ -1289,6 +1289,7 @@
             }
 
             .section-title { font-size: 11px; margin-bottom: 9px; }
+            .section-title::after { flex: 0.3; }
         }
 
         @media (min-width: 800px) {
@@ -1346,6 +1347,7 @@
 
         @media (max-width: 480px) {
             .container { width: 96%; max-width: none; padding: 0; }
+            .section-title::after { flex: 0.3; }
             body { padding: 6px; padding-bottom: 30px; }
             .title { font-size: 24px; }
             .link-card { padding: 12px; }
@@ -1412,7 +1414,7 @@
             .backup-card .link-title { font-size: 11px; }
             .link-desc, .link-desc-clickable { font-size: 10px; }
             .sub-card .link-desc, .sub-card .link-desc-clickable { font-size: 10px; }
-            .section-title { font-size: 10px; margin-bottom: 5px; }
+            .section-title { font-size: 11px; margin-bottom: 5px; }
             .sub-cards { left: 1%; right: 1%; }
 
             .expand-section-btn {
