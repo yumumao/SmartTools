@@ -211,9 +211,9 @@ var videoData = [
         url: 'https://www.gmp4.com/', type: 'expandable',
         subCards: [
             { icon: '🎬', content: '七味网址发布', url: 'https://www.qn63.com' },
-            { icon: '🍿', content: '观影网址发布', url: 'https://www.gying.page' },
-            { icon: '🎭', content: 'gying.org', url: 'https://www.gying.org/' },
-            { icon: '🎪', content: 'gyg.si', url: 'https://gyg.si' }
+            { icon: '🍿', content: '观影网址发布', url: 'https://www.挂了.com/' },
+            { icon: '🎭', content: 'gying.org', url: 'https://www.xn--wcv59z.com/' },
+            { icon: '🎪', content: 'gyg.si', url: 'https://www.hgeme.com/' }
         ]
     },
     { id: 'xiuluoyingshi', icon: '🐮', title: 'Moovie', desc: '影视聚合搜索', url: 'https://moovie.c2v2.com/', type: 'simple' },
