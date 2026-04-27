@@ -91,14 +91,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            /* 每个 emoji 绕中心转 */
             top: 50%; left: 50%;
             margin: -20px 0 0 -20px;
             animation: orbitMove 5s linear infinite;
             filter: drop-shadow(0 0 6px var(--glow));
         }
 
-        /* 5个 emoji，均分360° */
         .orbit-emoji:nth-child(1) { --glow: #667eea88; animation-delay:  0s;    }
         .orbit-emoji:nth-child(2) { --glow: #6E56CF88; animation-delay: -1s;    }
         .orbit-emoji:nth-child(3) { --glow: #635BFF88; animation-delay: -2s;    }
@@ -170,7 +168,7 @@
         }
     </style>
 
-    <!-- ★ 跳转逻辑：完全不变，瞬间执行 -->
+    <!-- ★ 跳转逻辑：带上 hash -->
     <script>
     (function() {
         var themeToPage = {
@@ -181,6 +179,7 @@
             'mint':   'index5.html'
         };
         var theme = null;
+        var hash = window.location.hash; // "" 或 "#usb" 等
 
         try {
             theme = new URLSearchParams(window.location.search).get('theme');
@@ -191,18 +190,18 @@
         }
 
         if (theme && themeToPage[theme]) {
-            window.location.replace(themeToPage[theme]);
+            window.location.replace(themeToPage[theme] + hash);
         }
     })();
     </script>
 </head>
 <body>
 
+<!-- 中心图标 -->
     <div class="loader" id="loader">
-        <!-- 中心图标 -->
         <span class="center-icon">⭐️</span>
 
-        <!-- 环绕轨道 -->
+<!-- 环绕轨道 -->
         <div class="orbit-ring">
             <span class="orbit-emoji">🌌</span>
             <span class="orbit-emoji">📄</span>
@@ -210,8 +209,8 @@
             <span class="orbit-emoji">🖤</span>
             <span class="orbit-emoji">🌿</span>
         </div>
-
-        <!-- 色块闪烁 -->
+        
+<!-- 色块闪烁 -->
         <div class="color-bar">
             <span class="color-dot"></span>
             <span class="color-dot"></span>
@@ -234,11 +233,12 @@
         </div>
     </noscript>
 
-    <!-- ★ 兜底跳转：也完全不变 -->
+    <!-- ★ 兜底跳转：也带上 hash -->
     <script>
     (function () {
         var DEFAULT_PAGE = 'index2.html';
         var STORAGE_KEY  = 'fav_last_style';
+        var hash = window.location.hash; // "" 或 "#usb" 等
         var target = DEFAULT_PAGE;
 
         try {
@@ -252,7 +252,7 @@
             }
         } catch (e) {}
 
-        window.location.replace(target);
+        window.location.replace(target + hash);
     })();
     </script>
 
