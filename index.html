@@ -169,31 +169,45 @@
     </style>
 
     <!-- ★ 跳转逻辑：带上 hash -->
-    <script>
-    (function() {
-        var themeToPage = {
-            'nebula': 'index1.html',
-            'notion': 'index2.html',
-            'stripe': 'index3.html',
-            'dark':   'index4.html',
-            'mint':   'index5.html'
-        };
-        var theme = null;
-        var hash = window.location.hash; // "" 或 "#usb" 等
+<script>
+(function() {
+    var themeToPage = {
+        'nebula': 'index1.html',
+        'notion': 'index2.html',
+        'stripe': 'index3.html',
+        'dark':   'index4.html',
+        'mint':   'index5.html'
+    };
+    var DEFAULT_PAGE = 'index2.html';
+    var STORAGE_KEY  = 'fav_last_style';
+    var allowed = ['index1.html','index2.html','index3.html','index4.html','index5.html'];
+    var hash = window.location.hash;
+    var target = null;
 
-        try {
-            theme = new URLSearchParams(window.location.search).get('theme');
-        } catch(e) {}
-
-        if (!theme || !themeToPage[theme]) {
-            try { theme = localStorage.getItem('smarttools_theme'); } catch(e) {}
-        }
-
+    /* ① 优先看 URL 参数 ?theme=stripe */
+    try {
+        var theme = new URLSearchParams(window.location.search).get('theme');
         if (theme && themeToPage[theme]) {
-            window.location.replace(themeToPage[theme] + hash);
+            target = themeToPage[theme];
         }
-    })();
-    </script>
+    } catch(e) {}
+
+    /* ② 再看 localStorage（和 index 页面统一用 fav_last_style） */
+    if (!target) {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved && allowed.indexOf(saved) !== -1) {
+                target = saved;
+            }
+        } catch(e) {}
+    }
+
+    /* ③ 兜底 */
+    if (!target) target = DEFAULT_PAGE;
+
+    window.location.replace(target + hash);
+})();
+</script>
 </head>
 <body>
 
@@ -232,29 +246,6 @@
             <a href="index5.html">🌿 Mintlify</a>
         </div>
     </noscript>
-
-    <!-- ★ 兜底跳转：也带上 hash -->
-    <script>
-    (function () {
-        var DEFAULT_PAGE = 'index2.html';
-        var STORAGE_KEY  = 'fav_last_style';
-        var hash = window.location.hash; // "" 或 "#usb" 等
-        var target = DEFAULT_PAGE;
-
-        try {
-            var saved = localStorage.getItem(STORAGE_KEY);
-            var allowed = [
-                'index1.html', 'index2.html', 'index3.html',
-                'index4.html', 'index5.html'
-            ];
-            if (saved && allowed.indexOf(saved) !== -1) {
-                target = saved;
-            }
-        } catch (e) {}
-
-        window.location.replace(target + hash);
-    })();
-    </script>
 
 </body>
 </html>
