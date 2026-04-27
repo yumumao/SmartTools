@@ -1190,38 +1190,29 @@
             body[data-theme="stripe"] .tool-card { border-radius: 14px; }
             body[data-theme="stripe"] .nav-card  { border-radius: 14px; }
         }
-/* ============================================================
- * [✨ 波纹颜色修复] Nebula & Stripe
- * 这两套主题下 body 文字为白色，而工具卡/子卡片为白底，
- * currentColor 波纹会"白对白"不可见，需显式指定波纹色。
- * ============================================================ */
 
-/* 🌌 Nebula —— 用主题紫作为波纹 */
-body[data-theme="nebula"] .tool-card .ripple,
-body[data-theme="nebula"] .sub-card .ripple {
-    background-color: #667eea;
-    opacity: 0.28;
-}
+        /* ============================================================
+         * [✨ 波纹颜色修复] Nebula & Stripe
+         * ============================================================ */
+        body[data-theme="nebula"] .tool-card .ripple,
+        body[data-theme="nebula"] .sub-card .ripple {
+            background-color: #667eea;
+            opacity: 0.28;
+        }
+        body[data-theme="stripe"] .tool-card .ripple,
+        body[data-theme="stripe"] .sub-card .ripple {
+            background-color: #635BFF;
+            opacity: 0.3;
+        }
+        body[data-theme="mint"] .tool-card .ripple,
+        body[data-theme="mint"] .sub-card .ripple {
+            background-color: #10b981;
+            opacity: 0.25;
+        }
 
-/* 💎 Stripe —— 用品牌紫作为波纹 */
-body[data-theme="stripe"] .tool-card .ripple,
-body[data-theme="stripe"] .sub-card .ripple {
-    background-color: #635BFF;
-    opacity: 0.3;
-}
-
-/* 🌿 Mint —— 用主题薄荷绿作为波纹 */
-body[data-theme="mint"] .tool-card .ripple,
-body[data-theme="mint"] .sub-card .ripple {
-    background-color: #10b981;
-    opacity: 0.25;
-}
         /* ============================================================
          * [✨ 新增] 波纹效果 Ripple Effect
          * ============================================================ */
-        /* 波纹容器：动态注入到每个可波纹元素内部，
-           利用 border-radius: inherit 精确沿用宿主圆角，
-           不改变宿主的 overflow，避免破坏 Notion 等主题的外溢装饰线 */
         .ripple-container {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -1231,7 +1222,6 @@ body[data-theme="mint"] .sub-card .ripple {
             z-index: 0;
         }
 
-        /* 波纹本体 */
         .ripple {
             position: absolute;
             border-radius: 50%;
@@ -1250,12 +1240,10 @@ body[data-theme="mint"] .sub-card .ripple {
             }
         }
 
-        /* 尊重"减少动画"偏好 */
         @media (prefers-reduced-motion: reduce) {
             .ripple { animation-duration: 1ms; }
         }
 
-        /* 深色背景主题下略加深波纹 */
         body[data-theme="dark"] .nav-card .ripple,
         body[data-theme="dark"] .theme-toggle .ripple,
         body[data-theme="stripe"] .nav-card .ripple,
@@ -1267,15 +1255,9 @@ body[data-theme="mint"] .sub-card .ripple {
     </style>
 </head>
 <body>
+    <!-- ★ 改动①：简化初始主题检测脚本 -->
     <script>
         (function() {
-            var fromMap = {
-                'index1': 'nebula',
-                'index2': 'notion',
-                'index3': 'stripe',
-                'index4': 'dark',
-                'index5': 'mint'
-            };
             var favMap = {
                 'index1.html': 'nebula',
                 'index2.html': 'notion',
@@ -1284,56 +1266,33 @@ body[data-theme="mint"] .sub-card .ripple {
                 'index5.html': 'mint'
             };
             var validThemes = ['nebula','notion','stripe','dark','mint'];
-
             var theme = null;
 
+            /* ① URL 参数 ?theme=xxx 最优先 */
             try {
-                var p = new URLSearchParams(window.location.search);
-                var t = p.get('theme');
+                var t = new URLSearchParams(window.location.search).get('theme');
                 if (t && validThemes.indexOf(t) !== -1) theme = t;
             } catch(e) {}
 
-            if (!theme) {
-                try {
-                    var p2 = new URLSearchParams(window.location.search);
-                    var f = p2.get('from');
-                    if (f && fromMap[f]) theme = fromMap[f];
-                } catch(e) {}
-            }
-
-            if (!theme) {
-                try {
-                    var ref = document.referrer || '';
-                    if (ref) {
-                        for (var k in fromMap) {
-                            if (ref.indexOf(k + '.html') !== -1) { theme = fromMap[k]; break; }
-                        }
-                    }
-                } catch(e) {}
-            }
-
-            // 4. 从 fav_last_style 识别来源（仅当值有更新，即为"新鲜"的跳转）
+            /* ② 读取收藏夹当前主题（始终同步，不做 consumed 判断） */
             if (!theme) {
                 try {
                     var ls = localStorage.getItem('fav_last_style');
-                    var consumedFav = localStorage.getItem('smarttools_fav_consumed');
-                    if (ls && favMap[ls] && ls !== consumedFav) {
-                        theme = favMap[ls];
-                        localStorage.setItem('smarttools_fav_consumed', ls);
-                    }
+                    if (ls && favMap[ls]) theme = favMap[ls];
                 } catch(e) {}
             }
 
-            // 5. 最后回退到用户上次手动切换保存的主题
+            /* ③ 回退到本页上次手动切换保存的主题 */
             if (!theme) {
                 try { theme = localStorage.getItem('smarttools_theme'); } catch(e) {}
             }
-            
-                        if (!theme) theme = 'mint';
 
-                        document.body.setAttribute('data-theme', theme);
-                        try { localStorage.setItem('smarttools_theme', theme); } catch(e) {}
-                    })();
+            /* ④ 兜底 */
+            if (!theme) theme = 'mint';
+
+            document.body.setAttribute('data-theme', theme);
+            try { localStorage.setItem('smarttools_theme', theme); } catch(e) {}
+        })();
     </script>
 
     <button class="theme-toggle" id="themeToggle" title="切换主题" aria-label="切换主题">
@@ -1351,7 +1310,7 @@ body[data-theme="mint"] .sub-card .ripple {
 
             <div class="nav-cards">
                 <a href="about.html" class="nav-card">📄 简介</a>
-                <a href="index.html" class="nav-card">🔖 收藏夹</a>
+                <a href="index.html" class="nav-card" id="navFavLink">🔖 收藏夹</a>
             </div>
         </div>
 
@@ -1453,7 +1412,7 @@ body[data-theme="mint"] .sub-card .ripple {
                 </div>
             </div>
 
-            <a href="index.html" class="tool-card">
+            <a href="index.html" class="tool-card" id="gridFavLink">
                 <span class="tool-icon">🎁</span>
                 <h3 class="tool-title">在线收藏夹</h3>
                 <p class="tool-desc">常用网站链接收藏</p>
@@ -1474,6 +1433,15 @@ body[data-theme="mint"] .sub-card .ripple {
             { id: 'mint',   icon: '🌿', label: 'Mintlify' }
         ];
 
+        /* ★ 改动②：主题 → 收藏夹页面 映射 */
+        var themeToIndex = {
+            'nebula': 'index1.html',
+            'notion': 'index2.html',
+            'stripe': 'index3.html',
+            'dark':   'index4.html',
+            'mint':   'index5.html'
+        };
+
         var currentThemeIndex = 0;
 
         function findThemeIndex(id) {
@@ -1483,6 +1451,7 @@ body[data-theme="mint"] .sub-card .ripple {
             return -1;
         }
 
+        /* ★ 改动③：applyTheme 同步写 fav_last_style */
         function applyTheme(index) {
             if (index < 0 || index >= themes.length) index = themes.length - 1;
             var theme = themes[index];
@@ -1497,7 +1466,12 @@ body[data-theme="mint"] .sub-card .ripple {
             if (toggleBtn) toggleBtn.title = theme.label + ' → 点击切换至 ' + next.label;
 
             currentThemeIndex = index;
-            try { localStorage.setItem('smarttools_theme', theme.id); } catch(e) {}
+            try {
+                localStorage.setItem('smarttools_theme', theme.id);
+                // 同步写 fav_last_style，让收藏夹页面也跟随
+                var indexFile = themeToIndex[theme.id];
+                if (indexFile) localStorage.setItem('fav_last_style', indexFile);
+            } catch(e) {}
         }
 
         function cycleTheme() {
@@ -1615,10 +1589,19 @@ body[data-theme="mint"] .sub-card .ripple {
             el.addEventListener('click', function(e) { e.stopPropagation(); });
         });
 
+        /* ★ 改动④：navigateTo 拦截 index.html → 跳转到对应 indexN.html */
         function navigateTo(url) {
-            var theme = themes[currentThemeIndex].id;
+            var themeId = themes[currentThemeIndex].id;
+
+            // 如果目标是 index.html（收藏夹），跳转到当前主题对应的 indexN.html
+            if (url === 'index.html') {
+                window.location.href = themeToIndex[themeId] || 'index1.html';
+                return;
+            }
+
+            // 其他页面照旧带 ?theme= 参数
             var sep = url.indexOf('?') === -1 ? '?' : '&';
-            window.location.href = url + sep + 'theme=' + theme;
+            window.location.href = url + sep + 'theme=' + themeId;
         }
 
         document.addEventListener('click', function(e) {
@@ -1633,15 +1616,12 @@ body[data-theme="mint"] .sub-card .ripple {
 
         /* ============================================================
          * [✨ 新增] 波纹效果 Ripple Effect
-         * 完全追加式，使用事件委托，不改任何现有逻辑
          * ============================================================ */
         (function() {
             'use strict';
 
-            // 需要波纹效果的元素
             var RIPPLE_SELECTOR = '.tool-card, .nav-card, .sub-card, .theme-toggle';
 
-            // 获取或创建 host 内部的波纹容器（避免破坏 host 的 overflow 设置）
             function getRippleContainer(host) {
                 var container = host.querySelector(':scope > .ripple-container');
                 if (!container) {
@@ -1659,7 +1639,6 @@ body[data-theme="mint"] .sub-card .ripple {
                 var x = clientX - rect.left;
                 var y = clientY - rect.top;
 
-                // 波纹尺寸取元素最长边，保证任意触点都能扩散覆盖
                 var size = Math.max(rect.width, rect.height);
 
                 var container = getRippleContainer(host);
@@ -1672,22 +1651,17 @@ body[data-theme="mint"] .sub-card .ripple {
 
                 container.appendChild(ripple);
 
-                // 动画结束后自动清理
                 ripple.addEventListener('animationend', function() {
                     if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
                 });
             }
 
-            // 统一使用 pointerdown（鼠标 + 触摸 + 笔都兼容）
-            // passive: true 表示不阻塞默认行为，不影响原有点击 / 滚动
             document.addEventListener('pointerdown', function(e) {
-                // 只响应主按键（鼠标左键 / 触摸）
                 if (e.button !== undefined && e.button !== 0) return;
 
                 var host = e.target.closest(RIPPLE_SELECTOR);
                 if (!host) return;
 
-                // 跳过被禁用的元素
                 if (host.hasAttribute('disabled')) return;
 
                 createRipple(host, e.clientX, e.clientY);
