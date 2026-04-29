@@ -193,7 +193,7 @@ var videoData = [
         url: 'https://m.f66.fun/', type: 'expandable',
         subCards: [
             { icon: '🧝🏽‍', title: 'KatTV-V', desc: 'k.f66.fun', url: 'https://k.f66.fun/' },
-            { icon: '🌜️', title: 'MoonTV²-CC', desc: 'm2.f66.fun', url: 'https://m2.f66.fun/' },
+            { icon: '🌜️', title: 'MoonTV²-V', desc: 'm2.f66.fun', url: 'https://m2.f66.fun/' },
             { icon: '🌈', title: 'xiaoya', desc: 'xy.f66.fun', url: 'https://xy.f66.fun/' },
             { icon: '🔍', title: 'pansou', desc: '网盘搜索', url: 'https://pso.992929.xyz/' }
         ]
