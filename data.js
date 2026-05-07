@@ -179,8 +179,8 @@ var onlineAIData = [
     },
     { id: 'cloudflare', icon: '🌩️', title: 'Cloudflare', desc: 'Cloudflare', url: 'https://www.cloudflare.com/', type: 'simple' },
     { id: 'freedidi', icon: '👫🏻', title: '零度博客', desc: '零度博客', url: 'https://www.freedidi.com/', type: 'simple' },
-    { id: 'vercel', icon: '▲', title: 'Vercel', desc: 'vercel', url: 'https://vercel.com/', type: 'simple' },
-    { id: 'zeabur', icon: '𝒁', title: 'Zeabur', desc: 'zeabur', url: 'https://zeabur.com/', type: 'simple' },
+    { id: 'vercel', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="64" cy="64" r="56" fill="#333333" stroke="#FFFFFF" stroke-width="4"/><polygon points="64,33 91,80 37,80" fill="#FFFFFF"/></svg>', title: 'Vercel', desc: 'vercel', url: 'https://vercel.com/', type: 'simple' },
+    { id: 'zeabur', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><line x1="84" y1="45" x2="22" y2="83" stroke="#FFFFFF" stroke-width="16" stroke-linecap="butt"/><polygon points="18,26 94,26 88,50 12,50" fill="#000000" stroke="#FFFFFF" stroke-width="4"/><polygon points="18,78 94,78 88,102 12,102" fill="#000000" stroke="#FFFFFF" stroke-width="4"/><polygon points="18,26 74,26 68,50 12,50" fill="#6B3FA0"/><polygon points="74,26 94,26 88,50 68,50" fill="#333333"/><line x1="84" y1="45" x2="22" y2="83" stroke="#333333" stroke-width="12" stroke-linecap="butt"/><polygon points="38,78 94,78 88,102 32,102" fill="#E8632B"/><polygon points="18,78 38,78 32,102 12,102" fill="#333333"/></svg>', title: 'Zeabur', desc: 'zeabur', url: 'https://zeabur.com/', type: 'simple' },
     { id: 'upstash', icon: '🌀', title: 'Upstash', desc: 'upstash', url: 'https://upstash.com/', type: 'simple' },
     { id: 'vaultwarden', icon: '🛡', title: 'Vaultwarden', desc: 'Bitwarden密码管理', url: 'https://vbw.n29.net/', type: 'simple' }, 
     { id: 'AddressGeneratorFe', icon: '🗺️', title: 'AddressGenerator', desc: '地址生成器', url: 'https://addr.f66.fun/', type: 'simple' }
