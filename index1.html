@@ -1965,8 +1965,25 @@ a, button, [onclick], [role="option"],
         </div>
     </div>
 
-    <!-- 外部数据文件：包含所有分类的卡片数据 -->
-    <script src="data.js"></script>
+<!-- ================================================================
+     智能数据加载器
+     - 本地模式（file:// 直接双击打开）→ 加载 data.js
+     - 在线模式（部署到 Cloudflare Pages）→ 加载 /api/data
+     - 在线但 API 挂了 → 自动回退到 data.js
+================================================================ -->
+<script>
+(function() {
+    // file:// 协议直接用本地文件；其他场景走 /api/data
+    var src = location.protocol === 'file:' ? 'data.js' : '/api/data';
+    document.write('<script src="' + src + '"><\/' + 'script>');
+})();
+</script>
+<script>
+// 兜底：如果 /api/data 没返回数据（404/500/空响应），再回退一次
+if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
+    document.write('<script src="data.js"><\/' + 'script>');
+}
+</script>
     <script>
         // ====== 记住当前风格页面 ======
             try { localStorage.setItem('fav_last_style', 'index1.html'); } catch(e) {}
