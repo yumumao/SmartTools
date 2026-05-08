@@ -1769,7 +1769,7 @@
 <script>
 (function() {
     // file:// 协议直接用本地文件；其他场景走 /api/data
-    var src = location.protocol === 'file:' ? 'data.js' : '/api/data';
+    var src = location.protocol === 'file:' ? 'data.js' : '/api/data?t=' + Date.now();
     document.write('<script src="' + src + '"><\/' + 'script>');
 })();
 </script>

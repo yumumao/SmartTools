@@ -68,6 +68,9 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .mode-card.disabled { opacity: .5; cursor: not-allowed; }
 .mode-card .mode-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .mode-card .mode-desc { font-size: 13px; color: #777; }
+/* ★ 数据源切换：当前选中卡片高亮 */
+.mode-card.is-current { border-color: #4caf50; background: #f1f8e9; }
+.source-badge-current { font-size: 11px; padding: 2px 8px; background: #4caf50; color: #fff; border-radius: 10px; margin-left: 6px; }
 @media (max-width: 600px) {
     .card-item { flex-wrap: wrap; } .card-actions { width: 100%; }
     .topbar { flex-direction: column; align-items: flex-start; }
@@ -117,6 +120,8 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <button class="btn btn-ghost btn-sm hidden" id="btnConnect">📂 连接文件夹</button>
             <button class="btn btn-ghost btn-sm" id="btnReload">🔄 重载 data.js</button>
             <button class="btn btn-ghost btn-sm" id="btnHistory">🕐 历史备份</button>
+            <!-- ★ 数据源切换：新增按钮 -->
+            <button class="btn btn-ghost btn-sm hidden" id="btnDataSource">📡 数据源</button>
             <button class="btn btn-ghost btn-sm" id="btnImport">📥 导入</button>
             <button class="btn btn-ghost btn-sm" id="btnExport">👁 预览导出</button>
             <button class="btn btn-success btn-sm" id="btnSave">💾 保存</button>
@@ -128,6 +133,8 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     <div class="status-bar">
         <div><span id="sourceLabel">来源：</span><span id="folderStatus" class="st-warn">未连接</span></div>
         <div><span>data.js：</span><span id="dataStatus" class="st-warn">未加载</span></div>
+        <!-- ★ 数据源切换：新增状态栏指示器 -->
+        <div class="hidden" id="dataSourceBar"><span>首页数据源：</span><span id="dataSourceStatus">—</span></div>
         <div><span>备份：</span><span id="bakStatus">—</span></div>
     </div>
     <div class="section-tabs" id="sectionTabs"></div>
@@ -245,6 +252,31 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     </div>
 </div>
 
+<!-- ★ 数据源切换：新增模态框（仅在线模式可用） -->
+<div id="sourceModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:560px;">
+        <h2>📡 首页数据源设置</h2>
+        <p class="muted">控制访问 <b>首页</b> 时加载哪一份数据。修改后<b>立即生效</b>，无需重新部署。</p>
+
+        <div class="mode-card" data-source="kv" id="srcKvCard">
+            <div class="mode-title">☁️ KV 模式 <span id="srcKvBadge" class="hidden source-badge-current">当前</span></div>
+            <div class="mode-desc">使用配置后台保存的数据（<b>推荐</b>）。在此页面修改并保存后，首页立即更新。</div>
+        </div>
+        <div class="mode-card" data-source="static" id="srcStaticCard">
+            <div class="mode-title">📄 静态模式 <span id="srcStaticBadge" class="hidden source-badge-current">当前</span></div>
+            <div class="mode-desc">使用 GitHub 仓库里的 <code>data.js</code> 文件。需要 <code>git push</code> 才能更新首页。</div>
+        </div>
+
+        <div class="move-hint" style="margin-top:14px;">
+            💡 切换为「静态」后，本配置页保存的数据仍存在 KV 中不会丢失，但首页不再使用。再切回「KV」即可恢复。
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnSourceClose">关闭</button>
+        </div>
+    </div>
+</div>
+
 <!-- 导入/导出 -->
 <div id="ioModal" class="modal-mask hidden">
     <div class="modal-box">
@@ -308,6 +340,7 @@ let editingCardDraft = null;
 let folderHandle = null;
 let dataJsHandle = null;
 let moveFromIndex = -1;
+const MAX_BACKUPS_LOCAL = 100;  // ★ 本地备份上限（与 save.js 中 MAX_BACKUPS 保持一致）
 
 /* 注释保留 */
 const DEFAULT_COMMENTS = {
@@ -521,17 +554,22 @@ async function enterMain() {
         badge.className = 'mode-badge mode-online';
         hide('btnConnect'); hide('btnChangePwd');
         $('sourceLabel').textContent = '服务端：';
+        show('btnDataSource');                   // ★ 数据源切换：在线模式显示按钮
+        show('dataSourceBar');                   // ★ 数据源切换：在线模式显示状态栏
     } else {
         badge.textContent = '💻 本地模式';
         badge.className = 'mode-badge mode-local';
         show('btnConnect'); show('btnChangePwd');
         $('sourceLabel').textContent = '文件夹：';
+        hide('btnDataSource');                   // ★ 数据源切换：本地模式隐藏
+        hide('dataSourceBar');                   // ★ 数据源切换：本地模式隐藏
     }
     renderSectionTabs(); renderCurrentSection(); updateStatus();
 
     if (currentMode === MODE_ONLINE) {
         await loadData_online();
         await refreshBackupStatus_online();
+        await loadSourceStatus_online();         // ★ 数据源切换：加载当前数据源状态
     } else {
         const restored = await tryRestoreFolder();
         if (!restored) {
@@ -581,6 +619,7 @@ async function saveDataJs_online() {
         $('dataStatus').textContent = '✓ 已保存到服务端（' + new Date().toLocaleString() + '）';
         $('dataStatus').className = 'st-ok';
         await refreshBackupStatus_online();
+        await loadSourceStatus_online();         // ★ 数据源切换：保存后刷新一下数据源指示（save.js 会自动设为 kv）
     } else toast((r.data && r.data.error) || '保存失败');
 }
 async function refreshBackupStatus_online() {
@@ -588,6 +627,57 @@ async function refreshBackupStatus_online() {
     if (r.ok && r.data && r.data.ok) $('bakStatus').textContent = r.data.backups.length + ' 个';
     else $('bakStatus').textContent = '—';
 }
+
+/* ================================================================
+   ★ 数据源切换：【在线】首页数据源
+================================================================ */
+async function loadSourceStatus_online() {
+    const r = await api('/api/source', { method: 'GET' });
+    if (r.ok && r.data && r.data.ok) {
+        const src = r.data.source;
+        const label = src === 'kv' ? '☁️ KV' : '📄 静态';
+        const cls = src === 'kv' ? 'st-ok' : 'st-warn';
+        $('dataSourceStatus').textContent = label + (r.data.configured ? '' : '（默认）');
+        $('dataSourceStatus').className = cls;
+        return src;
+    }
+    $('dataSourceStatus').textContent = '✗ 读取失败';
+    $('dataSourceStatus').className = 'st-warn';
+    return null;
+}
+
+function updateSourceModalUI(currentSource) {
+    $('srcKvBadge').classList.toggle('hidden', currentSource !== 'kv');
+    $('srcStaticBadge').classList.toggle('hidden', currentSource !== 'static');
+    $('srcKvCard').classList.toggle('is-current', currentSource === 'kv');
+    $('srcStaticCard').classList.toggle('is-current', currentSource === 'static');
+}
+
+async function openSourceModal_online() {
+    const cur = await loadSourceStatus_online();
+    updateSourceModalUI(cur);
+    show('sourceModal');
+}
+
+async function setDataSource_online(source) {
+    // 防止重复点击
+    const card = source === 'kv' ? $('srcKvCard') : $('srcStaticCard');
+    if (card.classList.contains('is-current')) {
+        toast('当前已是「' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式') + '」');
+        return;
+    }
+    const r = await api('/api/source', { method: 'POST', body: JSON.stringify({ source }) });
+    if (r.status === 401) { toast('会话过期，请重新登录'); await logout_online(); return; }
+    if (r.ok && r.data && r.data.ok) {
+        toast('已切换为：' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式'));
+        await loadSourceStatus_online();
+        updateSourceModalUI(source);
+    } else toast((r.data && r.data.error) || '切换失败');
+}
+
+/* ================================================================
+   【在线】历史备份
+================================================================ */
 async function openHistoryModal_online() {
     const r = await api('/api/backups', { method: 'GET' });
     if (!r.ok || !r.data || !r.data.ok) { toast('加载备份失败'); return; }
@@ -723,12 +813,13 @@ async function saveDataJs_local() {
     const content = generateDataJs();
     try {
         let backupName = null;
+        let bakDir = null;
         try {
             const oldHandle = await folderHandle.getFileHandle('data.js');
             const oldFile = await oldHandle.getFile();
             const oldText = await oldFile.text();
             if (oldText && oldText.trim()) {
-                const bakDir = await folderHandle.getDirectoryHandle('databak', { create: true });
+                bakDir = await folderHandle.getDirectoryHandle('databak', { create: true });
                 backupName = 'data_' + timestamp() + '.js';
                 const bakFh = await bakDir.getFileHandle(backupName, { create: true });
                 const bw = await bakFh.createWritable();
@@ -736,17 +827,61 @@ async function saveDataJs_local() {
             }
         } catch (e) { console.warn('旧版本备份跳过：', e.message); }
 
+        // 写入新的 data.js
         const fh = await folderHandle.getFileHandle('data.js', { create: true });
         const w = await fh.createWritable();
         await w.write(content); await w.close();
         dataJsHandle = fh;
 
+        // ★ 自动清理超出上限的旧备份（与在线端行为一致）
+        let cleanedCount = 0;
+        if (bakDir) {
+            try {
+                cleanedCount = await pruneOldBackups_local(bakDir);
+            } catch (e) {
+                console.warn('清理旧备份失败：', e.message);
+            }
+        }
+
         const file = await fh.getFile();
         $('dataStatus').textContent = '✓ 已保存（' + new Date(file.lastModified).toLocaleString() + '）';
         $('dataStatus').className = 'st-ok';
-        toast(backupName ? ('已保存，旧版本已备份为 ' + backupName) : '已保存');
+
+        let msg = backupName ? ('已保存，旧版本已备份为 ' + backupName) : '已保存';
+        if (cleanedCount > 0) msg += `（已清理 ${cleanedCount} 个最旧备份）`;
+        toast(msg);
+
         await refreshBackupStatus_local();
     } catch (e) { alert('保存失败：' + e.message); }
+}
+
+// ★ 清理本地 databak/ 中超出 MAX_BACKUPS_LOCAL 的最旧备份
+async function pruneOldBackups_local(bakDir) {
+    const arr = [];
+    for await (const entry of bakDir.values()) {
+        if (entry.kind === 'file' && /\.js$/i.test(entry.name)) {
+            try {
+                const f = await entry.getFile();
+                arr.push({ name: entry.name, modified: f.lastModified });
+            } catch (e) { /* 跳过读取失败的文件 */ }
+        }
+    }
+    if (arr.length <= MAX_BACKUPS_LOCAL) return 0;
+
+    // 按修改时间倒序（新→旧），保留前 N 个，删除其余
+    arr.sort((a, b) => b.modified - a.modified);
+    const toDelete = arr.slice(MAX_BACKUPS_LOCAL);
+
+    let deleted = 0;
+    for (const item of toDelete) {
+        try {
+            await bakDir.removeEntry(item.name);
+            deleted++;
+        } catch (e) {
+            console.warn('删除备份失败：' + item.name, e.message);
+        }
+    }
+    return deleted;
 }
 function timestamp() {
     const d = new Date(), p = n => String(n).padStart(2, '0');
@@ -831,7 +966,11 @@ async function handleBackupAction_local(act, bak) {
    入口分叉
 ================================================================ */
 async function doReload() {
-    if (currentMode === MODE_ONLINE) { await loadData_online(); await refreshBackupStatus_online(); }
+    if (currentMode === MODE_ONLINE) {
+        await loadData_online();
+        await refreshBackupStatus_online();
+        await loadSourceStatus_online();         // ★ 数据源切换：重载也刷一下
+    }
     else {
         if (folderHandle) {
             if (!(await verifyPermission(folderHandle))) { alert('未获得权限'); return; }
@@ -1363,6 +1502,12 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnSave').onclick = doSave;
     $('btnHistory').onclick = doHistory;
     $('btnHistoryClose').onclick = () => hide('historyModal');
+
+    // ★ 数据源切换：事件绑定
+    $('btnDataSource').onclick = () => { if (currentMode === MODE_ONLINE) openSourceModal_online(); };
+    $('btnSourceClose').onclick = () => hide('sourceModal');
+    $('srcKvCard').onclick = () => setDataSource_online('kv');
+    $('srcStaticCard').onclick = () => setDataSource_online('static');
 
     $('btnImport').onclick = openImportModal;
     $('btnExport').onclick = openExportModal;

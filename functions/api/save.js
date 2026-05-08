@@ -3,7 +3,7 @@ import { requireAuth, jsonResponse } from '../_shared/auth.js';
 const DATA_KEY = 'data_js';
 const SOURCE_KEY = 'data_source';      // 🆕 新增
 const BACKUP_PREFIX = 'backup:';
-const MAX_BACKUPS = 30;
+const MAX_BACKUPS = 100;
 
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
