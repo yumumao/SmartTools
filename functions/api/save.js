@@ -1,6 +1,7 @@
 import { requireAuth, jsonResponse } from '../_shared/auth.js';
 
 const DATA_KEY = 'data_js';
+const SOURCE_KEY = 'data_source';      // 🆕 新增
 const BACKUP_PREFIX = 'backup:';
 const MAX_BACKUPS = 30;
 
@@ -27,14 +28,30 @@ export async function onRequestPost({ request, env }) {
         try { await pruneBackups(env.FAV_KV); } catch {}
     }
 
+    // 保存新数据
     await env.FAV_KV.put(DATA_KEY, content);
+    
+    // 🆕 关键改动：保存数据后，自动确保开关在 kv 模式
+    // 这样首次部署的用户保存一次后，整个系统就自动激活了
+    const currentSource = await env.FAV_KV.get(SOURCE_KEY);
+    if (currentSource !== 'kv') {
+        await env.FAV_KV.put(SOURCE_KEY, 'kv');
+    }
+    
     return jsonResponse({ ok: true, backup: backupName });
 }
 
+// 🔧 修复时区：生成北京时间（UTC+8）的时间戳
 function timestamp() {
-    const d = new Date(), p = n => String(n).padStart(2, '0');
-    return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' +
-           p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+    // Cloudflare Workers 默认是 UTC，手动加 8 小时偏移得到北京时间
+    const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const p = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + 
+           p(d.getUTCMonth() + 1) + 
+           p(d.getUTCDate()) + '_' +
+           p(d.getUTCHours()) + 
+           p(d.getUTCMinutes()) + 
+           p(d.getUTCSeconds());
 }
 
 async function pruneBackups(kv) {
