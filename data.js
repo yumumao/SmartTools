@@ -696,3 +696,6 @@ var contactData = [
         descUrl: 'https://github.com/yumumao?tab=repositories'
     }
 ];
+
+// ==================== 自定义大类（可在配置后台增删改） ====================
+var customSections = [];

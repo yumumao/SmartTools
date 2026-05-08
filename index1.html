@@ -2179,15 +2179,19 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
          * 根据分类前缀和布局模式，返回默认可见卡片数量
          * 超出的卡片放入"展开"区域
          */
-        function getVisibleCount(prefix, layout) {
-            if (prefix === 'video') {
-                return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-            }
-            if (prefix === 'ai') {
-                return layout === 'tablet' ? 3 : 4;
-            }
-            return 999;
-        }
+function getVisibleCount(prefix, layout) {
+    if (prefix === 'video') {
+        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+    }
+    if (prefix === 'ai') {
+        return layout === 'tablet' ? 3 : 4;
+    }
+    // ★ 自定义大类：与视频聚合相同的折叠数量
+    if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
+        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+    }
+    return 999;
+}
 
         /** 动态分类：前 N 张可见，其余折叠隐藏，带展开/折叠按钮 */
         function generateDynamicGrid(prefix, data, layout) {
@@ -2441,13 +2445,60 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             window.open(url, '_blank');
         }
 
+// ================================================================
+        // ★ 自定义大类：从 data.js 的 customSections 注入到 DOM
+        // ================================================================
+        function injectCustomSections(layout) {
+            if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
+
+            // contact 大类的 .section 容器（自定义大类要插在它之前）
+            var contactTitle = document.getElementById('contact');
+            if (!contactTitle) return;
+            var contactSection = contactTitle.closest('.section');
+            if (!contactSection) return;
+
+            customSections.forEach(function(cs) {
+                if (!cs || !cs.key || typeof cs.key !== 'string') return;
+                if (document.getElementById(cs.key + '-content')) return; // 防重复注入
+
+                var sectionEl = document.createElement('div');
+                sectionEl.className = 'section';
+                sectionEl.dataset.customKey = cs.key;
+                sectionEl.innerHTML =
+                    '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
+                    '<div id="' + cs.key + '-content"></div>';
+                contactSection.parentNode.insertBefore(sectionEl, contactSection);
+
+                renderCustomSection(cs, layout);
+            });
+        }
+
+        function renderCustomSection(cs, layout) {
+            var contentEl = document.getElementById(cs.key + '-content');
+            if (!contentEl) return;
+            var cards = Array.isArray(cs.cards) ? cs.cards : [];
+            if (!cards.length) {
+                contentEl.innerHTML = '';
+                return;
+            }
+            if (cs.dynamic) {
+                contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout);
+                if (layout === 'desktop') {
+                    autoExpandSection(cs.key);
+                }
+            } else {
+                contentEl.innerHTML = generateStaticGrid(cards);
+            }
+        }
+        
         // ================================================================
         // 初始化 & 事件监听
         // ================================================================
 
         document.addEventListener('DOMContentLoaded', function() {
             currentLayout = detectLayout();
-
+// ★ 渲染自定义大类（如果 data.js 中定义了 customSections）
+    injectCustomSections(currentLayout);
             // 静态分类：一次性渲染全部卡片
             document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData);
             document.getElementById('teaching-content').innerHTML = generateStaticGrid(teachingData);
@@ -2477,22 +2528,25 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
-                // 关闭已展开的子卡片面板
                 if (currentExpanded) {
                     currentExpanded = null;
                     document.getElementById('overlay').classList.remove('active');
                 }
-                document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai', onlineAIData, currentLayout);
-                document.getElementById('video-content').innerHTML = generateDynamicGrid('video', videoData, currentLayout);
-
-                // 切换到大屏幕时自动展开折叠区域
+                document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai',    onlineAIData, currentLayout);
+                document.getElementById('video-content').innerHTML     = generateDynamicGrid('video', videoData,    currentLayout);
                 if (currentLayout === 'desktop') {
                     autoExpandSection('ai');
                     autoExpandSection('video');
                 }
+
+                // ★ 自定义大类也跟随 layout 重新渲染
+                if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
+                    customSections.forEach(function(cs) {
+                        if (cs && cs.key) renderCustomSection(cs, currentLayout);
+                    });
+                }
             }
 
-            // 放在最后，用 requestAnimationFrame 确保 DOM 更新完毕再计算
             requestAnimationFrame(alignStyleSwitcher);
         });
 

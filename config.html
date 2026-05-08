@@ -25,38 +25,21 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 16px 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,.1); flex-wrap: wrap; gap: 10px; }
 .topbar h1 { margin: 0; display: flex; align-items: center; gap: 10px; }
 .topbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-/* ★ 返回主页按钮样式 */
-.btn-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
-    background: #f3f4f6;
-    color: #4b5563;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-}
-.btn-home:hover {
-    background: #667eea;
-    color: #fff;
-    border-color: #667eea;
-    transform: translateX(-2px);
-}
-
+.btn-home { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.15s ease; flex-shrink: 0; }
+.btn-home:hover { background: #667eea; color: #fff; border-color: #667eea; transform: translateX(-2px); }
 .mode-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-left: 8px; vertical-align: middle; }
 .mode-online { background: #e8f5e9; color: #2e7d32; }
 .mode-local { background: #fff3e0; color: #e65100; }
 .status-bar { background: #fff; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,.08); flex-wrap: wrap; gap: 10px; font-size: 13px; }
 .status-bar .st-ok { color: #2e7d32; font-weight: 600; } .status-bar .st-warn { color: #c62828; font-weight: 600; }
 .section-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; background: #fff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,.1); }
-.section-tab { padding: 8px 16px; border-radius: 20px; background: #f0f0f0; cursor: pointer; font-size: 14px; font-weight: 600; color: #555; }
+.section-tab { padding: 8px 16px; border-radius: 20px; background: #f0f0f0; cursor: pointer; font-size: 14px; font-weight: 600; color: #555; transition: all .15s; }
 .section-tab.active { background: #667eea; color: #fff; }
+/* ★ 自定义大类标签视觉区分 */
+.section-tab.is-custom { background: #fff3e0; color: #e65100; border: 1px dashed #ffb74d; }
+.section-tab.is-custom.active { background: #ff9800; color: #fff; border-color: transparent; }
+.section-tab.is-manage { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+.section-tab.is-manage:hover { background: #c8e6c9; }
 .card-item { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: box-shadow .2s; }
 .card-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 .card-icon-preview { width: 46px; height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #fff; border-radius: 8px; border: 1px solid #eee; overflow: hidden; }
@@ -95,6 +78,16 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .mode-card .mode-desc { font-size: 13px; color: #777; }
 .mode-card.is-current { border-color: #4caf50; background: #f1f8e9; }
 .source-badge-current { font-size: 11px; padding: 2px 8px; background: #4caf50; color: #fff; border-radius: 10px; margin-left: 6px; }
+/* ★ 大类管理用 */
+.sec-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #e5e5e5; border-radius: 6px; margin-bottom: 6px; background: #fafafa; flex-wrap: wrap; }
+.sec-row.builtin { opacity: .8; background: #f0f4ff; border-color: #c5d2ee; }
+.sec-row.custom { background: #fff8e1; border-color: #ffd591; }
+.sec-row .sec-label { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; word-break: break-all; }
+.sec-row .sec-meta { font-size: 11px; color: #888; }
+.sec-row .sec-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.sec-row .badge-builtin { background: #e3f2fd; color: #1976d2; }
+.sec-row .badge-custom { background: #ffe0b2; color: #e65100; }
+.sec-row .badge-dynamic { background: #f3e5f5; color: #7b1fa2; margin-left: 4px; }
 @media (max-width: 600px) {
     .card-item { flex-wrap: wrap; } .card-actions { width: 100%; }
     .topbar { flex-direction: column; align-items: flex-start; }
@@ -117,7 +110,6 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <div class="mode-title">💻 本地模式</div>
             <div class="mode-desc">使用浏览器直接修改本地 data.js 文件（需 Chrome/Edge + 访问本地文件夹权限）</div>
         </div>
-        <!-- ★ 模式选择页也加一个返回主页 -->
         <div style="text-align:center; margin-top:16px;">
             <a href="./index.html" class="btn-home">← 返回主页</a>
         </div>
@@ -146,7 +138,6 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <div id="mainPage" class="container hidden">
     <div class="topbar">
         <h1>
-            <!-- ★ 返回主页按钮 -->
             <a href="./index.html" class="btn-home" title="返回主页">← 主页</a>
             <span>⭐️ 收藏夹配置</span>
             <span id="mainModeBadge" class="mode-badge"></span>
@@ -217,7 +208,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <label>子卡片（subCards）</label>
             <div class="subcards-wrap" id="subCardsWrap"></div>
             <button type="button" class="btn btn-ghost btn-sm" id="btnAddSubCard" style="margin-top:8px;">➕ 添加子卡片</button>
-            <div class="move-hint">💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨分区）。若目标不是 expandable，会自动升级为 expandable。</div>
+            <div class="move-hint">💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。</div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnCardCancel">取消</button>
@@ -265,12 +256,71 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     <div class="modal-box" style="max-width:520px;">
         <h2>➡ 移动子卡片</h2>
         <p class="muted" id="moveSrcHint"></p>
-        <div class="form-row"><label>目标分区</label><select id="move_section"></select></div>
+        <div class="form-row"><label>目标大类</label><select id="move_section"></select></div>
         <div class="form-row"><label>目标卡片</label><select id="move_target" size="8" style="height:auto;"></select></div>
         <div class="move-hint" id="moveTypeHint"></div>
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnMoveCancel">取消</button>
             <button class="btn btn-primary" id="btnMoveConfirm">确认移动</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★ 主卡片移动到其他大类 -->
+<div id="cardMoveModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:520px;">
+        <h2>📦 移动卡片到其他大类</h2>
+        <p class="muted" id="cardMoveSrcHint"></p>
+        <div class="form-row">
+            <label>目标大类</label>
+            <select id="cardMove_section"></select>
+        </div>
+        <div class="move-hint">💡 卡片会原样转移，类型、子卡片、所有字段都保留。</div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnCardMoveCancel">取消</button>
+            <button class="btn btn-primary" id="btnCardMoveConfirm">确认移动</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★ 大类管理 -->
+<div id="sectionsModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:720px;">
+        <h2>🗂 大类管理</h2>
+        <p class="muted">内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。</p>
+
+        <h3 style="margin-top:14px;">🔒 内置大类</h3>
+        <div id="builtinSectionsList"></div>
+
+        <h3 style="margin-top:18px;">⚙️ 自定义大类 <span style="font-size:12px; font-weight:400; color:#888;">（显示在「视频聚合」之后、「邮箱」之前）</span></h3>
+        <div id="customSectionsList"></div>
+        <button class="btn btn-primary btn-sm" id="btnAddCustomSection" style="margin-top:8px;">➕ 新增大类</button>
+
+        <div class="move-hint" style="margin-top:14px;">
+            💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnSectionsClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- ★ 编辑/新增大类 -->
+<div id="sectionEditModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <h2 id="sectionEditTitle">新增大类</h2>
+        <div class="form-row">
+            <label>显示名称（建议带 emoji 前缀）</label>
+            <input type="text" id="se_label" placeholder="🎵 音乐资源" maxlength="50">
+        </div>
+        <div class="form-row">
+            <label><input type="checkbox" id="se_dynamic"> 启用展开/折叠</label>
+            <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnSectionEditCancel">取消</button>
+            <button class="btn btn-primary" id="btnSectionEditSave">确定</button>
         </div>
     </div>
 </div>
@@ -352,24 +402,62 @@ let onlineAvailable = false;
 const LS_MODE = 'bm_cfg_mode';
 
 /* ================================================================
-   分区定义与内存仓库
+   ★ 大类定义
+   - BUILTIN_SECTIONS：内置大类（写在 indexN.html 中），不可改
+   - customSectionsMeta：自定义大类（写在 data.js 的 customSections）
+   - getSections()：合并后的完整列表（用于渲染、查找）
 ================================================================ */
-const SECTIONS = [
-    { key: 'usbDriveData',  label: '☁️ 在线U盘',    kind: 'card' },
-    { key: 'teachingData',  label: '📚 授课资料',    kind: 'card' },
-    { key: 'onlineAIData',  label: '🖥️ 网络资源',    kind: 'card' },
-    { key: 'videoData',     label: '🎬 视频聚合',    kind: 'card' },
-    { key: 'emailData',     label: '📧 邮箱数据',    kind: 'email' },
-    { key: 'contactData',   label: '📨 其他联系方式', kind: 'contact' }
+const BUILTIN_SECTIONS = [
+    { key: 'usbDriveData',  label: '☁️ 在线U盘',    kind: 'card',    builtin: true },
+    { key: 'teachingData',  label: '📚 授课资料',    kind: 'card',    builtin: true },
+    { key: 'onlineAIData',  label: '🖥️ 网络资源',    kind: 'card',    builtin: true },
+    { key: 'videoData',     label: '🎬 视频聚合',    kind: 'card',    builtin: true },
+    { key: 'emailData',     label: '📧 邮箱数据',    kind: 'email',   builtin: true },
+    { key: 'contactData',   label: '📨 其他联系方式', kind: 'contact', builtin: true }
 ];
-const store = { usbDriveData: [], teachingData: [], onlineAIData: [], videoData: [], emailData: [], contactData: [] };
-let currentSection = SECTIONS[0].key;
+const UNCLASSIFIED_KEY = 'custom_unclassified';
+const UNCLASSIFIED_LABEL = '📦 未分类';
+
+let customSectionsMeta = [];   // [{ key, label, dynamic }]
+
+function getSections() {
+    const cardBuiltins  = BUILTIN_SECTIONS.filter(s => s.kind === 'card');
+    const otherBuiltins = BUILTIN_SECTIONS.filter(s => s.kind !== 'card');
+    const customs = customSectionsMeta.map(c => ({
+        key: c.key, label: c.label, kind: 'card', builtin: false, dynamic: !!c.dynamic
+    }));
+    return [...cardBuiltins, ...customs, ...otherBuiltins];
+}
+
+function isBuiltinKey(key) { return BUILTIN_SECTIONS.some(s => s.key === key); }
+
+function ensureUnclassifiedSection() {
+    if (!customSectionsMeta.find(c => c.key === UNCLASSIFIED_KEY)) {
+        customSectionsMeta.push({
+            key: UNCLASSIFIED_KEY, label: UNCLASSIFIED_LABEL, dynamic: false
+        });
+    }
+    if (!Array.isArray(store[UNCLASSIFIED_KEY])) store[UNCLASSIFIED_KEY] = [];
+}
+
+/* ================================================================
+   内存仓库（store）
+================================================================ */
+const store = {
+    usbDriveData: [], teachingData: [], onlineAIData: [],
+    videoData: [], emailData: [], contactData: []
+    // 自定义大类的 key 也会写入这里
+};
+let currentSection = BUILTIN_SECTIONS[0].key;
 let editingCardIndex = -1;
 let editingSubIndex = -1;
 let editingCardDraft = null;
 let folderHandle = null;
 let dataJsHandle = null;
 let moveFromIndex = -1;
+let movingCardSourceSection = null;   // ★ 主卡片跨大类移动
+let movingCardSourceIndex = -1;
+let editingCustomSectionIdx = -2;     // ★ -2 关闭, -1 新增, >=0 编辑
 const MAX_BACKUPS_LOCAL = 100;
 
 const DEFAULT_COMMENTS = {
@@ -378,12 +466,13 @@ const DEFAULT_COMMENTS = {
    只需编辑此文件即可增删改收藏内容，无需修改页面代码
    ============================================================ */`,
     sections: {
-        usbDriveData: '// ==================== 在线U盘 ====================',
-        teachingData: '// ==================== 授课资料 ====================',
-        onlineAIData: '// ==================== 网络资源 ====================',
-        videoData:    '// ==================== 视频聚合 ====================',
-        emailData:    '// ==================== 邮箱数据 ====================',
-        contactData:  '// ==================== 其他联系方式 ===================='
+        usbDriveData:    '// ==================== 在线U盘 ====================',
+        teachingData:    '// ==================== 授课资料 ====================',
+        onlineAIData:    '// ==================== 网络资源 ====================',
+        videoData:       '// ==================== 视频聚合 ====================',
+        emailData:       '// ==================== 邮箱数据 ====================',
+        contactData:     '// ==================== 其他联系方式 ====================',
+        customSections:  '// ==================== 自定义大类（可在配置后台增删改） ===================='
     }
 };
 let preservedComments = { header: null, sections: {} };
@@ -426,6 +515,9 @@ function renderIconTo(el, item) {
     } else el.textContent = '❓';
 }
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+function genCustomKey() {
+    return 'custom_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+}
 
 /* ================================================================
    IndexedDB
@@ -579,15 +671,13 @@ async function enterMain() {
         badge.className = 'mode-badge mode-online';
         hide('btnConnect'); hide('btnChangePwd');
         $('sourceLabel').textContent = '服务端：';
-        show('btnDataSource');
-        show('dataSourceBar');
+        show('btnDataSource'); show('dataSourceBar');
     } else {
         badge.textContent = '💻 本地模式';
         badge.className = 'mode-badge mode-local';
         show('btnConnect'); show('btnChangePwd');
         $('sourceLabel').textContent = '文件夹：';
-        hide('btnDataSource');
-        hide('dataSourceBar');
+        hide('btnDataSource'); hide('dataSourceBar');
     }
     renderSectionTabs(); renderCurrentSection(); updateStatus();
 
@@ -640,17 +730,11 @@ async function saveDataJs_online() {
     $('btnSave').disabled = false;
     if (r.status === 401) { toast('会话过期，请重新登录'); await logout_online(); return; }
     if (r.ok && r.data && r.data.ok) {
-        // ★ 根据返回字段决定提示文案
         let msg;
-        if (r.data.unchanged) {
-            msg = '已保存（内容无变化，未创建备份）';
-        } else if (r.data.backup) {
-            msg = '已保存（旧版本已备份为 ' + r.data.backup + '）';
-        } else {
-            msg = '已保存';
-        }
+        if (r.data.unchanged) msg = '已保存（内容无变化，未创建备份）';
+        else if (r.data.backup) msg = '已保存（旧版本已备份为 ' + r.data.backup + '）';
+        else msg = '已保存';
         toast(msg);
-
         $('dataStatus').textContent = '✓ 已保存到服务端（' + new Date().toLocaleString() + '）';
         $('dataStatus').className = 'st-ok';
         await refreshBackupStatus_online();
@@ -680,25 +764,21 @@ async function loadSourceStatus_online() {
     $('dataSourceStatus').className = 'st-warn';
     return null;
 }
-
 function updateSourceModalUI(currentSource) {
     $('srcKvBadge').classList.toggle('hidden', currentSource !== 'kv');
     $('srcStaticBadge').classList.toggle('hidden', currentSource !== 'static');
     $('srcKvCard').classList.toggle('is-current', currentSource === 'kv');
     $('srcStaticCard').classList.toggle('is-current', currentSource === 'static');
 }
-
 async function openSourceModal_online() {
     const cur = await loadSourceStatus_online();
     updateSourceModalUI(cur);
     show('sourceModal');
 }
-
 async function setDataSource_online(source) {
     const card = source === 'kv' ? $('srcKvCard') : $('srcStaticCard');
     if (card.classList.contains('is-current')) {
-        toast('当前已是「' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式') + '」');
-        return;
+        toast('当前已是「' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式') + '」'); return;
     }
     const r = await api('/api/source', { method: 'POST', body: JSON.stringify({ source }) });
     if (r.status === 401) { toast('会话过期，请重新登录'); await logout_online(); return; }
@@ -742,7 +822,7 @@ async function handleBackupAction_online(act, name) {
         if (!confirm(`确定把 "${name}" 恢复为当前主数据？\n（当前数据会自动备份）`)) return;
         const r = await api('/api/backups?name=' + encodeURIComponent(name) + '&action=restore', { method: 'POST' });
         if (r.ok && r.data && r.data.ok) {
-            toast('已恢复'); hide('historyModal');
+            toast('已恢复并生效'); hide('historyModal');
             await loadData_online(); await refreshBackupStatus_online();
         } else toast((r.data && r.data.error) || '恢复失败');
     } else if (act === 'preview' || act === 'download') {
@@ -779,7 +859,7 @@ async function logout_online() {
 }
 
 /* ================================================================
-   【本地】File System Access API
+   【本地】File System Access API（保持原有，仅 saveDataJs_local 内容对比已加）
 ================================================================ */
 function fsaSupported() { return typeof window.showDirectoryPicker === 'function'; }
 async function verifyPermission(h, mode = 'readwrite') {
@@ -846,18 +926,12 @@ async function saveDataJs_local() {
     if (!(await verifyPermission(folderHandle))) { alert('未获得读写权限。'); return; }
     const content = generateDataJs();
     try {
-        let backupName = null;
-        let bakDir = null;
-        let oldText = '';
-
-        // 读取旧文件内容用于对比
+        let backupName = null, bakDir = null, oldText = '';
         try {
             const oldHandle = await folderHandle.getFileHandle('data.js');
             const oldFile = await oldHandle.getFile();
             oldText = await oldFile.text();
-        } catch (e) { /* 文件不存在，oldText 保持空字符串 */ }
-
-        // ★ 内容对比：完全相同则跳过备份与写入
+        } catch (e) {}
         const contentChanged = oldText !== content;
 
         if (oldText && oldText.trim() && contentChanged) {
@@ -867,49 +941,35 @@ async function saveDataJs_local() {
                 const bakFh = await bakDir.getFileHandle(backupName, { create: true });
                 const bw = await bakFh.createWritable();
                 await bw.write(oldText); await bw.close();
-            } catch (e) {
-                console.warn('旧版本备份跳过：', e.message);
-                backupName = null;
-            }
+            } catch (e) { console.warn('旧版本备份跳过：', e.message); backupName = null; }
         }
 
-        // 写入新内容（无变化时也写一次以更新时间戳；如想严格跳过可加 if (contentChanged)）
         const fh = await folderHandle.getFileHandle('data.js', { create: true });
         const w = await fh.createWritable();
         await w.write(content); await w.close();
         dataJsHandle = fh;
 
-        // 自动清理超出上限的旧备份
         let cleanedCount = 0;
         if (bakDir) {
-            try {
-                cleanedCount = await pruneOldBackups_local(bakDir);
-            } catch (e) {
-                console.warn('清理旧备份失败：', e.message);
-            }
+            try { cleanedCount = await pruneOldBackups_local(bakDir); }
+            catch (e) { console.warn('清理旧备份失败：', e.message); }
         }
 
         const file = await fh.getFile();
         $('dataStatus').textContent = '✓ 已保存（' + new Date(file.lastModified).toLocaleString() + '）';
         $('dataStatus').className = 'st-ok';
 
-        // ★ 提示文案根据是否真的有变化区分
         let msg;
-        if (!contentChanged) {
-            msg = '已保存（内容无变化，未创建备份）';
-        } else if (backupName) {
+        if (!contentChanged) msg = '已保存（内容无变化，未创建备份）';
+        else if (backupName) {
             msg = '已保存，旧版本已备份为 ' + backupName;
             if (cleanedCount > 0) msg += `（已清理 ${cleanedCount} 个最旧备份）`;
-        } else {
-            msg = '已保存';
-        }
+        } else msg = '已保存';
         toast(msg);
 
         await refreshBackupStatus_local();
     } catch (e) { alert('保存失败：' + e.message); }
 }
-
-// 清理本地 databak/ 中超出 MAX_BACKUPS_LOCAL 的最旧备份
 async function pruneOldBackups_local(bakDir) {
     const arr = [];
     for await (const entry of bakDir.values()) {
@@ -917,22 +977,16 @@ async function pruneOldBackups_local(bakDir) {
             try {
                 const f = await entry.getFile();
                 arr.push({ name: entry.name, modified: f.lastModified });
-            } catch (e) { /* 跳过读取失败的文件 */ }
+            } catch (e) {}
         }
     }
     if (arr.length <= MAX_BACKUPS_LOCAL) return 0;
-
     arr.sort((a, b) => b.modified - a.modified);
     const toDelete = arr.slice(MAX_BACKUPS_LOCAL);
-
     let deleted = 0;
     for (const item of toDelete) {
-        try {
-            await bakDir.removeEntry(item.name);
-            deleted++;
-        } catch (e) {
-            console.warn('删除备份失败：' + item.name, e.message);
-        }
+        try { await bakDir.removeEntry(item.name); deleted++; }
+        catch (e) { console.warn('删除备份失败：' + item.name, e.message); }
     }
     return deleted;
 }
@@ -986,10 +1040,21 @@ async function openHistoryModal_local() {
 }
 async function handleBackupAction_local(act, bak) {
     if (act === 'restore') {
-        if (!confirm(`确定把 "${bak.name}" 恢复到编辑器？\n\n恢复后点击「保存」写入 data.js（当前 data.js 会先备份）。`)) return;
-        try { const f = await bak.handle.getFile(); parseAndLoad(await f.text()); hide('historyModal'); toast('已恢复到编辑器'); }
-        catch (e) { alert('恢复失败：' + e.message); }
-    } else if (act === 'preview') {
+    if (!folderHandle) {
+        alert('请先连接文件夹，否则无法立即写入 data.js。');
+        return;
+    }
+    if (!confirm(`确定把 "${bak.name}" 恢复并立即写入 data.js？\n\n当前 data.js 会先自动备份。`)) return;
+    try {
+        const f = await bak.handle.getFile();
+        const text = await f.text();
+        if (!parseAndLoad(text)) return;   // 解析失败时 parseAndLoad 已弹窗，直接中止
+        hide('historyModal');
+        await saveDataJs_local();          // ← 关键：立即写入磁盘（内部会自动备份当前版本）
+    } catch (e) {
+        alert('恢复失败：' + e.message);
+    }
+} else if (act === 'preview') {
         try {
             const f = await bak.handle.getFile(); const text = await f.text();
             $('ioTitle').textContent = '👁 预览：' + bak.name;
@@ -1023,8 +1088,7 @@ async function doReload() {
         await loadData_online();
         await refreshBackupStatus_online();
         await loadSourceStatus_online();
-    }
-    else {
+    } else {
         if (folderHandle) {
             if (!(await verifyPermission(folderHandle))) { alert('未获得权限'); return; }
             await loadDataJsFromFolder(); await refreshBackupStatus_local();
@@ -1060,7 +1124,7 @@ function extractComments(text) {
     const result = { header: '', sections: {} };
     const lines = text.split('\n');
     const sectionLineIdx = {};
-    const sectionKeys = SECTIONS.map(s => s.key);
+    const sectionKeys = [...BUILTIN_SECTIONS.map(s => s.key), 'customSections'];
 
     lines.forEach((line, idx) => {
         sectionKeys.forEach(key => {
@@ -1095,7 +1159,7 @@ function extractComments(text) {
         }
         if (collected.length) result.sections[key] = collected.join('\n');
     });
-    const firstKey = SECTIONS.map(s => s.key).find(k => sectionLineIdx[k] !== undefined);
+    const firstKey = sectionKeys.find(k => sectionLineIdx[k] !== undefined);
     if (firstKey !== undefined) {
         const firstIdx = sectionLineIdx[firstKey];
         const firstComment = result.sections[firstKey] || '';
@@ -1114,13 +1178,43 @@ function parseAndLoad(text) {
         else if (preservedComments.header == null) preservedComments.header = DEFAULT_COMMENTS.header;
         Object.keys(c.sections).forEach(k => { preservedComments.sections[k] = c.sections[k]; });
 
+        // ★ 多了 customSections 变量
         const wrapper = new Function(
-            'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData;' +
+            'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections;' +
             text + ';' +
-            'return { usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData };'
+            'return { usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections };'
         );
         const r = wrapper();
-        SECTIONS.forEach(s => { store[s.key] = Array.isArray(r[s.key]) ? r[s.key] : []; });
+
+        // 内置大类
+        BUILTIN_SECTIONS.forEach(s => { store[s.key] = Array.isArray(r[s.key]) ? r[s.key] : []; });
+
+        // ★ 清除旧的自定义大类残留
+        Object.keys(store).forEach(k => {
+            if (!isBuiltinKey(k)) delete store[k];
+        });
+        customSectionsMeta = [];
+
+        // ★ 解析自定义大类
+        if (Array.isArray(r.customSections)) {
+            r.customSections.forEach(c => {
+                if (!c || !c.key || typeof c.key !== 'string') return;
+                if (isBuiltinKey(c.key)) return;  // 防止冲突
+                if (customSectionsMeta.find(x => x.key === c.key)) return;  // 去重
+                customSectionsMeta.push({
+                    key: c.key,
+                    label: c.label || c.key,
+                    dynamic: !!c.dynamic
+                });
+                store[c.key] = Array.isArray(c.cards) ? c.cards : [];
+            });
+        }
+
+        // 校验 currentSection
+        if (!getSections().find(s => s.key === currentSection)) {
+            currentSection = BUILTIN_SECTIONS[0].key;
+        }
+
         renderSectionTabs();
         renderCurrentSection();
         return true;
@@ -1140,12 +1234,26 @@ function generateDataJs() {
     parts.push(header.replace(/\r/g, ''));
     parts.push('\n\n');
 
-    SECTIONS.forEach((s, i) => {
+    BUILTIN_SECTIONS.forEach((s) => {
         const c = (preservedComments.sections[s.key] && preservedComments.sections[s.key].trim()) ? preservedComments.sections[s.key] : DEFAULT_COMMENTS.sections[s.key];
         if (c) { parts.push(c.replace(/\r/g, '')); parts.push('\n'); }
         parts.push('var ' + s.key + ' = ' + pretty(store[s.key]) + ';\n');
-        if (i !== SECTIONS.length - 1) parts.push('\n');
+        parts.push('\n');
     });
+
+    // ★ 自定义大类
+    const customComment = (preservedComments.sections['customSections'] && preservedComments.sections['customSections'].trim())
+                          ? preservedComments.sections['customSections']
+                          : DEFAULT_COMMENTS.sections.customSections;
+    parts.push(customComment + '\n');
+    const csArr = customSectionsMeta.map(c => ({
+        key: c.key,
+        label: c.label,
+        dynamic: !!c.dynamic,
+        cards: store[c.key] || []
+    }));
+    parts.push('var customSections = ' + pretty(csArr) + ';\n');
+
     return parts.join('');
 }
 function pretty(val, indent = 0) {
@@ -1167,24 +1275,37 @@ function pretty(val, indent = 0) {
 }
 
 /* ================================================================
-   分区 & 列表
+   分区 Tab & 卡片列表
 ================================================================ */
 function renderSectionTabs() {
     const wrap = $('sectionTabs'); wrap.innerHTML = '';
-    SECTIONS.forEach(s => {
+    getSections().forEach(s => {
         const el = document.createElement('div');
-        el.className = 'section-tab' + (s.key === currentSection ? ' active' : '');
+        let cls = 'section-tab';
+        if (s.key === currentSection) cls += ' active';
+        if (!s.builtin) cls += ' is-custom';
+        el.className = cls;
         el.textContent = s.label;
+        if (!s.builtin) el.title = '自定义大类';
         el.onclick = () => { currentSection = s.key; renderSectionTabs(); renderCurrentSection(); };
         wrap.appendChild(el);
     });
+    // 末尾追加大类管理按钮
+    const manage = document.createElement('div');
+    manage.className = 'section-tab is-manage';
+    manage.textContent = '🗂 大类管理';
+    manage.onclick = openSectionsModal;
+    wrap.appendChild(manage);
 }
 function renderCurrentSection() {
-    const sec = SECTIONS.find(x => x.key === currentSection);
+    const sec = getSections().find(x => x.key === currentSection);
+    if (!sec) return;
     const arr = store[sec.key] || [];
-    $('currentSectionTitle').textContent = sec.label + '（共 ' + arr.length + ' 项）';
+    const customTag = sec.builtin ? '' : ' <span style="font-size:12px; padding:2px 8px; background:#ffe0b2; color:#e65100; border-radius:10px; vertical-align:middle;">自定义</span>';
+    $('currentSectionTitle').innerHTML = escapeHtml(sec.label) + customTag + ' <span style="font-size:14px;color:#888;font-weight:400;">（共 ' + arr.length + ' 项）</span>';
     const list = $('cardList'); list.innerHTML = '';
-    if (!arr.length) { list.innerHTML = '<div class="empty-hint">暂无数据</div>'; return; }
+    if (!arr.length) { list.innerHTML = '<div class="empty-hint">暂无数据，点击右上角「➕ 新增卡片」</div>'; return; }
+    const isCardKind = sec.kind === 'card';
     arr.forEach((item, idx) => {
         const el = document.createElement('div'); el.className = 'card-item';
         const ic = document.createElement('div'); ic.className = 'card-icon-preview';
@@ -1208,8 +1329,11 @@ function renderCurrentSection() {
         info.innerHTML = '<div class="card-title">' + escapeHtml(title) + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
+        // ★ 仅 card-kind 大类显示「移动」按钮（email/contact 结构特殊不可移动）
+        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move" title="移动到其他大类">📦</button>' : '';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-act="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-act="down">⬇</button>' +
+                       moveBtn +
                        '<button class="btn btn-primary btn-sm" data-act="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleCardAction(b.dataset.act, idx));
@@ -1221,15 +1345,181 @@ function handleCardAction(act, idx) {
     if (act === 'up' && idx > 0) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; renderCurrentSection(); }
     else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); }
     else if (act === 'edit') openCardModal(idx);
+    else if (act === 'move') openMoveCardModal(currentSection, idx);
     else if (act === 'del') { if (confirm('确认删除此卡片？')) { arr.splice(idx, 1); renderCurrentSection(); toast('已删除（未保存）'); } }
 }
 
 /* ================================================================
-   卡片编辑
+   ★ 主卡片跨大类移动
+================================================================ */
+function openMoveCardModal(sectionKey, cardIdx) {
+    const card = store[sectionKey] && store[sectionKey][cardIdx];
+    if (!card) return;
+    movingCardSourceSection = sectionKey;
+    movingCardSourceIndex = cardIdx;
+
+    const srcSec = getSections().find(s => s.key === sectionKey);
+    const srcLabel = (srcSec || {}).label || sectionKey;
+    $('cardMoveSrcHint').innerHTML = `将卡片 <b>${escapeHtml(card.title || card.id || card.content || '(无标题)')}</b> 从 <b>${escapeHtml(srcLabel)}</b> 移动到：`;
+
+    const sel = $('cardMove_section'); sel.innerHTML = '';
+    getSections().filter(s => s.kind === 'card' && s.key !== sectionKey).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.key;
+        opt.textContent = s.label + (s.builtin ? '' : '  [自定义]');
+        sel.appendChild(opt);
+    });
+    if (!sel.options.length) { toast('没有可移动的目标大类'); return; }
+    show('cardMoveModal');
+}
+function confirmMoveCard() {
+    if (!movingCardSourceSection || movingCardSourceIndex < 0) return;
+    const srcArr = store[movingCardSourceSection];
+    if (!srcArr || !srcArr[movingCardSourceIndex]) { toast('卡片不存在'); return; }
+    const targetSection = $('cardMove_section').value;
+    if (!targetSection || targetSection === movingCardSourceSection) { toast('请选择目标大类'); return; }
+
+    const card = deepClone(srcArr[movingCardSourceIndex]);
+    if (!Array.isArray(store[targetSection])) store[targetSection] = [];
+    store[targetSection].push(card);
+    srcArr.splice(movingCardSourceIndex, 1);
+
+    hide('cardMoveModal');
+    renderCurrentSection();
+    const tgtLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
+    toast(`已移动到 「${tgtLabel}」（未保存）`);
+
+    movingCardSourceSection = null;
+    movingCardSourceIndex = -1;
+}
+
+/* ================================================================
+   ★ 大类管理
+================================================================ */
+function openSectionsModal() {
+    renderSectionsModalLists();
+    show('sectionsModal');
+}
+function renderSectionsModalLists() {
+    // 内置（只读）
+    const blt = $('builtinSectionsList'); blt.innerHTML = '';
+    BUILTIN_SECTIONS.forEach(s => {
+        const cnt = (store[s.key] || []).length;
+        const el = document.createElement('div'); el.className = 'sec-row builtin';
+        el.innerHTML = `
+            <div class="sec-label">${escapeHtml(s.label)}
+                <span class="sec-meta"> · ${escapeHtml(s.key)} · ${s.kind} · ${cnt} 项</span>
+            </div>
+            <span class="sec-badge badge-builtin">🔒 内置</span>`;
+        blt.appendChild(el);
+    });
+    // 自定义
+    const cst = $('customSectionsList'); cst.innerHTML = '';
+    if (!customSectionsMeta.length) {
+        cst.innerHTML = '<div class="empty-hint" style="padding:14px;">暂无自定义大类。点击下方「➕ 新增大类」创建。</div>';
+        return;
+    }
+    customSectionsMeta.forEach((c, idx) => {
+        const cnt = (store[c.key] || []).length;
+        const el = document.createElement('div'); el.className = 'sec-row custom';
+        const dynBadge = c.dynamic ? '<span class="sec-badge badge-dynamic">展开/折叠</span>' : '';
+        const isUnclassified = c.key === UNCLASSIFIED_KEY;
+        el.innerHTML = `
+            <div class="sec-label">${escapeHtml(c.label)} ${dynBadge}
+                <div class="sec-meta">${escapeHtml(c.key)} · ${cnt} 项${isUnclassified ? ' · 系统在删除大类时自动写入' : ''}</div>
+            </div>
+            <span class="sec-badge badge-custom">⚙️ 自定义</span>
+            <div style="display:flex; gap:4px;">
+                <button class="btn btn-ghost btn-sm" data-cs-act="up"   ${idx === 0 ? 'disabled' : ''}>⬆</button>
+                <button class="btn btn-ghost btn-sm" data-cs-act="down" ${idx === customSectionsMeta.length - 1 ? 'disabled' : ''}>⬇</button>
+                <button class="btn btn-primary btn-sm" data-cs-act="edit">✏️</button>
+                <button class="btn btn-danger btn-sm" data-cs-act="del">🗑</button>
+            </div>`;
+        el.querySelectorAll('button[data-cs-act]').forEach(btn => {
+            btn.onclick = () => handleCustomSectionAction(btn.dataset.csAct, idx);
+        });
+        cst.appendChild(el);
+    });
+}
+function handleCustomSectionAction(act, idx) {
+    if (act === 'up' && idx > 0) {
+        [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]];
+        renderSectionsModalLists(); renderSectionTabs(); toast('已上移');
+    } else if (act === 'down' && idx < customSectionsMeta.length - 1) {
+        [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]];
+        renderSectionsModalLists(); renderSectionTabs(); toast('已下移');
+    } else if (act === 'edit') {
+        openSectionEditModal(idx);
+    } else if (act === 'del') {
+        deleteCustomSection(idx);
+    }
+}
+function deleteCustomSection(idx) {
+    const c = customSectionsMeta[idx]; if (!c) return;
+    const cards = store[c.key] || [];
+    const isUnclassified = c.key === UNCLASSIFIED_KEY;
+
+    if (cards.length === 0) {
+        if (!confirm(`确认删除「${c.label}」？`)) return;
+    } else if (isUnclassified) {
+        if (!confirm(`「${c.label}」中有 ${cards.length} 张卡片。\n这是系统自动管理的"回收容器"，删除将彻底删除其中卡片，无法恢复！\n\n确认删除？`)) return;
+    } else {
+        if (!confirm(`「${c.label}」中有 ${cards.length} 张卡片。\n删除大类时这些卡片将自动转移到「${UNCLASSIFIED_LABEL}」（不会丢失）。\n\n确认删除？`)) return;
+        ensureUnclassifiedSection();
+        store[UNCLASSIFIED_KEY] = (store[UNCLASSIFIED_KEY] || []).concat(cards);
+    }
+
+    customSectionsMeta.splice(idx, 1);
+    delete store[c.key];
+
+    if (currentSection === c.key) {
+        // 优先切到未分类，否则回到第一个内置
+        currentSection = customSectionsMeta.find(x => x.key === UNCLASSIFIED_KEY) ? UNCLASSIFIED_KEY : BUILTIN_SECTIONS[0].key;
+    }
+    renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+    toast('已删除大类（未保存）');
+}
+function openSectionEditModal(idx) {
+    editingCustomSectionIdx = (idx === undefined || idx === null) ? -1 : idx;
+    const isNew = editingCustomSectionIdx < 0;
+    $('sectionEditTitle').textContent = isNew ? '➕ 新增大类' : '✏️ 编辑大类';
+    if (isNew) {
+        $('se_label').value = '';
+        $('se_dynamic').checked = false;
+    } else {
+        const c = customSectionsMeta[editingCustomSectionIdx];
+        $('se_label').value = c.label;
+        $('se_dynamic').checked = !!c.dynamic;
+    }
+    show('sectionEditModal');
+}
+function saveSectionEdit() {
+    const label = $('se_label').value.trim();
+    if (!label) { toast('请输入大类名称'); return; }
+    if (label.length > 50) { toast('名称过长'); return; }
+    const dynamic = $('se_dynamic').checked;
+
+    if (editingCustomSectionIdx === -1) {
+        const key = genCustomKey();
+        customSectionsMeta.push({ key, label, dynamic });
+        store[key] = [];
+        toast('已新增大类（未保存）');
+    } else {
+        const c = customSectionsMeta[editingCustomSectionIdx];
+        c.label = label;
+        c.dynamic = dynamic;
+        toast('已更新（未保存）');
+    }
+    hide('sectionEditModal');
+    renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+}
+
+/* ================================================================
+   卡片编辑（同原版逻辑，仅 SECTIONS → getSections()）
 ================================================================ */
 function openCardModal(idx) {
     editingCardIndex = idx;
-    const sec = SECTIONS.find(x => x.key === currentSection);
+    const sec = getSections().find(x => x.key === currentSection);
     const item = idx >= 0 ? deepClone(store[currentSection][idx]) : {};
     editingCardDraft = item;
     $('cardModalTitle').textContent = (idx >= 0 ? '编辑' : '新增') + '卡片（' + sec.label + '）';
@@ -1250,7 +1540,7 @@ function openCardModal(idx) {
     show('cardModal');
 }
 function syncTypeFields() {
-    const sec = SECTIONS.find(x => x.key === currentSection);
+    const sec = getSections().find(x => x.key === currentSection);
     const t = $('f_type').value;
     const isEmail = sec.kind === 'email', isContact = sec.kind === 'contact';
     if (isEmail) { show('descRow'); hide('descClickableRow'); hide('isLocalRow'); hide('subCardsRow'); return; }
@@ -1295,7 +1585,7 @@ function getIconFromFields(eEmoji, eImg, eSvg) {
     return { icon: emoji };
 }
 function saveCardFromModal() {
-    const sec = SECTIONS.find(x => x.key === currentSection);
+    const sec = getSections().find(x => x.key === currentSection);
     let obj = {};
     Object.assign(obj, getIconFromFields('f_icon_emoji','f_icon_img','f_icon_svg'));
     if (sec.kind === 'email') {
@@ -1406,9 +1696,10 @@ function openMoveSubModal(subIdx) {
     const srcTitle = editingCardDraft.title || editingCardDraft.id || '当前卡片';
     $('moveSrcHint').innerHTML = `将子卡片 <b>${escapeHtml(sub.title || sub.content || '(无标题)')}</b> 从 <b>${escapeHtml(srcTitle)}</b> 移动到：`;
     const selSec = $('move_section'); selSec.innerHTML = '';
-    SECTIONS.filter(s => s.kind === 'card').forEach(s => {
+    // ★ 包括自定义大类（kind === 'card'）
+    getSections().filter(s => s.kind === 'card').forEach(s => {
         const opt = document.createElement('option');
-        opt.value = s.key; opt.textContent = s.label;
+        opt.value = s.key; opt.textContent = s.label + (s.builtin ? '' : '  [自定义]');
         selSec.appendChild(opt);
     });
     selSec.value = currentSection;
@@ -1433,7 +1724,7 @@ function renderMoveTargetList() {
     });
     if (count === 0) {
         const opt = document.createElement('option');
-        opt.value = ''; opt.textContent = '(该分区无可选目标)'; opt.disabled = true;
+        opt.value = ''; opt.textContent = '(该大类无可选目标)'; opt.disabled = true;
         tgt.appendChild(opt);
     }
     tgt.onchange = updateMoveTypeHint;
@@ -1475,7 +1766,7 @@ function confirmMoveSubCard() {
     hide('moveModal');
     renderSubCardsList();
     renderCurrentSection();
-    const tgtSecLabel = (SECTIONS.find(s => s.key === targetSection) || {}).label || targetSection;
+    const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     toast(`已移动到 「${tgtSecLabel} / ${tgtCard.title || tgtCard.id || '目标'}」（未保存）`);
 }
 
@@ -1598,6 +1889,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     $('btnMoveCancel').onclick = () => hide('moveModal');
     $('btnMoveConfirm').onclick = confirmMoveSubCard;
+
+    // ★ 卡片跨大类移动
+    $('btnCardMoveCancel').onclick = () => hide('cardMoveModal');
+    $('btnCardMoveConfirm').onclick = confirmMoveCard;
+
+    // ★ 大类管理
+    $('btnSectionsClose').onclick = () => hide('sectionsModal');
+    $('btnAddCustomSection').onclick = () => openSectionEditModal(null);
+    $('btnSectionEditCancel').onclick = () => hide('sectionEditModal');
+    $('btnSectionEditSave').onclick = saveSectionEdit;
 });
 </script>
 </body>

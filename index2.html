@@ -1294,11 +1294,19 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             return html + '</div>';
         }
 
-        function getVisibleCount(prefix, layout) {
-            if (prefix === 'video') return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-            if (prefix === 'ai')    return layout === 'tablet' ? 3 : 4;
-            return 999;
-        }
+function getVisibleCount(prefix, layout) {
+    if (prefix === 'video') {
+        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+    }
+    if (prefix === 'ai') {
+        return layout === 'tablet' ? 3 : 4;
+    }
+    // ★ 自定义大类：与视频聚合相同的折叠数量
+    if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
+        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+    }
+    return 999;
+}
 
         function generateDynamicGrid(prefix, data, layout) {
             var count   = getVisibleCount(prefix, layout);
@@ -1513,6 +1521,52 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
 
         function openEmail(url) { window.open(url, '_blank'); }
 
+// ================================================================
+        // ★ 自定义大类：从 data.js 的 customSections 注入到 DOM
+        // ================================================================
+        function injectCustomSections(layout) {
+            if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
+
+            // contact 大类的 .section 容器（自定义大类要插在它之前）
+            var contactTitle = document.getElementById('contact');
+            if (!contactTitle) return;
+            var contactSection = contactTitle.closest('.section');
+            if (!contactSection) return;
+
+            customSections.forEach(function(cs) {
+                if (!cs || !cs.key || typeof cs.key !== 'string') return;
+                if (document.getElementById(cs.key + '-content')) return; // 防重复注入
+
+                var sectionEl = document.createElement('div');
+                sectionEl.className = 'section';
+                sectionEl.dataset.customKey = cs.key;
+                sectionEl.innerHTML =
+                    '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
+                    '<div id="' + cs.key + '-content"></div>';
+                contactSection.parentNode.insertBefore(sectionEl, contactSection);
+
+                renderCustomSection(cs, layout);
+            });
+        }
+
+        function renderCustomSection(cs, layout) {
+            var contentEl = document.getElementById(cs.key + '-content');
+            if (!contentEl) return;
+            var cards = Array.isArray(cs.cards) ? cs.cards : [];
+            if (!cards.length) {
+                contentEl.innerHTML = '';
+                return;
+            }
+            if (cs.dynamic) {
+                contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout);
+                if (layout === 'desktop') {
+                    autoExpandSection(cs.key);
+                }
+            } else {
+                contentEl.innerHTML = generateStaticGrid(cards);
+            }
+        }
+        
         // ================================================================
         // 风格切换下拉菜单
         // ================================================================
@@ -1535,7 +1589,7 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
         // ================================================================
         // 初始化
         // ================================================================
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
 
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('#styleSwitcher')) {
@@ -1553,6 +1607,10 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
 
             document.getElementById('usb-drive-content').innerHTML  = generateStaticGrid(usbDriveData);
             document.getElementById('teaching-content').innerHTML    = generateStaticGrid(teachingData);
+
+            // ★ 自定义大类（要在 contact 之前注入，保持视觉顺序：…视频聚合 → 自定义大类 → 联系方式）
+            injectCustomSections(currentLayout);
+
             document.getElementById('contact-content').innerHTML     = generateContactGrid();
             document.getElementById('online-ai-content').innerHTML   = generateDynamicGrid('ai',    onlineAIData, currentLayout);
             document.getElementById('video-content').innerHTML       = generateDynamicGrid('video', videoData,    currentLayout);
@@ -1572,7 +1630,7 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             }
         });
 
-        window.addEventListener('resize', function() {
+window.addEventListener('resize', function() {
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
                 currentLayout = newLayout;
@@ -1585,6 +1643,13 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
                 if (currentLayout === 'desktop') {
                     autoExpandSection('ai');
                     autoExpandSection('video');
+                }
+
+                // ★ 自定义大类也跟随 layout 重新渲染
+                if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
+                    customSections.forEach(function(cs) {
+                        if (cs && cs.key) renderCustomSection(cs, currentLayout);
+                    });
                 }
             }
 
