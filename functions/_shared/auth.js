@@ -21,7 +21,21 @@ async function hmacSign(data, secret) {
     return b64urlEncode(String.fromCharCode(...new Uint8Array(sig)));
 }
 
+/**
+ * 从环境变量读取 AUTH_SECRET。
+ * 未配置或过短时返回 null（调用方需据此返回 500）。
+ * 这样避免了使用不安全的默认密钥。
+ */
+export function getSecret(env) {
+    const s = env && env.AUTH_SECRET;
+    if (!s || typeof s !== 'string' || s.length < 16) {
+        return null;
+    }
+    return s;
+}
+
 export async function createToken(username, secret, days = 7) {
+    if (!secret) throw new Error('AUTH_SECRET 未配置');
     const payload = { u: username, exp: Date.now() + days * 86400 * 1000 };
     const payloadStr = b64urlEncode(JSON.stringify(payload));
     const sig = await hmacSign(payloadStr, secret);
@@ -29,17 +43,19 @@ export async function createToken(username, secret, days = 7) {
 }
 
 export async function verifyToken(token, secret) {
-    if (!token) return null;
+    if (!token || !secret) return null;
     const parts = token.split('.');
     if (parts.length !== 2) return null;
     const [payloadStr, sig] = parts;
-    const expected = await hmacSign(payloadStr, secret);
-    if (expected !== sig) return null;
     try {
+        const expected = await hmacSign(payloadStr, secret);
+        if (expected !== sig) return null;
         const payload = JSON.parse(b64urlDecode(payloadStr));
         if (payload.exp && payload.exp < Date.now()) return null;
         return payload;
-    } catch { return null; }
+    } catch {
+        return null;
+    }
 }
 
 export function getCookieToken(request) {
@@ -49,8 +65,14 @@ export function getCookieToken(request) {
 }
 
 export async function requireAuth(request, env) {
+    const secret = getSecret(env);
+    if (!secret) {
+        return jsonResponse(
+            { ok: false, error: '服务端未配置 AUTH_SECRET，请联系管理员' },
+            500
+        );
+    }
     const token = getCookieToken(request);
-    const secret = env.AUTH_SECRET || 'please-change-this-secret';
     const payload = await verifyToken(token, secret);
     if (!payload) {
         return jsonResponse({ ok: false, error: '未登录或会话已过期' }, 401);
