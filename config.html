@@ -88,10 +88,91 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .sec-row .badge-builtin { background: #e3f2fd; color: #1976d2; }
 .sec-row .badge-custom { background: #ffe0b2; color: #e65100; }
 .sec-row .badge-dynamic { background: #f3e5f5; color: #7b1fa2; margin-left: 4px; }
-@media (max-width: 600px) {
-    .card-item { flex-wrap: wrap; } .card-actions { width: 100%; }
-    .topbar { flex-direction: column; align-items: flex-start; }
+@media (max-width: 640px) {
+    body { padding: 10px; }
+    .card-panel { padding: 16px; border-radius: 10px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; }
+
+    /* 顶部栏：标题一行，按钮 3 列等宽网格 */
+    .topbar { flex-direction: column; align-items: stretch; padding: 12px; gap: 8px; }
+    .topbar h1 { font-size: 17px; flex-wrap: wrap; gap: 6px; }
+    .topbar .actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        width: 100%;
+    }
+    .topbar .actions .btn {
+        width: 100%;
+        padding: 8px 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     .btn-home { padding: 5px 10px; font-size: 12px; }
+
+    /* 状态栏：每项一行，左右对齐 */
+    .status-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 10px 14px;
+        font-size: 12px;
+    }
+    .status-bar > div { display: flex; justify-content: space-between; }
+
+    /* 大类 Tab：横向滚动，不再换行 */
+    .section-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px;
+        scrollbar-width: thin;
+    }
+    .section-tab { flex-shrink: 0; padding: 7px 14px; font-size: 13px; }
+    .section-tabs::-webkit-scrollbar { height: 4px; }
+    .section-tabs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+    /* 当前分类标题行 */
+    #currentSectionTitle { font-size: 15px; }
+
+    /* 卡片列表项：图标+信息一行，操作按钮独占一行并 5 列等宽 */
+    .card-item { flex-wrap: wrap; padding: 12px; gap: 10px; }
+    .card-icon-preview { width: 42px; height: 42px; font-size: 20px; }
+    .card-info .card-title { font-size: 14px; }
+    .card-info .card-meta { font-size: 11px; }
+    .card-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+    }
+    .card-actions .btn { padding: 6px 2px; font-size: 12px; width: 100%; }
+
+    /* 弹窗：几乎全屏，更易操作 */
+    .modal-mask { padding: 8px; }
+    .modal-box { padding: 16px; max-height: 95vh; border-radius: 10px; }
+    .modal-footer { flex-wrap: wrap; gap: 6px; }
+    .modal-footer .btn { flex: 1 1 auto; min-width: 80px; }
+
+    /* 备份列表 / 大类管理行：按钮组占满一行 */
+    .backup-item, .sec-row { flex-direction: column; align-items: stretch; }
+    .backup-item > div:last-child,
+    .sec-row > div:last-child {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 4px;
+        width: 100%;
+    }
+    .backup-item > div:last-child .btn,
+    .sec-row > div:last-child .btn { width: 100%; padding: 6px 2px; font-size: 12px; }
+
+    /* 子卡片操作按钮也均分 */
+    .subcard-item { flex-wrap: wrap; }
+    .subcard-item .card-actions { grid-template-columns: repeat(5, 1fr); }
 }
 </style>
 </head>
