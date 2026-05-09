@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>收藏夹配置 · Config</title>
+<title data-i18n="docTitle">收藏夹配置 · Config</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; padding: 20px; }
@@ -35,11 +35,14 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .section-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; background: #fff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,.1); }
 .section-tab { padding: 8px 16px; border-radius: 20px; background: #f0f0f0; cursor: pointer; font-size: 14px; font-weight: 600; color: #555; transition: all .15s; }
 .section-tab.active { background: #667eea; color: #fff; }
-/* ★ 自定义大类标签视觉区分 */
 .section-tab.is-custom { background: #fff3e0; color: #e65100; border: 1px dashed #ffb74d; }
 .section-tab.is-custom.active { background: #ff9800; color: #fff; border-color: transparent; }
 .section-tab.is-manage { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 .section-tab.is-manage:hover { background: #c8e6c9; }
+.section-tab.is-encrypted { background: #f3e5f5; color: #6a1b9a; border: 1px solid #ce93d8; }
+.section-tab.is-encrypted.active { background: #9c27b0; color: #fff; border-color: transparent; }
+.section-tab.is-locked { background: #ffebee; color: #c62828; border: 1px dashed #ef9a9a; }
+.section-tab.is-locked.active { background: #c62828; color: #fff; border-color: transparent; }
 .card-item { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 10px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; transition: box-shadow .2s; }
 .card-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 .card-icon-preview { width: 46px; height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #fff; border-radius: 8px; border: 1px solid #eee; overflow: hidden; }
@@ -71,6 +74,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .backup-item .bk-meta { font-size: 11px; color: #888; }
 .hidden { display: none !important; }
 .move-hint { font-size: 12px; color: #888; margin-top: 6px; padding: 8px 10px; background: #fff3e0; border-radius: 6px; border-left: 3px solid #ff9800; }
+.enc-hint { font-size: 12px; color: #555; margin-top: 6px; padding: 8px 10px; background: #f3e5f5; border-radius: 6px; border-left: 3px solid #9c27b0; }
 .mode-card { border: 2px solid #e5e5e5; border-radius: 10px; padding: 20px; cursor: pointer; transition: all .2s; margin-bottom: 12px; }
 .mode-card:hover { border-color: #667eea; box-shadow: 0 4px 15px rgba(102,126,234,.2); }
 .mode-card.disabled { opacity: .5; cursor: not-allowed; }
@@ -78,7 +82,6 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .mode-card .mode-desc { font-size: 13px; color: #777; }
 .mode-card.is-current { border-color: #4caf50; background: #f1f8e9; }
 .source-badge-current { font-size: 11px; padding: 2px 8px; background: #4caf50; color: #fff; border-radius: 10px; margin-left: 6px; }
-/* ★ 大类管理用 */
 .sec-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid #e5e5e5; border-radius: 6px; margin-bottom: 6px; background: #fafafa; flex-wrap: wrap; }
 .sec-row.builtin { opacity: .8; background: #f0f4ff; border-color: #c5d2ee; }
 .sec-row.custom { background: #fff8e1; border-color: #ffd591; }
@@ -88,111 +91,140 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 .sec-row .badge-builtin { background: #e3f2fd; color: #1976d2; }
 .sec-row .badge-custom { background: #ffe0b2; color: #e65100; }
 .sec-row .badge-dynamic { background: #f3e5f5; color: #7b1fa2; margin-left: 4px; }
+.sec-row .badge-encrypted { background: #f3e5f5; color: #6a1b9a; margin-left: 4px; }
+.sec-row .badge-locked { background: #ffebee; color: #c62828; margin-left: 4px; }
+.locked-panel { text-align: center; padding: 40px 20px; background: #fff; border: 2px dashed #ce93d8; border-radius: 10px; }
+.locked-panel .lk-icon { font-size: 48px; margin-bottom: 10px; }
+.locked-panel .lk-title { font-size: 16px; font-weight: 700; color: #6a1b9a; margin-bottom: 8px; }
+.locked-panel .lk-desc { font-size: 13px; color: #888; margin-bottom: 18px; }
+.locked-panel input[type=password] { max-width: 300px; margin: 0 auto 10px; }
+
+.lang-btn { position: fixed; top: 14px; right: 14px; z-index: 500; background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 6px 14px; font-size: 13px; font-weight: 700; color: #444; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,.2); transition: transform .12s, box-shadow .2s; user-select: none; }
+.lang-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.lang-btn:active { transform: translateY(0); }
+
+/* ============================================================
+   ★ Emoji 选择器样式
+============================================================ */
+.emoji-input-wrap { position: relative; }
+.emoji-input-wrap > input { padding-right: 44px; }
+.emoji-picker-trigger {
+    position: absolute; right: 4px; top: 50%;
+    transform: translateY(-50%);
+    background: transparent; border: 1px solid transparent;
+    cursor: pointer; font-size: 18px; line-height: 1;
+    padding: 4px 8px; border-radius: 6px;
+    transition: all .12s;
+}
+.emoji-picker-trigger:hover { background: #eef0ff; border-color: #c5cae9; }
+.emoji-picker-trigger:active { transform: translateY(-50%) scale(.95); }
+.emoji-input-wrap > input.hidden + .emoji-picker-trigger { display: none !important; }
+
+.emoji-picker-popup {
+    position: fixed; background: #fff;
+    border: 1px solid #ddd; border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    width: 340px; max-width: calc(100vw - 20px);
+    z-index: 2000; display: flex; flex-direction: column;
+    max-height: 400px;
+    overflow: hidden;
+}
+.emoji-picker-search { padding: 8px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+.emoji-picker-search input {
+    width: 100%; padding: 6px 10px; border: 1px solid #ddd;
+    border-radius: 6px; font-size: 13px; background: #fafafa;
+}
+.emoji-picker-cats {
+    display: flex; gap: 2px; padding: 4px 6px;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto; flex-shrink: 0;
+    scrollbar-width: thin;
+}
+.emoji-picker-cats::-webkit-scrollbar { height: 4px; }
+.emoji-picker-cats::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+.emoji-picker-cat {
+    flex-shrink: 0; padding: 5px 9px; cursor: pointer;
+    font-size: 16px; border-radius: 6px;
+    opacity: .55; transition: all .15s;
+    line-height: 1;
+}
+.emoji-picker-cat:hover { background: #f0f0f0; opacity: .9; }
+.emoji-picker-cat.active { opacity: 1; background: #e8eaff; }
+.emoji-picker-grid {
+    flex: 1; overflow-y: auto; padding: 8px;
+    display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px;
+    scrollbar-width: thin;
+}
+.emoji-picker-grid::-webkit-scrollbar { width: 6px; }
+.emoji-picker-grid::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+.emoji-picker-item {
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 20px; aspect-ratio: 1;
+    border-radius: 5px; transition: background .1s, transform .1s;
+    user-select: none;
+}
+.emoji-picker-item:hover { background: #e8eaff; transform: scale(1.2); }
+.emoji-picker-item:active { transform: scale(1.05); }
+.emoji-picker-empty {
+    grid-column: 1 / -1; text-align: center;
+    color: #aaa; padding: 20px; font-size: 13px;
+}
+
 @media (max-width: 640px) {
     body { padding: 10px; }
     .card-panel { padding: 16px; border-radius: 10px; }
-    h1 { font-size: 20px; }
-    h2 { font-size: 16px; }
-
-    /* 顶部栏：标题一行，按钮 3 列等宽网格 */
+    h1 { font-size: 20px; } h2 { font-size: 16px; }
     .topbar { flex-direction: column; align-items: stretch; padding: 12px; gap: 8px; }
     .topbar h1 { font-size: 17px; flex-wrap: wrap; gap: 6px; }
-    .topbar .actions {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-        width: 100%;
-    }
-    .topbar .actions .btn {
-        width: 100%;
-        padding: 8px 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    .topbar .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+    .topbar .actions .btn { width: 100%; padding: 8px 4px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .btn-home { padding: 5px 10px; font-size: 12px; }
-
-    /* 状态栏：每项一行，左右对齐 */
-    .status-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-        padding: 10px 14px;
-        font-size: 12px;
-    }
+    .status-bar { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 14px; font-size: 12px; }
     .status-bar > div { display: flex; justify-content: space-between; }
-
-    /* 大类 Tab：横向滚动，不再换行 */
-    .section-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        padding: 10px;
-        scrollbar-width: thin;
-    }
+    .section-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 10px; scrollbar-width: thin; }
     .section-tab { flex-shrink: 0; padding: 7px 14px; font-size: 13px; }
     .section-tabs::-webkit-scrollbar { height: 4px; }
     .section-tabs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
-
-    /* 当前分类标题行 */
     #currentSectionTitle { font-size: 15px; }
-
-    /* 卡片列表项：图标+信息一行，操作按钮独占一行并 5 列等宽 */
     .card-item { flex-wrap: wrap; padding: 12px; gap: 10px; }
     .card-icon-preview { width: 42px; height: 42px; font-size: 20px; }
-    .card-info .card-title { font-size: 14px; }
-    .card-info .card-meta { font-size: 11px; }
-    .card-actions {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-    }
+    .card-info .card-title { font-size: 14px; } .card-info .card-meta { font-size: 11px; }
+    .card-actions { width: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
     .card-actions .btn { padding: 6px 2px; font-size: 12px; width: 100%; }
-
-    /* 弹窗：几乎全屏，更易操作 */
     .modal-mask { padding: 8px; }
     .modal-box { padding: 16px; max-height: 95vh; border-radius: 10px; }
     .modal-footer { flex-wrap: wrap; gap: 6px; }
     .modal-footer .btn { flex: 1 1 auto; min-width: 80px; }
-
-    /* 备份列表 / 大类管理行：按钮组占满一行 */
     .backup-item, .sec-row { flex-direction: column; align-items: stretch; }
-    .backup-item > div:last-child,
-    .sec-row > div:last-child {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
-        width: 100%;
-    }
-    .backup-item > div:last-child .btn,
-    .sec-row > div:last-child .btn { width: 100%; padding: 6px 2px; font-size: 12px; }
-
-    /* 子卡片操作按钮也均分 */
+    .backup-item > div:last-child, .sec-row > div:last-child { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; }
+    .backup-item > div:last-child .btn, .sec-row > div:last-child .btn { width: 100%; padding: 6px 2px; font-size: 12px; }
     .subcard-item { flex-wrap: wrap; }
     .subcard-item .card-actions { grid-template-columns: repeat(5, 1fr); }
+    .lang-btn { top: 8px; right: 8px; padding: 5px 10px; font-size: 12px; }
+    .emoji-picker-popup { width: calc(100vw - 20px); max-height: 70vh; }
+    .emoji-picker-grid { grid-template-columns: repeat(7, 1fr); }
 }
 </style>
 </head>
 <body>
 
+<button class="lang-btn" id="btnLang" type="button">🌐 EN</button>
+
 <!-- 模式选择 -->
 <div id="modePage" class="container hidden">
     <div class="card-panel auth-box">
-        <h1>⭐️ 收藏夹配置后台</h1>
-        <p class="muted">请选择使用模式</p>
+        <h1 data-i18n="modePageTitle">⭐️ 收藏夹配置后台</h1>
+        <p class="muted" data-i18n="modePageSubtitle">请选择使用模式</p>
         <div class="mode-card" id="modeOnline">
-            <div class="mode-title">☁️ 在线模式</div>
-            <div class="mode-desc">通过 Cloudflare 服务端 API 编辑，数据存于 KV，任何浏览器都可用。<span id="modeOnlineStatus"></span></div>
+            <div class="mode-title" data-i18n="modeOnlineTitle">☁️ 在线模式</div>
+            <div class="mode-desc"><span data-i18n="modeOnlineDesc">通过 Cloudflare 服务端 API 编辑，数据存于 KV，任何浏览器都可用。</span><span id="modeOnlineStatus"></span></div>
         </div>
         <div class="mode-card" id="modeLocal">
-            <div class="mode-title">💻 本地模式</div>
-            <div class="mode-desc">使用浏览器直接修改本地 data.js 文件（需 Chrome/Edge + 访问本地文件夹权限）</div>
+            <div class="mode-title" data-i18n="modeLocalTitle">💻 本地模式</div>
+            <div class="mode-desc" data-i18n="modeLocalDesc">使用浏览器直接修改本地 data.js 文件（需 Chrome/Edge + 访问本地文件夹权限）</div>
         </div>
         <div style="text-align:center; margin-top:16px;">
-            <a href="./index.html" class="btn-home">← 返回主页</a>
+            <a href="./index.html" class="btn-home" data-i18n="backHome">← 返回主页</a>
         </div>
     </div>
 </div>
@@ -202,15 +234,15 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     <div class="card-panel auth-box">
         <h1 id="authTitle">🔐 登录配置后台</h1>
         <p class="muted" id="authSubtitle"></p>
-        <div class="form-row"><label>用户名</label><input type="text" id="authUser" autocomplete="username"></div>
-        <div class="form-row"><label>密码</label><input type="password" id="authPass" autocomplete="current-password"></div>
-        <div id="authConfirmRow" class="form-row hidden"><label>确认密码</label><input type="password" id="authPass2" autocomplete="new-password"></div>
+        <div class="form-row"><label data-i18n="authUsername">用户名</label><input type="text" id="authUser" autocomplete="username"></div>
+        <div class="form-row"><label data-i18n="authPassword">密码</label><input type="password" id="authPass" autocomplete="current-password"></div>
+        <div id="authConfirmRow" class="form-row hidden"><label data-i18n="authConfirm">确认密码</label><input type="password" id="authPass2" autocomplete="new-password"></div>
         <button class="btn btn-primary" id="authBtn" style="width:100%; padding:12px; font-size:15px;"></button>
         <p class="muted" style="margin-top:14px; text-align:center;" id="authFooterTip"></p>
         <div style="text-align:center; margin-top:10px;">
-            <a href="./index.html" class="btn-home" style="margin-right:8px;">← 返回主页</a>
-            <a href="#" id="switchModeLink" style="color:#999; font-size:12px; margin-right:15px;">↩ 切换模式</a>
-            <a href="#" id="resetCredLink" style="color:#999; font-size:12px;">忘记密码？重置本地凭据</a>
+            <a href="./index.html" class="btn-home" style="margin-right:8px;" data-i18n="backHome">← 返回主页</a>
+            <a href="#" id="switchModeLink" style="color:#999; font-size:12px; margin-right:15px;" data-i18n="authSwitchMode">↩ 切换模式</a>
+            <a href="#" id="resetCredLink" style="color:#999; font-size:12px;" data-i18n="authResetCred">忘记密码？重置本地凭据</a>
         </div>
     </div>
 </div>
@@ -219,34 +251,35 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <div id="mainPage" class="container hidden">
     <div class="topbar">
         <h1>
-            <a href="./index.html" class="btn-home" title="返回主页">← 主页</a>
-            <span>⭐️ 收藏夹配置</span>
+            <a href="./index.html" class="btn-home" data-i18n="topHome" data-i18n-title="topHomeTitle" title="返回主页">← 主页</a>
+            <span data-i18n="topTitle">⭐️ 收藏夹配置</span>
             <span id="mainModeBadge" class="mode-badge"></span>
         </h1>
         <div class="actions">
-            <button class="btn btn-ghost btn-sm hidden" id="btnConnect">📂 连接文件夹</button>
-            <button class="btn btn-ghost btn-sm" id="btnReload">🔄 重载 data.js</button>
-            <button class="btn btn-ghost btn-sm" id="btnHistory">🕐 历史备份</button>
-            <button class="btn btn-ghost btn-sm hidden" id="btnDataSource">📡 数据源</button>
-            <button class="btn btn-ghost btn-sm" id="btnImport">📥 导入</button>
-            <button class="btn btn-ghost btn-sm" id="btnExport">👁 预览导出</button>
-            <button class="btn btn-success btn-sm" id="btnSave">💾 保存</button>
-            <button class="btn btn-warn btn-sm hidden" id="btnChangePwd">🔑 密码</button>
-            <button class="btn btn-ghost btn-sm" id="btnSwitchMode">🔀 切换模式</button>
-            <button class="btn btn-danger btn-sm" id="btnLogout">🚪 退出</button>
+            <button class="btn btn-ghost btn-sm hidden" id="btnConnect" data-i18n="btnConnect">📂 连接文件夹</button>
+            <button class="btn btn-ghost btn-sm" id="btnReload" data-i18n="btnReload">🔄 重载 data.js</button>
+            <button class="btn btn-ghost btn-sm" id="btnHistory" data-i18n="btnHistory">🕐 历史备份</button>
+            <button class="btn btn-ghost btn-sm hidden" id="btnDataSource" data-i18n="btnDataSource">📡 数据源</button>
+            <button class="btn btn-ghost btn-sm" id="btnImport" data-i18n="btnImport">📥 导入</button>
+            <button class="btn btn-ghost btn-sm" id="btnExport" data-i18n="btnExport">👁 预览导出</button>
+            <button class="btn btn-success btn-sm" id="btnSave" data-i18n="btnSave">💾 保存</button>
+            <button class="btn btn-warn btn-sm hidden" id="btnChangePwd" data-i18n="btnChangePwd">🔑 密码</button>
+            <button class="btn btn-ghost btn-sm" id="btnSwitchMode" data-i18n="btnSwitchMode">🔀 切换模式</button>
+            <button class="btn btn-danger btn-sm" id="btnLogout" data-i18n="btnLogout">🚪 退出</button>
         </div>
     </div>
     <div class="status-bar">
         <div><span id="sourceLabel">来源：</span><span id="folderStatus" class="st-warn">未连接</span></div>
-        <div><span>data.js：</span><span id="dataStatus" class="st-warn">未加载</span></div>
-        <div class="hidden" id="dataSourceBar"><span>首页数据源：</span><span id="dataSourceStatus">—</span></div>
-        <div><span>备份：</span><span id="bakStatus">—</span></div>
+        <div><span data-i18n="stDataJs">data.js：</span><span id="dataStatus" class="st-warn" data-i18n="stNotLoaded">未加载</span></div>
+        <div class="hidden" id="dataSourceBar"><span data-i18n="stDataSource">首页数据源：</span><span id="dataSourceStatus">—</span></div>
+        <div><span data-i18n="stBackups">备份：</span><span id="bakStatus">—</span></div>
+        <div><span data-i18n="stEncKey">🔐 密钥：</span><span id="encKeyStatus" class="st-warn">—</span></div>
     </div>
     <div class="section-tabs" id="sectionTabs"></div>
     <div class="card-panel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
             <h2 id="currentSectionTitle"></h2>
-            <button class="btn btn-primary btn-sm" id="btnAddCard">➕ 新增卡片</button>
+            <button class="btn btn-primary btn-sm" id="btnAddCard" data-i18n="btnAddCard">➕ 新增卡片</button>
         </div>
         <div id="cardList"></div>
     </div>
@@ -255,45 +288,48 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 卡片编辑 -->
 <div id="cardModal" class="modal-mask hidden">
     <div class="modal-box">
-        <h2 id="cardModalTitle">编辑卡片</h2>
-        <div class="form-row"><label>ID（唯一标识）</label><input type="text" id="f_id"></div>
-        <div class="form-row"><label>标题 (title / content)</label><input type="text" id="f_title"></div>
+        <h2 id="cardModalTitle" data-i18n="cardModalEditTitle">编辑卡片</h2>
+        <div class="form-row"><label data-i18n="fldId">ID（唯一标识）</label><input type="text" id="f_id"></div>
+        <div class="form-row"><label data-i18n="fldTitle">标题 (title / content)</label><input type="text" id="f_title"></div>
         <div class="form-row">
-            <label>图标</label>
+            <label data-i18n="fldIcon">图标</label>
             <div class="icon-kind-tabs">
-                <div class="k active" data-kind="emoji">Emoji/文字</div>
-                <div class="k" data-kind="img">图片URL</div>
-                <div class="k" data-kind="svg">内联SVG</div>
+                <div class="k active" data-kind="emoji" data-i18n="iconKindEmoji">Emoji/文字</div>
+                <div class="k" data-kind="img" data-i18n="iconKindImg">图片URL</div>
+                <div class="k" data-kind="svg" data-i18n="iconKindSvg">内联SVG</div>
             </div>
-            <input type="text" id="f_icon_emoji" placeholder="例如：🔥 或 AI">
+            <div class="emoji-input-wrap">
+                <input type="text" id="f_icon_emoji" data-i18n-placeholder="iconEmojiPh" placeholder="例如：🔥 或 AI">
+                <button type="button" class="emoji-picker-trigger" data-target="f_icon_emoji" title="选择 emoji">😀</button>
+            </div>
             <input type="text" id="f_icon_img" class="hidden" placeholder="https://example.com/logo.png">
             <textarea id="f_icon_svg" class="hidden" placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">...</svg>'></textarea>
-            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:12px; color:#888;">预览：</span><div id="iconPreview" class="card-icon-preview"></div></div>
+            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:12px; color:#888;" data-i18n="iconPreviewLabel">预览：</span><div id="iconPreview" class="card-icon-preview"></div></div>
         </div>
         <div class="form-row" id="typeRow">
-            <label>卡片类型</label>
+            <label data-i18n="fldType">卡片类型</label>
             <select id="f_type">
-                <option value="simple">simple（整卡跳转）</option>
-                <option value="desc-clickable">desc-clickable（描述可点击）</option>
-                <option value="expandable">expandable（带子菜单）</option>
+                <option value="simple" data-i18n="typeSimple">simple（整卡跳转）</option>
+                <option value="desc-clickable" data-i18n="typeDescClickable">desc-clickable（描述可点击）</option>
+                <option value="expandable" data-i18n="typeExpandable">expandable（带子菜单）</option>
             </select>
         </div>
-        <div class="form-row"><label>主网址 URL</label><input type="url" id="f_url"></div>
-        <div class="form-row" id="descRow"><label>描述 desc（纯文本）</label><input type="text" id="f_desc"></div>
+        <div class="form-row"><label data-i18n="fldUrl">主网址 URL</label><input type="url" id="f_url"></div>
+        <div class="form-row" id="descRow"><label id="f_descLabel" data-i18n="fldDesc">描述 desc（纯文本）</label><input type="text" id="f_desc"></div>
         <div class="form-row hidden" id="descClickableRow">
-            <label>描述文字 descClickable</label><input type="text" id="f_descClickable">
-            <label style="margin-top:8px;">描述链接 descUrl</label><input type="url" id="f_descUrl">
+            <label data-i18n="fldDescClickable">描述文字 descClickable</label><input type="text" id="f_descClickable">
+            <label style="margin-top:8px;" data-i18n="fldDescUrl">描述链接 descUrl</label><input type="url" id="f_descUrl">
         </div>
-        <div class="form-row hidden" id="isLocalRow"><label><input type="checkbox" id="f_isLocal"> 本地跳转（isLocal: true）</label></div>
+        <div class="form-row hidden" id="isLocalRow"><label><input type="checkbox" id="f_isLocal"> <span data-i18n="fldIsLocal">本地跳转（isLocal: true）</span></label></div>
         <div class="form-row hidden" id="subCardsRow">
-            <label>子卡片（subCards）</label>
+            <label data-i18n="fldSubCards">子卡片（subCards）</label>
             <div class="subcards-wrap" id="subCardsWrap"></div>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnAddSubCard" style="margin-top:8px;">➕ 添加子卡片</button>
-            <div class="move-hint">💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。</div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnAddSubCard" style="margin-top:8px;" data-i18n="btnAddSub">➕ 添加子卡片</button>
+            <div class="move-hint" data-i18n-html="subCardMoveHint">💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。</div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnCardCancel">取消</button>
-            <button class="btn btn-primary" id="btnCardSave">确定</button>
+            <button class="btn btn-ghost" id="btnCardCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnCardSave" data-i18n="btnOk">确定</button>
         </div>
     </div>
 </div>
@@ -301,33 +337,36 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 子卡片编辑 -->
 <div id="subModal" class="modal-mask hidden">
     <div class="modal-box">
-        <h2 id="subModalTitle">编辑子卡片</h2>
-        <div class="form-row"><label>样式</label>
+        <h2 id="subModalTitle" data-i18n="subModalEditTitle">编辑子卡片</h2>
+        <div class="form-row"><label data-i18n="fldSubStyle">样式</label>
             <select id="sf_style">
-                <option value="two">两行式（icon + title + desc）</option>
-                <option value="compact">紧凑式（icon + content）</option>
+                <option value="two" data-i18n="subStyleTwo">两行式（icon + title + desc）</option>
+                <option value="compact" data-i18n="subStyleCompact">紧凑式（icon + content）</option>
             </select>
         </div>
         <div class="form-row">
-            <label>图标</label>
+            <label data-i18n="fldIcon">图标</label>
             <div class="icon-kind-tabs">
-                <div class="k active" data-kind="emoji">Emoji/文字</div>
-                <div class="k" data-kind="img">图片URL</div>
-                <div class="k" data-kind="svg">内联SVG</div>
+                <div class="k active" data-kind="emoji" data-i18n="iconKindEmoji">Emoji/文字</div>
+                <div class="k" data-kind="img" data-i18n="iconKindImg">图片URL</div>
+                <div class="k" data-kind="svg" data-i18n="iconKindSvg">内联SVG</div>
             </div>
-            <input type="text" id="sf_icon_emoji">
+            <div class="emoji-input-wrap">
+                <input type="text" id="sf_icon_emoji">
+                <button type="button" class="emoji-picker-trigger" data-target="sf_icon_emoji" title="选择 emoji">😀</button>
+            </div>
             <input type="text" id="sf_icon_img" class="hidden" placeholder="https://example.com/logo.png">
             <textarea id="sf_icon_svg" class="hidden"></textarea>
-            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:12px; color:#888;">预览：</span><div id="subIconPreview" class="card-icon-preview" style="width:36px;height:36px;font-size:18px;"></div></div>
+            <div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:12px; color:#888;" data-i18n="iconPreviewLabel">预览：</span><div id="subIconPreview" class="card-icon-preview" style="width:36px;height:36px;font-size:18px;"></div></div>
         </div>
-        <div class="form-row" id="sf_titleRow"><label>标题 title</label><input type="text" id="sf_title"></div>
-        <div class="form-row" id="sf_descRow"><label>描述 desc</label><input type="text" id="sf_desc"></div>
-        <div class="form-row hidden" id="sf_contentRow"><label>内容 content</label><input type="text" id="sf_content"></div>
-        <div class="form-row"><label>链接 url</label><input type="url" id="sf_url"></div>
-        <div class="form-row"><label><input type="checkbox" id="sf_isLocal"> 本地跳转</label></div>
+        <div class="form-row" id="sf_titleRow"><label data-i18n="fldSubTitle">标题 title</label><input type="text" id="sf_title"></div>
+        <div class="form-row" id="sf_descRow"><label data-i18n="fldSubDesc">描述 desc</label><input type="text" id="sf_desc"></div>
+        <div class="form-row hidden" id="sf_contentRow"><label data-i18n="fldSubContent">内容 content</label><input type="text" id="sf_content"></div>
+        <div class="form-row"><label data-i18n="fldSubUrl">链接 url</label><input type="url" id="sf_url"></div>
+        <div class="form-row"><label><input type="checkbox" id="sf_isLocal"> <span data-i18n="fldIsLocalShort">本地跳转</span></label></div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnSubCancel">取消</button>
-            <button class="btn btn-primary" id="btnSubSave">确定</button>
+            <button class="btn btn-ghost" id="btnSubCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSubSave" data-i18n="btnOk">确定</button>
         </div>
     </div>
 </div>
@@ -335,73 +374,89 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 子卡片移动 -->
 <div id="moveModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:520px;">
-        <h2>➡ 移动子卡片</h2>
+        <h2 data-i18n="moveModalTitle">➡ 移动子卡片</h2>
         <p class="muted" id="moveSrcHint"></p>
-        <div class="form-row"><label>目标大类</label><select id="move_section"></select></div>
-        <div class="form-row"><label>目标卡片</label><select id="move_target" size="8" style="height:auto;"></select></div>
+        <div class="form-row"><label data-i18n="moveTargetSection">目标大类</label><select id="move_section"></select></div>
+        <div class="form-row"><label data-i18n="moveTargetCard">目标卡片</label><select id="move_target" size="8" style="height:auto;"></select></div>
         <div class="move-hint" id="moveTypeHint"></div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnMoveCancel">取消</button>
-            <button class="btn btn-primary" id="btnMoveConfirm">确认移动</button>
+            <button class="btn btn-ghost" id="btnMoveCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnMoveConfirm" data-i18n="moveConfirm">确认移动</button>
         </div>
     </div>
 </div>
 
-<!-- ★ 主卡片移动到其他大类 -->
+<!-- 主卡片移动 -->
 <div id="cardMoveModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:520px;">
-        <h2>📦 移动卡片到其他大类</h2>
+        <h2 data-i18n="cardMoveTitle">📦 移动卡片到其他大类</h2>
         <p class="muted" id="cardMoveSrcHint"></p>
-        <div class="form-row">
-            <label>目标大类</label>
-            <select id="cardMove_section"></select>
-        </div>
-        <div class="move-hint">💡 卡片会原样转移，类型、子卡片、所有字段都保留。</div>
+        <div class="form-row"><label data-i18n="moveTargetSection">目标大类</label><select id="cardMove_section"></select></div>
+        <div class="move-hint" data-i18n="cardMoveHint">💡 卡片会原样转移，类型、子卡片、所有字段都保留。</div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnCardMoveCancel">取消</button>
-            <button class="btn btn-primary" id="btnCardMoveConfirm">确认移动</button>
+            <button class="btn btn-ghost" id="btnCardMoveCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnCardMoveConfirm" data-i18n="moveConfirm">确认移动</button>
         </div>
     </div>
 </div>
 
-<!-- ★ 大类管理 -->
+<!-- 大类管理 -->
 <div id="sectionsModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:720px;">
-        <h2>🗂 大类管理</h2>
-        <p class="muted">内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。</p>
-
-        <h3 style="margin-top:14px;">🔒 内置大类</h3>
+        <h2 data-i18n="sectionsTitle">🗂 大类管理</h2>
+        <p class="muted" data-i18n-html="sectionsDesc">内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。</p>
+        <h3 style="margin-top:14px;" data-i18n="sectionsBuiltinH">🔒 内置大类</h3>
         <div id="builtinSectionsList"></div>
-
-        <h3 style="margin-top:18px;">⚙️ 自定义大类 <span style="font-size:12px; font-weight:400; color:#888;">（显示在「视频聚合」之后、「邮箱」之前）</span></h3>
+        <h3 style="margin-top:18px;"><span data-i18n="sectionsCustomH">⚙️ 自定义大类</span> <span style="font-size:12px; font-weight:400; color:#888;" data-i18n="sectionsCustomHint">（显示在「视频聚合」之后、「邮箱」之前）</span></h3>
         <div id="customSectionsList"></div>
-        <button class="btn btn-primary btn-sm" id="btnAddCustomSection" style="margin-top:8px;">➕ 新增大类</button>
-
-        <div class="move-hint" style="margin-top:14px;">
-            💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。
-        </div>
-
+        <button class="btn btn-primary btn-sm" id="btnAddCustomSection" style="margin-top:8px;" data-i18n="sectionsAddBtn">➕ 新增大类</button>
+        <div class="move-hint" style="margin-top:14px;" data-i18n="sectionsDeleteHint">💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。</div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnSectionsClose">关闭</button>
+            <button class="btn btn-ghost" id="btnSectionsClose" data-i18n="sectionsClose">关闭</button>
         </div>
     </div>
 </div>
 
-<!-- ★ 编辑/新增大类 -->
+<!-- 大类编辑 -->
 <div id="sectionEditModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:480px;">
-        <h2 id="sectionEditTitle">新增大类</h2>
+        <h2 id="sectionEditTitle" data-i18n="sectionEditNewTitle">新增大类</h2>
         <div class="form-row">
-            <label>显示名称（建议带 emoji 前缀）</label>
-            <input type="text" id="se_label" placeholder="🎵 音乐资源" maxlength="50">
+            <label data-i18n="secLabelField">显示名称（建议带 emoji 前缀）</label>
+            <input type="text" id="se_label" data-i18n-placeholder="secLabelPh" placeholder="🎵 音乐资源" maxlength="50">
         </div>
         <div class="form-row">
-            <label><input type="checkbox" id="se_dynamic"> 启用展开/折叠</label>
-            <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。</p>
+            <label><input type="checkbox" id="se_dynamic"> <span data-i18n="secDynamicField">启用展开/折叠</span></label>
+            <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;" data-i18n="secDynamicHint">勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。</p>
+        </div>
+        <div class="form-row">
+            <label><input type="checkbox" id="se_encrypted"> <span data-i18n="secEncryptedField">🔐 加密存储（AES-GCM-256）</span></label>
+            <div class="enc-hint" data-i18n-html="secEncryptedHint">
+                🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>
+                🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 100,000 轮）。只有登录后才能解密查看。<br>
+                ⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>
+            </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnSectionEditCancel">取消</button>
-            <button class="btn btn-primary" id="btnSectionEditSave">确定</button>
+            <button class="btn btn-ghost" id="btnSectionEditCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSectionEditSave" data-i18n="btnOk">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 解锁密码输入 -->
+<div id="unlockModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:440px;">
+        <h2 data-i18n="unlockTitle">🔓 解锁加密大类</h2>
+        <p class="muted" id="unlockDesc"></p>
+        <div class="form-row">
+            <label data-i18n="unlockPwdLabel">登录密码</label>
+            <input type="password" id="unlockPwd" autocomplete="current-password">
+        </div>
+        <div class="enc-hint" data-i18n="unlockHint">🔑 请输入你的登录密码（用于派生解密密钥）。密码只在此 Tab 会话中暂存，不会写入 localStorage。</div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnUnlockCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnUnlockConfirm" data-i18n="unlockConfirm">解锁</button>
         </div>
     </div>
 </div>
@@ -409,31 +464,29 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 历史备份 -->
 <div id="historyModal" class="modal-mask hidden">
     <div class="modal-box">
-        <h2>🕐 历史备份版本</h2>
+        <h2 data-i18n="historyTitle">🕐 历史备份版本</h2>
         <p class="muted" id="historyHint"></p>
         <div id="backupList"></div>
-        <div class="modal-footer"><button class="btn btn-ghost" id="btnHistoryClose">关闭</button></div>
+        <div class="modal-footer"><button class="btn btn-ghost" id="btnHistoryClose" data-i18n="sectionsClose">关闭</button></div>
     </div>
 </div>
 
 <!-- 数据源切换 -->
 <div id="sourceModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:560px;">
-        <h2>📡 首页数据源设置</h2>
-        <p class="muted">控制访问 <b>首页</b> 时加载哪一份数据。修改后<b>立即生效</b>，无需重新部署。</p>
+        <h2 data-i18n="sourceTitle">📡 首页数据源设置</h2>
+        <p class="muted" data-i18n-html="sourceDesc">控制访问 <b>首页</b> 时加载哪一份数据。修改后<b>立即生效</b>，无需重新部署。</p>
         <div class="mode-card" data-source="kv" id="srcKvCard">
-            <div class="mode-title">☁️ KV 模式 <span id="srcKvBadge" class="hidden source-badge-current">当前</span></div>
-            <div class="mode-desc">使用配置后台保存的数据（<b>推荐</b>）。在此页面修改并保存后，首页立即更新。</div>
+            <div class="mode-title"><span data-i18n="sourceKvTitle">☁️ KV 模式</span> <span id="srcKvBadge" class="hidden source-badge-current" data-i18n="sourceCurrent">当前</span></div>
+            <div class="mode-desc" data-i18n-html="sourceKvDesc">使用配置后台保存的数据（<b>推荐</b>）。在此页面修改并保存后，首页立即更新。</div>
         </div>
         <div class="mode-card" data-source="static" id="srcStaticCard">
-            <div class="mode-title">📄 静态模式 <span id="srcStaticBadge" class="hidden source-badge-current">当前</span></div>
-            <div class="mode-desc">使用 GitHub 仓库里的 <code>data.js</code> 文件。需要 <code>git push</code> 才能更新首页。</div>
+            <div class="mode-title"><span data-i18n="sourceStaticTitle">📄 静态模式</span> <span id="srcStaticBadge" class="hidden source-badge-current" data-i18n="sourceCurrent">当前</span></div>
+            <div class="mode-desc" data-i18n-html="sourceStaticDesc">使用 GitHub 仓库里的 <code>data.js</code> 文件。需要 <code>git push</code> 才能更新首页。</div>
         </div>
-        <div class="move-hint" style="margin-top:14px;">
-            💡 切换为「静态」后，本配置页保存的数据仍存在 KV 中不会丢失，但首页不再使用。再切回「KV」即可恢复。
-        </div>
+        <div class="move-hint" style="margin-top:14px;" data-i18n="sourceSwitchHint">💡 切换为「静态」后，本配置页保存的数据仍存在 KV 中不会丢失，但首页不再使用。再切回「KV」即可恢复。</div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnSourceClose">关闭</button>
+            <button class="btn btn-ghost" id="btnSourceClose" data-i18n="sectionsClose">关闭</button>
         </div>
     </div>
 </div>
@@ -443,102 +496,567 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     <div class="modal-box">
         <h2 id="ioTitle"></h2>
         <div id="ioImportBody" class="hidden">
-            <p class="muted">粘贴 data.js 内容或选择文件导入。</p>
+            <p class="muted" data-i18n="ioImportDesc">粘贴 data.js 内容或选择文件导入。</p>
             <input type="file" id="ioFile" accept=".js,.txt" style="margin-bottom:10px;">
-            <textarea id="ioText" style="min-height:260px;" placeholder="粘贴 data.js 内容..."></textarea>
+            <textarea id="ioText" style="min-height:260px;" data-i18n-placeholder="ioImportPh" placeholder="粘贴 data.js 内容..."></textarea>
         </div>
         <div id="ioExportBody" class="hidden">
-            <p class="muted">此为将写入 data.js 的内容预览。</p>
+            <p class="muted" data-i18n="ioExportDesc">此为将写入 data.js 的内容预览。</p>
             <pre class="export-pre" id="ioExportContent"></pre>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnIoCancel">关闭</button>
-            <button class="btn btn-success hidden" id="btnIoDownload">⬇️ 下载</button>
-            <button class="btn btn-primary hidden" id="btnIoImportConfirm">载入到编辑器</button>
+            <button class="btn btn-ghost" id="btnIoCancel" data-i18n="sectionsClose">关闭</button>
+            <button class="btn btn-success hidden" id="btnIoDownload" data-i18n="ioDownload">⬇️ 下载</button>
+            <button class="btn btn-primary hidden" id="btnIoImportConfirm" data-i18n="ioLoadToEditor">载入到编辑器</button>
         </div>
     </div>
 </div>
 
-<!-- 修改密码（仅本地模式） -->
+<!-- 密码 -->
 <div id="pwdModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:420px;">
-        <h2>🔑 修改本地密码</h2>
-        <div class="form-row"><label>当前密码</label><input type="password" id="pwdOld"></div>
-        <div class="form-row"><label>新密码</label><input type="password" id="pwdNew"></div>
-        <div class="form-row"><label>确认新密码</label><input type="password" id="pwdNew2"></div>
+        <h2 data-i18n="pwdTitle">🔑 修改本地密码</h2>
+        <div class="form-row"><label data-i18n="pwdOld">当前密码</label><input type="password" id="pwdOld"></div>
+        <div class="form-row"><label data-i18n="pwdNew">新密码</label><input type="password" id="pwdNew"></div>
+        <div class="form-row"><label data-i18n="pwdNew2">确认新密码</label><input type="password" id="pwdNew2"></div>
+        <div class="enc-hint" data-i18n="pwdChangeEncHint">⚠️ 如果你有加密大类，修改密码后请立即点击「💾 保存」，让系统用新密码重新加密数据。否则原加密内容将无法再解锁！</div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" id="btnPwdCancel">取消</button>
-            <button class="btn btn-primary" id="btnPwdSave">保存</button>
+            <button class="btn btn-ghost" id="btnPwdCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnPwdSave" data-i18n="pwdSave">保存</button>
         </div>
     </div>
 </div>
+
+<!-- ★ Emoji 选择器弹出层（共用） -->
+<div id="emojiPickerPopup" class="emoji-picker-popup hidden">
+    <div class="emoji-picker-search">
+        <input type="text" id="emojiPickerSearch" placeholder="🔍 搜索分类...">
+    </div>
+    <div class="emoji-picker-cats" id="emojiPickerCats"></div>
+    <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
+</div>
+
+<!-- ★ 引入共享 emoji 数据 -->
+<script src="shared/emoji-data.js"></script>
 
 <script>
 /* ================================================================
-   模式
+   ★★★ 加密模块（AES-GCM-256 + PBKDF2-SHA256 100k）
+================================================================ */
+const SS_ENC_PWD = 'bm_cfg_enc_pwd';
+
+function getEncPassword() {
+    try { return sessionStorage.getItem(SS_ENC_PWD) || null; } catch (e) { return null; }
+}
+function setEncPassword(pwd) {
+    try { if (pwd) sessionStorage.setItem(SS_ENC_PWD, pwd); } catch (e) {}
+}
+function clearEncPassword() {
+    try { sessionStorage.removeItem(SS_ENC_PWD); } catch (e) {}
+}
+
+function b64e(bytes) {
+    let s = ''; const a = (bytes instanceof Uint8Array) ? bytes : new Uint8Array(bytes);
+    for (let i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+    return btoa(s);
+}
+function b64d(str) {
+    const s = atob(str); const a = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+    return a;
+}
+async function deriveAesKey(password, saltBytes, iterations) {
+    const base = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(password),
+        { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    return await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: saltBytes, iterations, hash: 'SHA-256' },
+        base,
+        { name: 'AES-GCM', length: 256 },
+        false, ['encrypt', 'decrypt']
+    );
+}
+async function encryptJSON(password, obj) {
+    const plaintext = JSON.stringify(obj);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const iter = 100000;
+    const key = await deriveAesKey(password, salt, iter);
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
+    return {
+        v: 1, alg: 'AES-GCM-256/PBKDF2-SHA256', iter,
+        salt: b64e(salt), iv: b64e(iv), data: b64e(new Uint8Array(ct))
+    };
+}
+async function decryptJSON(password, enc) {
+    if (!enc || !enc.salt || !enc.iv || !enc.data) throw new Error('invalid-enc');
+    const key = await deriveAesKey(password, b64d(enc.salt), enc.iter || 100000);
+    const pt = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: b64d(enc.iv) }, key, b64d(enc.data)
+    );
+    return JSON.parse(new TextDecoder().decode(pt));
+}
+async function verifyPassword(password, enc) {
+    try { await decryptJSON(password, enc); return true; } catch { return false; }
+}
+
+/* ================================================================
+   i18n
+================================================================ */
+const I18N = {
+    zh: {
+        docTitle: '收藏夹配置 · Config',
+        modePageTitle: '⭐️ 收藏夹配置后台', modePageSubtitle: '请选择使用模式',
+        modeOnlineTitle: '☁️ 在线模式',
+        modeOnlineDesc: '通过 Cloudflare 服务端 API 编辑，数据存于 KV，任何浏览器都可用。',
+        modeOnlineOk: ' <b style="color:#2e7d32;">✓ 服务端可用</b>',
+        modeOnlineFail: ' <b style="color:#c62828;">✗ 服务端未部署或不可达</b>',
+        modeLocalTitle: '💻 本地模式',
+        modeLocalDesc: '使用浏览器直接修改本地 data.js 文件（需 Chrome/Edge + 访问本地文件夹权限）',
+        backHome: '← 返回主页',
+        authOnlineTitle: '☁️ 在线模式 · 登录',
+        authOnlineSub: '使用服务端配置的管理员账号登录（存于 Cloudflare 环境变量）',
+        authLocalLoginTitle: '💻 本地模式 · 登录', authLocalLoginSub: '输入本机设置的管理员账号',
+        authLocalRegTitle: '💻 本地模式 · 创建账户',
+        authLocalRegSub: '首次使用请设置管理员用户名密码（仅保存在此浏览器）',
+        authUsername: '用户名', authPassword: '密码', authConfirm: '确认密码',
+        authBtnLogin: '登录', authBtnRegister: '创建账户',
+        authFooterOnline: '会话以加密 Cookie 保存 7 天',
+        authFooterLocal: '凭据以 SHA-256 哈希保存在本地浏览器',
+        authSwitchMode: '↩ 切换模式', authResetCred: '忘记密码？重置本地凭据',
+        topHome: '← 主页', topHomeTitle: '返回主页', topTitle: '⭐️ 收藏夹配置',
+        modeBadgeOnline: '☁️ 在线模式', modeBadgeLocal: '💻 本地模式',
+        btnConnect: '📂 连接文件夹', btnReload: '🔄 重载 data.js', btnHistory: '🕐 历史备份',
+        btnDataSource: '📡 数据源', btnImport: '📥 导入', btnExport: '👁 预览导出',
+        btnSave: '💾 保存', btnChangePwd: '🔑 密码', btnSwitchMode: '🔀 切换模式', btnLogout: '🚪 退出',
+        stSourceServer: '服务端：', stSourceFolder: '文件夹：', stNotConnected: '未连接',
+        stDataJs: 'data.js：', stNotLoaded: '未加载', stDataSource: '首页数据源：',
+        stBackups: '备份：', stEncKey: '🔐 密钥：',
+        stEncKeyReady: '✓ 已加载（session）', stEncKeyNone: '未加载',
+        stItemsCount: '{n} 个',
+        stApiOk: '✓ API 可用', stApiFail: '✗ API 不可用',
+        stFolderConn: '✓ 已连接（{name}）', stFolderConnNoName: '已选择',
+        stFolderNotConn: '未连接（点击「连接文件夹」）',
+        stLoadedTime: '✓ 已加载（{time}）', stNoDataJs: '✗ 文件夹中未找到 data.js',
+        stFetchLoaded: '✓ 通过 fetch 已加载', stSavedTime: '✓ 已保存（{time}）',
+        stServerLoaded: '✓ 已从服务端加载', stServerLoadFail: '✗ 服务端加载失败',
+        stServerSaved: '✓ 已保存到服务端（{time}）', stReadFail: '✗ 读取失败',
+        secUsb: '☁️ 在线U盘', secTeaching: '📚 授课资料', secOnlineAI: '🖥️ 网络资源',
+        secVideo: '🎬 视频聚合', secEmail: '📧 邮箱数据', secContact: '📨 其他联系方式',
+        secUnclassified: '📦 未分类', secManageTab: '🗂 大类管理',
+        secCustomTag: '自定义', secCustomTitle: '自定义大类',
+        btnAddCard: '➕ 新增卡片', titleItems: '（共 {n} 项）',
+        customBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#ffe0b2; color:#e65100; border-radius:10px; vertical-align:middle;">自定义</span>',
+        encBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#f3e5f5; color:#6a1b9a; border-radius:10px; vertical-align:middle;">🔐 加密</span>',
+        lockedBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#ffebee; color:#c62828; border-radius:10px; vertical-align:middle;">🔒 已锁定</span>',
+        emptyCards: '暂无数据，点击右上角「➕ 新增卡片」',
+        noTitle: '(无标题)', subCardCount: '{n} 子卡', subCardCount2: '（{n} 子卡）',
+        cardModalEditInSec: '编辑卡片（{sec}）', cardModalNewInSec: '新增卡片（{sec}）',
+        fldId: 'ID（唯一标识）', fldTitle: '标题 (title / content)', fldIcon: '图标',
+        iconKindEmoji: 'Emoji/文字', iconKindImg: '图片URL', iconKindSvg: '内联SVG',
+        iconEmojiPh: '例如：🔥 或 AI', iconPreviewLabel: '预览：',
+        fldType: '卡片类型', typeSimple: 'simple（整卡跳转）',
+        typeDescClickable: 'desc-clickable（描述可点击）', typeExpandable: 'expandable（带子菜单）',
+        fldUrl: '主网址 URL', fldDesc: '描述 desc（纯文本）', fldAddress: '邮箱地址 address',
+        fldDescClickable: '描述文字 descClickable', fldDescUrl: '描述链接 descUrl',
+        fldIsLocal: '本地跳转（isLocal: true）', fldIsLocalShort: '本地跳转',
+        fldSubCards: '子卡片（subCards）', btnAddSub: '➕ 添加子卡片',
+        subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。',
+        btnCancel: '取消', btnOk: '确定',
+        subModalEditTitle: '编辑子卡片', subModalNewTitle: '新增子卡片',
+        fldSubStyle: '样式', subStyleTwo: '两行式（icon + title + desc）',
+        subStyleCompact: '紧凑式（icon + content）',
+        fldSubTitle: '标题 title', fldSubDesc: '描述 desc', fldSubContent: '内容 content',
+        fldSubUrl: '链接 url', compactTag: '[紧凑]',
+        moveModalTitle: '➡ 移动子卡片', moveTargetSection: '目标大类', moveTargetCard: '目标卡片',
+        moveConfirm: '确认移动', moveSrcHint: '将子卡片 <b>{sub}</b> 从 <b>{src}</b> 移动到：',
+        moveTgtNone: '(该大类无可选目标)',
+        moveHintExpandable: '✓ 目标已是 <b>expandable</b>，将追加到其 subCards 末尾。',
+        moveHintUpgrade: '⚠️ 目标类型为 <b>{type}</b>，移动后将自动升级为 <b>expandable</b>。',
+        cardMoveTitle: '📦 移动卡片到其他大类',
+        cardMoveHint: '💡 卡片会原样转移，类型、子卡片、所有字段都保留。',
+        cardMoveSrcHint: '将卡片 <b>{card}</b> 从 <b>{src}</b> 移动到：',
+        customSuffix: '  [自定义]',
+        sectionsTitle: '🗂 大类管理',
+        sectionsDesc: '内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。',
+        sectionsBuiltinH: '🔒 内置大类', sectionsCustomH: '⚙️ 自定义大类',
+        sectionsCustomHint: '（显示在「视频聚合」之后、「邮箱」之前）',
+        sectionsAddBtn: '➕ 新增大类',
+        sectionsDeleteHint: '💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。',
+        sectionsClose: '关闭', sectionsNoCustom: '暂无自定义大类。点击下方「➕ 新增大类」创建。',
+        sectionBadgeBuiltin: '🔒 内置', sectionBadgeCustom: '⚙️ 自定义',
+        sectionBadgeDynamic: '展开/折叠', sectionBadgeEncrypted: '🔐 加密',
+        sectionBadgeLocked: '🔒 已锁定',
+        sectionMetaSuffix: ' · {kind} · {cnt} 项',
+        sectionMetaCustom: '{key} · {cnt} 项',
+        sectionMetaCustomUnc: '{key} · {cnt} 项 · 系统在删除大类时自动写入',
+        sectionEditNewTitle: '➕ 新增大类', sectionEditEditTitle: '✏️ 编辑大类',
+        secLabelField: '显示名称（建议带 emoji 前缀）', secLabelPh: '🎵 音乐资源',
+        secDynamicField: '启用展开/折叠',
+        secDynamicHint: '勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。',
+        secEncryptedField: '🔐 加密存储（AES-GCM-256）',
+        secEncryptedHint: '🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 100,000 轮）。只有登录后才能解密查看。<br>⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>',
+        unlockTitle: '🔓 解锁加密大类', unlockPwdLabel: '登录密码', unlockConfirm: '解锁',
+        unlockDescOne: '大类「{label}」已加密，请输入登录密码解锁。',
+        unlockDescAll: '当前有 <b>{n}</b> 个加密大类处于锁定状态。输入登录密码即可全部解锁。',
+        unlockHint: '🔑 请输入你的登录密码（用于派生解密密钥）。密码只在此 Tab 会话中暂存，不会写入 localStorage。',
+        historyTitle: '🕐 历史备份版本',
+        historyHintOnline: '存于 Cloudflare KV',
+        historyHintLocal: '位于当前文件夹的 <code>databak/</code> 子目录',
+        historyEmpty: '暂无历史备份',
+        bkRestore: '↩ 恢复', bkPreview: '👁 预览', bkDownload: '⬇ 下载',
+        bkMeta: '{size} KB · {time}',
+        sourceTitle: '📡 首页数据源设置',
+        sourceDesc: '控制访问 <b>首页</b> 时加载哪一份数据。修改后<b>立即生效</b>，无需重新部署。',
+        sourceKvTitle: '☁️ KV 模式', sourceStaticTitle: '📄 静态模式',
+        sourceKvDesc: '使用配置后台保存的数据（<b>推荐</b>）。在此页面修改并保存后，首页立即更新。',
+        sourceStaticDesc: '使用 GitHub 仓库里的 <code>data.js</code> 文件。需要 <code>git push</code> 才能更新首页。',
+        sourceSwitchHint: '💡 切换为「静态」后，本配置页保存的数据仍存在 KV 中不会丢失，但首页不再使用。再切回「KV」即可恢复。',
+        sourceCurrent: '当前', dsKv: '☁️ KV', dsStatic: '📄 静态', dsDefault: '（默认）',
+        ioImportTitle: '📥 导入 data.js', ioExportTitle: '👁 预览生成的 data.js',
+        ioImportDesc: '粘贴 data.js 内容或选择文件导入。', ioImportPh: '粘贴 data.js 内容...',
+        ioExportDesc: '此为将写入 data.js 的内容预览。', ioPreviewTitle: '👁 预览：{name}',
+        ioDownload: '⬇️ 下载', ioLoadToEditor: '载入到编辑器',
+        pwdTitle: '🔑 修改本地密码', pwdOld: '当前密码', pwdNew: '新密码', pwdNew2: '确认新密码',
+        pwdSave: '保存',
+        pwdChangeEncHint: '⚠️ 如果你有加密大类，修改密码后请立即点击「💾 保存」，让系统用新密码重新加密数据。否则原加密内容将无法再解锁！',
+        lockedPanelTitle: '🔒 此大类已加密',
+        lockedPanelDesc: '输入登录密码解锁后即可查看、编辑其中卡片。',
+        lockedPanelBtn: '🔓 解锁',
+        toastLoginSuccess: '登录成功', toastLoginFail: '登录失败',
+        toastNeedCreds: '请输入用户名和密码', toastPwdMismatch: '两次密码不一致',
+        toastPwdTooShort: '密码至少4位', toastAcctCreated: '账户已创建',
+        toastBadLogin: '用户名或密码错误', toastSessExpired: '会话过期，请重新登录',
+        toastServerUnavailable: '服务端不可用，请先完成 Cloudflare Pages 部署',
+        toastConnectFolderHint: '请点击「连接文件夹」以启用保存与备份',
+        toastConnectedLoaded: '已连接文件夹并加载 data.js',
+        toastLoadedFetch: '已通过 fetch 重载', toastLoadFail: '无法加载，请先连接文件夹',
+        toastNoPermission: '未获得权限', toastSavedNoChange: '已保存（内容无变化，未创建备份）',
+        toastSavedWithBackup: '已保存（旧版本已备份为 {name}）', toastSaved: '已保存',
+        toastSaveFail: '保存失败', toastSaveLocalOk: '已保存，旧版本已备份为 {name}',
+        toastSaveLocalCleaned: '（已清理 {n} 个最旧备份）',
+        toastRestoredOk: '已恢复并生效', toastDeleted: '已删除',
+        toastDeletedUnsaved: '已删除（未保存）', toastDeleteFail: '删除失败',
+        toastNeedFolder: '请先连接文件夹',
+        toastSwitchSame: '当前已是「{mode}」', toastSwitchedTo: '已切换为：{mode}',
+        toastSwitchFail: '切换失败', toastBkLoadFail: '加载备份失败',
+        toastUpdatedUnsaved: '已更新（未保存）',
+        toastAddedSectionUnsaved: '已新增大类（未保存）',
+        toastDeletedSectionUnsaved: '已删除大类（未保存）',
+        toastMovedUp: '已上移', toastMovedDown: '已下移',
+        toastLoadedToEditor: '已载入编辑器', toastImportHint: '请粘贴或选择文件',
+        toastNeedId: '请填写 ID', toastNeedTitle: '请填写标题',
+        toastIdInvalid: 'ID 只能包含字母/数字/下划线/横线', toastIdDup: '该 ID 已存在',
+        toastNeedContent: '请填 content', toastNeedSubTitle: '请填 title',
+        toastSubNotExist: '子卡片不存在', toastCardNotExist: '卡片不存在',
+        toastNeedTarget: '请选择目标卡片', toastCantMoveSelf: '不能移动到当前卡片自身',
+        toastTargetNotExist: '目标卡片不存在',
+        toastMovedToUnsaved: '已移动到 「{tgt}」（未保存）',
+        toastMovedSubToUnsaved: '已移动到 「{sec} / {card}」（未保存）',
+        toastNeedTargetSec: '请选择目标大类', toastNoMoveTargets: '没有可移动的目标大类',
+        toastNeedSecLabel: '请输入大类名称', toastSecLabelTooLong: '名称过长',
+        toastPwdNeed: '请填写完整', toastPwdOldWrong: '原密码错误', toastPwdUpdated: '密码已更新',
+        toastReadFail: '读取失败',
+        toastEncNeedPwd: '请输入密码', toastEncWrongPwd: '密码错误，无法解锁',
+        toastEncUnlockOk: '已解锁 {n} 个加密大类',
+        toastEncNoSessionPwd: '当前会话无密码。请输入登录密码以加密/保存。',
+        toastEncLocked: '此大类已锁定，请先解锁',
+        toastEncCantEditLocked: '请先解锁此加密大类',
+        toastEncCantDisableLocked: '请先解锁，再关闭加密',
+        toastEncEnabled: '已标记为加密（保存时生效）',
+        toastEncDisabled: '已取消加密（保存时生效）',
+        toastLockedSkippedInMove: '跨大类移动到加密已锁定的大类需先解锁',
+        confirmDelCard: '确认删除此卡片？', confirmDelSub: '删除此子卡片？',
+        confirmRestoreOnline: '确定把 "{name}" 恢复为当前主数据？\n（当前数据会自动备份）',
+        confirmDelBackup: '确认删除备份 {name}？',
+        confirmRestoreLocal: '确定把 "{name}" 恢复并立即写入 data.js？\n\n当前 data.js 会先自动备份。',
+        confirmResetCreds: '确定重置本地用户名和密码？',
+        confirmDelSection: '确认删除「{label}」？',
+        confirmDelSectionCards: '「{label}」中有 {n} 张卡片。\n删除大类时这些卡片将自动转移到「{unc}」（不会丢失）。\n\n确认删除？',
+        confirmDelUnclassified: '「{label}」中有 {n} 张卡片。\n这是系统自动管理的"回收容器"，删除将彻底删除其中卡片，无法恢复！\n\n确认删除？',
+        alertNoFSA: '当前浏览器不支持 File System Access API。\n请使用 Chrome / Edge 并通过 http:// 或 https:// 访问此页面。',
+        alertSaveFail: '保存失败：{msg}', alertParseFail: '解析 data.js 失败：{msg}',
+        alertNoFolderRestore: '请先连接文件夹，否则无法立即写入 data.js。',
+        alertRestoreFail: '恢复失败：{msg}', alertReadFail: '读取失败：{msg}',
+        alertDeleteFail: '删除失败：{msg}', alertNoPermRW: '未获得读写权限。',
+        alertNeedFolderSave: '请先点击「连接文件夹」。', alertNoPermission: '未获得权限',
+        langToggle: '🌐 EN',
+        // ★ emoji picker
+        emojiSearchPh: '🔍 搜索分类...',
+        emojiNotFound: '未找到匹配的 emoji 分类',
+        emojiPickerUnavailable: 'Emoji 数据未加载（shared/emoji-data.js）'
+    },
+    en: {
+        docTitle: 'Bookmarks Config',
+        modePageTitle: '⭐️ Bookmarks Config Admin', modePageSubtitle: 'Please select a mode',
+        modeOnlineTitle: '☁️ Online Mode',
+        modeOnlineDesc: 'Edit via Cloudflare server API; data stored in KV, available from any browser.',
+        modeOnlineOk: ' <b style="color:#2e7d32;">✓ Server available</b>',
+        modeOnlineFail: ' <b style="color:#c62828;">✗ Server not deployed or unreachable</b>',
+        modeLocalTitle: '💻 Local Mode',
+        modeLocalDesc: 'Edit local data.js directly via browser (requires Chrome/Edge with folder access).',
+        backHome: '← Back Home',
+        authOnlineTitle: '☁️ Online · Login', authOnlineSub: 'Login with the server-configured admin account.',
+        authLocalLoginTitle: '💻 Local · Login', authLocalLoginSub: 'Enter the admin account set on this machine.',
+        authLocalRegTitle: '💻 Local · Create Account',
+        authLocalRegSub: 'First-time setup: create admin credentials (only stored in this browser).',
+        authUsername: 'Username', authPassword: 'Password', authConfirm: 'Confirm Password',
+        authBtnLogin: 'Login', authBtnRegister: 'Create Account',
+        authFooterOnline: 'Session is stored in an encrypted cookie for 7 days',
+        authFooterLocal: 'Credentials stored as SHA-256 hash in local browser',
+        authSwitchMode: '↩ Switch Mode', authResetCred: 'Forgot password? Reset local credentials',
+        topHome: '← Home', topHomeTitle: 'Back to home', topTitle: '⭐️ Bookmarks Config',
+        modeBadgeOnline: '☁️ Online', modeBadgeLocal: '💻 Local',
+        btnConnect: '📂 Connect Folder', btnReload: '🔄 Reload data.js', btnHistory: '🕐 Backups',
+        btnDataSource: '📡 Source', btnImport: '📥 Import', btnExport: '👁 Preview',
+        btnSave: '💾 Save', btnChangePwd: '🔑 Password', btnSwitchMode: '🔀 Switch Mode', btnLogout: '🚪 Logout',
+        stSourceServer: 'Server: ', stSourceFolder: 'Folder: ', stNotConnected: 'Not connected',
+        stDataJs: 'data.js: ', stNotLoaded: 'Not loaded', stDataSource: 'Home source: ',
+        stBackups: 'Backups: ', stEncKey: '🔐 Key: ',
+        stEncKeyReady: '✓ Loaded (session)', stEncKeyNone: 'Not loaded',
+        stItemsCount: '{n}',
+        stApiOk: '✓ API OK', stApiFail: '✗ API unavailable',
+        stFolderConn: '✓ Connected ({name})', stFolderConnNoName: 'selected',
+        stFolderNotConn: 'Not connected (click "Connect Folder")',
+        stLoadedTime: '✓ Loaded ({time})', stNoDataJs: '✗ data.js not found in folder',
+        stFetchLoaded: '✓ Loaded via fetch', stSavedTime: '✓ Saved ({time})',
+        stServerLoaded: '✓ Loaded from server', stServerLoadFail: '✗ Server load failed',
+        stServerSaved: '✓ Saved to server ({time})', stReadFail: '✗ Read failed',
+        secUsb: '☁️ Cloud Drive', secTeaching: '📚 Teaching', secOnlineAI: '🖥️ Web Resources',
+        secVideo: '🎬 Videos', secEmail: '📧 Emails', secContact: '📨 Contacts',
+        secUnclassified: '📦 Unclassified', secManageTab: '🗂 Sections',
+        secCustomTag: 'Custom', secCustomTitle: 'Custom section',
+        btnAddCard: '➕ Add Card', titleItems: ' ({n} items)',
+        customBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#ffe0b2; color:#e65100; border-radius:10px; vertical-align:middle;">Custom</span>',
+        encBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#f3e5f5; color:#6a1b9a; border-radius:10px; vertical-align:middle;">🔐 Encrypted</span>',
+        lockedBadgeHtml: ' <span style="font-size:12px; padding:2px 8px; background:#ffebee; color:#c62828; border-radius:10px; vertical-align:middle;">🔒 Locked</span>',
+        emptyCards: 'No data. Click "➕ Add Card" at top right.',
+        noTitle: '(Untitled)', subCardCount: '{n} sub', subCardCount2: ' ({n} sub)',
+        cardModalEditInSec: 'Edit Card ({sec})', cardModalNewInSec: 'New Card ({sec})',
+        fldId: 'ID (unique)', fldTitle: 'Title (title / content)', fldIcon: 'Icon',
+        iconKindEmoji: 'Emoji/Text', iconKindImg: 'Image URL', iconKindSvg: 'Inline SVG',
+        iconEmojiPh: 'e.g. 🔥 or AI', iconPreviewLabel: 'Preview: ',
+        fldType: 'Card type', typeSimple: 'simple (whole card)',
+        typeDescClickable: 'desc-clickable', typeExpandable: 'expandable (with sub-cards)',
+        fldUrl: 'URL', fldDesc: 'Description', fldAddress: 'Email address',
+        fldDescClickable: 'Description text', fldDescUrl: 'Description URL',
+        fldIsLocal: 'Local link (isLocal: true)', fldIsLocalShort: 'Local link',
+        fldSubCards: 'Sub-cards', btnAddSub: '➕ Add Sub-card',
+        subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade.',
+        btnCancel: 'Cancel', btnOk: 'OK',
+        subModalEditTitle: 'Edit Sub-card', subModalNewTitle: 'New Sub-card',
+        fldSubStyle: 'Style', subStyleTwo: 'Two-line (icon + title + desc)',
+        subStyleCompact: 'Compact (icon + content)',
+        fldSubTitle: 'Title', fldSubDesc: 'Description', fldSubContent: 'Content',
+        fldSubUrl: 'URL', compactTag: '[compact]',
+        moveModalTitle: '➡ Move Sub-card', moveTargetSection: 'Target section', moveTargetCard: 'Target card',
+        moveConfirm: 'Confirm', moveSrcHint: 'Move sub-card <b>{sub}</b> from <b>{src}</b> to:',
+        moveTgtNone: '(No available targets)',
+        moveHintExpandable: '✓ Target is <b>expandable</b>; will be appended.',
+        moveHintUpgrade: '⚠️ Target is <b>{type}</b>; will be auto-upgraded to <b>expandable</b>.',
+        cardMoveTitle: '📦 Move Card to Another Section',
+        cardMoveHint: '💡 Card moved as-is; all fields preserved.',
+        cardMoveSrcHint: 'Move card <b>{card}</b> from <b>{src}</b> to:',
+        customSuffix: '  [Custom]',
+        sectionsTitle: '🗂 Manage Sections',
+        sectionsDesc: 'Built-in sections come from <code>indexN.html</code> and cannot be modified. Custom sections are fully manageable.',
+        sectionsBuiltinH: '🔒 Built-in Sections', sectionsCustomH: '⚙️ Custom Sections',
+        sectionsCustomHint: '(shown after "Videos", before "Emails")',
+        sectionsAddBtn: '➕ Add Section',
+        sectionsDeleteHint: '💡 Deleting a custom section moves its cards to "📦 Unclassified" (not lost). "Unclassified" can also be deleted (permanent).',
+        sectionsClose: 'Close', sectionsNoCustom: 'No custom sections. Click "➕ Add Section" below.',
+        sectionBadgeBuiltin: '🔒 Built-in', sectionBadgeCustom: '⚙️ Custom',
+        sectionBadgeDynamic: 'Expand/Collapse', sectionBadgeEncrypted: '🔐 Encrypted',
+        sectionBadgeLocked: '🔒 Locked',
+        sectionMetaSuffix: ' · {kind} · {cnt} items',
+        sectionMetaCustom: '{key} · {cnt} items',
+        sectionMetaCustomUnc: '{key} · {cnt} items · auto-filled when a section is deleted',
+        sectionEditNewTitle: '➕ New Section', sectionEditEditTitle: '✏️ Edit Section',
+        secLabelField: 'Display name (emoji prefix recommended)', secLabelPh: '🎵 Music',
+        secDynamicField: 'Enable expand/collapse',
+        secDynamicHint: 'When checked, behaves like "Videos": first 4/6 cards shown on mobile/tablet, rest expandable. Desktop shows all.',
+        secEncryptedField: '🔐 Encrypted storage (AES-GCM-256)',
+        secEncryptedHint: '🔒 When checked, all cards of this section are AES-256-GCM encrypted before writing to data.js / KV.<br>🔑 Key derived from your <b>login password</b> (PBKDF2 100,000 rounds). Only viewable after login.<br>⚠️ <b>After changing login password, save immediately, or the old encrypted data can no longer be unlocked!</b>',
+        unlockTitle: '🔓 Unlock Encrypted Sections', unlockPwdLabel: 'Login password', unlockConfirm: 'Unlock',
+        unlockDescOne: 'Section "{label}" is encrypted. Enter login password to unlock.',
+        unlockDescAll: 'There are <b>{n}</b> locked encrypted section(s). Enter login password to unlock all.',
+        unlockHint: '🔑 Enter your login password (used to derive the decryption key). The password is kept in this tab session only, never written to localStorage.',
+        historyTitle: '🕐 Backup History',
+        historyHintOnline: 'Stored in Cloudflare KV',
+        historyHintLocal: 'In <code>databak/</code> of current folder',
+        historyEmpty: 'No backups',
+        bkRestore: '↩ Restore', bkPreview: '👁 Preview', bkDownload: '⬇ Download',
+        bkMeta: '{size} KB · {time}',
+        sourceTitle: '📡 Home Data Source',
+        sourceDesc: 'Controls which data the <b>home page</b> loads. Takes effect <b>immediately</b>.',
+        sourceKvTitle: '☁️ KV Mode', sourceStaticTitle: '📄 Static Mode',
+        sourceKvDesc: 'Use data saved by this admin (<b>recommended</b>). Home updates right after saving.',
+        sourceStaticDesc: 'Use <code>data.js</code> from GitHub repo. Requires <code>git push</code>.',
+        sourceSwitchHint: '💡 After switching to "Static", your KV data remains but is unused by home.',
+        sourceCurrent: 'current', dsKv: '☁️ KV', dsStatic: '📄 Static', dsDefault: ' (default)',
+        ioImportTitle: '📥 Import data.js', ioExportTitle: '👁 Preview generated data.js',
+        ioImportDesc: 'Paste or pick a file.', ioImportPh: 'Paste data.js content...',
+        ioExportDesc: 'Preview of content to write.', ioPreviewTitle: '👁 Preview: {name}',
+        ioDownload: '⬇️ Download', ioLoadToEditor: 'Load to Editor',
+        pwdTitle: '🔑 Change Local Password', pwdOld: 'Current', pwdNew: 'New', pwdNew2: 'Confirm',
+        pwdSave: 'Save',
+        pwdChangeEncHint: '⚠️ If you have encrypted sections, save immediately after changing password so they are re-encrypted with the new one. Otherwise old encrypted data becomes unrecoverable!',
+        lockedPanelTitle: '🔒 This section is encrypted',
+        lockedPanelDesc: 'Enter login password to unlock and view/edit its cards.',
+        lockedPanelBtn: '🔓 Unlock',
+        toastLoginSuccess: 'Login successful', toastLoginFail: 'Login failed',
+        toastNeedCreds: 'Please enter username and password', toastPwdMismatch: 'Passwords do not match',
+        toastPwdTooShort: 'Password must be at least 4 characters', toastAcctCreated: 'Account created',
+        toastBadLogin: 'Wrong username or password', toastSessExpired: 'Session expired, please login again',
+        toastServerUnavailable: 'Server unavailable. Complete Cloudflare Pages deployment first',
+        toastConnectFolderHint: 'Click "Connect Folder" to enable save and backup',
+        toastConnectedLoaded: 'Folder connected and data.js loaded',
+        toastLoadedFetch: 'Reloaded via fetch', toastLoadFail: 'Cannot load. Connect a folder first',
+        toastNoPermission: 'Permission denied', toastSavedNoChange: 'Saved (no change, no backup)',
+        toastSavedWithBackup: 'Saved (previous backed up as {name})', toastSaved: 'Saved',
+        toastSaveFail: 'Save failed', toastSaveLocalOk: 'Saved. Previous backed up as {name}',
+        toastSaveLocalCleaned: ' ({n} oldest backups cleaned)',
+        toastRestoredOk: 'Restored and applied', toastDeleted: 'Deleted',
+        toastDeletedUnsaved: 'Deleted (unsaved)', toastDeleteFail: 'Delete failed',
+        toastNeedFolder: 'Connect a folder first',
+        toastSwitchSame: 'Already in "{mode}"', toastSwitchedTo: 'Switched to: {mode}',
+        toastSwitchFail: 'Switch failed', toastBkLoadFail: 'Failed to load backups',
+        toastUpdatedUnsaved: 'Updated (unsaved)',
+        toastAddedSectionUnsaved: 'Section added (unsaved)',
+        toastDeletedSectionUnsaved: 'Section deleted (unsaved)',
+        toastMovedUp: 'Moved up', toastMovedDown: 'Moved down',
+        toastLoadedToEditor: 'Loaded into editor', toastImportHint: 'Paste or pick a file',
+        toastNeedId: 'Please enter an ID', toastNeedTitle: 'Please enter a title',
+        toastIdInvalid: 'ID: letters / digits / _ / - only', toastIdDup: 'This ID already exists',
+        toastNeedContent: 'Please fill in content', toastNeedSubTitle: 'Please fill in title',
+        toastSubNotExist: 'Sub-card not found', toastCardNotExist: 'Card not found',
+        toastNeedTarget: 'Select a target card', toastCantMoveSelf: 'Cannot move to the same card',
+        toastTargetNotExist: 'Target card not found',
+        toastMovedToUnsaved: 'Moved to "{tgt}" (unsaved)',
+        toastMovedSubToUnsaved: 'Moved to "{sec} / {card}" (unsaved)',
+        toastNeedTargetSec: 'Select a target section', toastNoMoveTargets: 'No target sections available',
+        toastNeedSecLabel: 'Please enter section name', toastSecLabelTooLong: 'Name too long',
+        toastPwdNeed: 'Fill in all fields', toastPwdOldWrong: 'Wrong current password',
+        toastPwdUpdated: 'Password updated', toastReadFail: 'Read failed',
+        toastEncNeedPwd: 'Please enter password', toastEncWrongPwd: 'Wrong password, cannot unlock',
+        toastEncUnlockOk: 'Unlocked {n} encrypted section(s)',
+        toastEncNoSessionPwd: 'No session password. Please enter login password to encrypt/save.',
+        toastEncLocked: 'Section is locked, unlock first',
+        toastEncCantEditLocked: 'Unlock this encrypted section first',
+        toastEncCantDisableLocked: 'Unlock first, then disable encryption',
+        toastEncEnabled: 'Marked as encrypted (applied on save)',
+        toastEncDisabled: 'Encryption removed (applied on save)',
+        toastLockedSkippedInMove: 'Unlock target encrypted section before moving into it',
+        confirmDelCard: 'Delete this card?', confirmDelSub: 'Delete this sub-card?',
+        confirmRestoreOnline: 'Restore "{name}" as current data?\n(Current data will be auto-backed up)',
+        confirmDelBackup: 'Delete backup {name}?',
+        confirmRestoreLocal: 'Restore "{name}" and write to data.js now?\n\nCurrent data.js will be auto-backed up first.',
+        confirmResetCreds: 'Reset local credentials?',
+        confirmDelSection: 'Delete "{label}"?',
+        confirmDelSectionCards: '"{label}" contains {n} cards.\nThey will be moved to "{unc}".\n\nDelete?',
+        confirmDelUnclassified: '"{label}" contains {n} cards.\nThis will PERMANENTLY remove them!\n\nDelete?',
+        alertNoFSA: 'This browser does not support File System Access API.\nUse Chrome / Edge via http:// or https://.',
+        alertSaveFail: 'Save failed: {msg}', alertParseFail: 'Failed to parse data.js: {msg}',
+        alertNoFolderRestore: 'Connect a folder first.',
+        alertRestoreFail: 'Restore failed: {msg}', alertReadFail: 'Read failed: {msg}',
+        alertDeleteFail: 'Delete failed: {msg}', alertNoPermRW: 'Read/write permission denied.',
+        alertNeedFolderSave: 'Click "Connect Folder" first.', alertNoPermission: 'Permission denied',
+        langToggle: '🌐 中',
+        emojiSearchPh: '🔍 Search category...',
+        emojiNotFound: 'No matching emoji category',
+        emojiPickerUnavailable: 'Emoji data not loaded (shared/emoji-data.js)'
+    }
+};
+
+const LS_LANG = 'bm_cfg_lang';
+let currentLang = (function(){ try { return localStorage.getItem(LS_LANG) === 'en' ? 'en' : 'zh'; } catch(e){ return 'zh'; } })();
+function t(key, params) {
+    const dict = I18N[currentLang] || I18N.zh;
+    let s = dict[key]; if (s === undefined) s = I18N.zh[key] !== undefined ? I18N.zh[key] : key;
+    if (params && typeof s === 'string') Object.keys(params).forEach(k => s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]));
+    return s;
+}
+function applyI18n() {
+    try { document.documentElement.lang = (currentLang === 'en' ? 'en' : 'zh-CN'); } catch(e) {}
+    document.title = t('docTitle');
+    document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.getAttribute('data-i18n')));
+    document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = t(el.getAttribute('data-i18n-html')));
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))));
+    document.querySelectorAll('[data-i18n-title]').forEach(el => el.setAttribute('title', t(el.getAttribute('data-i18n-title'))));
+    const lb = $('btnLang'); if (lb) lb.textContent = t('langToggle');
+    // ★ emoji picker placeholder
+    const eps = $('emojiPickerSearch'); if (eps) eps.placeholder = t('emojiSearchPh');
+    if (Array.isArray(customSectionsMeta)) {
+        customSectionsMeta.forEach(c => { if (c.key === UNCLASSIFIED_KEY) c.label = t('secUnclassified'); });
+    }
+    if (!$('mainPage').classList.contains('hidden')) {
+        try { refreshMainPageModeTexts(); } catch(e) {}
+        try { renderSectionTabs(); } catch(e) {}
+        try { renderCurrentSection(); } catch(e) {}
+        try { updateEncKeyStatus(); } catch(e) {}
+    }
+    if (!$('authPage').classList.contains('hidden')) { try { refreshAuthPageTexts(); } catch(e) {} }
+    if (!$('modePage').classList.contains('hidden')) { try { refreshModePageTexts(); } catch(e) {} }
+    if (!$('sectionsModal').classList.contains('hidden')) { try { renderSectionsModalLists(); } catch(e) {} }
+    // ★ re-render emoji categories for lang change
+    if ($('emojiPickerPopup') && !$('emojiPickerPopup').classList.contains('hidden')) {
+        try { renderEmojiCategories(); } catch(e) {}
+    }
+}
+function toggleLang() {
+    currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+    try { localStorage.setItem(LS_LANG, currentLang); } catch(e) {}
+    applyI18n();
+}
+
+/* ================================================================
+   Mode / state
 ================================================================ */
 const MODE_ONLINE = 'online', MODE_LOCAL = 'local';
 let currentMode = null;
 let onlineAvailable = false;
 const LS_MODE = 'bm_cfg_mode';
 
-/* ================================================================
-   ★ 大类定义
-   - BUILTIN_SECTIONS：内置大类（写在 indexN.html 中），不可改
-   - customSectionsMeta：自定义大类（写在 data.js 的 customSections）
-   - getSections()：合并后的完整列表（用于渲染、查找）
-================================================================ */
 const BUILTIN_SECTIONS = [
-    { key: 'usbDriveData',  label: '☁️ 在线U盘',    kind: 'card',    builtin: true },
-    { key: 'teachingData',  label: '📚 授课资料',    kind: 'card',    builtin: true },
-    { key: 'onlineAIData',  label: '🖥️ 网络资源',    kind: 'card',    builtin: true },
-    { key: 'videoData',     label: '🎬 视频聚合',    kind: 'card',    builtin: true },
-    { key: 'emailData',     label: '📧 邮箱数据',    kind: 'email',   builtin: true },
-    { key: 'contactData',   label: '📨 其他联系方式', kind: 'contact', builtin: true }
+    { key: 'usbDriveData',  labelKey: 'secUsb',      kind: 'card' },
+    { key: 'teachingData',  labelKey: 'secTeaching', kind: 'card' },
+    { key: 'onlineAIData',  labelKey: 'secOnlineAI', kind: 'card' },
+    { key: 'videoData',     labelKey: 'secVideo',    kind: 'card' },
+    { key: 'emailData',     labelKey: 'secEmail',    kind: 'email' },
+    { key: 'contactData',   labelKey: 'secContact',  kind: 'contact' }
 ];
 const UNCLASSIFIED_KEY = 'custom_unclassified';
-const UNCLASSIFIED_LABEL = '📦 未分类';
-
-let customSectionsMeta = [];   // [{ key, label, dynamic }]
+let customSectionsMeta = [];
 
 function getSections() {
-    const cardBuiltins  = BUILTIN_SECTIONS.filter(s => s.kind === 'card');
-    const otherBuiltins = BUILTIN_SECTIONS.filter(s => s.kind !== 'card');
+    const cardB  = BUILTIN_SECTIONS.filter(s => s.kind === 'card').map(s => ({ key: s.key, label: t(s.labelKey), kind: s.kind, builtin: true }));
+    const otherB = BUILTIN_SECTIONS.filter(s => s.kind !== 'card').map(s => ({ key: s.key, label: t(s.labelKey), kind: s.kind, builtin: true }));
     const customs = customSectionsMeta.map(c => ({
-        key: c.key, label: c.label, kind: 'card', builtin: false, dynamic: !!c.dynamic
+        key: c.key,
+        label: (c.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : c.label,
+        kind: 'card', builtin: false,
+        dynamic: !!c.dynamic, encrypted: !!c.encrypted, locked: !!c.locked
     }));
-    return [...cardBuiltins, ...customs, ...otherBuiltins];
+    return [...cardB, ...customs, ...otherB];
 }
-
 function isBuiltinKey(key) { return BUILTIN_SECTIONS.some(s => s.key === key); }
-
 function ensureUnclassifiedSection() {
     if (!customSectionsMeta.find(c => c.key === UNCLASSIFIED_KEY)) {
-        customSectionsMeta.push({
-            key: UNCLASSIFIED_KEY, label: UNCLASSIFIED_LABEL, dynamic: false
-        });
+        customSectionsMeta.push({ key: UNCLASSIFIED_KEY, label: t('secUnclassified'), dynamic: false, encrypted: false, locked: false });
     }
     if (!Array.isArray(store[UNCLASSIFIED_KEY])) store[UNCLASSIFIED_KEY] = [];
 }
+function getCustomMeta(key) { return customSectionsMeta.find(c => c.key === key); }
+function isLockedKey(key) { const m = getCustomMeta(key); return !!(m && m.locked); }
 
-/* ================================================================
-   内存仓库（store）
-================================================================ */
-const store = {
-    usbDriveData: [], teachingData: [], onlineAIData: [],
-    videoData: [], emailData: [], contactData: []
-    // 自定义大类的 key 也会写入这里
-};
+const store = { usbDriveData: [], teachingData: [], onlineAIData: [], videoData: [], emailData: [], contactData: [] };
 let currentSection = BUILTIN_SECTIONS[0].key;
-let editingCardIndex = -1;
-let editingSubIndex = -1;
-let editingCardDraft = null;
-let folderHandle = null;
-let dataJsHandle = null;
+let editingCardIndex = -1, editingSubIndex = -1, editingCardDraft = null;
+let folderHandle = null, dataJsHandle = null;
 let moveFromIndex = -1;
-let movingCardSourceSection = null;   // ★ 主卡片跨大类移动
-let movingCardSourceIndex = -1;
-let editingCustomSectionIdx = -2;     // ★ -2 关闭, -1 新增, >=0 编辑
+let movingCardSourceSection = null, movingCardSourceIndex = -1;
+let editingCustomSectionIdx = -2;
 const MAX_BACKUPS_LOCAL = 100;
 
 const DEFAULT_COMMENTS = {
@@ -547,21 +1065,20 @@ const DEFAULT_COMMENTS = {
    只需编辑此文件即可增删改收藏内容，无需修改页面代码
    ============================================================ */`,
     sections: {
-        usbDriveData:    '// ==================== 在线U盘 ====================',
-        teachingData:    '// ==================== 授课资料 ====================',
-        onlineAIData:    '// ==================== 网络资源 ====================',
-        videoData:       '// ==================== 视频聚合 ====================',
-        emailData:       '// ==================== 邮箱数据 ====================',
-        contactData:     '// ==================== 其他联系方式 ====================',
-        customSections:  '// ==================== 自定义大类（可在配置后台增删改） ===================='
+        usbDriveData:   '// ==================== 在线U盘 ====================',
+        teachingData:   '// ==================== 授课资料 ====================',
+        onlineAIData:   '// ==================== 网络资源 ====================',
+        videoData:      '// ==================== 视频聚合 ====================',
+        emailData:      '// ==================== 邮箱数据 ====================',
+        contactData:    '// ==================== 其他联系方式 ====================',
+        customSections: '// ==================== 自定义大类（可在配置后台增删改；支持 AES-GCM 加密） ===================='
     }
 };
 let preservedComments = { header: null, sections: {} };
-
 const LS_USER = 'bm_cfg_user', LS_PASS = 'bm_cfg_pass', LS_SESS = 'bm_cfg_sess';
 
 /* ================================================================
-   工具函数
+   Utils
 ================================================================ */
 function safeLS(op, ...args) {
     try {
@@ -579,25 +1096,244 @@ function $(id) { return document.getElementById(id); }
 function show(el) { (typeof el === 'string' ? $(el) : el).classList.remove('hidden'); }
 function hide(el) { (typeof el === 'string' ? $(el) : el).classList.add('hidden'); }
 function toast(msg, dur = 2400) {
-    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
-    document.body.appendChild(t); setTimeout(() => t.remove(), dur);
+    const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
+    document.body.appendChild(el); setTimeout(() => el.remove(), dur);
 }
 function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function renderIconTo(el, item) {
     el.innerHTML = '';
-    if (item && item.iconImg) {
-        const img = document.createElement('img');
-        img.src = item.iconImg;
-        img.onerror = () => { el.innerHTML = '🖼'; };
-        el.appendChild(img);
-    } else if (item && item.icon) {
-        if (String(item.icon).trim().startsWith('<svg')) el.innerHTML = item.icon;
-        else el.textContent = item.icon;
-    } else el.textContent = '❓';
+    if (item && item.iconImg) { const img = document.createElement('img'); img.src = item.iconImg; img.onerror = () => { el.innerHTML = '🖼'; }; el.appendChild(img); }
+    else if (item && item.icon) { if (String(item.icon).trim().startsWith('<svg')) el.innerHTML = item.icon; else el.textContent = item.icon; }
+    else el.textContent = '❓';
 }
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
-function genCustomKey() {
-    return 'custom_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+function genCustomKey() { return 'custom_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
+
+function updateEncKeyStatus() {
+    const el = $('encKeyStatus'); if (!el) return;
+    if (getEncPassword()) { el.textContent = t('stEncKeyReady'); el.className = 'st-ok'; }
+    else { el.textContent = t('stEncKeyNone'); el.className = 'st-warn'; }
+}
+
+/* ================================================================
+   ★★★ Emoji Picker
+================================================================ */
+let currentEmojiTarget = null;
+let currentEmojiCatIdx = 0;
+
+function initEmojiPicker() {
+    renderEmojiCategories();
+    renderEmojiGrid(0);
+
+    // Trigger buttons
+    document.querySelectorAll('.emoji-picker-trigger').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const target = btn.dataset.target;
+            const popup = $('emojiPickerPopup');
+            if (!popup.classList.contains('hidden') && currentEmojiTarget === target) {
+                closeEmojiPicker();
+            } else {
+                openEmojiPicker(target, btn);
+            }
+        });
+    });
+
+    // Search
+    $('emojiPickerSearch').addEventListener('input', handleEmojiSearch);
+
+    // Click outside to close
+    document.addEventListener('mousedown', (e) => {
+        const popup = $('emojiPickerPopup');
+        if (popup.classList.contains('hidden')) return;
+        if (popup.contains(e.target)) return;
+        if (e.target.classList && e.target.classList.contains('emoji-picker-trigger')) return;
+        closeEmojiPicker();
+    });
+
+    // ESC to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$('emojiPickerPopup').classList.contains('hidden')) {
+            closeEmojiPicker();
+        }
+    });
+
+    // Reposition on resize/scroll
+    window.addEventListener('resize', () => {
+        if (!$('emojiPickerPopup').classList.contains('hidden') && currentEmojiTriggerBtn) {
+            positionEmojiPicker(currentEmojiTriggerBtn);
+        }
+    });
+}
+
+let currentEmojiTriggerBtn = null;
+
+function openEmojiPicker(targetId, btn) {
+    if (!window.EMOJI_DATA || !Array.isArray(window.EMOJI_DATA.categories) || !window.EMOJI_DATA.categories.length) {
+        toast(t('emojiPickerUnavailable'));
+        return;
+    }
+    currentEmojiTarget = targetId;
+    currentEmojiTriggerBtn = btn;
+    const popup = $('emojiPickerPopup');
+    popup.classList.remove('hidden');
+
+    // Reset search
+    $('emojiPickerSearch').value = '';
+    renderEmojiCategories(); 
+    renderEmojiGrid(currentEmojiCatIdx);
+    setActiveCategory(currentEmojiCatIdx);
+
+    positionEmojiPicker(btn);
+}
+
+function positionEmojiPicker(btn) {
+    const popup = $('emojiPickerPopup');
+    const rect = btn.getBoundingClientRect();
+    const popupW = Math.min(340, window.innerWidth - 20);
+    const popupH = Math.min(400, window.innerHeight * 0.7);
+    popup.style.width = popupW + 'px';
+    popup.style.maxHeight = popupH + 'px';
+
+    let left = rect.right - popupW;
+    if (left < 10) left = 10;
+    if (left + popupW > window.innerWidth - 10) left = window.innerWidth - popupW - 10;
+
+    let top = rect.bottom + 6;
+    if (top + popupH > window.innerHeight - 10) {
+        const above = rect.top - popupH - 6;
+        if (above >= 10) top = above;
+        else top = Math.max(10, window.innerHeight - popupH - 10);
+    }
+
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+}
+
+function closeEmojiPicker() {
+    $('emojiPickerPopup').classList.add('hidden');
+    currentEmojiTarget = null;
+    currentEmojiTriggerBtn = null;
+}
+
+function renderEmojiCategories() {
+    const cats = $('emojiPickerCats');
+    if (!cats) return;
+    cats.innerHTML = '';
+    const data = (window.EMOJI_DATA && window.EMOJI_DATA.categories) || [];
+    data.forEach((cat, i) => {
+        const el = document.createElement('div');
+        el.className = 'emoji-picker-cat' + (i === currentEmojiCatIdx ? ' active' : '');
+        el.textContent = cat.icon || '·';
+        el.title = (currentLang === 'en' && cat.nameEn) ? cat.nameEn : (cat.name || '');
+        el.addEventListener('click', () => {
+            $('emojiPickerSearch').value = '';
+            currentEmojiCatIdx = i;
+            renderEmojiGrid(i);
+            setActiveCategory(i);
+        });
+        cats.appendChild(el);
+    });
+}
+
+function setActiveCategory(idx) {
+    document.querySelectorAll('.emoji-picker-cat').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+    });
+}
+
+function renderEmojiGrid(catIdx) {
+    const grid = $('emojiPickerGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const data = (window.EMOJI_DATA && window.EMOJI_DATA.categories) || [];
+    const cat = data[catIdx];
+    if (!cat || !Array.isArray(cat.emojis)) return;
+    // Dedup within category
+    const seen = new Set();
+    cat.emojis.forEach(em => {
+        if (seen.has(em)) return;
+        seen.add(em);
+        const el = document.createElement('div');
+        el.className = 'emoji-picker-item';
+        el.textContent = em;
+        el.title = em;
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectEmoji(em);
+        });
+        grid.appendChild(el);
+    });
+}
+
+function handleEmojiSearch() {
+    const q = $('emojiPickerSearch').value.trim().toLowerCase();
+    const data = (window.EMOJI_DATA && window.EMOJI_DATA.categories) || [];
+    if (!q) {
+        renderEmojiGrid(currentEmojiCatIdx);
+        setActiveCategory(currentEmojiCatIdx);
+        return;
+    }
+    const grid = $('emojiPickerGrid');
+    grid.innerHTML = '';
+    setActiveCategory(-1);
+
+    const seen = new Set();
+    const results = [];
+    data.forEach(cat => {
+        const nameMatch = (cat.name && cat.name.toLowerCase().includes(q)) ||
+                         (cat.nameEn && cat.nameEn.toLowerCase().includes(q));
+        if (nameMatch) {
+            (cat.emojis || []).forEach(em => {
+                if (!seen.has(em)) { seen.add(em); results.push(em); }
+            });
+        }
+    });
+    if (!results.length) {
+        const empty = document.createElement('div');
+        empty.className = 'emoji-picker-empty';
+        empty.textContent = t('emojiNotFound');
+        grid.appendChild(empty);
+        return;
+    }
+    results.forEach(em => {
+        const el = document.createElement('div');
+        el.className = 'emoji-picker-item';
+        el.textContent = em;
+        el.title = em;
+        el.addEventListener('click', (e) => { e.stopPropagation(); selectEmoji(em); });
+        grid.appendChild(el);
+    });
+}
+
+function selectEmoji(emoji) {
+    if (!currentEmojiTarget) return;
+    const input = $(currentEmojiTarget);
+    if (!input) return;
+
+    // Insert at cursor position (append if textarea/input has no selection support)
+    try {
+        const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
+        const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
+        if (start !== null && end !== null) {
+            const v = input.value;
+            input.value = v.substring(0, start) + emoji + v.substring(end);
+            const newPos = start + emoji.length;
+            input.selectionStart = input.selectionEnd = newPos;
+        } else {
+            input.value = (input.value || '') + emoji;
+        }
+    } catch (e) {
+        input.value = (input.value || '') + emoji;
+    }
+
+    // Trigger input event so preview updates
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Keep picker open for multi-select on mobile? Close for simplicity
+    closeEmojiPicker();
+    try { input.focus(); } catch (e) {}
 }
 
 /* ================================================================
@@ -610,16 +1346,11 @@ async function idbGet(k) { const db = await idbOpen(); return new Promise((res, 
 async function idbDel(k) { const db = await idbOpen(); return new Promise((res, rej) => { const tx = db.transaction(IDB_STORE, 'readwrite'); tx.objectStore(IDB_STORE).delete(k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
 
 /* ================================================================
-   在线 API
+   Online API
 ================================================================ */
 async function api(path, opts = {}) {
-    const r = await fetch(path, {
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
-        ...opts
-    });
-    let data = null;
-    try { data = await r.json(); } catch {}
+    const r = await fetch(path, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }, ...opts });
+    let data = null; try { data = await r.json(); } catch {}
     return { ok: r.ok, status: r.status, data };
 }
 async function checkOnlineAvailable() {
@@ -627,35 +1358,23 @@ async function checkOnlineAvailable() {
         const r = await fetch('/api/check', { credentials: 'same-origin' });
         if (!r.ok) return { available: false };
         const j = await r.json();
-        return {
-            available: !!(j && j.ok),
-            loggedIn: !!(j && j.loggedIn),
-            hasKV: !!(j && j.hasKV),
-            hasAdmin: !!(j && j.hasAdmin),
-            username: j ? j.username : null
-        };
+        return { available: !!(j && j.ok), loggedIn: !!(j && j.loggedIn) };
     } catch (e) { return { available: false }; }
 }
 
 /* ================================================================
-   启动
+   Boot / auth
 ================================================================ */
 async function boot() {
     const s = await checkOnlineAvailable();
     onlineAvailable = s.available;
-
     const savedMode = safeLS('get', LS_MODE);
     if (s.available && s.loggedIn) {
         currentMode = MODE_ONLINE;
         safeLS('set', LS_MODE, MODE_ONLINE);
-        await enterMain();
-        return;
+        await enterMain(); return;
     }
-    if (savedMode === MODE_ONLINE && s.available) {
-        currentMode = MODE_ONLINE;
-        enterAuthMode('login');
-        return;
-    }
+    if (savedMode === MODE_ONLINE && s.available) { currentMode = MODE_ONLINE; enterAuthMode('login'); return; }
     if (savedMode === MODE_LOCAL) {
         currentMode = MODE_LOCAL;
         const u = safeLS('get', LS_USER), p = safeLS('get', LS_PASS), sess = safeLS('get', LS_SESS);
@@ -666,258 +1385,219 @@ async function boot() {
     }
     showModeSelection();
 }
+function refreshModePageTexts() {
+    const stEl = $('modeOnlineStatus');
+    stEl.innerHTML = onlineAvailable ? t('modeOnlineOk') : t('modeOnlineFail');
+}
 function showModeSelection() {
     hide('authPage'); hide('mainPage'); show('modePage');
     const onlineCard = $('modeOnline'), localCard = $('modeLocal');
-    const stEl = $('modeOnlineStatus');
-    if (onlineAvailable) {
-        onlineCard.classList.remove('disabled');
-        stEl.innerHTML = ' <b style="color:#2e7d32;">✓ 服务端可用</b>';
-        onlineCard.onclick = () => selectMode(MODE_ONLINE);
-    } else {
-        onlineCard.classList.add('disabled');
-        stEl.innerHTML = ' <b style="color:#c62828;">✗ 服务端未部署或不可达</b>';
-        onlineCard.onclick = () => toast('服务端不可用，请先完成 Cloudflare Pages 部署');
-    }
+    if (onlineAvailable) { onlineCard.classList.remove('disabled'); onlineCard.onclick = () => selectMode(MODE_ONLINE); }
+    else { onlineCard.classList.add('disabled'); onlineCard.onclick = () => toast(t('toastServerUnavailable')); }
     localCard.onclick = () => selectMode(MODE_LOCAL);
+    refreshModePageTexts();
 }
 function selectMode(mode) {
-    currentMode = mode;
-    safeLS('set', LS_MODE, mode);
+    currentMode = mode; safeLS('set', LS_MODE, mode);
     if (mode === MODE_ONLINE) enterAuthMode('login');
-    else {
-        const u = safeLS('get', LS_USER), p = safeLS('get', LS_PASS);
-        enterAuthMode(u && p ? 'login' : 'register');
+    else { const u = safeLS('get', LS_USER), p = safeLS('get', LS_PASS); enterAuthMode(u && p ? 'login' : 'register'); }
+}
+
+let currentAuthFlow = null;
+function refreshAuthPageTexts() {
+    if (!currentAuthFlow) return;
+    const tt = $('authTitle'), ss = $('authSubtitle'), b = $('authBtn'), cr = $('authConfirmRow'), ft = $('authFooterTip');
+    $('resetCredLink').classList.toggle('hidden', currentMode !== MODE_LOCAL);
+    if (currentAuthFlow === 'online-login') {
+        tt.textContent = t('authOnlineTitle'); ss.textContent = t('authOnlineSub');
+        b.textContent = t('authBtnLogin'); hide(cr); b.dataset.mode = 'online-login';
+        ft.textContent = t('authFooterOnline');
+    } else if (currentAuthFlow === 'local-register') {
+        tt.textContent = t('authLocalRegTitle'); ss.textContent = t('authLocalRegSub');
+        b.textContent = t('authBtnRegister'); show(cr); b.dataset.mode = 'local-register';
+        ft.textContent = t('authFooterLocal');
+    } else {
+        tt.textContent = t('authLocalLoginTitle'); ss.textContent = t('authLocalLoginSub');
+        b.textContent = t('authBtnLogin'); hide(cr); b.dataset.mode = 'local-login';
+        ft.textContent = t('authFooterLocal');
     }
 }
 function enterAuthMode(mode) {
     hide('modePage'); hide('mainPage'); show('authPage');
-    const t = $('authTitle'), s = $('authSubtitle'), b = $('authBtn'), cr = $('authConfirmRow'), ft = $('authFooterTip');
     $('authUser').value = $('authPass').value = $('authPass2').value = '';
-    $('resetCredLink').classList.toggle('hidden', currentMode !== MODE_LOCAL);
-
-    if (currentMode === MODE_ONLINE) {
-        t.textContent = '☁️ 在线模式 · 登录';
-        s.textContent = '使用服务端配置的管理员账号登录（存于 Cloudflare 环境变量）';
-        b.textContent = '登录';
-        hide(cr); b.dataset.mode = 'online-login';
-        ft.textContent = '会话以加密 Cookie 保存 7 天';
-    } else {
-        if (mode === 'register') {
-            t.textContent = '💻 本地模式 · 创建账户';
-            s.textContent = '首次使用请设置管理员用户名密码（仅保存在此浏览器）';
-            b.textContent = '创建账户'; show(cr); b.dataset.mode = 'local-register';
-        } else {
-            t.textContent = '💻 本地模式 · 登录';
-            s.textContent = '输入本机设置的管理员账号';
-            b.textContent = '登录'; hide(cr); b.dataset.mode = 'local-login';
-        }
-        ft.textContent = '凭据以 SHA-256 哈希保存在本地浏览器';
-    }
+    currentAuthFlow = currentMode === MODE_ONLINE ? 'online-login' : (mode === 'register' ? 'local-register' : 'local-login');
+    refreshAuthPageTexts();
 }
 async function handleAuth() {
     const mode = $('authBtn').dataset.mode;
     const u = $('authUser').value.trim(), p = $('authPass').value;
-    if (!u || !p) { toast('请输入用户名和密码'); return; }
-
+    if (!u || !p) { toast(t('toastNeedCreds')); return; }
     if (mode === 'online-login') {
         $('authBtn').disabled = true;
         const r = await api('/api/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
         $('authBtn').disabled = false;
-        if (r.ok && r.data && r.data.ok) { toast('登录成功'); await enterMain(); }
-        else toast((r.data && r.data.error) || '登录失败');
+        if (r.ok && r.data && r.data.ok) {
+            setEncPassword(p);
+            toast(t('toastLoginSuccess')); await enterMain();
+        } else toast((r.data && r.data.error) || t('toastLoginFail'));
         return;
     }
     if (mode === 'local-register') {
-        if (p !== $('authPass2').value) { toast('两次密码不一致'); return; }
-        if (p.length < 4) { toast('密码至少4位'); return; }
+        if (p !== $('authPass2').value) { toast(t('toastPwdMismatch')); return; }
+        if (p.length < 4) { toast(t('toastPwdTooShort')); return; }
         safeLS('set', LS_USER, await sha256(u));
         safeLS('set', LS_PASS, await sha256(p));
         safeLS('set', LS_SESS, '1');
-        toast('账户已创建'); await enterMain();
+        setEncPassword(p);
+        toast(t('toastAcctCreated')); await enterMain();
         return;
     }
     if (mode === 'local-login') {
         if (await sha256(u) === safeLS('get', LS_USER) && await sha256(p) === safeLS('get', LS_PASS)) {
-            safeLS('set', LS_SESS, '1'); await enterMain();
-        } else toast('用户名或密码错误');
+            safeLS('set', LS_SESS, '1');
+            setEncPassword(p);
+            await enterMain();
+        } else toast(t('toastBadLogin'));
     }
 }
 
+function refreshMainPageModeTexts() {
+    const badge = $('mainModeBadge');
+    if (currentMode === MODE_ONLINE) { badge.textContent = t('modeBadgeOnline'); badge.className = 'mode-badge mode-online'; $('sourceLabel').textContent = t('stSourceServer'); }
+    else { badge.textContent = t('modeBadgeLocal'); badge.className = 'mode-badge mode-local'; $('sourceLabel').textContent = t('stSourceFolder'); }
+    updateStatus(); updateEncKeyStatus();
+}
 async function enterMain() {
     hide('modePage'); hide('authPage'); show('mainPage');
-    const badge = $('mainModeBadge');
-    if (currentMode === MODE_ONLINE) {
-        badge.textContent = '☁️ 在线模式';
-        badge.className = 'mode-badge mode-online';
-        hide('btnConnect'); hide('btnChangePwd');
-        $('sourceLabel').textContent = '服务端：';
-        show('btnDataSource'); show('dataSourceBar');
-    } else {
-        badge.textContent = '💻 本地模式';
-        badge.className = 'mode-badge mode-local';
-        show('btnConnect'); show('btnChangePwd');
-        $('sourceLabel').textContent = '文件夹：';
-        hide('btnDataSource'); hide('dataSourceBar');
-    }
-    renderSectionTabs(); renderCurrentSection(); updateStatus();
-
+    if (currentMode === MODE_ONLINE) { hide('btnConnect'); hide('btnChangePwd'); show('btnDataSource'); show('dataSourceBar'); }
+    else { show('btnConnect'); show('btnChangePwd'); hide('btnDataSource'); hide('dataSourceBar'); }
+    refreshMainPageModeTexts();
+    renderSectionTabs(); renderCurrentSection();
     if (currentMode === MODE_ONLINE) {
         await loadData_online();
         await refreshBackupStatus_online();
         await loadSourceStatus_online();
     } else {
         const restored = await tryRestoreFolder();
-        if (!restored) {
-            const fetched = await tryFetchLoadDataJs();
-            if (!fetched) toast('请点击「连接文件夹」以启用保存与备份');
-        }
+        if (!restored) { const fetched = await tryFetchLoadDataJs(); if (!fetched) toast(t('toastConnectFolderHint')); }
     }
+    autoPromptUnlockIfNeeded();
 }
 function updateStatus() {
     if (currentMode === MODE_ONLINE) {
-        $('folderStatus').textContent = onlineAvailable ? '✓ API 可用' : '✗ API 不可用';
+        $('folderStatus').textContent = onlineAvailable ? t('stApiOk') : t('stApiFail');
         $('folderStatus').className = onlineAvailable ? 'st-ok' : 'st-warn';
     } else {
         if (folderHandle) {
-            $('folderStatus').textContent = '✓ 已连接（' + (folderHandle.name || '已选择') + '）';
-            $('folderStatus').className = 'st-ok';
-        } else {
-            $('folderStatus').textContent = '未连接（点击「连接文件夹」）';
-            $('folderStatus').className = 'st-warn';
-        }
+            const name = folderHandle.name || t('stFolderConnNoName');
+            $('folderStatus').textContent = t('stFolderConn', { name }); $('folderStatus').className = 'st-ok';
+        } else { $('folderStatus').textContent = t('stFolderNotConn'); $('folderStatus').className = 'st-warn'; }
     }
 }
 
 /* ================================================================
-   【在线】数据加载 / 保存 / 备份
+   Online data ops
 ================================================================ */
 async function loadData_online() {
     const r = await api('/api/data?format=json', { method: 'GET' });
     if (r.ok && r.data && r.data.ok && r.data.content) {
-        parseAndLoad(r.data.content);
-        $('dataStatus').textContent = '✓ 已从服务端加载';
-        $('dataStatus').className = 'st-ok';
-        return true;
+        await parseAndLoad(r.data.content);
+        $('dataStatus').textContent = t('stServerLoaded'); $('dataStatus').className = 'st-ok'; return true;
     }
-    $('dataStatus').textContent = '✗ 服务端加载失败';
-    $('dataStatus').className = 'st-warn';
-    return false;
+    $('dataStatus').textContent = t('stServerLoadFail'); $('dataStatus').className = 'st-warn'; return false;
 }
 async function saveDataJs_online() {
-    const content = generateDataJs();
+    const needPwd = customSectionsMeta.some(c => c.encrypted && !c.locked);
+    if (needPwd && !getEncPassword()) { toast(t('toastEncNoSessionPwd')); openUnlockModal(); return; }
+
+    let content;
+    try { content = await generateDataJs(); }
+    catch (e) { toast(t('toastSaveFail') + ': ' + e.message); return; }
+
     $('btnSave').disabled = true;
     const r = await api('/api/save', { method: 'POST', body: JSON.stringify({ content }) });
     $('btnSave').disabled = false;
-    if (r.status === 401) { toast('会话过期，请重新登录'); await logout_online(); return; }
+    if (r.status === 401) { toast(t('toastSessExpired')); await logout_online(); return; }
     if (r.ok && r.data && r.data.ok) {
         let msg;
-        if (r.data.unchanged) msg = '已保存（内容无变化，未创建备份）';
-        else if (r.data.backup) msg = '已保存（旧版本已备份为 ' + r.data.backup + '）';
-        else msg = '已保存';
+        if (r.data.unchanged) msg = t('toastSavedNoChange');
+        else if (r.data.backup) msg = t('toastSavedWithBackup', { name: r.data.backup });
+        else msg = t('toastSaved');
         toast(msg);
-        $('dataStatus').textContent = '✓ 已保存到服务端（' + new Date().toLocaleString() + '）';
+        $('dataStatus').textContent = t('stServerSaved', { time: new Date().toLocaleString() });
         $('dataStatus').className = 'st-ok';
-        await refreshBackupStatus_online();
-        await loadSourceStatus_online();
-    } else toast((r.data && r.data.error) || '保存失败');
+        await refreshBackupStatus_online(); await loadSourceStatus_online();
+    } else toast((r.data && r.data.error) || t('toastSaveFail'));
 }
 async function refreshBackupStatus_online() {
     const r = await api('/api/backups', { method: 'GET' });
-    if (r.ok && r.data && r.data.ok) $('bakStatus').textContent = r.data.backups.length + ' 个';
-    else $('bakStatus').textContent = '—';
+    $('bakStatus').textContent = (r.ok && r.data && r.data.ok) ? t('stItemsCount', { n: r.data.backups.length }) : '—';
 }
 
-/* ================================================================
-   【在线】首页数据源
-================================================================ */
 async function loadSourceStatus_online() {
     const r = await api('/api/source', { method: 'GET' });
     if (r.ok && r.data && r.data.ok) {
         const src = r.data.source;
-        const label = src === 'kv' ? '☁️ KV' : '📄 静态';
-        const cls = src === 'kv' ? 'st-ok' : 'st-warn';
-        $('dataSourceStatus').textContent = label + (r.data.configured ? '' : '（默认）');
-        $('dataSourceStatus').className = cls;
+        $('dataSourceStatus').textContent = (src === 'kv' ? t('dsKv') : t('dsStatic')) + (r.data.configured ? '' : t('dsDefault'));
+        $('dataSourceStatus').className = src === 'kv' ? 'st-ok' : 'st-warn';
         return src;
     }
-    $('dataSourceStatus').textContent = '✗ 读取失败';
-    $('dataSourceStatus').className = 'st-warn';
-    return null;
+    $('dataSourceStatus').textContent = t('stReadFail'); $('dataSourceStatus').className = 'st-warn'; return null;
 }
-function updateSourceModalUI(currentSource) {
-    $('srcKvBadge').classList.toggle('hidden', currentSource !== 'kv');
-    $('srcStaticBadge').classList.toggle('hidden', currentSource !== 'static');
-    $('srcKvCard').classList.toggle('is-current', currentSource === 'kv');
-    $('srcStaticCard').classList.toggle('is-current', currentSource === 'static');
+function updateSourceModalUI(cur) {
+    $('srcKvBadge').classList.toggle('hidden', cur !== 'kv');
+    $('srcStaticBadge').classList.toggle('hidden', cur !== 'static');
+    $('srcKvCard').classList.toggle('is-current', cur === 'kv');
+    $('srcStaticCard').classList.toggle('is-current', cur === 'static');
 }
-async function openSourceModal_online() {
-    const cur = await loadSourceStatus_online();
-    updateSourceModalUI(cur);
-    show('sourceModal');
-}
+async function openSourceModal_online() { const cur = await loadSourceStatus_online(); updateSourceModalUI(cur); show('sourceModal'); }
 async function setDataSource_online(source) {
     const card = source === 'kv' ? $('srcKvCard') : $('srcStaticCard');
-    if (card.classList.contains('is-current')) {
-        toast('当前已是「' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式') + '」'); return;
-    }
+    const modeLabel = source === 'kv' ? t('sourceKvTitle') : t('sourceStaticTitle');
+    if (card.classList.contains('is-current')) { toast(t('toastSwitchSame', { mode: modeLabel })); return; }
     const r = await api('/api/source', { method: 'POST', body: JSON.stringify({ source }) });
-    if (r.status === 401) { toast('会话过期，请重新登录'); await logout_online(); return; }
-    if (r.ok && r.data && r.data.ok) {
-        toast('已切换为：' + (source === 'kv' ? '☁️ KV 模式' : '📄 静态模式'));
-        await loadSourceStatus_online();
-        updateSourceModalUI(source);
-    } else toast((r.data && r.data.error) || '切换失败');
+    if (r.status === 401) { toast(t('toastSessExpired')); await logout_online(); return; }
+    if (r.ok && r.data && r.data.ok) { toast(t('toastSwitchedTo', { mode: modeLabel })); await loadSourceStatus_online(); updateSourceModalUI(source); }
+    else toast((r.data && r.data.error) || t('toastSwitchFail'));
 }
 
-/* ================================================================
-   【在线】历史备份
-================================================================ */
 async function openHistoryModal_online() {
     const r = await api('/api/backups', { method: 'GET' });
-    if (!r.ok || !r.data || !r.data.ok) { toast('加载备份失败'); return; }
+    if (!r.ok || !r.data || !r.data.ok) { toast(t('toastBkLoadFail')); return; }
     const list = r.data.backups;
     const wrap = $('backupList'); wrap.innerHTML = '';
-    $('historyHint').textContent = '存于 Cloudflare KV';
-    if (!list.length) wrap.innerHTML = '<div class="empty-hint">暂无历史备份</div>';
+    $('historyHint').innerHTML = t('historyHintOnline');
+    if (!list.length) wrap.innerHTML = '<div class="empty-hint">' + escapeHtml(t('historyEmpty')) + '</div>';
     else list.forEach(b => {
-        const el = document.createElement('div');
-        el.className = 'backup-item';
-        el.innerHTML = `
-            <div style="flex:1; min-width:0;">
-                <div class="bk-name">${escapeHtml(b.name)}</div>
-            </div>
+        const el = document.createElement('div'); el.className = 'backup-item';
+        el.innerHTML = `<div style="flex:1; min-width:0;"><div class="bk-name">${escapeHtml(b.name)}</div></div>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm" data-act="restore">↩ 恢复</button>
-                <button class="btn btn-ghost btn-sm" data-act="preview">👁 预览</button>
-                <button class="btn btn-success btn-sm" data-act="download">⬇ 下载</button>
-                <button class="btn btn-danger btn-sm" data-act="del">🗑</button>
-            </div>`;
-        el.querySelectorAll('button').forEach(btn => { btn.onclick = () => handleBackupAction_online(btn.dataset.act, b.name); });
+                <button class="btn btn-primary btn-sm" data-act="restore">${escapeHtml(t('bkRestore'))}</button>
+                <button class="btn btn-ghost btn-sm" data-act="preview">${escapeHtml(t('bkPreview'))}</button>
+                <button class="btn btn-success btn-sm" data-act="download">${escapeHtml(t('bkDownload'))}</button>
+                <button class="btn btn-danger btn-sm" data-act="del">🗑</button></div>`;
+        el.querySelectorAll('button').forEach(btn => btn.onclick = () => handleBackupAction_online(btn.dataset.act, b.name));
         wrap.appendChild(el);
     });
     show('historyModal');
 }
 async function handleBackupAction_online(act, name) {
     if (act === 'restore') {
-        if (!confirm(`确定把 "${name}" 恢复为当前主数据？\n（当前数据会自动备份）`)) return;
+        if (!confirm(t('confirmRestoreOnline', { name }))) return;
         const r = await api('/api/backups?name=' + encodeURIComponent(name) + '&action=restore', { method: 'POST' });
-        if (r.ok && r.data && r.data.ok) {
-            toast('已恢复并生效'); hide('historyModal');
-            await loadData_online(); await refreshBackupStatus_online();
-        } else toast((r.data && r.data.error) || '恢复失败');
+        if (r.ok && r.data && r.data.ok) { toast(t('toastRestoredOk')); hide('historyModal'); await loadData_online(); await refreshBackupStatus_online(); }
+        else toast((r.data && r.data.error) || t('alertRestoreFail', { msg: '' }));
     } else if (act === 'preview' || act === 'download') {
         const r = await api('/api/backups?name=' + encodeURIComponent(name), { method: 'GET' });
-        if (!(r.ok && r.data && r.data.ok)) { toast('读取失败'); return; }
+        if (!(r.ok && r.data && r.data.ok)) { toast(t('toastReadFail')); return; }
         const text = r.data.content;
         if (act === 'download') {
             const blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data_' + name + '.js'; a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 500);
         } else {
-            $('ioTitle').textContent = '👁 预览：' + name;
-            hide('ioImportBody'); show('ioExportBody');
-            hide('btnIoImportConfirm'); show('btnIoDownload');
+            $('ioTitle').textContent = t('ioPreviewTitle', { name });
+            hide('ioImportBody'); show('ioExportBody'); hide('btnIoImportConfirm'); show('btnIoDownload');
             $('ioExportContent').textContent = text;
             $('btnIoDownload').onclick = () => {
                 const blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
@@ -927,20 +1607,20 @@ async function handleBackupAction_online(act, name) {
             show('ioModal');
         }
     } else if (act === 'del') {
-        if (!confirm(`确认删除备份 ${name}？`)) return;
+        if (!confirm(t('confirmDelBackup', { name }))) return;
         const r = await api('/api/backups?name=' + encodeURIComponent(name), { method: 'DELETE' });
-        if (r.ok && r.data && r.data.ok) { toast('已删除'); openHistoryModal_online(); refreshBackupStatus_online(); }
-        else toast('删除失败');
+        if (r.ok && r.data && r.data.ok) { toast(t('toastDeleted')); openHistoryModal_online(); refreshBackupStatus_online(); }
+        else toast(t('toastDeleteFail'));
     }
 }
 async function logout_online() {
     try { await api('/api/logout', { method: 'POST' }); } catch {}
-    safeLS('del', LS_MODE);
-    boot();
+    clearEncPassword();
+    safeLS('del', LS_MODE); boot();
 }
 
 /* ================================================================
-   【本地】File System Access API（保持原有，仅 saveDataJs_local 内容对比已加）
+   Local FSA
 ================================================================ */
 function fsaSupported() { return typeof window.showDirectoryPicker === 'function'; }
 async function verifyPermission(h, mode = 'readwrite') {
@@ -950,20 +1630,14 @@ async function verifyPermission(h, mode = 'readwrite') {
     return false;
 }
 async function pickFolder() {
-    if (!fsaSupported()) { alert('当前浏览器不支持 File System Access API。\n请使用 Chrome / Edge 并通过 http:// 或 https:// 访问此页面。'); return false; }
-    try {
-        const h = await window.showDirectoryPicker({ mode: 'readwrite' });
-        folderHandle = h;
-        await idbSet('folderHandle', h);
-        await afterFolderConnected();
-        return true;
-    } catch (e) { if (e.name !== 'AbortError') console.warn(e); return false; }
+    if (!fsaSupported()) { alert(t('alertNoFSA')); return false; }
+    try { const h = await window.showDirectoryPicker({ mode: 'readwrite' }); folderHandle = h; await idbSet('folderHandle', h); await afterFolderConnected(); return true; }
+    catch (e) { if (e.name !== 'AbortError') console.warn(e); return false; }
 }
 async function tryRestoreFolder() {
     if (!fsaSupported()) return false;
     try {
-        const h = await idbGet('folderHandle');
-        if (!h) return false;
+        const h = await idbGet('folderHandle'); if (!h) return false;
         const perm = await h.queryPermission({ mode: 'readwrite' });
         if (perm === 'granted') { folderHandle = h; await afterFolderConnected(); return true; }
         else { folderHandle = h; updateStatus(); return false; }
@@ -972,104 +1646,75 @@ async function tryRestoreFolder() {
 async function afterFolderConnected() {
     updateStatus();
     const loaded = await loadDataJsFromFolder();
-    if (loaded) toast('已连接文件夹并加载 data.js');
+    if (loaded) toast(t('toastConnectedLoaded'));
     await refreshBackupStatus_local();
 }
 async function loadDataJsFromFolder() {
     if (!folderHandle) return false;
     try {
         dataJsHandle = await folderHandle.getFileHandle('data.js');
-        const file = await dataJsHandle.getFile();
-        const text = await file.text();
-        parseAndLoad(text);
-        $('dataStatus').textContent = '✓ 已加载（' + new Date(file.lastModified).toLocaleString() + '）';
-        $('dataStatus').className = 'st-ok';
-        return true;
-    } catch (e) {
-        $('dataStatus').textContent = '✗ 文件夹中未找到 data.js';
-        $('dataStatus').className = 'st-warn';
-        return false;
-    }
+        const file = await dataJsHandle.getFile(); const text = await file.text();
+        await parseAndLoad(text);
+        $('dataStatus').textContent = t('stLoadedTime', { time: new Date(file.lastModified).toLocaleString() });
+        $('dataStatus').className = 'st-ok'; return true;
+    } catch (e) { $('dataStatus').textContent = t('stNoDataJs'); $('dataStatus').className = 'st-warn'; return false; }
 }
 async function tryFetchLoadDataJs() {
     try {
-        const r = await fetch('./data.js?_t=' + Date.now());
-        if (!r.ok) return false;
-        const text = await r.text();
-        parseAndLoad(text);
-        $('dataStatus').textContent = '✓ 通过 fetch 已加载';
-        $('dataStatus').className = 'st-ok';
-        return true;
+        const r = await fetch('./data.js?_t=' + Date.now()); if (!r.ok) return false;
+        const text = await r.text(); await parseAndLoad(text);
+        $('dataStatus').textContent = t('stFetchLoaded'); $('dataStatus').className = 'st-ok'; return true;
     } catch (e) { return false; }
 }
 async function saveDataJs_local() {
-    if (!folderHandle) { alert('请先点击「连接文件夹」。'); return; }
-    if (!(await verifyPermission(folderHandle))) { alert('未获得读写权限。'); return; }
-    const content = generateDataJs();
+    if (!folderHandle) { alert(t('alertNeedFolderSave')); return; }
+    if (!(await verifyPermission(folderHandle))) { alert(t('alertNoPermRW')); return; }
+
+    const needPwd = customSectionsMeta.some(c => c.encrypted && !c.locked);
+    if (needPwd && !getEncPassword()) { toast(t('toastEncNoSessionPwd')); openUnlockModal(); return; }
+
+    let content;
+    try { content = await generateDataJs(); }
+    catch (e) { alert(t('alertSaveFail', { msg: e.message })); return; }
+
     try {
         let backupName = null, bakDir = null, oldText = '';
-        try {
-            const oldHandle = await folderHandle.getFileHandle('data.js');
-            const oldFile = await oldHandle.getFile();
-            oldText = await oldFile.text();
-        } catch (e) {}
-        const contentChanged = oldText !== content;
-
-        if (oldText && oldText.trim() && contentChanged) {
+        try { const oldHandle = await folderHandle.getFileHandle('data.js'); const oldFile = await oldHandle.getFile(); oldText = await oldFile.text(); } catch (e) {}
+        const changed = oldText !== content;
+        if (oldText && oldText.trim() && changed) {
             try {
                 bakDir = await folderHandle.getDirectoryHandle('databak', { create: true });
                 backupName = 'data_' + timestamp() + '.js';
                 const bakFh = await bakDir.getFileHandle(backupName, { create: true });
-                const bw = await bakFh.createWritable();
-                await bw.write(oldText); await bw.close();
-            } catch (e) { console.warn('旧版本备份跳过：', e.message); backupName = null; }
+                const bw = await bakFh.createWritable(); await bw.write(oldText); await bw.close();
+            } catch (e) { backupName = null; }
         }
-
         const fh = await folderHandle.getFileHandle('data.js', { create: true });
-        const w = await fh.createWritable();
-        await w.write(content); await w.close();
-        dataJsHandle = fh;
-
-        let cleanedCount = 0;
-        if (bakDir) {
-            try { cleanedCount = await pruneOldBackups_local(bakDir); }
-            catch (e) { console.warn('清理旧备份失败：', e.message); }
-        }
-
+        const w = await fh.createWritable(); await w.write(content); await w.close(); dataJsHandle = fh;
+        let cleaned = 0; if (bakDir) { try { cleaned = await pruneOldBackups_local(bakDir); } catch (e) {} }
         const file = await fh.getFile();
-        $('dataStatus').textContent = '✓ 已保存（' + new Date(file.lastModified).toLocaleString() + '）';
+        $('dataStatus').textContent = t('stSavedTime', { time: new Date(file.lastModified).toLocaleString() });
         $('dataStatus').className = 'st-ok';
-
         let msg;
-        if (!contentChanged) msg = '已保存（内容无变化，未创建备份）';
-        else if (backupName) {
-            msg = '已保存，旧版本已备份为 ' + backupName;
-            if (cleanedCount > 0) msg += `（已清理 ${cleanedCount} 个最旧备份）`;
-        } else msg = '已保存';
+        if (!changed) msg = t('toastSavedNoChange');
+        else if (backupName) { msg = t('toastSaveLocalOk', { name: backupName }); if (cleaned > 0) msg += t('toastSaveLocalCleaned', { n: cleaned }); }
+        else msg = t('toastSaved');
         toast(msg);
-
         await refreshBackupStatus_local();
-    } catch (e) { alert('保存失败：' + e.message); }
+    } catch (e) { alert(t('alertSaveFail', { msg: e.message })); }
 }
 async function pruneOldBackups_local(bakDir) {
     const arr = [];
     for await (const entry of bakDir.values()) {
         if (entry.kind === 'file' && /\.js$/i.test(entry.name)) {
-            try {
-                const f = await entry.getFile();
-                arr.push({ name: entry.name, modified: f.lastModified });
-            } catch (e) {}
+            try { const f = await entry.getFile(); arr.push({ name: entry.name, modified: f.lastModified }); } catch (e) {}
         }
     }
     if (arr.length <= MAX_BACKUPS_LOCAL) return 0;
     arr.sort((a, b) => b.modified - a.modified);
-    const toDelete = arr.slice(MAX_BACKUPS_LOCAL);
-    let deleted = 0;
-    for (const item of toDelete) {
-        try { await bakDir.removeEntry(item.name); deleted++; }
-        catch (e) { console.warn('删除备份失败：' + item.name, e.message); }
-    }
-    return deleted;
+    const toDel = arr.slice(MAX_BACKUPS_LOCAL); let n = 0;
+    for (const it of toDel) { try { await bakDir.removeEntry(it.name); n++; } catch (e) {} }
+    return n;
 }
 function timestamp() {
     const d = new Date(), p = n => String(n).padStart(2, '0');
@@ -1081,66 +1726,43 @@ async function listBackups_local() {
         const bakDir = await folderHandle.getDirectoryHandle('databak', { create: true });
         const arr = [];
         for await (const entry of bakDir.values()) {
-            if (entry.kind === 'file' && /\.js$/i.test(entry.name)) {
-                const f = await entry.getFile();
-                arr.push({ name: entry.name, size: f.size, modified: f.lastModified, handle: entry });
-            }
+            if (entry.kind === 'file' && /\.js$/i.test(entry.name)) { const f = await entry.getFile(); arr.push({ name: entry.name, size: f.size, modified: f.lastModified, handle: entry }); }
         }
-        arr.sort((a, b) => b.modified - a.modified);
-        return arr;
+        arr.sort((a, b) => b.modified - a.modified); return arr;
     } catch (e) { return []; }
 }
-async function refreshBackupStatus_local() {
-    const list = await listBackups_local();
-    $('bakStatus').textContent = list.length ? (list.length + ' 个') : '0 个';
-}
+async function refreshBackupStatus_local() { const list = await listBackups_local(); $('bakStatus').textContent = t('stItemsCount', { n: list.length }); }
 async function openHistoryModal_local() {
-    if (!folderHandle) { alert('请先连接文件夹'); return; }
+    if (!folderHandle) { alert(t('toastNeedFolder')); return; }
     const list = await listBackups_local();
-    $('historyHint').innerHTML = '位于当前文件夹的 <code>databak/</code> 子目录';
+    $('historyHint').innerHTML = t('historyHintLocal');
     const wrap = $('backupList'); wrap.innerHTML = '';
-    if (!list.length) wrap.innerHTML = '<div class="empty-hint">暂无历史备份</div>';
+    if (!list.length) wrap.innerHTML = '<div class="empty-hint">' + escapeHtml(t('historyEmpty')) + '</div>';
     else list.forEach(b => {
-        const el = document.createElement('div');
-        el.className = 'backup-item';
-        el.innerHTML = `
-            <div style="flex:1; min-width:0;">
-                <div class="bk-name">${escapeHtml(b.name)}</div>
-                <div class="bk-meta">${(b.size/1024).toFixed(2)} KB · ${new Date(b.modified).toLocaleString()}</div>
-            </div>
+        const el = document.createElement('div'); el.className = 'backup-item';
+        const meta = t('bkMeta', { size: (b.size/1024).toFixed(2), time: new Date(b.modified).toLocaleString() });
+        el.innerHTML = `<div style="flex:1; min-width:0;"><div class="bk-name">${escapeHtml(b.name)}</div><div class="bk-meta">${escapeHtml(meta)}</div></div>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                <button class="btn btn-primary btn-sm" data-act="restore">↩ 恢复</button>
-                <button class="btn btn-ghost btn-sm" data-act="preview">👁 预览</button>
-                <button class="btn btn-success btn-sm" data-act="download">⬇ 下载</button>
-                <button class="btn btn-danger btn-sm" data-act="del">🗑</button>
-            </div>`;
-        el.querySelectorAll('button').forEach(btn => { btn.onclick = () => handleBackupAction_local(btn.dataset.act, b); });
+                <button class="btn btn-primary btn-sm" data-act="restore">${escapeHtml(t('bkRestore'))}</button>
+                <button class="btn btn-ghost btn-sm" data-act="preview">${escapeHtml(t('bkPreview'))}</button>
+                <button class="btn btn-success btn-sm" data-act="download">${escapeHtml(t('bkDownload'))}</button>
+                <button class="btn btn-danger btn-sm" data-act="del">🗑</button></div>`;
+        el.querySelectorAll('button').forEach(btn => btn.onclick = () => handleBackupAction_local(btn.dataset.act, b));
         wrap.appendChild(el);
     });
     show('historyModal');
 }
 async function handleBackupAction_local(act, bak) {
     if (act === 'restore') {
-    if (!folderHandle) {
-        alert('请先连接文件夹，否则无法立即写入 data.js。');
-        return;
-    }
-    if (!confirm(`确定把 "${bak.name}" 恢复并立即写入 data.js？\n\n当前 data.js 会先自动备份。`)) return;
-    try {
-        const f = await bak.handle.getFile();
-        const text = await f.text();
-        if (!parseAndLoad(text)) return;   // 解析失败时 parseAndLoad 已弹窗，直接中止
-        hide('historyModal');
-        await saveDataJs_local();          // ← 关键：立即写入磁盘（内部会自动备份当前版本）
-    } catch (e) {
-        alert('恢复失败：' + e.message);
-    }
-} else if (act === 'preview') {
+        if (!folderHandle) { alert(t('alertNoFolderRestore')); return; }
+        if (!confirm(t('confirmRestoreLocal', { name: bak.name }))) return;
+        try { const f = await bak.handle.getFile(); const text = await f.text(); if (!(await parseAndLoad(text))) return; hide('historyModal'); await saveDataJs_local(); }
+        catch (e) { alert(t('alertRestoreFail', { msg: e.message })); }
+    } else if (act === 'preview') {
         try {
             const f = await bak.handle.getFile(); const text = await f.text();
-            $('ioTitle').textContent = '👁 预览：' + bak.name;
-            hide('ioImportBody'); show('ioExportBody');
-            hide('btnIoImportConfirm'); show('btnIoDownload');
+            $('ioTitle').textContent = t('ioPreviewTitle', { name: bak.name });
+            hide('ioImportBody'); show('ioExportBody'); hide('btnIoImportConfirm'); show('btnIoDownload');
             $('ioExportContent').textContent = text;
             $('btnIoDownload').onclick = () => {
                 const blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
@@ -1148,94 +1770,71 @@ async function handleBackupAction_local(act, bak) {
                 setTimeout(() => URL.revokeObjectURL(a.href), 500);
             };
             show('ioModal');
-        } catch (e) { alert('读取失败：' + e.message); }
+        } catch (e) { alert(t('alertReadFail', { msg: e.message })); }
     } else if (act === 'download') {
         const f = await bak.handle.getFile();
         const blob = new Blob([await f.text()], { type: 'text/javascript;charset=utf-8' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = bak.name; a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 500);
     } else if (act === 'del') {
-        if (!confirm(`确认删除备份 ${bak.name}？`)) return;
-        try { const bakDir = await folderHandle.getDirectoryHandle('databak'); await bakDir.removeEntry(bak.name); toast('已删除'); openHistoryModal_local(); refreshBackupStatus_local(); }
-        catch (e) { alert('删除失败：' + e.message); }
+        if (!confirm(t('confirmDelBackup', { name: bak.name }))) return;
+        try { const bakDir = await folderHandle.getDirectoryHandle('databak'); await bakDir.removeEntry(bak.name); toast(t('toastDeleted')); openHistoryModal_local(); refreshBackupStatus_local(); }
+        catch (e) { alert(t('alertDeleteFail', { msg: e.message })); }
     }
 }
 
 /* ================================================================
-   入口分叉
+   Dispatch
 ================================================================ */
 async function doReload() {
-    if (currentMode === MODE_ONLINE) {
-        await loadData_online();
-        await refreshBackupStatus_online();
-        await loadSourceStatus_online();
-    } else {
-        if (folderHandle) {
-            if (!(await verifyPermission(folderHandle))) { alert('未获得权限'); return; }
-            await loadDataJsFromFolder(); await refreshBackupStatus_local();
-        } else {
-            const ok = await tryFetchLoadDataJs();
-            if (ok) toast('已通过 fetch 重载'); else toast('无法加载，请先连接文件夹');
-        }
+    if (currentMode === MODE_ONLINE) { await loadData_online(); await refreshBackupStatus_online(); await loadSourceStatus_online(); }
+    else {
+        if (folderHandle) { if (!(await verifyPermission(folderHandle))) { alert(t('alertNoPermission')); return; } await loadDataJsFromFolder(); await refreshBackupStatus_local(); }
+        else { const ok = await tryFetchLoadDataJs(); if (ok) toast(t('toastLoadedFetch')); else toast(t('toastLoadFail')); }
     }
+    autoPromptUnlockIfNeeded();
 }
-async function doSave() {
-    if (currentMode === MODE_ONLINE) await saveDataJs_online();
-    else await saveDataJs_local();
-}
-async function doHistory() {
-    if (currentMode === MODE_ONLINE) await openHistoryModal_online();
-    else await openHistoryModal_local();
-}
+async function doSave() { if (currentMode === MODE_ONLINE) await saveDataJs_online(); else await saveDataJs_local(); }
+async function doHistory() { if (currentMode === MODE_ONLINE) await openHistoryModal_online(); else await openHistoryModal_local(); }
 async function doLogout() {
+    clearEncPassword();
     if (currentMode === MODE_ONLINE) { await logout_online(); }
     else { safeLS('del', LS_SESS); boot(); }
 }
 function doSwitchMode() {
+    clearEncPassword();
     if (currentMode === MODE_ONLINE) { api('/api/logout', { method: 'POST' }).catch(()=>{}); }
     else { safeLS('del', LS_SESS); }
-    safeLS('del', LS_MODE);
-    boot();
+    safeLS('del', LS_MODE); boot();
 }
 
 /* ================================================================
-   解析 data.js + 提取注释
+   Comment preservation
 ================================================================ */
 function extractComments(text) {
     const result = { header: '', sections: {} };
     const lines = text.split('\n');
     const sectionLineIdx = {};
     const sectionKeys = [...BUILTIN_SECTIONS.map(s => s.key), 'customSections'];
-
     lines.forEach((line, idx) => {
         sectionKeys.forEach(key => {
             if (sectionLineIdx[key] === undefined) {
-                const re = new RegExp(`^\\s*(?:var|let|const)\\s+${key}\\s*=`);
+                const re = new RegExp('^\\s*(?:var|let|const)\\s+' + key + '\\s*=');
                 if (re.test(line)) sectionLineIdx[key] = idx;
             }
         });
     });
     Object.keys(sectionLineIdx).forEach(key => {
-        const startLine = sectionLineIdx[key];
-        const collected = [];
-        let i = startLine - 1;
+        const start = sectionLineIdx[key]; const collected = []; let i = start - 1;
         while (i >= 0 && lines[i].trim() === '') i--;
-        let inBlockComment = false;
+        let inB = false;
         while (i >= 0) {
-            const t = lines[i].trim();
-            if (inBlockComment) {
-                collected.unshift(lines[i]);
-                if (t.startsWith('/*')) inBlockComment = false;
-                i--; continue;
-            }
-            if (t === '') break;
-            if (t.startsWith('//')) { collected.unshift(lines[i]); i--; continue; }
-            if (t.endsWith('*/')) {
-                collected.unshift(lines[i]);
-                if (!t.startsWith('/*')) inBlockComment = true;
-                i--; continue;
-            }
-            if (t.startsWith('/*')) { collected.unshift(lines[i]); i--; continue; }
+            const ts = lines[i].trim();
+            if (inB) { collected.unshift(lines[i]); if (ts.startsWith('/*')) inB = false; i--; continue; }
+            if (ts === '') break;
+            if (ts.startsWith('//')) { collected.unshift(lines[i]); i--; continue; }
+            if (ts.endsWith('*/')) { collected.unshift(lines[i]); if (!ts.startsWith('/*')) inB = true; i--; continue; }
+            if (ts.startsWith('/*')) { collected.unshift(lines[i]); i--; continue; }
             break;
         }
         if (collected.length) result.sections[key] = collected.join('\n');
@@ -1243,23 +1842,25 @@ function extractComments(text) {
     const firstKey = sectionKeys.find(k => sectionLineIdx[k] !== undefined);
     if (firstKey !== undefined) {
         const firstIdx = sectionLineIdx[firstKey];
-        const firstComment = result.sections[firstKey] || '';
-        const firstCommentLineCount = firstComment ? firstComment.split('\n').length : 0;
-        let headerEnd = firstIdx - firstCommentLineCount;
+        const firstCom = result.sections[firstKey] || '';
+        const firstComLines = firstCom ? firstCom.split('\n').length : 0;
+        let headerEnd = firstIdx - firstComLines;
         while (headerEnd > 0 && lines[headerEnd - 1].trim() === '') headerEnd--;
         if (headerEnd > 0) result.header = lines.slice(0, headerEnd).join('\n');
     }
     return result;
 }
 
-function parseAndLoad(text) {
+/* ================================================================
+   parseAndLoad（async）
+================================================================ */
+async function parseAndLoad(text) {
     try {
         const c = extractComments(text);
         if (c.header) preservedComments.header = c.header;
         else if (preservedComments.header == null) preservedComments.header = DEFAULT_COMMENTS.header;
         Object.keys(c.sections).forEach(k => { preservedComments.sections[k] = c.sections[k]; });
 
-        // ★ 多了 customSections 变量
         const wrapper = new Function(
             'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections;' +
             text + ';' +
@@ -1267,96 +1868,96 @@ function parseAndLoad(text) {
         );
         const r = wrapper();
 
-        // 内置大类
         BUILTIN_SECTIONS.forEach(s => { store[s.key] = Array.isArray(r[s.key]) ? r[s.key] : []; });
-
-        // ★ 清除旧的自定义大类残留
-        Object.keys(store).forEach(k => {
-            if (!isBuiltinKey(k)) delete store[k];
-        });
+        Object.keys(store).forEach(k => { if (!isBuiltinKey(k)) delete store[k]; });
         customSectionsMeta = [];
 
-        // ★ 解析自定义大类
         if (Array.isArray(r.customSections)) {
-            r.customSections.forEach(c => {
-                if (!c || !c.key || typeof c.key !== 'string') return;
-                if (isBuiltinKey(c.key)) return;  // 防止冲突
-                if (customSectionsMeta.find(x => x.key === c.key)) return;  // 去重
-                customSectionsMeta.push({
-                    key: c.key,
-                    label: c.label || c.key,
-                    dynamic: !!c.dynamic
-                });
-                store[c.key] = Array.isArray(c.cards) ? c.cards : [];
-            });
+            const pwd = getEncPassword();
+            for (const c of r.customSections) {
+                if (!c || !c.key || typeof c.key !== 'string') continue;
+                if (isBuiltinKey(c.key)) continue;
+                if (customSectionsMeta.find(x => x.key === c.key)) continue;
+                const label = (c.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : (c.label || c.key);
+                const meta = { key: c.key, label, dynamic: !!c.dynamic, encrypted: false, locked: false, _enc: null };
+
+                if (c.encrypted && c.enc) {
+                    meta.encrypted = true;
+                    if (pwd) {
+                        try {
+                            const dec = await decryptJSON(pwd, c.enc);
+                            meta.locked = false;
+                            store[c.key] = Array.isArray(dec) ? dec : [];
+                        } catch (e) {
+                            meta.locked = true; meta._enc = c.enc; store[c.key] = [];
+                        }
+                    } else {
+                        meta.locked = true; meta._enc = c.enc; store[c.key] = [];
+                    }
+                } else {
+                    store[c.key] = Array.isArray(c.cards) ? c.cards : [];
+                }
+                customSectionsMeta.push(meta);
+            }
         }
 
-        // 校验 currentSection
-        if (!getSections().find(s => s.key === currentSection)) {
-            currentSection = BUILTIN_SECTIONS[0].key;
-        }
-
-        renderSectionTabs();
-        renderCurrentSection();
+        if (!getSections().find(s => s.key === currentSection)) currentSection = BUILTIN_SECTIONS[0].key;
+        renderSectionTabs(); renderCurrentSection(); updateEncKeyStatus();
         return true;
     } catch (e) {
-        console.error(e);
-        alert('解析 data.js 失败：' + e.message);
-        return false;
+        console.error(e); alert(t('alertParseFail', { msg: e.message })); return false;
     }
 }
 
 /* ================================================================
-   生成 data.js
+   generateDataJs（async）
 ================================================================ */
-function generateDataJs() {
+async function generateDataJs() {
     const parts = [];
     const header = (preservedComments.header && preservedComments.header.trim()) ? preservedComments.header : DEFAULT_COMMENTS.header;
-    parts.push(header.replace(/\r/g, ''));
-    parts.push('\n\n');
+    parts.push(header.replace(/\r/g, '')); parts.push('\n\n');
 
     BUILTIN_SECTIONS.forEach((s) => {
         const c = (preservedComments.sections[s.key] && preservedComments.sections[s.key].trim()) ? preservedComments.sections[s.key] : DEFAULT_COMMENTS.sections[s.key];
         if (c) { parts.push(c.replace(/\r/g, '')); parts.push('\n'); }
-        parts.push('var ' + s.key + ' = ' + pretty(store[s.key]) + ';\n');
-        parts.push('\n');
+        parts.push('var ' + s.key + ' = ' + pretty(store[s.key]) + ';\n'); parts.push('\n');
     });
 
-    // ★ 自定义大类
     const customComment = (preservedComments.sections['customSections'] && preservedComments.sections['customSections'].trim())
-                          ? preservedComments.sections['customSections']
-                          : DEFAULT_COMMENTS.sections.customSections;
+        ? preservedComments.sections['customSections'] : DEFAULT_COMMENTS.sections.customSections;
     parts.push(customComment + '\n');
-    const csArr = customSectionsMeta.map(c => ({
-        key: c.key,
-        label: c.label,
-        dynamic: !!c.dynamic,
-        cards: store[c.key] || []
-    }));
-    parts.push('var customSections = ' + pretty(csArr) + ';\n');
 
+    const csArr = [];
+    for (const c of customSectionsMeta) {
+        if (c.encrypted) {
+            if (c.locked) {
+                csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, encrypted: true, enc: c._enc, cards: [] });
+            } else {
+                const pwd = getEncPassword();
+                if (!pwd) throw new Error(t('toastEncNoSessionPwd'));
+                const enc = await encryptJSON(pwd, store[c.key] || []);
+                csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, encrypted: true, enc, cards: [] });
+            }
+        } else {
+            csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, cards: store[c.key] || [] });
+        }
+    }
+    parts.push('var customSections = ' + pretty(csArr) + ';\n');
     return parts.join('');
 }
 function pretty(val, indent = 0) {
     const pad = '    '.repeat(indent), pad1 = '    '.repeat(indent + 1);
-    if (Array.isArray(val)) {
-        if (!val.length) return '[]';
-        return '[\n' + val.map(v => pad1 + pretty(v, indent + 1)).join(',\n') + '\n' + pad + ']';
-    }
+    if (Array.isArray(val)) { if (!val.length) return '[]'; return '[\n' + val.map(v => pad1 + pretty(v, indent + 1)).join(',\n') + '\n' + pad + ']'; }
     if (val !== null && typeof val === 'object') {
-        const keys = Object.keys(val);
-        if (!keys.length) return '{}';
-        return '{\n' + keys.map(k => {
-            const ks = /^[a-zA-Z_$][\w$]*$/.test(k) ? k : JSON.stringify(k);
-            return pad1 + ks + ': ' + pretty(val[k], indent + 1);
-        }).join(',\n') + '\n' + pad + '}';
+        const keys = Object.keys(val); if (!keys.length) return '{}';
+        return '{\n' + keys.map(k => { const ks = /^[a-zA-Z_$][\w$]*$/.test(k) ? k : JSON.stringify(k); return pad1 + ks + ': ' + pretty(val[k], indent + 1); }).join(',\n') + '\n' + pad + '}';
     }
     if (typeof val === 'string') return "'" + val.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '') + "'";
     return String(val);
 }
 
 /* ================================================================
-   分区 Tab & 卡片列表
+   Tab 渲染
 ================================================================ */
 function renderSectionTabs() {
     const wrap = $('sectionTabs'); wrap.innerHTML = '';
@@ -1364,35 +1965,60 @@ function renderSectionTabs() {
         const el = document.createElement('div');
         let cls = 'section-tab';
         if (s.key === currentSection) cls += ' active';
-        if (!s.builtin) cls += ' is-custom';
+        if (!s.builtin) {
+            if (s.locked) cls += ' is-locked';
+            else if (s.encrypted) cls += ' is-encrypted';
+            else cls += ' is-custom';
+        }
         el.className = cls;
-        el.textContent = s.label;
-        if (!s.builtin) el.title = '自定义大类';
+        let label = s.label;
+        if (s.locked) label = '🔒 ' + label;
+        else if (s.encrypted) label = '🔐 ' + label;
+        el.textContent = label;
+        if (!s.builtin) el.title = t('secCustomTitle');
         el.onclick = () => { currentSection = s.key; renderSectionTabs(); renderCurrentSection(); };
         wrap.appendChild(el);
     });
-    // 末尾追加大类管理按钮
-    const manage = document.createElement('div');
-    manage.className = 'section-tab is-manage';
-    manage.textContent = '🗂 大类管理';
-    manage.onclick = openSectionsModal;
+    const manage = document.createElement('div'); manage.className = 'section-tab is-manage'; manage.textContent = t('secManageTab'); manage.onclick = openSectionsModal;
     wrap.appendChild(manage);
 }
 function renderCurrentSection() {
-    const sec = getSections().find(x => x.key === currentSection);
-    if (!sec) return;
+    const sec = getSections().find(x => x.key === currentSection); if (!sec) return;
     const arr = store[sec.key] || [];
-    const customTag = sec.builtin ? '' : ' <span style="font-size:12px; padding:2px 8px; background:#ffe0b2; color:#e65100; border-radius:10px; vertical-align:middle;">自定义</span>';
-    $('currentSectionTitle').innerHTML = escapeHtml(sec.label) + customTag + ' <span style="font-size:14px;color:#888;font-weight:400;">（共 ' + arr.length + ' 项）</span>';
+    let badges = '';
+    if (!sec.builtin) {
+        badges += t('customBadgeHtml');
+        if (sec.encrypted) badges += t('encBadgeHtml');
+        if (sec.locked) badges += t('lockedBadgeHtml');
+    }
+    const title = sec.locked
+        ? escapeHtml(sec.label) + badges
+        : escapeHtml(sec.label) + badges + ' <span style="font-size:14px;color:#888;font-weight:400;">' + escapeHtml(t('titleItems', { n: arr.length })) + '</span>';
+    $('currentSectionTitle').innerHTML = title;
+
     const list = $('cardList'); list.innerHTML = '';
-    if (!arr.length) { list.innerHTML = '<div class="empty-hint">暂无数据，点击右上角「➕ 新增卡片」</div>'; return; }
+    if (sec.locked) {
+        $('btnAddCard').classList.add('hidden');
+        const panel = document.createElement('div');
+        panel.className = 'locked-panel';
+        panel.innerHTML = `
+            <div class="lk-icon">🔒</div>
+            <div class="lk-title">${escapeHtml(t('lockedPanelTitle'))}</div>
+            <div class="lk-desc">${escapeHtml(t('lockedPanelDesc'))}</div>
+            <button class="btn btn-primary" id="btnUnlockFromPanel">${escapeHtml(t('lockedPanelBtn'))}</button>`;
+        list.appendChild(panel);
+        $('btnUnlockFromPanel').onclick = () => openUnlockModal(sec.key);
+        return;
+    }
+    $('btnAddCard').classList.remove('hidden');
+
+    if (!arr.length) { list.innerHTML = '<div class="empty-hint">' + escapeHtml(t('emptyCards')) + '</div>'; return; }
     const isCardKind = sec.kind === 'card';
     arr.forEach((item, idx) => {
         const el = document.createElement('div'); el.className = 'card-item';
-        const ic = document.createElement('div'); ic.className = 'card-icon-preview';
-        renderIconTo(ic, item); el.appendChild(ic);
+        const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, item); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'card-info';
-        let title = item.title || item.content || '(无标题)';
+        const title = item.title || item.content || t('noTitle');
         let metaParts = [];
         if (sec.kind === 'email') {
             metaParts.push('📬 ' + escapeHtml(item.address || ''));
@@ -1401,17 +2027,14 @@ function renderCurrentSection() {
             metaParts.push('🔗 ' + escapeHtml(item.url || ''));
             if (item.descUrl) metaParts.push('📝 ' + escapeHtml(item.descUrl));
         } else {
-            const tb = { 'simple':'<span class="card-type-badge badge-simple">simple</span>',
-                        'desc-clickable':'<span class="card-type-badge badge-desc">desc-clickable</span>',
-                        'expandable':'<span class="card-type-badge badge-exp">expandable</span>' }[item.type || 'simple'] || '';
+            const tb = { 'simple':'<span class="card-type-badge badge-simple">simple</span>', 'desc-clickable':'<span class="card-type-badge badge-desc">desc-clickable</span>', 'expandable':'<span class="card-type-badge badge-exp">expandable</span>' }[item.type || 'simple'] || '';
             metaParts.push(tb + '🔗 ' + escapeHtml(item.url || ''));
-            if (item.type === 'expandable' && item.subCards) metaParts.push('📁 ' + item.subCards.length + ' 子卡');
+            if (item.type === 'expandable' && item.subCards) metaParts.push('📁 ' + escapeHtml(t('subCardCount', { n: item.subCards.length })));
         }
         info.innerHTML = '<div class="card-title">' + escapeHtml(title) + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
-        // ★ 仅 card-kind 大类显示「移动」按钮（email/contact 结构特殊不可移动）
-        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move" title="移动到其他大类">📦</button>' : '';
+        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move">📦</button>' : '';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-act="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-act="down">⬇</button>' +
                        moveBtn +
@@ -1427,212 +2050,239 @@ function handleCardAction(act, idx) {
     else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); }
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
-    else if (act === 'del') { if (confirm('确认删除此卡片？')) { arr.splice(idx, 1); renderCurrentSection(); toast('已删除（未保存）'); } }
+    else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); toast(t('toastDeletedUnsaved')); } }
 }
 
 /* ================================================================
-   ★ 主卡片跨大类移动
+   Move card cross-section
 ================================================================ */
 function openMoveCardModal(sectionKey, cardIdx) {
-    const card = store[sectionKey] && store[sectionKey][cardIdx];
-    if (!card) return;
-    movingCardSourceSection = sectionKey;
-    movingCardSourceIndex = cardIdx;
-
+    if (isLockedKey(sectionKey)) { toast(t('toastEncCantEditLocked')); return; }
+    const card = store[sectionKey] && store[sectionKey][cardIdx]; if (!card) return;
+    movingCardSourceSection = sectionKey; movingCardSourceIndex = cardIdx;
     const srcSec = getSections().find(s => s.key === sectionKey);
     const srcLabel = (srcSec || {}).label || sectionKey;
-    $('cardMoveSrcHint').innerHTML = `将卡片 <b>${escapeHtml(card.title || card.id || card.content || '(无标题)')}</b> 从 <b>${escapeHtml(srcLabel)}</b> 移动到：`;
-
+    const cardName = card.title || card.id || card.content || t('noTitle');
+    $('cardMoveSrcHint').innerHTML = t('cardMoveSrcHint', { card: escapeHtml(cardName), src: escapeHtml(srcLabel) });
     const sel = $('cardMove_section'); sel.innerHTML = '';
-    getSections().filter(s => s.kind === 'card' && s.key !== sectionKey).forEach(s => {
+    getSections().filter(s => s.kind === 'card' && s.key !== sectionKey && !s.locked).forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.key;
-        opt.textContent = s.label + (s.builtin ? '' : '  [自定义]');
+        let lbl = s.label + (s.builtin ? '' : t('customSuffix'));
+        if (s.encrypted) lbl = '🔐 ' + lbl;
+        opt.textContent = lbl;
         sel.appendChild(opt);
     });
-    if (!sel.options.length) { toast('没有可移动的目标大类'); return; }
+    if (!sel.options.length) { toast(t('toastNoMoveTargets')); return; }
     show('cardMoveModal');
 }
 function confirmMoveCard() {
     if (!movingCardSourceSection || movingCardSourceIndex < 0) return;
     const srcArr = store[movingCardSourceSection];
-    if (!srcArr || !srcArr[movingCardSourceIndex]) { toast('卡片不存在'); return; }
+    if (!srcArr || !srcArr[movingCardSourceIndex]) { toast(t('toastCardNotExist')); return; }
     const targetSection = $('cardMove_section').value;
-    if (!targetSection || targetSection === movingCardSourceSection) { toast('请选择目标大类'); return; }
-
+    if (!targetSection || targetSection === movingCardSourceSection) { toast(t('toastNeedTargetSec')); return; }
+    if (isLockedKey(targetSection)) { toast(t('toastLockedSkippedInMove')); return; }
     const card = deepClone(srcArr[movingCardSourceIndex]);
     if (!Array.isArray(store[targetSection])) store[targetSection] = [];
     store[targetSection].push(card);
     srcArr.splice(movingCardSourceIndex, 1);
-
     hide('cardMoveModal');
     renderCurrentSection();
     const tgtLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
-    toast(`已移动到 「${tgtLabel}」（未保存）`);
-
-    movingCardSourceSection = null;
-    movingCardSourceIndex = -1;
+    toast(t('toastMovedToUnsaved', { tgt: tgtLabel }));
+    movingCardSourceSection = null; movingCardSourceIndex = -1;
 }
 
 /* ================================================================
-   ★ 大类管理
+   Sections management
 ================================================================ */
-function openSectionsModal() {
-    renderSectionsModalLists();
-    show('sectionsModal');
-}
+function openSectionsModal() { renderSectionsModalLists(); show('sectionsModal'); }
 function renderSectionsModalLists() {
-    // 内置（只读）
     const blt = $('builtinSectionsList'); blt.innerHTML = '';
     BUILTIN_SECTIONS.forEach(s => {
         const cnt = (store[s.key] || []).length;
         const el = document.createElement('div'); el.className = 'sec-row builtin';
-        el.innerHTML = `
-            <div class="sec-label">${escapeHtml(s.label)}
-                <span class="sec-meta"> · ${escapeHtml(s.key)} · ${s.kind} · ${cnt} 项</span>
-            </div>
-            <span class="sec-badge badge-builtin">🔒 内置</span>`;
+        el.innerHTML = `<div class="sec-label">${escapeHtml(t(s.labelKey))}
+            <span class="sec-meta"> · ${escapeHtml(s.key)}${escapeHtml(t('sectionMetaSuffix', { kind: s.kind, cnt }))}</span></div>
+            <span class="sec-badge badge-builtin">${escapeHtml(t('sectionBadgeBuiltin'))}</span>`;
         blt.appendChild(el);
     });
-    // 自定义
     const cst = $('customSectionsList'); cst.innerHTML = '';
-    if (!customSectionsMeta.length) {
-        cst.innerHTML = '<div class="empty-hint" style="padding:14px;">暂无自定义大类。点击下方「➕ 新增大类」创建。</div>';
-        return;
-    }
+    if (!customSectionsMeta.length) { cst.innerHTML = '<div class="empty-hint" style="padding:14px;">' + escapeHtml(t('sectionsNoCustom')) + '</div>'; return; }
     customSectionsMeta.forEach((c, idx) => {
         const cnt = (store[c.key] || []).length;
         const el = document.createElement('div'); el.className = 'sec-row custom';
-        const dynBadge = c.dynamic ? '<span class="sec-badge badge-dynamic">展开/折叠</span>' : '';
-        const isUnclassified = c.key === UNCLASSIFIED_KEY;
-        el.innerHTML = `
-            <div class="sec-label">${escapeHtml(c.label)} ${dynBadge}
-                <div class="sec-meta">${escapeHtml(c.key)} · ${cnt} 项${isUnclassified ? ' · 系统在删除大类时自动写入' : ''}</div>
-            </div>
-            <span class="sec-badge badge-custom">⚙️ 自定义</span>
+        let badges = '';
+        if (c.dynamic)   badges += '<span class="sec-badge badge-dynamic">'   + escapeHtml(t('sectionBadgeDynamic'))   + '</span>';
+        if (c.encrypted) badges += '<span class="sec-badge badge-encrypted">' + escapeHtml(t('sectionBadgeEncrypted')) + '</span>';
+        if (c.locked)    badges += '<span class="sec-badge badge-locked">'    + escapeHtml(t('sectionBadgeLocked'))    + '</span>';
+        const isUnc = c.key === UNCLASSIFIED_KEY;
+        const displayLabel = isUnc ? t('secUnclassified') : c.label;
+        const metaText = isUnc ? t('sectionMetaCustomUnc', { key: c.key, cnt }) : t('sectionMetaCustom', { key: c.key, cnt });
+        el.innerHTML = `<div class="sec-label">${escapeHtml(displayLabel)} ${badges}
+            <div class="sec-meta">${escapeHtml(metaText)}</div></div>
+            <span class="sec-badge badge-custom">${escapeHtml(t('sectionBadgeCustom'))}</span>
             <div style="display:flex; gap:4px;">
                 <button class="btn btn-ghost btn-sm" data-cs-act="up"   ${idx === 0 ? 'disabled' : ''}>⬆</button>
                 <button class="btn btn-ghost btn-sm" data-cs-act="down" ${idx === customSectionsMeta.length - 1 ? 'disabled' : ''}>⬇</button>
                 <button class="btn btn-primary btn-sm" data-cs-act="edit">✏️</button>
                 <button class="btn btn-danger btn-sm" data-cs-act="del">🗑</button>
             </div>`;
-        el.querySelectorAll('button[data-cs-act]').forEach(btn => {
-            btn.onclick = () => handleCustomSectionAction(btn.dataset.csAct, idx);
-        });
+        el.querySelectorAll('button[data-cs-act]').forEach(btn => btn.onclick = () => handleCustomSectionAction(btn.dataset.csAct, idx));
         cst.appendChild(el);
     });
 }
 function handleCustomSectionAction(act, idx) {
-    if (act === 'up' && idx > 0) {
-        [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]];
-        renderSectionsModalLists(); renderSectionTabs(); toast('已上移');
-    } else if (act === 'down' && idx < customSectionsMeta.length - 1) {
-        [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]];
-        renderSectionsModalLists(); renderSectionTabs(); toast('已下移');
-    } else if (act === 'edit') {
-        openSectionEditModal(idx);
-    } else if (act === 'del') {
-        deleteCustomSection(idx);
-    }
+    if (act === 'up' && idx > 0) { [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedUp')); }
+    else if (act === 'down' && idx < customSectionsMeta.length - 1) { [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedDown')); }
+    else if (act === 'edit') openSectionEditModal(idx);
+    else if (act === 'del') deleteCustomSection(idx);
 }
 function deleteCustomSection(idx) {
     const c = customSectionsMeta[idx]; if (!c) return;
+    if (c.locked) { toast(t('toastEncLocked')); return; }
     const cards = store[c.key] || [];
-    const isUnclassified = c.key === UNCLASSIFIED_KEY;
-
-    if (cards.length === 0) {
-        if (!confirm(`确认删除「${c.label}」？`)) return;
-    } else if (isUnclassified) {
-        if (!confirm(`「${c.label}」中有 ${cards.length} 张卡片。\n这是系统自动管理的"回收容器"，删除将彻底删除其中卡片，无法恢复！\n\n确认删除？`)) return;
-    } else {
-        if (!confirm(`「${c.label}」中有 ${cards.length} 张卡片。\n删除大类时这些卡片将自动转移到「${UNCLASSIFIED_LABEL}」（不会丢失）。\n\n确认删除？`)) return;
+    const isUnc = c.key === UNCLASSIFIED_KEY;
+    const label = isUnc ? t('secUnclassified') : c.label;
+    if (cards.length === 0) { if (!confirm(t('confirmDelSection', { label }))) return; }
+    else if (isUnc) { if (!confirm(t('confirmDelUnclassified', { label, n: cards.length }))) return; }
+    else {
+        if (!confirm(t('confirmDelSectionCards', { label, n: cards.length, unc: t('secUnclassified') }))) return;
         ensureUnclassifiedSection();
         store[UNCLASSIFIED_KEY] = (store[UNCLASSIFIED_KEY] || []).concat(cards);
     }
-
-    customSectionsMeta.splice(idx, 1);
-    delete store[c.key];
-
-    if (currentSection === c.key) {
-        // 优先切到未分类，否则回到第一个内置
-        currentSection = customSectionsMeta.find(x => x.key === UNCLASSIFIED_KEY) ? UNCLASSIFIED_KEY : BUILTIN_SECTIONS[0].key;
-    }
+    customSectionsMeta.splice(idx, 1); delete store[c.key];
+    if (currentSection === c.key) currentSection = customSectionsMeta.find(x => x.key === UNCLASSIFIED_KEY) ? UNCLASSIFIED_KEY : BUILTIN_SECTIONS[0].key;
     renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
-    toast('已删除大类（未保存）');
+    toast(t('toastDeletedSectionUnsaved'));
 }
 function openSectionEditModal(idx) {
     editingCustomSectionIdx = (idx === undefined || idx === null) ? -1 : idx;
     const isNew = editingCustomSectionIdx < 0;
-    $('sectionEditTitle').textContent = isNew ? '➕ 新增大类' : '✏️ 编辑大类';
-    if (isNew) {
-        $('se_label').value = '';
-        $('se_dynamic').checked = false;
-    } else {
+    $('sectionEditTitle').textContent = isNew ? t('sectionEditNewTitle') : t('sectionEditEditTitle');
+    if (isNew) { $('se_label').value = ''; $('se_dynamic').checked = false; $('se_encrypted').checked = false; }
+    else {
         const c = customSectionsMeta[editingCustomSectionIdx];
         $('se_label').value = c.label;
         $('se_dynamic').checked = !!c.dynamic;
+        $('se_encrypted').checked = !!c.encrypted;
     }
     show('sectionEditModal');
 }
 function saveSectionEdit() {
     const label = $('se_label').value.trim();
-    if (!label) { toast('请输入大类名称'); return; }
-    if (label.length > 50) { toast('名称过长'); return; }
+    if (!label) { toast(t('toastNeedSecLabel')); return; }
+    if (label.length > 50) { toast(t('toastSecLabelTooLong')); return; }
     const dynamic = $('se_dynamic').checked;
+    const encrypted = $('se_encrypted').checked;
 
     if (editingCustomSectionIdx === -1) {
+        if (encrypted && !getEncPassword()) { toast(t('toastEncNoSessionPwd')); return; }
         const key = genCustomKey();
-        customSectionsMeta.push({ key, label, dynamic });
+        customSectionsMeta.push({ key, label, dynamic, encrypted, locked: false, _enc: null });
         store[key] = [];
-        toast('已新增大类（未保存）');
+        toast(t('toastAddedSectionUnsaved'));
     } else {
         const c = customSectionsMeta[editingCustomSectionIdx];
-        c.label = label;
-        c.dynamic = dynamic;
-        toast('已更新（未保存）');
+        c.label = label; c.dynamic = dynamic;
+        if (encrypted && !c.encrypted) {
+            if (!getEncPassword()) { toast(t('toastEncNoSessionPwd')); return; }
+            c.encrypted = true; toast(t('toastEncEnabled'));
+        } else if (!encrypted && c.encrypted) {
+            if (c.locked) { toast(t('toastEncCantDisableLocked')); return; }
+            c.encrypted = false; c._enc = null; toast(t('toastEncDisabled'));
+        } else {
+            toast(t('toastUpdatedUnsaved'));
+        }
     }
     hide('sectionEditModal');
     renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
 }
 
 /* ================================================================
-   卡片编辑（同原版逻辑，仅 SECTIONS → getSections()）
+   解锁
+================================================================ */
+let unlockScopeKey = null;
+function openUnlockModal(key) {
+    unlockScopeKey = key || null;
+    const lockedCount = customSectionsMeta.filter(c => c.locked).length;
+    if (key) {
+        const c = getCustomMeta(key);
+        const lbl = (key === UNCLASSIFIED_KEY) ? t('secUnclassified') : (c ? c.label : key);
+        $('unlockDesc').innerHTML = t('unlockDescOne', { label: escapeHtml(lbl) });
+    } else {
+        $('unlockDesc').innerHTML = t('unlockDescAll', { n: lockedCount });
+    }
+    $('unlockPwd').value = '';
+    show('unlockModal');
+    setTimeout(() => $('unlockPwd').focus(), 50);
+}
+async function confirmUnlock() {
+    const pwd = $('unlockPwd').value;
+    if (!pwd) { toast(t('toastEncNeedPwd')); return; }
+
+    const lockedList = customSectionsMeta.filter(c => c.locked && c._enc);
+    if (!lockedList.length) { hide('unlockModal'); return; }
+
+    const test = lockedList[0];
+    let ok = false;
+    try { await decryptJSON(pwd, test._enc); ok = true; } catch (e) {}
+    if (!ok) { toast(t('toastEncWrongPwd')); return; }
+
+    setEncPassword(pwd);
+    let unlockedN = 0;
+    for (const c of lockedList) {
+        try {
+            const arr = await decryptJSON(pwd, c._enc);
+            c.locked = false; c._enc = null;
+            store[c.key] = Array.isArray(arr) ? arr : [];
+            unlockedN++;
+        } catch (e) {}
+    }
+    hide('unlockModal');
+    updateEncKeyStatus();
+    renderSectionTabs(); renderCurrentSection();
+    toast(t('toastEncUnlockOk', { n: unlockedN }));
+}
+function autoPromptUnlockIfNeeded() {
+    const lockedCount = customSectionsMeta.filter(c => c.locked).length;
+    if (lockedCount > 0 && !getEncPassword()) {
+        openUnlockModal(null);
+    }
+}
+
+/* ================================================================
+   Card edit
 ================================================================ */
 function openCardModal(idx) {
+    if (isLockedKey(currentSection)) { toast(t('toastEncCantEditLocked')); return; }
     editingCardIndex = idx;
     const sec = getSections().find(x => x.key === currentSection);
     const item = idx >= 0 ? deepClone(store[currentSection][idx]) : {};
     editingCardDraft = item;
-    $('cardModalTitle').textContent = (idx >= 0 ? '编辑' : '新增') + '卡片（' + sec.label + '）';
+    $('cardModalTitle').textContent = (idx >= 0 ? t('cardModalEditInSec', { sec: sec.label }) : t('cardModalNewInSec', { sec: sec.label }));
     const isEmail = sec.kind === 'email', isContact = sec.kind === 'contact';
-    $('f_id').value = item.id || '';
-    $('f_title').value = item.title || item.content || '';
-    $('f_url').value = item.url || '';
-    $('f_desc').value = item.desc || '';
-    $('f_descClickable').value = item.descClickable || '';
-    $('f_descUrl').value = item.descUrl || '';
+    $('f_id').value = item.id || ''; $('f_title').value = item.title || item.content || '';
+    $('f_url').value = item.url || ''; $('f_desc').value = item.desc || '';
+    $('f_descClickable').value = item.descClickable || ''; $('f_descUrl').value = item.descUrl || '';
     $('f_isLocal').checked = !!item.isLocal;
     setIconFields(item, 'f_icon_emoji', 'f_icon_img', 'f_icon_svg', 'iconPreview');
     if (isEmail || isContact) hide('typeRow'); else { show('typeRow'); $('f_type').value = item.type || 'simple'; }
-    if (isEmail) { $('f_desc').value = item.address || ''; $('f_desc').parentElement.querySelector('label').textContent = '邮箱地址 address'; }
-    else $('f_desc').parentElement.querySelector('label').textContent = '描述 desc（纯文本）';
+    if (isEmail) { $('f_desc').value = item.address || ''; $('f_descLabel').textContent = t('fldAddress'); } else $('f_descLabel').textContent = t('fldDesc');
     $('f_id').parentElement.style.display = (isEmail || isContact) ? 'none' : 'block';
-    syncTypeFields();
-    show('cardModal');
+    syncTypeFields(); show('cardModal');
 }
 function syncTypeFields() {
     const sec = getSections().find(x => x.key === currentSection);
-    const t = $('f_type').value;
+    const ty = $('f_type').value;
     const isEmail = sec.kind === 'email', isContact = sec.kind === 'contact';
     if (isEmail) { show('descRow'); hide('descClickableRow'); hide('isLocalRow'); hide('subCardsRow'); return; }
-    if (isContact) {
-        show('descRow'); show('descClickableRow'); hide('isLocalRow'); hide('subCardsRow');
-        $('f_descClickable').parentElement.style.display = 'none'; return;
-    }
+    if (isContact) { show('descRow'); show('descClickableRow'); hide('isLocalRow'); hide('subCardsRow'); $('f_descClickable').parentElement.style.display = 'none'; return; }
     $('f_descClickable').parentElement.style.display = '';
-    if (t === 'simple') { show('descRow'); hide('descClickableRow'); hide('subCardsRow'); }
-    else if (t === 'desc-clickable') { hide('descRow'); show('descClickableRow'); hide('subCardsRow'); }
-    else if (t === 'expandable') { show('descRow'); show('descClickableRow'); show('subCardsRow'); renderSubCardsList(); }
+    if (ty === 'simple') { show('descRow'); hide('descClickableRow'); hide('subCardsRow'); }
+    else if (ty === 'desc-clickable') { hide('descRow'); show('descClickableRow'); hide('subCardsRow'); }
+    else if (ty === 'expandable') { show('descRow'); show('descClickableRow'); show('subCardsRow'); renderSubCardsList(); }
     show('isLocalRow');
 }
 function setIconFields(item, eEmoji, eImg, eSvg, ePrev) {
@@ -1640,20 +2290,14 @@ function setIconFields(item, eEmoji, eImg, eSvg, ePrev) {
     if (item.iconImg) kind = 'img';
     else if (item.icon && String(item.icon).trim().startsWith('<svg')) kind = 'svg';
     $(eEmoji).value = (kind === 'emoji' && item.icon) ? item.icon : '';
-    $(eImg).value = item.iconImg || '';
-    $(eSvg).value = (kind === 'svg') ? item.icon : '';
+    $(eImg).value = item.iconImg || ''; $(eSvg).value = (kind === 'svg') ? item.icon : '';
     const modal = $(ePrev).closest('.modal-box');
-    modal.querySelectorAll('.icon-kind-tabs .k').forEach(t => t.classList.toggle('active', t.dataset.kind === kind));
-    showIconKind(kind, eEmoji, eImg, eSvg);
-    updateIconPreview(eEmoji, eImg, eSvg, ePrev);
+    modal.querySelectorAll('.icon-kind-tabs .k').forEach(ta => ta.classList.toggle('active', ta.dataset.kind === kind));
+    showIconKind(kind, eEmoji, eImg, eSvg); updateIconPreview(eEmoji, eImg, eSvg, ePrev);
 }
-function showIconKind(kind, eEmoji, eImg, eSvg) {
-    [eEmoji, eImg, eSvg].forEach(id => hide(id));
-    if (kind === 'emoji') show(eEmoji); else if (kind === 'img') show(eImg); else show(eSvg);
-}
+function showIconKind(kind, eEmoji, eImg, eSvg) { [eEmoji, eImg, eSvg].forEach(id => hide(id)); if (kind === 'emoji') show(eEmoji); else if (kind === 'img') show(eImg); else show(eSvg); }
 function updateIconPreview(eEmoji, eImg, eSvg, ePrev) {
-    const item = {};
-    const img = $(eImg).value.trim(), svg = $(eSvg).value.trim(), emoji = $(eEmoji).value.trim();
+    const item = {}, img = $(eImg).value.trim(), svg = $(eSvg).value.trim(), emoji = $(eEmoji).value.trim();
     if (img) item.iconImg = img; else if (svg) item.icon = svg; else item.icon = emoji;
     renderIconTo($(ePrev), item);
 }
@@ -1670,55 +2314,47 @@ function saveCardFromModal() {
     let obj = {};
     Object.assign(obj, getIconFromFields('f_icon_emoji','f_icon_img','f_icon_svg'));
     if (sec.kind === 'email') {
-        obj.title = $('f_title').value.trim();
-        obj.address = $('f_desc').value.trim();
-        obj.url = $('f_url').value.trim();
-        obj.mailto = obj.url;
-        if (!obj.title) { toast('请填写标题'); return; }
+        obj.title = $('f_title').value.trim(); obj.address = $('f_desc').value.trim(); obj.url = $('f_url').value.trim(); obj.mailto = obj.url;
+        if (!obj.title) { toast(t('toastNeedTitle')); return; }
     } else if (sec.kind === 'contact') {
-        obj.title = $('f_title').value.trim();
-        obj.desc = $('f_desc').value.trim();
-        obj.url = $('f_url').value.trim();
+        obj.title = $('f_title').value.trim(); obj.desc = $('f_desc').value.trim(); obj.url = $('f_url').value.trim();
         const du = $('f_descUrl').value.trim(); if (du) obj.descUrl = du;
-        if (!obj.title) { toast('请填写标题'); return; }
+        if (!obj.title) { toast(t('toastNeedTitle')); return; }
     } else {
         const id = $('f_id').value.trim(), title = $('f_title').value.trim(), url = $('f_url').value.trim(), type = $('f_type').value;
-        if (!id) { toast('请填写 ID'); return; }
-        if (!title) { toast('请填写标题'); return; }
-        if (!/^[\w\-]+$/.test(id)) { toast('ID 只能包含字母/数字/下划线/横线'); return; }
+        if (!id) { toast(t('toastNeedId')); return; }
+        if (!title) { toast(t('toastNeedTitle')); return; }
+        if (!/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
         const arr = store[currentSection];
-        if (arr.findIndex((c, i) => c.id === id && i !== editingCardIndex) >= 0) { toast('该 ID 已存在'); return; }
+        if (arr.findIndex((c, i) => c.id === id && i !== editingCardIndex) >= 0) { toast(t('toastIdDup')); return; }
         obj.id = id; obj.title = title; obj.url = url; obj.type = type;
         if (type === 'simple') { const d = $('f_desc').value.trim(); if (d) obj.desc = d; }
         else if (type === 'desc-clickable') { obj.descClickable = $('f_descClickable').value.trim(); obj.descUrl = $('f_descUrl').value.trim(); }
         else if (type === 'expandable') {
             const d = $('f_desc').value.trim(), dc = $('f_descClickable').value.trim(), du = $('f_descUrl').value.trim();
-            if (d) obj.desc = d;
-            if (dc) { obj.descClickable = dc; obj.descUrl = du; }
+            if (d) obj.desc = d; if (dc) { obj.descClickable = dc; obj.descUrl = du; }
             obj.subCards = (editingCardDraft && editingCardDraft.subCards) ? editingCardDraft.subCards : [];
         }
         if ($('f_isLocal').checked) obj.isLocal = true;
     }
     const arr = store[currentSection];
     if (editingCardIndex >= 0) arr[editingCardIndex] = obj; else arr.push(obj);
-    hide('cardModal'); renderCurrentSection(); toast('已更新（未保存）');
+    hide('cardModal'); renderCurrentSection(); toast(t('toastUpdatedUnsaved'));
 }
 
 /* ================================================================
-   子卡片
+   Subcard
 ================================================================ */
 function renderSubCardsList() {
     const wrap = $('subCardsWrap'); wrap.innerHTML = '';
     const subs = (editingCardDraft && editingCardDraft.subCards) || [];
-    if (!subs.length) { wrap.innerHTML = '<div class="empty-hint" style="padding:10px;">暂无子卡片</div>'; return; }
+    if (!subs.length) { wrap.innerHTML = '<div class="empty-hint" style="padding:10px;">—</div>'; return; }
     subs.forEach((sc, i) => {
         const el = document.createElement('div'); el.className = 'subcard-item';
-        const ic = document.createElement('div'); ic.className = 'card-icon-preview';
-        renderIconTo(ic, sc); el.appendChild(ic);
+        const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, sc); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'subcard-info';
-        const title = sc.title || sc.content || '(无标题)';
-        info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">[紧凑]</span>' : '') + '</div>' +
-                        '<div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
+        const title = sc.title || sc.content || t('noTitle');
+        info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">' + escapeHtml(t('compactTag')) + '</span>' : '') + '</div><div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-sact="up">⬆</button>' +
@@ -1737,11 +2373,12 @@ function handleSubAction(act, i) {
     else if (act === 'down' && i < subs.length - 1) { [subs[i+1],subs[i]]=[subs[i],subs[i+1]]; renderSubCardsList(); }
     else if (act === 'edit') openSubModal(i);
     else if (act === 'move') openMoveSubModal(i);
-    else if (act === 'del') { if (confirm('删除此子卡片？')) { subs.splice(i,1); renderSubCardsList(); } }
+    else if (act === 'del') { if (confirm(t('confirmDelSub'))) { subs.splice(i,1); renderSubCardsList(); } }
 }
 function openSubModal(idx) {
     editingSubIndex = idx;
     const sub = idx >= 0 ? deepClone(editingCardDraft.subCards[idx]) : {};
+    $('subModalTitle').textContent = idx >= 0 ? t('subModalEditTitle') : t('subModalNewTitle');
     $('sf_style').value = sub.content ? 'compact' : 'two';
     $('sf_title').value = sub.title || ''; $('sf_desc').value = sub.desc || '';
     $('sf_content').value = sub.content || ''; $('sf_url').value = sub.url || '';
@@ -1749,38 +2386,30 @@ function openSubModal(idx) {
     setIconFields(sub, 'sf_icon_emoji', 'sf_icon_img', 'sf_icon_svg', 'subIconPreview');
     syncSubStyle(); show('subModal');
 }
-function syncSubStyle() {
-    const s = $('sf_style').value;
-    if (s === 'compact') { hide('sf_titleRow'); hide('sf_descRow'); show('sf_contentRow'); }
-    else { show('sf_titleRow'); show('sf_descRow'); hide('sf_contentRow'); }
-}
+function syncSubStyle() { const s = $('sf_style').value; if (s === 'compact') { hide('sf_titleRow'); hide('sf_descRow'); show('sf_contentRow'); } else { show('sf_titleRow'); show('sf_descRow'); hide('sf_contentRow'); } }
 function saveSubFromModal() {
     const s = $('sf_style').value, obj = {};
     Object.assign(obj, getIconFromFields('sf_icon_emoji','sf_icon_img','sf_icon_svg'));
-    if (s === 'compact') {
-        obj.content = $('sf_content').value.trim();
-        if (!obj.content) { toast('请填 content'); return; }
-    } else {
-        obj.title = $('sf_title').value.trim(); obj.desc = $('sf_desc').value.trim();
-        if (!obj.title) { toast('请填 title'); return; }
-    }
-    obj.url = $('sf_url').value.trim();
-    if ($('sf_isLocal').checked) obj.isLocal = true;
+    if (s === 'compact') { obj.content = $('sf_content').value.trim(); if (!obj.content) { toast(t('toastNeedContent')); return; } }
+    else { obj.title = $('sf_title').value.trim(); obj.desc = $('sf_desc').value.trim(); if (!obj.title) { toast(t('toastNeedSubTitle')); return; } }
+    obj.url = $('sf_url').value.trim(); if ($('sf_isLocal').checked) obj.isLocal = true;
     if (!editingCardDraft.subCards) editingCardDraft.subCards = [];
-    if (editingSubIndex >= 0) editingCardDraft.subCards[editingSubIndex] = obj;
-    else editingCardDraft.subCards.push(obj);
+    if (editingSubIndex >= 0) editingCardDraft.subCards[editingSubIndex] = obj; else editingCardDraft.subCards.push(obj);
     hide('subModal'); renderSubCardsList();
 }
 function openMoveSubModal(subIdx) {
     moveFromIndex = subIdx;
     const sub = editingCardDraft.subCards[subIdx];
-    const srcTitle = editingCardDraft.title || editingCardDraft.id || '当前卡片';
-    $('moveSrcHint').innerHTML = `将子卡片 <b>${escapeHtml(sub.title || sub.content || '(无标题)')}</b> 从 <b>${escapeHtml(srcTitle)}</b> 移动到：`;
+    const srcTitle = editingCardDraft.title || editingCardDraft.id || t('noTitle');
+    const subName = sub.title || sub.content || t('noTitle');
+    $('moveSrcHint').innerHTML = t('moveSrcHint', { sub: escapeHtml(subName), src: escapeHtml(srcTitle) });
     const selSec = $('move_section'); selSec.innerHTML = '';
-    // ★ 包括自定义大类（kind === 'card'）
-    getSections().filter(s => s.kind === 'card').forEach(s => {
+    getSections().filter(s => s.kind === 'card' && !s.locked).forEach(s => {
         const opt = document.createElement('option');
-        opt.value = s.key; opt.textContent = s.label + (s.builtin ? '' : '  [自定义]');
+        opt.value = s.key;
+        let lbl = s.label + (s.builtin ? '' : t('customSuffix'));
+        if (s.encrypted) lbl = '🔐 ' + lbl;
+        opt.textContent = lbl;
         selSec.appendChild(opt);
     });
     selSec.value = currentSection;
@@ -1789,130 +2418,115 @@ function openMoveSubModal(subIdx) {
     show('moveModal');
 }
 function renderMoveTargetList() {
-    const key = $('move_section').value;
-    const tgt = $('move_target'); tgt.innerHTML = '';
-    const arr = store[key] || [];
-    let count = 0;
+    const key = $('move_section').value; const tgt = $('move_target'); tgt.innerHTML = '';
+    const arr = store[key] || []; let count = 0;
     arr.forEach((c, i) => {
         if (key === currentSection && i === editingCardIndex) return;
-        const opt = document.createElement('option');
-        opt.value = i;
-        let typeTag = c.type === 'expandable' ? '📁' : (c.type === 'desc-clickable' ? '🔗' : '•');
-        const subInfo = (c.type === 'expandable' && c.subCards) ? `（${c.subCards.length} 子卡）` : '';
-        opt.textContent = `${typeTag} ${c.title || c.id || '(无标题)'}${subInfo}`;
-        tgt.appendChild(opt);
-        count++;
+        const opt = document.createElement('option'); opt.value = i;
+        const typeTag = c.type === 'expandable' ? '📁' : (c.type === 'desc-clickable' ? '🔗' : '•');
+        const subInfo = (c.type === 'expandable' && c.subCards) ? t('subCardCount2', { n: c.subCards.length }) : '';
+        opt.textContent = typeTag + ' ' + (c.title || c.id || t('noTitle')) + subInfo;
+        tgt.appendChild(opt); count++;
     });
-    if (count === 0) {
-        const opt = document.createElement('option');
-        opt.value = ''; opt.textContent = '(该大类无可选目标)'; opt.disabled = true;
-        tgt.appendChild(opt);
-    }
+    if (count === 0) { const opt = document.createElement('option'); opt.value = ''; opt.textContent = t('moveTgtNone'); opt.disabled = true; tgt.appendChild(opt); }
     tgt.onchange = updateMoveTypeHint;
-    if (tgt.options.length) { tgt.selectedIndex = 0; updateMoveTypeHint(); }
-    else $('moveTypeHint').textContent = '';
+    if (tgt.options.length) { tgt.selectedIndex = 0; updateMoveTypeHint(); } else $('moveTypeHint').textContent = '';
 }
 function updateMoveTypeHint() {
-    const key = $('move_section').value;
-    const idx = parseInt($('move_target').value, 10);
+    const key = $('move_section').value; const idx = parseInt($('move_target').value, 10);
     const hint = $('moveTypeHint');
     if (isNaN(idx)) { hint.textContent = ''; return; }
-    const tgt = store[key][idx];
-    if (!tgt) { hint.textContent = ''; return; }
-    if (tgt.type === 'expandable') hint.innerHTML = `✓ 目标已是 <b>expandable</b>，将追加到其 subCards 末尾。`;
-    else hint.innerHTML = `⚠️ 目标类型为 <b>${tgt.type || 'simple'}</b>，移动后将自动升级为 <b>expandable</b>。`;
+    const tgt = store[key][idx]; if (!tgt) { hint.textContent = ''; return; }
+    if (tgt.type === 'expandable') hint.innerHTML = t('moveHintExpandable');
+    else hint.innerHTML = t('moveHintUpgrade', { type: tgt.type || 'simple' });
 }
 function confirmMoveSubCard() {
     const sub = editingCardDraft && editingCardDraft.subCards && editingCardDraft.subCards[moveFromIndex];
-    if (!sub) { toast('子卡片不存在'); return; }
-    const targetSection = $('move_section').value;
-    const targetIndex = parseInt($('move_target').value, 10);
-    if (isNaN(targetIndex)) { toast('请选择目标卡片'); return; }
-    if (editingCardIndex >= 0 && targetSection === currentSection && targetIndex === editingCardIndex) {
-        toast('不能移动到当前卡片自身'); return;
-    }
-    const tgtCard = store[targetSection][targetIndex];
-    if (!tgtCard) { toast('目标卡片不存在'); return; }
+    if (!sub) { toast(t('toastSubNotExist')); return; }
+    const targetSection = $('move_section').value; const targetIndex = parseInt($('move_target').value, 10);
+    if (isNaN(targetIndex)) { toast(t('toastNeedTarget')); return; }
+    if (editingCardIndex >= 0 && targetSection === currentSection && targetIndex === editingCardIndex) { toast(t('toastCantMoveSelf')); return; }
+    const tgtCard = store[targetSection][targetIndex]; if (!tgtCard) { toast(t('toastTargetNotExist')); return; }
     if (tgtCard.type !== 'expandable') tgtCard.type = 'expandable';
     if (!Array.isArray(tgtCard.subCards)) tgtCard.subCards = [];
     tgtCard.subCards.push(deepClone(sub));
     editingCardDraft.subCards.splice(moveFromIndex, 1);
     if (editingCardIndex >= 0) {
         const src = store[currentSection][editingCardIndex];
-        if (src) {
-            if (!Array.isArray(src.subCards)) src.subCards = [];
-            src.subCards = deepClone(editingCardDraft.subCards);
-        }
+        if (src) { if (!Array.isArray(src.subCards)) src.subCards = []; src.subCards = deepClone(editingCardDraft.subCards); }
     }
-    hide('moveModal');
-    renderSubCardsList();
-    renderCurrentSection();
+    hide('moveModal'); renderSubCardsList(); renderCurrentSection();
     const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
-    toast(`已移动到 「${tgtSecLabel} / ${tgtCard.title || tgtCard.id || '目标'}」（未保存）`);
+    const tgtCardLabel = tgtCard.title || tgtCard.id || t('noTitle');
+    toast(t('toastMovedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
 }
 
 /* ================================================================
-   导入 / 导出
+   Import / Export
 ================================================================ */
 function openImportModal() {
-    $('ioTitle').textContent = '📥 导入 data.js';
-    show('ioImportBody'); hide('ioExportBody');
-    hide('btnIoDownload'); show('btnIoImportConfirm');
-    $('ioText').value = ''; $('ioFile').value = '';
-    show('ioModal');
+    $('ioTitle').textContent = t('ioImportTitle');
+    show('ioImportBody'); hide('ioExportBody'); hide('btnIoDownload'); show('btnIoImportConfirm');
+    $('ioText').value = ''; $('ioFile').value = ''; show('ioModal');
 }
-function openExportModal() {
-    $('ioTitle').textContent = '👁 预览生成的 data.js';
-    hide('ioImportBody'); show('ioExportBody');
-    show('btnIoDownload'); hide('btnIoImportConfirm');
-    const c = generateDataJs();
-    $('ioExportContent').textContent = c;
-    $('btnIoDownload').onclick = () => {
-        const blob = new Blob([c], { type: 'text/javascript;charset=utf-8' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.js'; a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 500);
-    };
-    show('ioModal');
+async function openExportModal() {
+    $('ioTitle').textContent = t('ioExportTitle');
+    hide('ioImportBody'); show('ioExportBody'); show('btnIoDownload'); hide('btnIoImportConfirm');
+    try {
+        const c = await generateDataJs();
+        $('ioExportContent').textContent = c;
+        $('btnIoDownload').onclick = () => {
+            const blob = new Blob([c], { type: 'text/javascript;charset=utf-8' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.js'; a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 500);
+        };
+        show('ioModal');
+    } catch (e) { toast(e.message); }
 }
-function handleImportFile(e) {
-    const f = e.target.files[0]; if (!f) return;
-    const r = new FileReader(); r.onload = ev => { $('ioText').value = ev.target.result; }; r.readAsText(f);
-}
-function confirmImport() {
+function handleImportFile(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { $('ioText').value = ev.target.result; }; r.readAsText(f); }
+async function confirmImport() {
     const txt = $('ioText').value;
-    if (!txt.trim()) { toast('请粘贴或选择文件'); return; }
-    if (parseAndLoad(txt)) { hide('ioModal'); toast('已载入编辑器'); }
+    if (!txt.trim()) { toast(t('toastImportHint')); return; }
+    if (await parseAndLoad(txt)) { hide('ioModal'); toast(t('toastLoadedToEditor')); autoPromptUnlockIfNeeded(); }
 }
 
 /* ================================================================
-   修改本地密码
+   Password change (local)
 ================================================================ */
 async function savePassword() {
     const oldP = $('pwdOld').value, newP = $('pwdNew').value, newP2 = $('pwdNew2').value;
-    if (!oldP || !newP) { toast('请填写完整'); return; }
-    if (newP !== newP2) { toast('两次新密码不一致'); return; }
-    if (newP.length < 4) { toast('密码至少4位'); return; }
-    if (await sha256(oldP) !== safeLS('get', LS_PASS)) { toast('原密码错误'); return; }
+    if (!oldP || !newP) { toast(t('toastPwdNeed')); return; }
+    if (newP !== newP2) { toast(t('toastPwdMismatch')); return; }
+    if (newP.length < 4) { toast(t('toastPwdTooShort')); return; }
+    if (await sha256(oldP) !== safeLS('get', LS_PASS)) { toast(t('toastPwdOldWrong')); return; }
     safeLS('set', LS_PASS, await sha256(newP));
-    hide('pwdModal'); toast('密码已更新');
+    setEncPassword(newP);
+    hide('pwdModal');
+    updateEncKeyStatus();
+    toast(t('toastPwdUpdated'));
 }
 
 /* ================================================================
-   事件绑定
+   Events
 ================================================================ */
 window.addEventListener('DOMContentLoaded', () => {
+    applyI18n();
     boot();
 
+    // ★ 初始化 emoji picker
+    initEmojiPicker();
+
+    $('btnLang').onclick = toggleLang;
     $('authBtn').onclick = handleAuth;
     $('authPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
     $('authPass2').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
-    $('switchModeLink').onclick = e => { e.preventDefault(); safeLS('del', LS_MODE); boot(); };
+    $('switchModeLink').onclick = e => { e.preventDefault(); clearEncPassword(); safeLS('del', LS_MODE); boot(); };
     $('resetCredLink').onclick = e => {
         e.preventDefault();
-        if (confirm('确定重置本地用户名和密码？')) {
+        if (confirm(t('confirmResetCreds'))) {
+            clearEncPassword();
             safeLS('del', LS_USER); safeLS('del', LS_PASS); safeLS('del', LS_SESS);
-            idbDel('folderHandle').catch(()=>{});
-            boot();
+            idbDel('folderHandle').catch(()=>{}); boot();
         }
     };
 
@@ -1944,11 +2558,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnCardSave').onclick = saveCardFromModal;
     $('f_type').onchange = syncTypeFields;
 
-    document.querySelectorAll('#cardModal .icon-kind-tabs .k').forEach(t => {
-        t.onclick = () => {
+    document.querySelectorAll('#cardModal .icon-kind-tabs .k').forEach(ta => {
+        ta.onclick = () => {
             document.querySelectorAll('#cardModal .icon-kind-tabs .k').forEach(x => x.classList.remove('active'));
-            t.classList.add('active');
-            showIconKind(t.dataset.kind, 'f_icon_emoji','f_icon_img','f_icon_svg');
+            ta.classList.add('active');
+            showIconKind(ta.dataset.kind, 'f_icon_emoji','f_icon_img','f_icon_svg');
             updateIconPreview('f_icon_emoji','f_icon_img','f_icon_svg','iconPreview');
         };
     });
@@ -1958,11 +2572,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnSubCancel').onclick = () => hide('subModal');
     $('btnSubSave').onclick = saveSubFromModal;
     $('sf_style').onchange = syncSubStyle;
-    document.querySelectorAll('#subModal .icon-kind-tabs .k').forEach(t => {
-        t.onclick = () => {
+    document.querySelectorAll('#subModal .icon-kind-tabs .k').forEach(ta => {
+        ta.onclick = () => {
             document.querySelectorAll('#subModal .icon-kind-tabs .k').forEach(x => x.classList.remove('active'));
-            t.classList.add('active');
-            showIconKind(t.dataset.kind, 'sf_icon_emoji','sf_icon_img','sf_icon_svg');
+            ta.classList.add('active');
+            showIconKind(ta.dataset.kind, 'sf_icon_emoji','sf_icon_img','sf_icon_svg');
             updateIconPreview('sf_icon_emoji','sf_icon_img','sf_icon_svg','subIconPreview');
         };
     });
@@ -1970,16 +2584,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
     $('btnMoveCancel').onclick = () => hide('moveModal');
     $('btnMoveConfirm').onclick = confirmMoveSubCard;
-
-    // ★ 卡片跨大类移动
     $('btnCardMoveCancel').onclick = () => hide('cardMoveModal');
     $('btnCardMoveConfirm').onclick = confirmMoveCard;
 
-    // ★ 大类管理
     $('btnSectionsClose').onclick = () => hide('sectionsModal');
     $('btnAddCustomSection').onclick = () => openSectionEditModal(null);
     $('btnSectionEditCancel').onclick = () => hide('sectionEditModal');
     $('btnSectionEditSave').onclick = saveSectionEdit;
+
+    $('btnUnlockCancel').onclick = () => hide('unlockModal');
+    $('btnUnlockConfirm').onclick = confirmUnlock;
+    $('unlockPwd').addEventListener('keydown', e => { if (e.key === 'Enter') confirmUnlock(); });
 });
 </script>
 </body>

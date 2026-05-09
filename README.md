@@ -16,6 +16,7 @@ This project started as a few small online tools I wrote for my kids, and gradua
 - **Rich icon support**: Emoji / text / image URL / inline SVG — your choice
 - **Visual admin panel**: all cards, sub-cards, and categories can be added, edited, deleted, drag-sorted, and moved across categories directly in the browser
 - **Custom categories**: in addition to the built-in groups ("Online USB Drive", "Teaching Materials", "Web Resources", "Video Aggregators", "Email", "Other Contacts"), you can freely add/remove/rename/reorder your own categories, and configure per-category expand/collapse behavior on mobile
+- **🔐 Encrypted Categories (Privacy Protection)**: Any custom category can be encrypted with one click. Content is encrypted locally in the browser using **AES-GCM 256-bit** before being written to `data.js` — only ciphertext is stored on the server and in the repository. Accessing an encrypted category requires a separate password; decryption happens purely in memory. The unlocked state lives only in the current tab's `sessionStorage` and clears automatically when the tab closes. A floating **"Lock Now"** button in the bottom-right corner lets you re-lock instantly. When locked, even the category title is hidden — only a subtle pill-shaped placeholder remains, so **even if `data.js` is published to a public GitHub repo, the content cannot be recovered**
 - **Dual-mode deployment**:
   - ☁️ **Online mode**: deploy to Cloudflare Pages with data stored in KV — edit from any device or browser after login
   - 💻 **Local mode**: read/write the local `data.js` directly from the browser (powered by the File System Access API, requires Chrome / Edge)
@@ -234,10 +235,10 @@ Sub-cards also support two styles: **two-line** (icon + title + description) and
 ![Homepage — Framer theme](./screenshot/screenshot2.png)
 
 ### Admin Panel
-![Admin panel](./screenshot/screenshot3.png)
+![Admin panel](./screenshot/screenshot6.png)
 
 ### Card Editor
-![Card editor](./screenshot/screenshot4.png)
+![Card editor](./screenshot/screenshot5.png)
 
 ---
 
@@ -257,6 +258,7 @@ Sub-cards also support two styles: **two-line** (icon + title + description) and
 4. Cloudflare Pages enforces HTTPS by default — don't disable it.
 5. If the site is used by multiple people, consider adding a **Cloudflare Access / Zero Trust** policy in front.
 6. Rotate `AUTH_SECRET` periodically (note that after rotation, all logged-in devices will need to log in again).
+7. **Use a dedicated password for encrypted categories — never reuse your login password**: Encryption uses PBKDF2 (SHA-256, 250,000 iterations) for key derivation + AES-GCM for encryption. Security depends entirely on the strength of your password. If forgotten, **no one (including the author) can recover the data** — be sure to save it in a password manager
 
 ---
 

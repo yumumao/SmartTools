@@ -698,4 +698,35 @@ var contactData = [
 ];
 
 // ==================== 自定义大类（可在配置后台增删改） ====================
-var customSections = [];
+var customSections = [
+    {
+        key: 'custom_moyq5cad_ezc0r',
+        label: '私人项目',
+        dynamic: false,
+        encrypted: true,
+        enc: {
+            v: 1,
+            alg: 'AES-GCM-256/PBKDF2-SHA256',
+            iter: 100000,
+            salt: 'u+oCnjycu9Ofqb4wWTF+JQ==',
+            iv: 'oFJkqIU96ahn/QXe',
+            data: 'bHCY4rBZlu6MrmxqTkH76DBUKiVd3G4ePtwWmQQF2cX3doHbJmzNAtBMYo5YTUowp6tHHgWxnFHTobHkCoOHCnQ0TOYwW7fhAH9/foAaSDcG/6bwLENPpMU3bGdZ5igHBEzkffkSUgmvjlB9PKs='
+        },
+        cards: []
+    },
+    {
+        key: 'custom_moyrtxy1_z90tf',
+        label: 'ys2',
+        dynamic: false,
+        encrypted: true,
+        enc: {
+            v: 1,
+            alg: 'AES-GCM-256/PBKDF2-SHA256',
+            iter: 100000,
+            salt: 'fDuoLvLkkTjAzNAgac7X0w==',
+            iv: '4Iq4+3F8l/rQQnM2',
+            data: '57FJEebv0DCIQoEn7DCSbkxz6t0g3Djk8YdqosFU7EUkgwLnUeS7asVYXd3VV+Yg3sHYrMLSY4wpboDailUkulT8OEzksCITytpCVp6wifElctbPb9pENNzZY75U1DtH9OsBawnYheDYdME5OlnkvNoG'
+        },
+        cards: []
+    }
+];

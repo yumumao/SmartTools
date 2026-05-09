@@ -7,12 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>💖在线收藏夹</title>
-    <!-- Favicon: 使用内联 SVG 生成 emoji 图标，无需额外图片文件 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' x='-0.11em' font-size='90'>😺🏷</text></svg>">
+
+    <!-- 🔐 EncUnlock: 加载加密解锁模块样式 -->
+    <link rel="stylesheet" href="shared/enc-unlock.css">
+
     <style>
-        /* ================================================================
-           全局重置与基础布局
-           ================================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -34,9 +34,6 @@
             transition: max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* ================================================================
-           页头标题 & 页脚
-           ================================================================ */
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -60,9 +57,6 @@
             font-size: 12px;
         }
 
-        /* ================================================================
-           data.js 加载失败 — 错误提示页
-           ================================================================ */
         .error-container {
             display: flex;
             flex-direction: column;
@@ -180,9 +174,6 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         }
 
-        /* ================================================================
-           图标样式 — emoji / 图片 / 内联 SVG 三种格式
-           ================================================================ */
         .link-icon {
             display: inline-flex;
             width: 1.2em;
@@ -197,7 +188,6 @@
             object-fit: contain;
         }
 
-        /* 内联 SVG 图标 — 配合 renderIcon() 使用 */
         .link-icon-svg {
             display: inline-flex;
             align-items: center;
@@ -211,9 +201,6 @@
             display: block;
         }
 
-        /* ================================================================
-           导航按钮（返回/前往小工具）
-           ================================================================ */
         .back-nav {
             display: flex;
             justify-content: center;
@@ -259,12 +246,16 @@
             border-color: rgba(255, 255, 255, 0.4);
         }
 
-        /* ================================================================
-           分类区块（section）& 区块标题
-           ================================================================ */
         .section {
             margin-bottom: 30px;
             transition: margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .section.section-locked-pill {
+            margin-bottom: 8px;
+        }
+        .section.section-locked-pill + .section.section-locked-pill {
+            margin-top: -4px;
         }
 
         .section-title {
@@ -277,9 +268,6 @@
                        margin-bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* ================================================================
-           展开/折叠 区块按钮（视频聚合、网络资源等分类底部的按钮）
-           ================================================================ */
         .expand-section-btn {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
@@ -337,7 +325,6 @@
             transform: rotate(180deg);
         }
 
-        /* 按钮消失时的上移淡出动画 */
         .expand-section-btn.moving {
             opacity: 0;
             transform: translateY(-20px);
@@ -353,9 +340,6 @@
             margin-bottom: 15px;
         }
 
-        /* ================================================================
-           卡片网格布局
-           ================================================================ */
         .links-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -365,7 +349,6 @@
             width: 100%;
         }
 
-        /* 联系方式区块的单列布局 */
         .contact-row {
             display: grid;
             grid-template-columns: 1fr;
@@ -377,9 +360,6 @@
             margin: 0 auto;
         }
 
-        /* ================================================================
-           隐藏卡片区域（展开/折叠动画）
-           ================================================================ */
         .hidden-cards {
             display: none;
             margin-top: 19px;
@@ -389,7 +369,6 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* 展开状态：变为 grid 布局 */
         .hidden-cards.expanded {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -400,7 +379,6 @@
             justify-content: center;
         }
 
-        /* --- 展开时卡片入场动画（每两张一组，逐行延迟） --- */
         .hidden-cards .link-card,
         .hidden-cards .card-container {
             opacity: 0;
@@ -504,7 +482,6 @@
             }
         }
 
-        /* 入场动画完毕后恢复正常 hover 交互 */
         .hidden-cards.expanded.hover-ready .link-card {
             animation-name: none !important;
             opacity: 1 !important;
@@ -538,7 +515,6 @@
             }
         }
 
-        /* --- 折叠时卡片退场动画（从下往上逐行收起） --- */
         .hidden-cards.collapsing .link-card,
         .hidden-cards.collapsing .card-container {
             animation: slideOutUpRow 0.4s ease forwards;
@@ -621,9 +597,6 @@
             }
         }
 
-        /* ================================================================
-           卡片容器（含可展开子卡片的卡片需要额外包一层）
-           ================================================================ */
         .card-container {
             position: relative;
             overflow: visible;
@@ -634,8 +607,6 @@
             z-index: 20;
         }
 
-        /* 展开态：锁定在"上浮"视觉，不论 hover 与否都保持一致
-           避免反复点击展开按钮时卡片在"hover浮起↔展开落回"之间抖动 */
         .card-container.active > .link-card,
         .card-container.active > .link-card:hover {
             transform: translateY(-2px) !important;
@@ -650,9 +621,6 @@
             z-index: 60;
         }
 
-        /* ================================================================
-           主卡片样式
-           ================================================================ */
         .link-card {
             background: white;
             border-radius: 10px;
@@ -675,12 +643,10 @@
             z-index: 2;
         }
 
-        /* 带展开按钮的卡片，右侧留出箭头区域 */
         .link-card-with-expand {
             padding-right: 55px;
         }
 
-        /* 右侧 40% 区域点击展开子菜单 */
         .link-card-with-expand .expand-zone {
             position: absolute;
             top: 0;
@@ -701,9 +667,6 @@
             background: rgba(102, 126, 234, 0.12);
         }
 
-        /* ================================================================
-           邮箱卡片（带多标签页切换）
-           ================================================================ */
         .email-card {
             position: relative;
             padding: 16px;
@@ -712,7 +675,6 @@
             border-bottom: 3px solid rgba(102, 126, 234, 0.6);
         }
 
-        /* 邮箱切换时的滑动动画 */
         .email-main-content {
             position: relative;
             z-index: 2;
@@ -734,7 +696,6 @@
             opacity: 1;
         }
 
-        /* 邮箱右侧的标签页按钮组 */
         .email-tabs {
             position: absolute;
             top: 0;
@@ -790,7 +751,6 @@
             border-radius: 0 15px 15px 0;
         }
 
-        /* --- 标签页位置矩阵（5个邮箱 × 5种激活态） --- */
         .email-tabs.active-0 .email-tab[data-email="0"] { right: 80%; width: 20%; z-index: 15; }
         .email-tabs.active-0 .email-tab[data-email="1"] { right: 60%; width: 20%; z-index: 13; }
         .email-tabs.active-0 .email-tab[data-email="2"] { right: 40%; width: 20%; z-index: 12; }
@@ -830,9 +790,6 @@
             transform: translateX(0) scale(1.02);
         }
 
-        /* ================================================================
-           展开箭头按钮（卡片右侧的 ▼ 按钮）
-           ================================================================ */
         .expand-btn {
             position: absolute;
             right: 22px;
@@ -853,7 +810,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 -2px 8px rgba(102, 126, 234, 0.3);
             z-index: 3;
-            pointer-events: none; /* 点击由 expand-zone 代理 */
+            pointer-events: none;
         }
 
         .expand-btn:hover {
@@ -871,9 +828,6 @@
             transform: translateY(-50%) rotate(180deg) scale(1.1);
         }
 
-        /* ================================================================
-           子卡片面板（展开后浮在主卡片下方）
-           ================================================================ */
         .sub-cards {
             position: absolute;
             top: 85%;
@@ -905,9 +859,6 @@
             transform: translateY(0);
         }
 
-        /* ================================================================
-           子卡片样式（三种布局：两行式、紧凑式、备用式）
-           ================================================================ */
         .sub-card {
             background: rgba(240, 242, 247, 0.87);
             backdrop-filter: none;
@@ -926,7 +877,6 @@
             z-index: 1;
         }
 
-        /* 子卡片入场动画：向下弹跳（用于普通区域卡片） */
         @keyframes jellyDown {
             0%   { opacity: 0; transform: translateY(-6px); }
             55%  { opacity: 1; transform: translateY(0); }
@@ -935,7 +885,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 子卡片入场动画：向上弹跳（用于隐藏区域卡片） */
         @keyframes jellyUp {
             0%   { opacity: 0; transform: translateY(6px); }
             55%  { opacity: 1; transform: translateY(0); }
@@ -953,7 +902,6 @@
             animation: jellyDown 0.43s ease-out forwards;
         }
 
-        /* 备用式子卡片 */
         .sub-card.backup-card {
             padding: 8px 12px !important;
             margin-bottom: 4px !important;
@@ -962,7 +910,6 @@
             gap: 8px !important;
         }
 
-        /* 两行式子卡片（图标+标题 / 描述链接） */
         .sub-card.two-line-card {
             padding: 8px 12px !important;
             margin-bottom: 4px !important;
@@ -997,7 +944,6 @@
             transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* 紧凑式子卡片（图标+内容 单行排列） */
         .sub-card.compact-card {
             padding: 5px 11px !important;
             margin-bottom: 4px !important;
@@ -1036,7 +982,6 @@
             transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* 子卡片 hover 发光效果 */
         .sub-card:hover {
             background: rgba(240, 242, 247, 0.98) !important;
             transform: translateY(-1px);
@@ -1047,7 +992,6 @@
             z-index: 2;
         }
 
-        /* 子卡片逐个延迟入场 */
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(1) { animation-delay: 0.05s; }
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(2) { animation-delay: 0.1s; }
         .sub-cards:not(.hidden-cards .sub-cards) .sub-card:nth-child(3) { animation-delay: 0.15s; }
@@ -1079,9 +1023,6 @@
             margin-bottom: 0;
         }
 
-        /* ================================================================
-           遮罩层（展开子卡片时的半透明背景）
-           ================================================================ */
         .overlay {
             position: fixed;
             top: 0;
@@ -1103,9 +1044,6 @@
             pointer-events: auto;
         }
 
-        /* ================================================================
-           主卡片内部元素：图标、标题、描述
-           ================================================================ */
         .link-icon {
             font-size: 20px;
             margin-bottom: 6px;
@@ -1154,7 +1092,6 @@
             font-weight: 600;
         }
 
-        /* 纯文本描述 */
         .link-desc {
             font-size: 11px;
             color: #666;
@@ -1168,7 +1105,6 @@
             transition: font-size 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* 可点击描述（蓝色下划线，点击跳转到 descUrl） */
         .link-desc-clickable {
             font-size: 11px;
             color: #007bff;
@@ -1192,9 +1128,6 @@
             color: #004499;
         }
 
-        /* ================================================================
-           联系方式卡片
-           ================================================================ */
         .contact-card {
             padding: 14px 16px;
         }
@@ -1232,7 +1165,6 @@
             cursor: pointer;
         }
 
-        /* 邮箱联系方式卡片 */
         .email-card.contact-card {
             padding: 14px 16px;
             padding-right: 55%;
@@ -1271,11 +1203,6 @@
             color: #0056b3;
         }
 
-        /* ================================================================
-           响应式断点
-           ================================================================ */
-
-        /* --- 平板（481px ~ 799px）--- */
         @media (min-width: 481px) and (max-width: 799px) {
             .container {
                 max-width: 600px;
@@ -1303,7 +1230,6 @@
             }
         }
 
-        /* --- 桌面（800px+）--- */
         @media (min-width: 800px) {
             .container {
                 max-width: 1200px;
@@ -1403,7 +1329,6 @@
             }
         }
 
-        /* --- 手机（≤480px）--- */
         @media (max-width: 480px) {
             .container {
                 width: 96%;
@@ -1605,7 +1530,6 @@
                 font-size: 13px;
             }
 
-            /* 小屏风格切换按钮稍小 */
             .style-btn {
                 font-size: 11px;
                 padding: 4px 8px;
@@ -1616,11 +1540,15 @@
                 font-size: 11px;
                 padding: 5px 7px;
             }
+
+            .section.section-locked-pill {
+                margin-bottom: 6px;
+            }
+            .section.section-locked-pill + .section.section-locked-pill {
+                margin-top: -2px;
+            }
         }
 
-        /* ================================================================
-           左下角固定"主页"按钮
-           ================================================================ */
         #backHomeBtn {
             position: fixed;
             bottom: 33px;
@@ -1650,9 +1578,6 @@
                          0 0 6px rgba(80, 80, 80, 0.5);
         }
 
-        /* ================================================================
-           右上角固定风格切换（与左下角主页按钮视觉统一）
-           ================================================================ */
         .style-switcher {
             position: fixed;
             top: 28px;
@@ -1698,7 +1623,6 @@
             opacity: 0.85;
         }
 
-        /* 菜单打开时箭头旋转 */
         .style-switcher.open .style-caret {
             transform: rotate(180deg);
         }
@@ -1753,7 +1677,6 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        /* 当前页选项：高亮显示，禁止再次点击 */
         .style-opt-active {
             background: rgba(255, 255, 255, 0.12);
             color: #fff;
@@ -1766,11 +1689,6 @@
             background: rgba(255, 255, 255, 0.12);
         }
 
-/* ================================================================
- * [✨ 交互增强] 去触屏灰色高亮 + 按压反馈 + 波纹容器
- * ================================================================ */
-
-/* —— ① 全局去除触屏灰色高亮 —— */
 a, button, [onclick], [role="option"],
 .link-card, .sub-card, .back-link, .expand-section-btn,
 .expand-zone, .email-tab, .style-btn, .style-opt,
@@ -1780,7 +1698,6 @@ a, button, [onclick], [role="option"],
     -webkit-touch-callout: none;
 }
 
-/* —— ② 波纹容器：让所有可点元素能承载 .ripple 子元素 —— */
 .link-card,
 .sub-card,
 .back-link,
@@ -1792,30 +1709,24 @@ a, button, [onclick], [role="option"],
     overflow: hidden;
 }
 
-/* #backHomeBtn 特殊处理：保留 fixed 定位，只加 hidden 用于裁剪波纹 */
 #backHomeBtn {
     overflow: hidden;
 }
 
-/* card-container 里的主卡片需要特殊处理：
-   主卡片自身要 overflow:hidden 才能裁剪波纹，
-   但 card-container 仍要 overflow:visible 以便子卡片浮出 */
 .card-container > .link-card {
     overflow: hidden;
 }
-/* 子卡片面板不能被裁掉 */
 .card-container {
     overflow: visible;
 }
 
-/* —— ③ 波纹本体样式 —— */
 .ripple {
     position: absolute;
     border-radius: 50%;
     transform: scale(0);
     animation: ripple-anim 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
-    background-color: #667eea;  /* 默认：Nebula 主题紫 */
+    background-color: #667eea;
     opacity: 0.35;
 }
 
@@ -1826,23 +1737,21 @@ a, button, [onclick], [role="option"],
     }
 }
 
-/* 深色/半透明底的元素：波纹改用白色，更显眼 */
 .back-link .ripple,
 .expand-section-btn .ripple,
 .style-btn .ripple,
 .email-tab .ripple,
-#backHomeBtn .ripple {
+#backHomeBtn .ripple,
+.enc-lock-fab .ripple {
     background-color: #ffffff;
     opacity: 0.4;
 }
 
-/* 下拉菜单项：白色波纹（菜单底色为半透明紫） */
 .style-opt .ripple {
     background-color: #ffffff;
     opacity: 0.3;
 }
 
-/* —— ④ 防止选中 —— */
 .link-card,
 .sub-card,
 .back-link,
@@ -1851,20 +1760,17 @@ a, button, [onclick], [role="option"],
 .style-opt,
 .email-tab,
 #backHomeBtn,
-.error-home-btn {
+.error-home-btn,
+.enc-lock-fab {
     -webkit-user-select: none;
     user-select: none;
 }
 
-/* —— 邮箱卡片：桌面保留 hover，触屏完全静止 —— */
-
-/* tab 条：取消按下变暗 */
 .email-tab:active {
     filter: none !important;
     transition: none !important;
 }
 
-/* 基础状态 */
 .link-card.email-card {
     transform: none;
     transition: transform .18s ease,
@@ -1873,7 +1779,6 @@ a, button, [onclick], [role="option"],
                 background .18s ease;
 }
 
-/* ✨ 鼠标设备：hover 与 active 视觉完全一致 */
 @media (hover: hover) and (pointer: fine) {
     .link-card.email-card:hover,
     .link-card.email-card:active,
@@ -1883,7 +1788,6 @@ a, button, [onclick], [role="option"],
     }
 }
 
-/* 📱 触屏设备：按下完全不动 */
 @media (hover: none) {
     .link-card.email-card,
     .link-card.email-card:active,
@@ -1894,13 +1798,10 @@ a, button, [onclick], [role="option"],
     </style>
 </head>
 <body>
-    <!-- 遮罩层：展开子卡片时覆盖背景，点击可收起 -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- 左下角固定导航按钮 -->
     <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
 
-    <!-- 右上角固定风格切换按钮 -->
     <div class="style-switcher" id="styleSwitcher">
         <button class="style-btn" id="styleBtn"
                 onclick="toggleStyleMenu(event)"
@@ -1909,9 +1810,7 @@ a, button, [onclick], [role="option"],
             <span class="style-caret">▾</span>
         </button>
         <div class="style-menu" id="styleMenu" role="listbox">
-            <!-- 当前页：渐变风格，标记为已选中，不可点击 -->
             <div class="style-opt style-opt-active" role="option" aria-selected="true">🌌 Nebula</div>
-            <!-- 跳转到其他风格页 -->
             <a href="index2.html" class="style-opt" role="option">📄 Notion</a>
             <a href="index3.html" class="style-opt" role="option">💎 Stripe</a>
             <a href="index4.html" class="style-opt" role="option">🖤 Framer</a>
@@ -1920,7 +1819,6 @@ a, button, [onclick], [role="option"],
     </div>
 
     <div class="container">
-        <!-- ==================== 页头 ==================== -->
         <div class="header">
             <h1 class="title">⭐️收藏夹🌹</h1>
 
@@ -1929,69 +1827,54 @@ a, button, [onclick], [role="option"],
             </div>
         </div>
 
-        <!-- ==================== 在线U盘 ==================== -->
         <div class="section">
             <h2 class="section-title" id="usb">☁️ 在线U盘</h2>
             <div id="usb-drive-content"></div>
         </div>
 
-        <!-- ==================== 授课资料 ==================== -->
         <div class="section">
             <h2 class="section-title" id="teaching">📚 授课资料</h2>
             <div id="teaching-content"></div>
         </div>
 
-        <!-- ==================== 网络资源（带展开/折叠） ==================== -->
         <div class="section">
             <h2 class="section-title" id="resource">🖥️ 网络资源</h2>
             <div id="online-ai-content"></div>
         </div>
 
-        <!-- ==================== 视频聚合（带展开/折叠） ==================== -->
         <div class="section">
             <h2 class="section-title" id="video">🎬 视频聚合</h2>
             <div id="video-content"></div>
         </div>
 
-        <!-- ==================== 联系方式（邮箱标签页 + 其他） ==================== -->
         <div class="section">
             <h2 class="section-title" id="contact">📧 联系方式</h2>
             <div id="contact-content"></div>
         </div>
 
-        <!-- ==================== 页脚 ==================== -->
         <div class="footer">
             <p>m(AT)mrr.cc</p>
         </div>
     </div>
 
-<!-- ================================================================
-     智能数据加载器
-     - 本地模式（file:// 直接双击打开）→ 加载 data.js
-     - 在线模式（部署到 Cloudflare Pages）→ 加载 /api/data
-     - 在线但 API 挂了 → 自动回退到 data.js
-================================================================ -->
 <script>
 (function() {
-    // file:// 协议直接用本地文件；其他场景走 /api/data
     var src = location.protocol === 'file:' ? 'data.js' : '/api/data?t=' + Date.now();
     document.write('<script src="' + src + '"><\/' + 'script>');
 })();
 </script>
 <script>
-// 兜底：如果 /api/data 没返回数据（404/500/空响应），再回退一次
 if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
     document.write('<script src="data.js"><\/' + 'script>');
 }
 </script>
+
+<!-- 🔐 EncUnlock: 加载加密解锁模块脚本 -->
+<script src="shared/enc-unlock.js"></script>
+
     <script>
-        // ====== 记住当前风格页面 ======
-            try { localStorage.setItem('fav_last_style', 'index1.html'); } catch(e) {}
-        // ================================================================
-        // 数据加载检查
-        // 如果 data.js 不存在或语法错误，usbDriveData / emailData 不会被定义
-        // 此时显示友好的错误提示页并终止后续脚本
-        // ================================================================
+        try { localStorage.setItem('fav_last_style', 'index1.html'); } catch(e) {}
+
         if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
             document.querySelector('.container').innerHTML =
                 '<div class="error-container">' +
@@ -2011,14 +1894,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             throw new Error('数据文件 未加载');
         }
 
-        // ================================================================
-        // 风格切换下拉菜单开关逻辑
-        // ================================================================
-
-        /**
-         * 点击按钮时切换菜单展开/收起
-         * stopPropagation 防止立即触发下方 document 的关闭监听
-         */
         function toggleStyleMenu(event) {
             event.stopPropagation();
             var switcher = document.getElementById('styleSwitcher');
@@ -2027,7 +1902,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
 
-        // 点击页面其他区域时自动关闭菜单
         document.addEventListener('click', function(e) {
             var switcher = document.getElementById('styleSwitcher');
             if (switcher && !switcher.contains(e.target)) {
@@ -2037,22 +1911,11 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             }
         });
 
-        // ================================================================
-        // 全局状态变量
-        // ================================================================
-        var currentExpanded = null;    // 当前展开的子卡片面板 ID（同时只能展开一个）
-        var currentLayout = 'mobile';  // 当前响应式布局：'mobile' | 'tablet' | 'desktop'
-        var currentEmailData = emailData[0]; // 当前选中的邮箱数据
-        var isAnimating = false;       // 邮箱切换动画锁，防止快速连点
+        var currentExpanded = null;
+        var currentLayout = 'mobile';
+        var currentEmailData = emailData[0];
+        var isAnimating = false;
 
-        // ================================================================
-        // 通用工具函数
-        // ================================================================
-
-        /**
-         * 根据窗口宽度判断当前布局模式
-         * @returns {'mobile'|'tablet'|'desktop'}
-         */
         function detectLayout() {
             var w = window.innerWidth;
             if (w <= 480) return 'mobile';
@@ -2060,10 +1923,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             return 'desktop';
         }
 
-        /**
-         * 将风格切换按钮的 right 与 .container 右边缘精确对齐
-         * 使用 getBoundingClientRect 读取容器实际位置，避免 100vw 含滚动条的偏差
-         */
         function alignStyleSwitcher() {
             var container = document.querySelector('.container');
             var switcher = document.getElementById('styleSwitcher');
@@ -2072,16 +1931,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             switcher.style.right = (document.documentElement.clientWidth - rect.right) + 'px';
         }
 
-        /**
-         * 渲染卡片图标，支持 4 种格式：
-         *   1. iconImg  — 图片 URL
-         *   2. icon 以 '<' 开头 — 内联 SVG
-         *   3. icon 为普通文字/emoji
-         *   4. icon 为 HTML 实体（如 &#x1F522;）
-         * @param {Object} item  - 卡片数据对象
-         * @param {string} [extraAttrs] - 额外的 HTML 属性（如 id）
-         * @returns {string} HTML 字符串
-         */
         function renderIcon(item, extraAttrs) {
             extraAttrs = extraAttrs || '';
             if (item.iconImg) {
@@ -2094,30 +1943,19 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
         }
 
-        // ================================================================
-        // 卡片 HTML 生成
-        // ================================================================
-
-        /**
-         * 根据卡片 type 生成对应的 HTML
-         * type: 'simple' | 'desc-clickable' | 'expandable'
-         */
         function generateCardHTML(card) {
-            // simple — 整卡点击跳转
             if (card.type === 'simple') {
                 return '<a href="' + card.url + '" target="_blank" class="link-card">' +
                     renderIcon(card) +
                     '<h3 class="link-title">' + card.title + '</h3>' +
                     '<p class="link-desc">' + (card.desc || '') + '</p></a>';
             }
-            // desc-clickable — 卡片跳转 url，描述文字跳转 descUrl
             if (card.type === 'desc-clickable') {
                 return '<div class="link-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
                     renderIcon(card) +
                     '<h3 class="link-title">' + card.title + '</h3>' +
                     '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p></div>';
             }
-            // expandable — 带展开子菜单
             if (card.type === 'expandable') {
                 var descHTML = '';
                 if (card.descClickable) {
@@ -2139,11 +1977,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             return '';
         }
 
-        /**
-         * 生成子卡片 HTML
-         * 有 content 字段 → 紧凑式（compact-card）
-         * 否则 → 两行式（two-line-card）
-         */
         function generateSubCardHTML(sc) {
             var iconHTML = renderIcon(sc);
             var onclick = sc.isLocal
@@ -2163,11 +1996,6 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
                 '<p class="link-url">' + (sc.desc || '') + '</p></div>';
         }
 
-        // ================================================================
-        // 网格生成（静态 / 动态）
-        // ================================================================
-
-        /** 静态分类：所有卡片一次性全部显示 */
         function generateStaticGrid(data) {
             var html = '<div class="links-grid">';
             data.forEach(function(card) { html += generateCardHTML(card); });
@@ -2175,25 +2003,19 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             return html;
         }
 
-        /**
-         * 根据分类前缀和布局模式，返回默认可见卡片数量
-         * 超出的卡片放入"展开"区域
-         */
-function getVisibleCount(prefix, layout) {
-    if (prefix === 'video') {
-        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-    }
-    if (prefix === 'ai') {
-        return layout === 'tablet' ? 3 : 4;
-    }
-    // ★ 自定义大类：与视频聚合相同的折叠数量
-    if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
-        return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-    }
-    return 999;
-}
+        function getVisibleCount(prefix, layout) {
+            if (prefix === 'video') {
+                return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+            }
+            if (prefix === 'ai') {
+                return layout === 'tablet' ? 3 : 4;
+            }
+            if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
+                return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
+            }
+            return 999;
+        }
 
-        /** 动态分类：前 N 张可见，其余折叠隐藏，带展开/折叠按钮 */
         function generateDynamicGrid(prefix, data, layout) {
             var count = getVisibleCount(prefix, layout);
             var visible = data.slice(0, count);
@@ -2215,11 +2037,6 @@ function getVisibleCount(prefix, layout) {
             return html;
         }
 
-        // ================================================================
-        // 联系方式区块生成
-        // ================================================================
-
-        /** 生成邮箱卡片（含多标签页切换） */
         function generateEmailCardHTML() {
             var tabsHTML = '';
             emailData.forEach(function(em, i) {
@@ -2239,7 +2056,6 @@ function getVisibleCount(prefix, layout) {
                 '</div></div>';
         }
 
-        /** 生成普通联系方式卡片 */
         function generateContactCardHTML(card) {
             return '<div class="link-card contact-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
                 '<div class="contact-header">' +
@@ -2250,7 +2066,6 @@ function getVisibleCount(prefix, layout) {
                 '</div>';
         }
 
-        /** 组合生成完整的联系方式区块 */
         function generateContactGrid() {
             var html = '<div class="links-grid contact-row">';
             html += generateEmailCardHTML();
@@ -2259,15 +2074,6 @@ function getVisibleCount(prefix, layout) {
             return html;
         }
 
-        // ================================================================
-        // 交互逻辑
-        // ================================================================
-
-        /**
-         * 可展开卡片的点击处理：
-         * 点击左侧 60% → 打开链接
-         * 点击右侧 40% → 展开/折叠子卡片
-         */
         function handleCardClick(event, url, subcardId) {
             var card = event.currentTarget;
             var rect = card.getBoundingClientRect();
@@ -2280,23 +2086,17 @@ function getVisibleCount(prefix, layout) {
             }
         }
 
-        /** 展开区域（右侧 40%）的点击代理 */
         function handleExpandZone(subcardId, zone) {
             var btn = zone.closest('.link-card').querySelector('.expand-btn');
             if (btn) toggleSubCards(subcardId, btn);
         }
 
-        /**
-         * 切换子卡片面板的展开/折叠
-         * 同一时刻只允许一个面板展开，切换时自动关闭前一个
-         */
         function toggleSubCards(subcardId, button) {
             var subcards = document.getElementById(subcardId);
             var overlay = document.getElementById('overlay');
             var cardContainer = button.closest('.card-container');
             var isExpanded = subcards.classList.contains('expanded');
 
-            // 如果有其他面板已展开，先关闭它
             if (currentExpanded && currentExpanded !== subcardId) {
                 var otherSubcards = document.getElementById(currentExpanded);
                 if (otherSubcards) {
@@ -2323,10 +2123,6 @@ function getVisibleCount(prefix, layout) {
             }
         }
 
-        /**
-         * 分类区块的展开/折叠（视频聚合、网络资源等）
-         * 带入场/退场动画和按钮切换
-         */
         function toggleSection(prefix) {
             var section = document.getElementById(prefix + '-hidden-cards');
             var expandBtn = document.getElementById(prefix + '-expand-btn');
@@ -2334,7 +2130,6 @@ function getVisibleCount(prefix, layout) {
             var isExpanded = section.classList.contains('expanded');
 
             if (isExpanded) {
-                // 折叠：先播放退场动画再隐藏
                 section.classList.remove('hover-ready');
                 section.classList.add('collapsing');
                 collapseBtn.classList.add('moving');
@@ -2348,12 +2143,10 @@ function getVisibleCount(prefix, layout) {
                     }, 100);
                 }, 600);
             } else {
-                // 展开：先隐藏按钮再播放入场动画
                 expandBtn.classList.add('moving');
                 setTimeout(function() {
                     expandBtn.style.display = 'none';
                     section.classList.add('expanded');
-                    // 入场动画全部完成后才启用 hover 效果
                     setTimeout(function() { section.classList.add('hover-ready'); }, 2500);
                     setTimeout(function() {
                         collapseBtn.style.display = 'flex';
@@ -2363,10 +2156,6 @@ function getVisibleCount(prefix, layout) {
             }
         }
 
-        /**
-         * 大屏幕默认展开：跳过动画，直接展示所有隐藏卡片
-         * 隐藏"展开"按钮，显示"折叠"按钮，并立即启用 hover 效果
-         */
         function autoExpandSection(prefix) {
             var section = document.getElementById(prefix + '-hidden-cards');
             var expandBtn = document.getElementById(prefix + '-expand-btn');
@@ -2379,10 +2168,6 @@ function getVisibleCount(prefix, layout) {
             }
         }
 
-        /**
-         * 邮箱标签页切换
-         * 滑出旧内容 → 更新数据 → 滑入新内容
-         */
         function switchEmail(index) {
             if (isAnimating) return;
             var currentIndex = emailData.indexOf(currentEmailData);
@@ -2395,7 +2180,6 @@ function getVisibleCount(prefix, layout) {
             setTimeout(function() {
                 currentEmailData = emailData[index];
 
-                // 更新图标 — 兼容 iconImg / SVG / emoji / HTML实体
                 var emailIconEl = document.getElementById('email-icon');
                 if (currentEmailData.iconImg) {
                     emailIconEl.innerHTML = '<img src="' + currentEmailData.iconImg + '" alt="" />';
@@ -2411,14 +2195,12 @@ function getVisibleCount(prefix, layout) {
                 document.getElementById('email-title').textContent = currentEmailData.title;
                 document.getElementById('email-address').textContent = currentEmailData.address;
 
-                // 重新绑定地址点击事件
                 var addressElement = document.getElementById('email-address');
                 addressElement.onclick = function(event) {
                     event.stopPropagation();
                     window.open(currentEmailData.mailto, '_blank');
                 };
 
-                // 播放滑入动画
                 mainContent.classList.remove('slide-out');
                 mainContent.classList.add('slide-in');
 
@@ -2432,7 +2214,6 @@ function getVisibleCount(prefix, layout) {
                 }, 50);
             }, 200);
 
-            // 更新标签页高亮状态
             document.querySelectorAll('.email-tab').forEach(function(tab, i) {
                 if (i === index) tab.classList.add('active');
                 else tab.classList.remove('active');
@@ -2440,18 +2221,13 @@ function getVisibleCount(prefix, layout) {
             document.getElementById('email-tabs').className = 'email-tabs active-' + index;
         }
 
-        /** 打开当前选中邮箱的链接 */
         function openEmail(url) {
             window.open(url, '_blank');
         }
 
-// ================================================================
-        // ★ 自定义大类：从 data.js 的 customSections 注入到 DOM
-        // ================================================================
         function injectCustomSections(layout) {
             if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
 
-            // contact 大类的 .section 容器（自定义大类要插在它之前）
             var contactTitle = document.getElementById('contact');
             if (!contactTitle) return;
             var contactSection = contactTitle.closest('.section');
@@ -2459,14 +2235,20 @@ function getVisibleCount(prefix, layout) {
 
             customSections.forEach(function(cs) {
                 if (!cs || !cs.key || typeof cs.key !== 'string') return;
-                if (document.getElementById(cs.key + '-content')) return; // 防重复注入
+                if (document.getElementById(cs.key + '-content')) return;
 
                 var sectionEl = document.createElement('div');
                 sectionEl.className = 'section';
                 sectionEl.dataset.customKey = cs.key;
-                sectionEl.innerHTML =
-                    '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
-                    '<div id="' + cs.key + '-content"></div>';
+
+                if (window.EncUnlock && EncUnlock.isLocked(cs)) {
+                    sectionEl.classList.add('section-locked-pill');
+                    sectionEl.innerHTML = '<div id="' + cs.key + '-content"></div>';
+                } else {
+                    sectionEl.innerHTML =
+                        '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
+                        '<div id="' + cs.key + '-content"></div>';
+                }
                 contactSection.parentNode.insertBefore(sectionEl, contactSection);
 
                 renderCustomSection(cs, layout);
@@ -2476,6 +2258,13 @@ function getVisibleCount(prefix, layout) {
         function renderCustomSection(cs, layout) {
             var contentEl = document.getElementById(cs.key + '-content');
             if (!contentEl) return;
+
+            if (window.EncUnlock && EncUnlock.isLocked(cs)) {
+                contentEl.innerHTML = '';
+                contentEl.appendChild(EncUnlock.makeLockedPlaceholder(cs));
+                return;
+            }
+
             var cards = Array.isArray(cs.cards) ? cs.cards : [];
             if (!cards.length) {
                 contentEl.innerHTML = '';
@@ -2490,40 +2279,41 @@ function getVisibleCount(prefix, layout) {
                 contentEl.innerHTML = generateStaticGrid(cards);
             }
         }
-        
-        // ================================================================
-        // 初始化 & 事件监听
-        // ================================================================
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             currentLayout = detectLayout();
-// ★ 渲染自定义大类（如果 data.js 中定义了 customSections）
-    injectCustomSections(currentLayout);
-            // 静态分类：一次性渲染全部卡片
+
+            if (window.EncUnlock) {
+                try { await EncUnlock.bootstrap(); } catch (e) { console.warn('EncUnlock bootstrap error:', e); }
+            }
+
+            injectCustomSections(currentLayout);
+
             document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData);
             document.getElementById('teaching-content').innerHTML = generateStaticGrid(teachingData);
             document.getElementById('contact-content').innerHTML = generateContactGrid();
 
-            // 动态分类：根据屏幕尺寸决定默认显示数量
             document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai', onlineAIData, currentLayout);
             document.getElementById('video-content').innerHTML = generateDynamicGrid('video', videoData, currentLayout);
 
-            // 大屏幕默认展开折叠区域（跳过入场动画，直接全部可见）
             if (currentLayout === 'desktop') {
                 autoExpandSection('ai');
                 autoExpandSection('video');
             }
             alignStyleSwitcher();
-            // ——— ResizeObserver：容器尺寸变化时自动对齐（含 CSS transition 期间） ———
             var containerEl = document.querySelector('.container');
             if (typeof ResizeObserver !== 'undefined' && containerEl) {
                 new ResizeObserver(function() {
                     alignStyleSwitcher();
                 }).observe(containerEl);
-            }            
+            }
+
+            // 🔐 EncUnlock: 只要有已解锁的加密大类，就挂载浮动"立即锁定"按钮
+            if (window.EncUnlock && EncUnlock.mountLockButton) {
+                EncUnlock.mountLockButton();
+            }
         });
 
-        // 窗口尺寸变化时，重新渲染动态分类（避免卡片数量与列数不匹配）
         window.addEventListener('resize', function() {
             var newLayout = detectLayout();
             if (newLayout !== currentLayout) {
@@ -2539,7 +2329,6 @@ function getVisibleCount(prefix, layout) {
                     autoExpandSection('video');
                 }
 
-                // ★ 自定义大类也跟随 layout 重新渲染
                 if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
                     customSections.forEach(function(cs) {
                         if (cs && cs.key) renderCustomSection(cs, currentLayout);
@@ -2550,7 +2339,6 @@ function getVisibleCount(prefix, layout) {
             requestAnimationFrame(alignStyleSwitcher);
         });
 
-        // 点击遮罩层：关闭当前展开的子卡片面板
         document.getElementById('overlay').addEventListener('click', function() {
             if (currentExpanded) {
                 var subcards = document.getElementById(currentExpanded);
@@ -2566,16 +2354,12 @@ function getVisibleCount(prefix, layout) {
             this.classList.remove('active');
         });
 
-        // 阻止子卡片面板内的点击事件冒泡到外层
         document.addEventListener('click', function(e) {
             if (e.target.closest('.sub-cards')) {
                 e.stopPropagation();
             }
         });
-// ================================================================
-// [✨ 波纹效果] 事件委托 + 动态卡片兼容
-// 所有可点元素只要匹配 rippleSelector，按下时自动产生水波纹
-// ================================================================
+
 (function initRipple() {
     var rippleSelector = [
         '.link-card',
@@ -2586,20 +2370,18 @@ function getVisibleCount(prefix, layout) {
         '.style-opt',
         '.email-tab',
         '#backHomeBtn',
-        '.error-home-btn'
+        '.error-home-btn',
+        '.enc-lock-fab'
     ].join(',');
 
     function createRipple(e, target) {
-        // 禁用态的菜单项不产生波纹
         if (target.classList.contains('style-opt-active')) return;
 
         var rect = target.getBoundingClientRect();
-        // 支持鼠标 / 触摸两种事件
         var point = e.touches && e.touches[0] ? e.touches[0] : e;
         var x = point.clientX - rect.left;
         var y = point.clientY - rect.top;
 
-        // 直径取对角线以铺满整卡
         var size = Math.max(rect.width, rect.height) * 2;
 
         var ripple = document.createElement('span');
@@ -2611,7 +2393,6 @@ function getVisibleCount(prefix, layout) {
 
         target.appendChild(ripple);
 
-        // 动画结束后移除，避免 DOM 堆积
         setTimeout(function() {
             if (ripple && ripple.parentNode) {
                 ripple.parentNode.removeChild(ripple);
@@ -2619,8 +2400,6 @@ function getVisibleCount(prefix, layout) {
         }, 850);
     }
 
-    // 用 pointerdown 一次性覆盖鼠标+触摸+笔
-    // 不支持 PointerEvent 的老浏览器降级到 mousedown + touchstart
     var supportsPointer = 'PointerEvent' in window;
     var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
 
@@ -2630,7 +2409,6 @@ function getVisibleCount(prefix, layout) {
         createRipple(e, target);
     }, { passive: true });
 
-    // 降级：不支持 PointerEvent 时，补 touchstart
     if (!supportsPointer) {
         document.addEventListener('touchstart', function(e) {
             var target = e.target.closest(rippleSelector);
