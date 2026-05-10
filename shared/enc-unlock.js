@@ -1,10 +1,11 @@
 /* ============================================================
-   EncUnlock —— 前端加密大类解锁模块（小药丸版 + 立即锁定）
+   EncUnlock —— 前端加密大类解锁模块（小药丸版 + 立即锁定 + 逐个显示）
    ============================================================ */
 (function (global) {
     'use strict';
 
     const SS_KEY = 'bm_cfg_enc_pwd';
+    const SS_REVEAL = 'bm_cfg_enc_reveal';
 
     // -------- Base64 / AES-GCM / PBKDF2 --------
     function b64d(s) { const a = atob(s), u = new Uint8Array(a.length); for (let i = 0; i < a.length; i++) u[i] = a.charCodeAt(i); return u; }
@@ -20,6 +21,40 @@
         const pt = await crypto.subtle.decrypt(
             { name: 'AES-GCM', iv: b64d(enc.iv) }, key, b64d(enc.data));
         return JSON.parse(new TextDecoder().decode(pt));
+    }
+
+    // -------- "已显示"集合（session 级） --------
+    function sectionKey(section) {
+        return (section && (section.id || section.key || section.name)) || '';
+    }
+    function getRevealSet() {
+        try {
+            const raw = sessionStorage.getItem(SS_REVEAL);
+            return new Set(raw ? JSON.parse(raw) : []);
+        } catch { return new Set(); }
+    }
+    function saveRevealSet(set) {
+        try { sessionStorage.setItem(SS_REVEAL, JSON.stringify([...set])); } catch {}
+    }
+    function markRevealed(section) {
+        const k = sectionKey(section);
+        if (!k) return;
+        const s = getRevealSet(); s.add(k); saveRevealSet(s);
+    }
+    function isRevealed(section) {
+        return getRevealSet().has(sectionKey(section));
+    }
+    function clearReveal() {
+        try { sessionStorage.removeItem(SS_REVEAL); } catch {}
+    }
+
+    // -------- 触发重渲染（优先无刷新，否则刷页） --------
+    function triggerRerender() {
+        if (typeof window.rerenderCustomSections === 'function') {
+            window.rerenderCustomSections();
+        } else {
+            location.reload();
+        }
     }
 
     // -------- 尝试解锁所有加密大类 --------
@@ -111,30 +146,58 @@
     function makeLockedPlaceholder(section) {
         const wrap = document.createElement('div');
         wrap.className = 'enc-locked-pill-wrap';
+
+        // 序号：在所有加密大类中的位置（仅在 >1 时显示）
+        let ordinal = '';
+        if (Array.isArray(global.customSections)) {
+            const encList = global.customSections.filter(c => c && c.encrypted);
+            if (encList.length > 1) {
+                const idx = encList.indexOf(section);
+                if (idx >= 0) ordinal = String(idx + 1);
+            }
+        }
+
+        // 两种状态：已解密未展开 / 完全未解密
+        const decrypted = !!section.__unlocked;
+        const iconChar  = decrypted ? '🔓' : '🔒';
+        const labelText = decrypted ? '__点击显示__' : '（解锁查看）';
+        const title     = decrypted ? '密码已解锁，点击展开内容' : '点击输入密码解锁';
+
         wrap.innerHTML = `
-            <button type="button" class="enc-locked-pill" title="点击输入密码解锁">
-                <span class="lk-icon">🔒</span>
-                <span class="lk-text">受保护内容 · 点击解锁</span>
+            <button type="button" class="enc-locked-pill" title="${title}">
+                <span class="lk-icon">${iconChar}</span>
+                <span class="lk-text">${labelText}${ordinal}</span>
             </button>`;
-        wrap.querySelector('.enc-locked-pill').onclick = () =>
-            openUnlockModal(() => location.reload());
+
+        wrap.querySelector('.enc-locked-pill').onclick = () => {
+            if (section.__unlocked) {
+                // 已解密 → 仅标记当前这一个展开
+                markRevealed(section);
+                triggerRerender();
+            } else {
+                openUnlockModal(() => {
+                    // 只展开"触发本次解锁的这一个"，其它保持折叠
+                    if (section.__unlocked) markRevealed(section);
+                    triggerRerender();
+                });
+            }
+        };
         return wrap;
     }
 
     // ============================================================
-    // ★ 新增：立即锁定功能
+    // 立即锁定
     // ============================================================
 
-    // 是否存在已解锁的加密大类
+    // 是否存在已解锁的加密大类（有密码在 session 中即可显示锁定按钮）
     function hasUnlockedEncrypted() {
         if (!Array.isArray(global.customSections)) return false;
         return global.customSections.some(c => c && c.encrypted && c.__unlocked);
     }
 
-    // 立即锁定：清密码 + 刷新页面
     function lockNow() {
         try { sessionStorage.removeItem(SS_KEY); } catch {}
-        // 清内存中的明文（保险起见，即便马上就 reload）
+        clearReveal();
         if (Array.isArray(global.customSections)) {
             global.customSections.forEach(c => {
                 if (c && c.encrypted) {
@@ -143,15 +206,24 @@
                 }
             });
         }
-        location.reload();
+        triggerRerender();
+        // 立即卸载自己：此时已经不存在已解锁的加密大类
+        const fab = document.getElementById('enc-lock-fab');
+        if (fab) fab.remove();
     }
 
-    // 浮动锁定按钮：仅在存在已解锁加密大类时显示
     let _escBound = false;
     function mountLockButton() {
-        // 已有就不重复挂载
-        if (document.getElementById('enc-lock-fab')) return;
-        if (!hasUnlockedEncrypted()) return;
+        const existing = document.getElementById('enc-lock-fab');
+
+        // 不再需要显示按钮 → 如果存在就移除
+        if (!hasUnlockedEncrypted()) {
+            if (existing) existing.remove();
+            return;
+        }
+
+        // 需要显示但已存在 → 无需重复创建
+        if (existing) return;
 
         const btn = document.createElement('button');
         btn.id = 'enc-lock-fab';
@@ -165,14 +237,11 @@
         btn.addEventListener('click', lockNow);
         document.body.appendChild(btn);
 
-        // Esc 快捷键（只绑一次）
         if (!_escBound) {
             _escBound = true;
             document.addEventListener('keydown', function (e) {
                 if (e.key !== 'Escape') return;
-                // 若当前有解锁 Modal 打开，则 Esc 交给 Modal 处理
                 if (document.querySelector('.enc-mask')) return;
-                // 仅当锁按钮存在时触发
                 if (document.getElementById('enc-lock-fab')) lockNow();
             });
         }
@@ -183,10 +252,19 @@
         unlockAll,
         openUnlockModal,
         makeLockedPlaceholder,
-        mountLockButton,      // ★ 新增
-        lockNow,              // ★ 新增（也可由外部直接调用）
-        hasUnlockedEncrypted, // ★ 新增
-        isLocked(section) { return section && section.encrypted && !section.__unlocked; },
-        clearPassword() { try { sessionStorage.removeItem(SS_KEY); } catch {} }
+        mountLockButton,
+        lockNow,
+        hasUnlockedEncrypted,
+        // ★ 判据变化：是否渲染药丸（= 未解密 或 已解密但未展开）
+        isLocked(section) {
+            if (!section || !section.encrypted) return false;
+            if (!section.__unlocked) return true;
+            if (!isRevealed(section)) return true;
+            return false;
+        },
+        clearPassword() {
+            try { sessionStorage.removeItem(SS_KEY); } catch {}
+            clearReveal();
+        }
     };
 })(window);

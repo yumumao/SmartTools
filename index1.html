@@ -813,6 +813,10 @@
             pointer-events: none;
         }
 
+        .expand-btn::after {
+            content: '▼';
+        }
+
         .expand-btn:hover {
             background: linear-gradient(135deg, #5a6fd8, #6a42a0);
             transform: translateY(-50%) scale(1.1);
@@ -1128,7 +1132,7 @@
             color: #004499;
         }
 
-        .contact-card {
+        .contact-card-wrap {
             padding: 14px 16px;
         }
 
@@ -1163,11 +1167,6 @@
         .contact-desc:hover {
             color: #667eea;
             cursor: pointer;
-        }
-
-        .email-card.contact-card {
-            padding: 14px 16px;
-            padding-right: 55%;
         }
 
         .email-contact-header {
@@ -1270,11 +1269,6 @@
                 padding-right: 55%;
             }
 
-            .email-card.contact-card {
-                padding: 18px;
-                padding-right: 55%;
-            }
-
             .link-card-with-expand {
                 padding-right: 58px;
             }
@@ -1355,11 +1349,6 @@
 
             .email-card {
                 padding: 12px;
-                padding-right: 60%;
-            }
-
-            .email-card.contact-card {
-                padding: 12px 12px;
                 padding-right: 60%;
             }
 
@@ -1505,7 +1494,7 @@
                 min-width: 100px;
             }
 
-            .contact-card {
+            .contact-card-wrap {
                 padding: 12px 14px;
             }
 
@@ -1623,7 +1612,7 @@
             opacity: 0.85;
         }
 
-        .style-switcher.open .style-caret {
+        .style-btn.menu-open .style-caret {
             transform: rotate(180deg);
         }
 
@@ -1650,7 +1639,7 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        .style-switcher.open .style-menu {
+        .style-menu.menu-open {
             display: block;
         }
 
@@ -1869,554 +1858,15 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
 }
 </script>
 
+<!-- 页面标识 -->
+<script>window.__FAV_PAGE_ID = 'index1.html';</script>
+
 <!-- 🔐 EncUnlock: 加载加密解锁模块脚本 -->
 <script src="shared/enc-unlock.js"></script>
-
-    <script>
-        try { localStorage.setItem('fav_last_style', 'index1.html'); } catch(e) {}
-
-        if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
-            document.querySelector('.container').innerHTML =
-                '<div class="error-container">' +
-                    '<div class="error-card">' +
-                        '<span class="error-emoji">📂</span>' +
-                        '<h2 class="error-title">数据加载失败</h2>' +
-                        '<p class="error-message">收藏夹内容未能加载，可能是数据文件缺失或存在语法错误。</p>' +
-                        '<div class="error-hint-box">' +
-                            '<div class="error-hint-title">排查建议</div>' +
-                            '<div class="error-hint-item">确认 <code>数据文件</code> 与本页面在同一目录下</div>' +
-                            '<div class="error-hint-item">用浏览器 F12 控制台查看是否有 404 或语法报错</div>' +
-                            '<div class="error-hint-item">检查 SVG 图标是否写在同一行，避免模板字符串解析失败</div>' +
-                        '</div>' +
-                        '<a href="toolsindex.html" class="error-home-btn">← 返回主页</a>' +
-                    '</div>' +
-                '</div>';
-            throw new Error('数据文件 未加载');
-        }
-
-        function toggleStyleMenu(event) {
-            event.stopPropagation();
-            var switcher = document.getElementById('styleSwitcher');
-            var btn      = document.getElementById('styleBtn');
-            var isOpen   = switcher.classList.toggle('open');
-            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-
-        document.addEventListener('click', function(e) {
-            var switcher = document.getElementById('styleSwitcher');
-            if (switcher && !switcher.contains(e.target)) {
-                switcher.classList.remove('open');
-                var btn = document.getElementById('styleBtn');
-                if (btn) btn.setAttribute('aria-expanded', 'false');
-            }
-        });
-
-        var currentExpanded = null;
-        var currentLayout = 'mobile';
-        var currentEmailData = emailData[0];
-        var isAnimating = false;
-
-        function detectLayout() {
-            var w = window.innerWidth;
-            if (w <= 480) return 'mobile';
-            if (w <= 799) return 'tablet';
-            return 'desktop';
-        }
-
-        function alignStyleSwitcher() {
-            var container = document.querySelector('.container');
-            var switcher = document.getElementById('styleSwitcher');
-            if (!container || !switcher) return;
-            var rect = container.getBoundingClientRect();
-            switcher.style.right = (document.documentElement.clientWidth - rect.right) + 'px';
-        }
-
-        function renderIcon(item, extraAttrs) {
-            extraAttrs = extraAttrs || '';
-            if (item.iconImg) {
-                return '<span class="link-icon" ' + extraAttrs + ' aria-hidden="true"><img src="' + item.iconImg + '" alt="" /></span>';
-            }
-            var icon = item.icon || '';
-            if (icon.charAt(0) === '<') {
-                return '<span class="link-icon link-icon-svg" ' + extraAttrs + '>' + icon + '</span>';
-            }
-            return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
-        }
-
-        function generateCardHTML(card) {
-            if (card.type === 'simple') {
-                return '<a href="' + card.url + '" target="_blank" class="link-card">' +
-                    renderIcon(card) +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    '<p class="link-desc">' + (card.desc || '') + '</p></a>';
-            }
-            if (card.type === 'desc-clickable') {
-                return '<div class="link-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
-                    renderIcon(card) +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p></div>';
-            }
-            if (card.type === 'expandable') {
-                var descHTML = '';
-                if (card.descClickable) {
-                    descHTML = '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p>';
-                } else if (card.desc) {
-                    descHTML = '<p class="link-desc">' + card.desc + '</p>';
-                }
-                var subHTML = '';
-                card.subCards.forEach(function(sc) { subHTML += generateSubCardHTML(sc); });
-                return '<div class="card-container">' +
-                    '<div class="link-card link-card-with-expand" onclick="handleCardClick(event, \'' + card.url + '\', \'' + card.id + '-subcards\')">' +
-                    renderIcon(card) +
-                    '<h3 class="link-title">' + card.title + '</h3>' +
-                    descHTML +
-                    '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + card.id + '-subcards\', this)"></div>' +
-                    '<button class="expand-btn" title="展开更多">▼</button></div>' +
-                    '<div class="sub-cards" id="' + card.id + '-subcards">' + subHTML + '</div></div>';
-            }
-            return '';
-        }
-
-        function generateSubCardHTML(sc) {
-            var iconHTML = renderIcon(sc);
-            var onclick = sc.isLocal
-                ? 'window.location.href=\'' + sc.url + '\''
-                : 'window.open(\'' + sc.url + '\', \'_blank\')';
-
-            if (sc.content !== undefined) {
-                return '<div class="sub-card compact-card" onclick="' + onclick + '">' +
-                    iconHTML +
-                    '<div class="link-content"><span class="link-url">' + sc.content + '</span>' +
-                    (sc.note ? '<span class="link-note">' + sc.note + '</span>' : '') +
-                    '</div></div>';
-            }
-            return '<div class="sub-card two-line-card" onclick="' + onclick + '">' +
-                '<div class="card-header">' + iconHTML +
-                '<h3 class="link-title">' + sc.title + '</h3></div>' +
-                '<p class="link-url">' + (sc.desc || '') + '</p></div>';
-        }
-
-        function generateStaticGrid(data) {
-            var html = '<div class="links-grid">';
-            data.forEach(function(card) { html += generateCardHTML(card); });
-            html += '</div>';
-            return html;
-        }
-
-        function getVisibleCount(prefix, layout) {
-            if (prefix === 'video') {
-                return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-            }
-            if (prefix === 'ai') {
-                return layout === 'tablet' ? 3 : 4;
-            }
-            if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
-                return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
-            }
-            return 999;
-        }
-
-        function generateDynamicGrid(prefix, data, layout) {
-            var count = getVisibleCount(prefix, layout);
-            var visible = data.slice(0, count);
-            var hidden = data.slice(count);
-
-            var html = '<div class="links-grid">';
-            visible.forEach(function(card) { html += generateCardHTML(card); });
-            html += '</div>';
-
-            if (hidden.length > 0) {
-                html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-expand-btn">' +
-                    '<span>展开卡片</span><span class="arrow">▼</span></button>';
-                html += '<div class="hidden-cards" id="' + prefix + '-hidden-cards">';
-                hidden.forEach(function(card) { html += generateCardHTML(card); });
-                html += '</div>';
-                html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-collapse-btn" style="display: none;">' +
-                    '<span>折叠卡片</span><span class="arrow">▲</span></button>';
-            }
-            return html;
-        }
-
-        function generateEmailCardHTML() {
-            var tabsHTML = '';
-            emailData.forEach(function(em, i) {
-                var cls = i === 0 ? ' active' : '';
-                tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
-            });
-            return '<div class="card-container">' +
-                '<div class="link-card email-card contact-card" onclick="openEmail(currentEmailData.url)">' +
-                '<div class="email-main-content" id="email-main-content">' +
-                '<div class="email-contact-header">' +
-                renderIcon(emailData[0], 'id="email-icon"') +
-                '<h3 class="link-title" id="email-title">' + emailData[0].title + '</h3>' +
-                '</div>' +
-                '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); window.open(currentEmailData.mailto, \'_blank\')">' + emailData[0].address + '</p>' +
-                '</div>' +
-                '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
-                '</div></div>';
-        }
-
-        function generateContactCardHTML(card) {
-            return '<div class="link-card contact-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
-                '<div class="contact-header">' +
-                renderIcon(card) +
-                '<h3 class="link-title">' + card.title + '</h3>' +
-                '</div>' +
-                '<p class="contact-desc" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.desc + '</p>' +
-                '</div>';
-        }
-
-        function generateContactGrid() {
-            var html = '<div class="links-grid contact-row">';
-            html += generateEmailCardHTML();
-            contactData.forEach(function(card) { html += generateContactCardHTML(card); });
-            html += '</div>';
-            return html;
-        }
-
-        function handleCardClick(event, url, subcardId) {
-            var card = event.currentTarget;
-            var rect = card.getBoundingClientRect();
-            var clickX = event.clientX - rect.left;
-            if (clickX > rect.width * 3 / 5) {
-                var btn = card.querySelector('.expand-btn');
-                if (btn) toggleSubCards(subcardId, btn);
-            } else {
-                window.open(url, '_blank');
-            }
-        }
-
-        function handleExpandZone(subcardId, zone) {
-            var btn = zone.closest('.link-card').querySelector('.expand-btn');
-            if (btn) toggleSubCards(subcardId, btn);
-        }
-
-        function toggleSubCards(subcardId, button) {
-            var subcards = document.getElementById(subcardId);
-            var overlay = document.getElementById('overlay');
-            var cardContainer = button.closest('.card-container');
-            var isExpanded = subcards.classList.contains('expanded');
-
-            if (currentExpanded && currentExpanded !== subcardId) {
-                var otherSubcards = document.getElementById(currentExpanded);
-                if (otherSubcards) {
-                    var otherButton = otherSubcards.parentElement.querySelector('.expand-btn');
-                    var otherContainer = otherButton.closest('.card-container');
-                    otherSubcards.classList.remove('expanded');
-                    otherButton.classList.remove('expanded');
-                    otherContainer.classList.remove('active');
-                }
-            }
-
-            if (isExpanded) {
-                subcards.classList.remove('expanded');
-                button.classList.remove('expanded');
-                cardContainer.classList.remove('active');
-                overlay.classList.remove('active');
-                currentExpanded = null;
-            } else {
-                subcards.classList.add('expanded');
-                button.classList.add('expanded');
-                cardContainer.classList.add('active');
-                overlay.classList.add('active');
-                currentExpanded = subcardId;
-            }
-        }
-
-        function toggleSection(prefix) {
-            var section = document.getElementById(prefix + '-hidden-cards');
-            var expandBtn = document.getElementById(prefix + '-expand-btn');
-            var collapseBtn = document.getElementById(prefix + '-collapse-btn');
-            var isExpanded = section.classList.contains('expanded');
-
-            if (isExpanded) {
-                section.classList.remove('hover-ready');
-                section.classList.add('collapsing');
-                collapseBtn.classList.add('moving');
-                setTimeout(function() {
-                    section.classList.remove('expanded', 'collapsing');
-                    collapseBtn.style.display = 'none';
-                    collapseBtn.classList.remove('moving');
-                    setTimeout(function() {
-                        expandBtn.style.display = 'flex';
-                        expandBtn.classList.remove('moving');
-                    }, 100);
-                }, 600);
-            } else {
-                expandBtn.classList.add('moving');
-                setTimeout(function() {
-                    expandBtn.style.display = 'none';
-                    section.classList.add('expanded');
-                    setTimeout(function() { section.classList.add('hover-ready'); }, 2500);
-                    setTimeout(function() {
-                        collapseBtn.style.display = 'flex';
-                        collapseBtn.classList.remove('moving');
-                    }, 400);
-                }, 200);
-            }
-        }
-
-        function autoExpandSection(prefix) {
-            var section = document.getElementById(prefix + '-hidden-cards');
-            var expandBtn = document.getElementById(prefix + '-expand-btn');
-            var collapseBtn = document.getElementById(prefix + '-collapse-btn');
-            if (!section || !expandBtn) return;
-            expandBtn.style.display = 'none';
-            section.classList.add('expanded', 'hover-ready');
-            if (collapseBtn) {
-                collapseBtn.style.display = 'flex';
-            }
-        }
-
-        function switchEmail(index) {
-            if (isAnimating) return;
-            var currentIndex = emailData.indexOf(currentEmailData);
-            if (currentIndex === index) return;
-
-            isAnimating = true;
-            var mainContent = document.getElementById('email-main-content');
-            mainContent.classList.add('slide-out');
-
-            setTimeout(function() {
-                currentEmailData = emailData[index];
-
-                var emailIconEl = document.getElementById('email-icon');
-                if (currentEmailData.iconImg) {
-                    emailIconEl.innerHTML = '<img src="' + currentEmailData.iconImg + '" alt="" />';
-                    emailIconEl.className = 'link-icon';
-                } else if (currentEmailData.icon && currentEmailData.icon.charAt(0) === '<') {
-                    emailIconEl.innerHTML = currentEmailData.icon;
-                    emailIconEl.className = 'link-icon link-icon-svg';
-                } else {
-                    emailIconEl.innerHTML = currentEmailData.icon || '';
-                    emailIconEl.className = 'link-icon';
-                }
-
-                document.getElementById('email-title').textContent = currentEmailData.title;
-                document.getElementById('email-address').textContent = currentEmailData.address;
-
-                var addressElement = document.getElementById('email-address');
-                addressElement.onclick = function(event) {
-                    event.stopPropagation();
-                    window.open(currentEmailData.mailto, '_blank');
-                };
-
-                mainContent.classList.remove('slide-out');
-                mainContent.classList.add('slide-in');
-
-                setTimeout(function() {
-                    mainContent.classList.remove('slide-in');
-                    mainContent.classList.add('slide-in-active');
-                    setTimeout(function() {
-                        mainContent.classList.remove('slide-in-active');
-                        isAnimating = false;
-                    }, 400);
-                }, 50);
-            }, 200);
-
-            document.querySelectorAll('.email-tab').forEach(function(tab, i) {
-                if (i === index) tab.classList.add('active');
-                else tab.classList.remove('active');
-            });
-            document.getElementById('email-tabs').className = 'email-tabs active-' + index;
-        }
-
-        function openEmail(url) {
-            window.open(url, '_blank');
-        }
-
-        function injectCustomSections(layout) {
-            if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
-
-            var contactTitle = document.getElementById('contact');
-            if (!contactTitle) return;
-            var contactSection = contactTitle.closest('.section');
-            if (!contactSection) return;
-
-            customSections.forEach(function(cs) {
-                if (!cs || !cs.key || typeof cs.key !== 'string') return;
-                if (document.getElementById(cs.key + '-content')) return;
-
-                var sectionEl = document.createElement('div');
-                sectionEl.className = 'section';
-                sectionEl.dataset.customKey = cs.key;
-
-                if (window.EncUnlock && EncUnlock.isLocked(cs)) {
-                    sectionEl.classList.add('section-locked-pill');
-                    sectionEl.innerHTML = '<div id="' + cs.key + '-content"></div>';
-                } else {
-                    sectionEl.innerHTML =
-                        '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
-                        '<div id="' + cs.key + '-content"></div>';
-                }
-                contactSection.parentNode.insertBefore(sectionEl, contactSection);
-
-                renderCustomSection(cs, layout);
-            });
-        }
-
-        function renderCustomSection(cs, layout) {
-            var contentEl = document.getElementById(cs.key + '-content');
-            if (!contentEl) return;
-
-            if (window.EncUnlock && EncUnlock.isLocked(cs)) {
-                contentEl.innerHTML = '';
-                contentEl.appendChild(EncUnlock.makeLockedPlaceholder(cs));
-                return;
-            }
-
-            var cards = Array.isArray(cs.cards) ? cs.cards : [];
-            if (!cards.length) {
-                contentEl.innerHTML = '';
-                return;
-            }
-            if (cs.dynamic) {
-                contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout);
-                if (layout === 'desktop') {
-                    autoExpandSection(cs.key);
-                }
-            } else {
-                contentEl.innerHTML = generateStaticGrid(cards);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            currentLayout = detectLayout();
-
-            if (window.EncUnlock) {
-                try { await EncUnlock.bootstrap(); } catch (e) { console.warn('EncUnlock bootstrap error:', e); }
-            }
-
-            injectCustomSections(currentLayout);
-
-            document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData);
-            document.getElementById('teaching-content').innerHTML = generateStaticGrid(teachingData);
-            document.getElementById('contact-content').innerHTML = generateContactGrid();
-
-            document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai', onlineAIData, currentLayout);
-            document.getElementById('video-content').innerHTML = generateDynamicGrid('video', videoData, currentLayout);
-
-            if (currentLayout === 'desktop') {
-                autoExpandSection('ai');
-                autoExpandSection('video');
-            }
-            alignStyleSwitcher();
-            var containerEl = document.querySelector('.container');
-            if (typeof ResizeObserver !== 'undefined' && containerEl) {
-                new ResizeObserver(function() {
-                    alignStyleSwitcher();
-                }).observe(containerEl);
-            }
-
-            // 🔐 EncUnlock: 只要有已解锁的加密大类，就挂载浮动"立即锁定"按钮
-            if (window.EncUnlock && EncUnlock.mountLockButton) {
-                EncUnlock.mountLockButton();
-            }
-        });
-
-        window.addEventListener('resize', function() {
-            var newLayout = detectLayout();
-            if (newLayout !== currentLayout) {
-                currentLayout = newLayout;
-                if (currentExpanded) {
-                    currentExpanded = null;
-                    document.getElementById('overlay').classList.remove('active');
-                }
-                document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai',    onlineAIData, currentLayout);
-                document.getElementById('video-content').innerHTML     = generateDynamicGrid('video', videoData,    currentLayout);
-                if (currentLayout === 'desktop') {
-                    autoExpandSection('ai');
-                    autoExpandSection('video');
-                }
-
-                if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
-                    customSections.forEach(function(cs) {
-                        if (cs && cs.key) renderCustomSection(cs, currentLayout);
-                    });
-                }
-            }
-
-            requestAnimationFrame(alignStyleSwitcher);
-        });
-
-        document.getElementById('overlay').addEventListener('click', function() {
-            if (currentExpanded) {
-                var subcards = document.getElementById(currentExpanded);
-                if (subcards) {
-                    var button = subcards.parentElement.querySelector('.expand-btn');
-                    var cardContainer = button.closest('.card-container');
-                    subcards.classList.remove('expanded');
-                    button.classList.remove('expanded');
-                    cardContainer.classList.remove('active');
-                }
-                currentExpanded = null;
-            }
-            this.classList.remove('active');
-        });
-
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.sub-cards')) {
-                e.stopPropagation();
-            }
-        });
-
-(function initRipple() {
-    var rippleSelector = [
-        '.link-card',
-        '.sub-card',
-        '.back-link',
-        '.expand-section-btn',
-        '.style-btn',
-        '.style-opt',
-        '.email-tab',
-        '#backHomeBtn',
-        '.error-home-btn',
-        '.enc-lock-fab'
-    ].join(',');
-
-    function createRipple(e, target) {
-        if (target.classList.contains('style-opt-active')) return;
-
-        var rect = target.getBoundingClientRect();
-        var point = e.touches && e.touches[0] ? e.touches[0] : e;
-        var x = point.clientX - rect.left;
-        var y = point.clientY - rect.top;
-
-        var size = Math.max(rect.width, rect.height) * 2;
-
-        var ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        ripple.style.width = size + 'px';
-        ripple.style.height = size + 'px';
-        ripple.style.left = (x - size / 2) + 'px';
-        ripple.style.top  = (y - size / 2) + 'px';
-
-        target.appendChild(ripple);
-
-        setTimeout(function() {
-            if (ripple && ripple.parentNode) {
-                ripple.parentNode.removeChild(ripple);
-            }
-        }, 850);
-    }
-
-    var supportsPointer = 'PointerEvent' in window;
-    var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
-
-    document.addEventListener(eventName, function(e) {
-        var target = e.target.closest(rippleSelector);
-        if (!target) return;
-        createRipple(e, target);
-    }, { passive: true });
-
-    if (!supportsPointer) {
-        document.addEventListener('touchstart', function(e) {
-            var target = e.target.closest(rippleSelector);
-            if (!target) return;
-            createRipple(e, target);
-        }, { passive: true });
-    }
-})();
-    </script>
+<!-- 🔐 EncUnlock: 加载重渲染器（锁/解锁后无刷新更新大类） -->
+<script src="shared/enc-rerender.js"></script>
+
+<!-- 📦 收藏夹通用逻辑（5 页共用） -->
+<script src="shared/fav-page.js"></script>
 </body>
 </html>

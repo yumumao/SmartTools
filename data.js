@@ -701,31 +701,16 @@ var contactData = [
 var customSections = [
     {
         key: 'custom_moyq5cad_ezc0r',
-        label: '私人项目',
-        dynamic: false,
+        label: '💟私人项目',
+        dynamic: true,
         encrypted: true,
         enc: {
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 100000,
-            salt: 'u+oCnjycu9Ofqb4wWTF+JQ==',
-            iv: 'oFJkqIU96ahn/QXe',
-            data: 'bHCY4rBZlu6MrmxqTkH76DBUKiVd3G4ePtwWmQQF2cX3doHbJmzNAtBMYo5YTUowp6tHHgWxnFHTobHkCoOHCnQ0TOYwW7fhAH9/foAaSDcG/6bwLENPpMU3bGdZ5igHBEzkffkSUgmvjlB9PKs='
-        },
-        cards: []
-    },
-    {
-        key: 'custom_moyrtxy1_z90tf',
-        label: 'ys2',
-        dynamic: false,
-        encrypted: true,
-        enc: {
-            v: 1,
-            alg: 'AES-GCM-256/PBKDF2-SHA256',
-            iter: 100000,
-            salt: 'fDuoLvLkkTjAzNAgac7X0w==',
-            iv: '4Iq4+3F8l/rQQnM2',
-            data: '57FJEebv0DCIQoEn7DCSbkxz6t0g3Djk8YdqosFU7EUkgwLnUeS7asVYXd3VV+Yg3sHYrMLSY4wpboDailUkulT8OEzksCITytpCVp6wifElctbPb9pENNzZY75U1DtH9OsBawnYheDYdME5OlnkvNoG'
+            salt: 'ZlOdYlew6ghTSLc6HiMbvw==',
+            iv: 'lqu/oMUyIBhWIbrO',
+            data: 'Imnfk/Z0tTi2XHMwo7DAuyoYCNJm8qq+773pmMuSmGGG8tLnBgz8+iWK0RC0m7qs+Jn14EcBZkJjQJO34u9jwQu+h21lmUE8dxPyBD+8HBRmsHOQmxDmPOzoYOp31TyiJZB3zDF9CTfzrH+DHP/Cj5qQsVAgN6UtoLceewsVniE7yMKlDPbQEcHDpt2AYMc4+nR6HE1LevfFltdnq2ULL6ZwpfNbjpSzrpf1VCmAYbr08TwsDMCDegqYnmTTOiCK/BLxdQR03dRRHv5yrxxSFkCzyy5RnvDNoi1IS7lcCZDom5qQOFWO00BwVJdmqdwBMn/Q9H1QKKecrYYvweU6X7RVGCp6DlcojzWfNo8lJ2KmPqotYHUGwW7zBHFYr8nRTFwwxNY4/JL37Quci6J+mEd6xeu7Uj7gsVzhfFj6M1+iYUjw8u/ofoeYXZYEvGrvp95k3KRTzwLTIZW3Mw0vwppCcjYSVxS5mg10IvoE2pXItAzJHDyQkZrMUOPpYXUbWYJHA0fwbhnqlr0ljHBGsNqDXZrYRQrKE2A/sFqoDC+jtW5auoU9pr3W73DzfLSravIW7wWoFlQ6ez41MbHtmIKaAnrJfTd+An+8H3kTvJKrXv+HXB1JmUjmRou+agtZugDOA0c41czfxCNZ6Jd0OT2TaePbgKDEuBhBY/uR3tuZtAeFINWy67iW2ZecyQp4uTM8zdX97yyo63ewqlYpvD/YzQ/gnGSDyd7WDO9Aoj1piSHoL8u9pH+09GOVu61uGigzmcZzHkHCqfOf/1Yrh4vk2VRzxDK9Jzp0ZY3IDLpLwrZoVYa7c7woJO6P/PhnwxWtVqOfAB8caVR4YE+6Mz3b24kNFOr9YFrNq4w5y2JSU/RpuHeNnOCFH5fxjXME9XOookSEf3Z/qu6V4a98PMQicOSr6yYbB4ZZdrwnX4tFYw/gL+J017Ysw1CLiudA/DxiKeVRpeAMpHcI/wZ/SpmVU361ZdVsntLwZjyZiY1rqfCUXESNRZav25uf41nXQmEXBL/mg9Uxq/iT/E0aAgiEVlbO/M0lLOW2a31FHvLLmlw8NL2EMWGWt9ArDZ69yqwVb6zmiJQV9v2ugTC7lwVlt0P7WO9XKFBjcOtUMJ+AEWu9J+9YdHCZtFq2cDmNnICiDXdb4UdblWbOBpPM5C9PefwBHrXyfVCVngnhbPUXsUkMtKcrGyis4Y+bUVi1AMQDl3QPfrTkf7YcHrz47j1b8CrV1gZIdgzLoxsygBc+/gM5j0dMwhMfJ4dF/jp8efVfuxsMoNNix3p3Ntv1dLiSve+TdJST/ng9C77y/7OPZiKYTb+7VzsTjeha4xyywuBLFyGIlW0H0X3ZVWQNk/7jR25mb610uFdQZ0bdPfM/gTUKOcHamPJqQ0kezjy/c9mRZKVxZfcWcmKUctMQ97lcIDI8kGuyYYulCaAr2ocxvu/ltcO4CAOlTny0FhPxtW1WGzHRy9z53Gch+6X3Q90vCwTNySmAs69Otd5CYI1oqWkewO6T9+IIn5EEB6HWW05Xo4/0NZss8Qo2rLrab90Ka1k4ySECcMAXDhCKYBFtSo71IUXor9u+VNyEtpcgZNn8hKqbGPQKZwnxU78bbiKYMm8o/COhflriJtrCQFds84kbwey1OTjuN3RW852q3fRTTlGA3lOroQ5M0RBFDnsjLGapkpRcR4YAoR/MissoJTsL'
         },
         cards: []
     }

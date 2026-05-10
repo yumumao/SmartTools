@@ -1454,8 +1454,10 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
 }
 </script>
 
-<!-- 🔐 EncUnlock: 加密解锁模块脚本（必须在主逻辑之前加载） -->
+<!-- 🔐 EncUnlock: 加载加密解锁模块脚本 -->
 <script src="shared/enc-unlock.js"></script>
+<!-- 🔐 EncUnlock: 加载重渲染器（锁/解锁后无刷新更新大类） -->
+<script src="shared/enc-rerender.js"></script>
 
     <script>
         try { localStorage.setItem('fav_last_style', 'index5.html'); } catch(e) {}
@@ -1881,6 +1883,26 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
             }
         }
 
+// 🔐 EncUnlock: 注册页面 API 供 rerender 模块使用（锁/解锁无刷新重渲染）
+        window.__favPageAPI = {
+            getLayout: function() { return currentLayout; },
+            renderSection: function(cs, layout) { renderCustomSection(cs, layout); },
+            clearExpandedState: function() {
+                if (!currentExpanded) return;
+                var subs = document.getElementById(currentExpanded);
+                if (subs) {
+                    var btn = subs.parentElement && subs.parentElement.querySelector('.expand-btn');
+                    var ctn = btn && btn.closest('.card-container');
+                    subs.classList.remove('expanded');
+                    if (btn) btn.classList.remove('expanded');
+                    if (ctn) ctn.classList.remove('active');
+                }
+                var ol = document.getElementById('overlay');
+                if (ol) ol.classList.remove('active');
+                currentExpanded = null;
+            }
+        };
+        
         // ================================================================
         // 初始化 & 事件监听（async 以便等待 EncUnlock bootstrap）
         // ================================================================

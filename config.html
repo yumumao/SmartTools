@@ -199,7 +199,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     .backup-item > div:last-child, .sec-row > div:last-child { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; }
     .backup-item > div:last-child .btn, .sec-row > div:last-child .btn { width: 100%; padding: 6px 2px; font-size: 12px; }
     .subcard-item { flex-wrap: wrap; }
-    .subcard-item .card-actions { grid-template-columns: repeat(5, 1fr); }
+    .subcard-item .card-actions { grid-template-columns: repeat(6, 1fr); }
     .lang-btn { top: 8px; right: 8px; padding: 5px 10px; font-size: 12px; }
     .emoji-picker-popup { width: calc(100vw - 20px); max-height: 70vh; }
     .emoji-picker-grid { grid-template-columns: repeat(7, 1fr); }
@@ -400,6 +400,47 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     </div>
 </div>
 
+<!-- 子卡片升级为独立卡片 -->
+<div id="promoteSubModal" class="modal-mask hidden">
+    <div class="modal-box">
+        <h2 data-i18n="promoteTitle">🆙 升级子卡片为独立卡片</h2>
+        <p class="muted" id="promoteSrcHint"></p>
+        <div class="form-row">
+            <label data-i18n="moveTargetSection">目标大类</label>
+            <select id="promote_section"></select>
+        </div>
+        <div class="form-row">
+            <label data-i18n="fldType">卡片类型</label>
+            <select id="promote_type">
+                <option value="simple" data-i18n="typeSimple">simple（整卡跳转）</option>
+                <option value="desc-clickable" data-i18n="typeDescClickable">desc-clickable（描述可点击）</option>
+                <option value="expandable" data-i18n="typeExpandable">expandable（带子菜单）</option>
+            </select>
+        </div>
+        <div class="form-row"><label data-i18n="fldId">ID（唯一标识）</label><input type="text" id="promote_id"></div>
+        <div class="form-row"><label data-i18n="fldTitle">标题</label><input type="text" id="promote_title"></div>
+        <div class="form-row">
+            <label data-i18n="fldIcon">图标</label>
+            <div class="emoji-input-wrap">
+                <input type="text" id="promote_icon_emoji" data-i18n-placeholder="iconEmojiPh" placeholder="例如：🔥 或 AI">
+                <button type="button" class="emoji-picker-trigger" data-target="promote_icon_emoji" title="选择 emoji">😀</button>
+            </div>
+        </div>
+        <div class="form-row"><label data-i18n="fldUrl">主网址 URL</label><input type="url" id="promote_url"></div>
+        <div class="form-row" id="promote_descRow"><label data-i18n="fldDesc">描述 desc</label><input type="text" id="promote_desc"></div>
+        <div class="form-row hidden" id="promote_descClickableRow">
+            <label data-i18n="fldDescClickable">描述文字 descClickable</label><input type="text" id="promote_descClickable">
+            <label style="margin-top:8px;" data-i18n="fldDescUrl">描述链接 descUrl</label><input type="url" id="promote_descUrl">
+        </div>
+        <div class="form-row"><label><input type="checkbox" id="promote_isLocal"> <span data-i18n="fldIsLocalShort">本地跳转</span></label></div>
+        <div class="move-hint" data-i18n="promoteHint">💡 字段已从子卡片预填，你可以修改。升级后子卡片会从原母卡片移除。</div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnPromoteCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnPromoteConfirm" data-i18n="promoteConfirm">确认升级</button>
+        </div>
+    </div>
+</div>
+
 <!-- 大类管理 -->
 <div id="sectionsModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:720px;">
@@ -423,7 +464,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <h2 id="sectionEditTitle" data-i18n="sectionEditNewTitle">新增大类</h2>
         <div class="form-row">
             <label data-i18n="secLabelField">显示名称（建议带 emoji 前缀）</label>
-            <input type="text" id="se_label" data-i18n-placeholder="secLabelPh" placeholder="🎵 音乐资源" maxlength="50">
+            <div class="emoji-input-wrap">
+                <input type="text" id="se_label" data-i18n-placeholder="secLabelPh" placeholder="🎵 音乐资源" maxlength="50">
+                <button type="button" class="emoji-picker-trigger" data-target="se_label" title="选择 emoji">😀</button>
+            </div>
         </div>
         <div class="form-row">
             <label><input type="checkbox" id="se_dynamic"> <span data-i18n="secDynamicField">启用展开/折叠</span></label>
@@ -662,7 +706,7 @@ const I18N = {
         fldDescClickable: '描述文字 descClickable', fldDescUrl: '描述链接 descUrl',
         fldIsLocal: '本地跳转（isLocal: true）', fldIsLocalShort: '本地跳转',
         fldSubCards: '子卡片（subCards）', btnAddSub: '➕ 添加子卡片',
-        subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。',
+        subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。<b>🆙</b> 按钮可把子卡片升级为一个独立的主卡片。',
         btnCancel: '取消', btnOk: '确定',
         subModalEditTitle: '编辑子卡片', subModalNewTitle: '新增子卡片',
         fldSubStyle: '样式', subStyleTwo: '两行式（icon + title + desc）',
@@ -677,6 +721,11 @@ const I18N = {
         cardMoveTitle: '📦 移动卡片到其他大类',
         cardMoveHint: '💡 卡片会原样转移，类型、子卡片、所有字段都保留。',
         cardMoveSrcHint: '将卡片 <b>{card}</b> 从 <b>{src}</b> 移动到：',
+        promoteTitle: '🆙 升级子卡片为独立卡片',
+        promoteSrcHint: '将子卡片 <b>{sub}</b> 从母卡片 <b>{src}</b> 升级为独立卡片：',
+        promoteHint: '💡 字段已从子卡片预填，你可以修改样式、ID、标题等。升级后子卡片会从原母卡片移除。',
+        promoteConfirm: '确认升级',
+        toastPromotedOk: '已升级为独立卡片并移到「{sec}」（未保存）',
         customSuffix: '  [自定义]',
         sectionsTitle: '🗂 大类管理',
         sectionsDesc: '内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。',
@@ -782,7 +831,6 @@ const I18N = {
         alertDeleteFail: '删除失败：{msg}', alertNoPermRW: '未获得读写权限。',
         alertNeedFolderSave: '请先点击「连接文件夹」。', alertNoPermission: '未获得权限',
         langToggle: '🌐 EN',
-        // ★ emoji picker
         emojiSearchPh: '🔍 搜索分类...',
         emojiNotFound: '未找到匹配的 emoji 分类',
         emojiPickerUnavailable: 'Emoji 数据未加载（shared/emoji-data.js）'
@@ -843,7 +891,7 @@ const I18N = {
         fldDescClickable: 'Description text', fldDescUrl: 'Description URL',
         fldIsLocal: 'Local link (isLocal: true)', fldIsLocalShort: 'Local link',
         fldSubCards: 'Sub-cards', btnAddSub: '➕ Add Sub-card',
-        subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade.',
+        subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade. The <b>🆙</b> button promotes a sub-card to a standalone top-level card.',
         btnCancel: 'Cancel', btnOk: 'OK',
         subModalEditTitle: 'Edit Sub-card', subModalNewTitle: 'New Sub-card',
         fldSubStyle: 'Style', subStyleTwo: 'Two-line (icon + title + desc)',
@@ -858,6 +906,11 @@ const I18N = {
         cardMoveTitle: '📦 Move Card to Another Section',
         cardMoveHint: '💡 Card moved as-is; all fields preserved.',
         cardMoveSrcHint: 'Move card <b>{card}</b> from <b>{src}</b> to:',
+        promoteTitle: '🆙 Promote Sub-card to Card',
+        promoteSrcHint: 'Promote sub-card <b>{sub}</b> from parent <b>{src}</b> to a standalone card:',
+        promoteHint: '💡 Fields prefilled from the sub-card; you can edit the style, ID, title, etc. The sub-card will be removed from its parent.',
+        promoteConfirm: 'Promote',
+        toastPromotedOk: 'Promoted and moved to "{sec}" (unsaved)',
         customSuffix: '  [Custom]',
         sectionsTitle: '🗂 Manage Sections',
         sectionsDesc: 'Built-in sections come from <code>indexN.html</code> and cannot be modified. Custom sections are fully manageable.',
@@ -985,7 +1038,6 @@ function applyI18n() {
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))));
     document.querySelectorAll('[data-i18n-title]').forEach(el => el.setAttribute('title', t(el.getAttribute('data-i18n-title'))));
     const lb = $('btnLang'); if (lb) lb.textContent = t('langToggle');
-    // ★ emoji picker placeholder
     const eps = $('emojiPickerSearch'); if (eps) eps.placeholder = t('emojiSearchPh');
     if (Array.isArray(customSectionsMeta)) {
         customSectionsMeta.forEach(c => { if (c.key === UNCLASSIFIED_KEY) c.label = t('secUnclassified'); });
@@ -999,7 +1051,6 @@ function applyI18n() {
     if (!$('authPage').classList.contains('hidden')) { try { refreshAuthPageTexts(); } catch(e) {} }
     if (!$('modePage').classList.contains('hidden')) { try { refreshModePageTexts(); } catch(e) {} }
     if (!$('sectionsModal').classList.contains('hidden')) { try { renderSectionsModalLists(); } catch(e) {} }
-    // ★ re-render emoji categories for lang change
     if ($('emojiPickerPopup') && !$('emojiPickerPopup').classList.contains('hidden')) {
         try { renderEmojiCategories(); } catch(e) {}
     }
@@ -1056,6 +1107,7 @@ let editingCardIndex = -1, editingSubIndex = -1, editingCardDraft = null;
 let folderHandle = null, dataJsHandle = null;
 let moveFromIndex = -1;
 let movingCardSourceSection = null, movingCardSourceIndex = -1;
+let promotingSubIndex = -1;
 let editingCustomSectionIdx = -2;
 const MAX_BACKUPS_LOCAL = 100;
 
@@ -1125,7 +1177,6 @@ function initEmojiPicker() {
     renderEmojiCategories();
     renderEmojiGrid(0);
 
-    // Trigger buttons
     document.querySelectorAll('.emoji-picker-trigger').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1140,10 +1191,8 @@ function initEmojiPicker() {
         });
     });
 
-    // Search
     $('emojiPickerSearch').addEventListener('input', handleEmojiSearch);
 
-    // Click outside to close
     document.addEventListener('mousedown', (e) => {
         const popup = $('emojiPickerPopup');
         if (popup.classList.contains('hidden')) return;
@@ -1152,14 +1201,12 @@ function initEmojiPicker() {
         closeEmojiPicker();
     });
 
-    // ESC to close
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !$('emojiPickerPopup').classList.contains('hidden')) {
             closeEmojiPicker();
         }
     });
 
-    // Reposition on resize/scroll
     window.addEventListener('resize', () => {
         if (!$('emojiPickerPopup').classList.contains('hidden') && currentEmojiTriggerBtn) {
             positionEmojiPicker(currentEmojiTriggerBtn);
@@ -1179,9 +1226,8 @@ function openEmojiPicker(targetId, btn) {
     const popup = $('emojiPickerPopup');
     popup.classList.remove('hidden');
 
-    // Reset search
     $('emojiPickerSearch').value = '';
-    renderEmojiCategories(); 
+    renderEmojiCategories();
     renderEmojiGrid(currentEmojiCatIdx);
     setActiveCategory(currentEmojiCatIdx);
 
@@ -1250,7 +1296,6 @@ function renderEmojiGrid(catIdx) {
     const data = (window.EMOJI_DATA && window.EMOJI_DATA.categories) || [];
     const cat = data[catIdx];
     if (!cat || !Array.isArray(cat.emojis)) return;
-    // Dedup within category
     const seen = new Set();
     cat.emojis.forEach(em => {
         if (seen.has(em)) return;
@@ -1312,7 +1357,6 @@ function selectEmoji(emoji) {
     const input = $(currentEmojiTarget);
     if (!input) return;
 
-    // Insert at cursor position (append if textarea/input has no selection support)
     try {
         const start = typeof input.selectionStart === 'number' ? input.selectionStart : null;
         const end = typeof input.selectionEnd === 'number' ? input.selectionEnd : null;
@@ -1328,10 +1372,8 @@ function selectEmoji(emoji) {
         input.value = (input.value || '') + emoji;
     }
 
-    // Trigger input event so preview updates
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Keep picker open for multi-select on mobile? Close for simplicity
     closeEmojiPicker();
     try { input.focus(); } catch (e) {}
 }
@@ -2095,6 +2137,124 @@ function confirmMoveCard() {
 }
 
 /* ================================================================
+   子卡片升级为独立卡片
+================================================================ */
+function openPromoteSubModal(subIdx) {
+    const sub = editingCardDraft && editingCardDraft.subCards && editingCardDraft.subCards[subIdx];
+    if (!sub) return;
+    promotingSubIndex = subIdx;
+
+    const srcTitle = editingCardDraft.title || editingCardDraft.id || t('noTitle');
+    const subName = sub.title || sub.content || t('noTitle');
+    $('promoteSrcHint').innerHTML = t('promoteSrcHint', { sub: escapeHtml(subName), src: escapeHtml(srcTitle) });
+
+    // 目标大类：card 类型、未锁定
+    const selSec = $('promote_section'); selSec.innerHTML = '';
+    getSections().filter(s => s.kind === 'card' && !s.locked).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.key;
+        let lbl = s.label + (s.builtin ? '' : t('customSuffix'));
+        if (s.encrypted) lbl = '🔐 ' + lbl;
+        opt.textContent = lbl;
+        selSec.appendChild(opt);
+    });
+    selSec.value = currentSection;
+
+    // 从子卡片预填（复用重复的内容：标题、网址、描述、本地跳转、图标）
+    const titleText = sub.title || sub.content || '';
+    $('promote_title').value = titleText;
+    $('promote_url').value = sub.url || '';
+    $('promote_desc').value = sub.desc || '';
+    $('promote_descClickable').value = '';
+    $('promote_descUrl').value = '';
+    $('promote_isLocal').checked = !!sub.isLocal;
+    $('promote_type').value = 'simple';
+    $('promote_id').value = suggestCardId(titleText);
+
+    // 图标：仅 emoji 文本可自动复用；图片/SVG 留空
+    if (sub.iconImg || (sub.icon && String(sub.icon).trim().startsWith('<svg'))) {
+        $('promote_icon_emoji').value = '';
+    } else {
+        $('promote_icon_emoji').value = sub.icon || '';
+    }
+
+    syncPromoteTypeFields();
+    show('promoteSubModal');
+}
+
+function syncPromoteTypeFields() {
+    const ty = $('promote_type').value;
+    if (ty === 'simple')              { show('promote_descRow'); hide('promote_descClickableRow'); }
+    else if (ty === 'desc-clickable') { hide('promote_descRow'); show('promote_descClickableRow'); }
+    else if (ty === 'expandable')     { show('promote_descRow'); show('promote_descClickableRow'); }
+}
+
+function suggestCardId(title) {
+    let s = (title || '').toLowerCase().replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!s) s = 'card_' + Date.now().toString(36);
+    return s.substring(0, 40);
+}
+
+function confirmPromoteSub() {
+    const sub = editingCardDraft && editingCardDraft.subCards && editingCardDraft.subCards[promotingSubIndex];
+    if (!sub) { toast(t('toastSubNotExist')); return; }
+
+    const targetSection = $('promote_section').value;
+    if (!targetSection) { toast(t('toastNeedTargetSec')); return; }
+    if (isLockedKey(targetSection)) { toast(t('toastLockedSkippedInMove')); return; }
+
+    const id = $('promote_id').value.trim();
+    const title = $('promote_title').value.trim();
+    const url = $('promote_url').value.trim();
+    const type = $('promote_type').value;
+
+    if (!id)    { toast(t('toastNeedId')); return; }
+    if (!title) { toast(t('toastNeedTitle')); return; }
+    if (!/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
+    if ((store[targetSection] || []).some(c => c.id === id)) { toast(t('toastIdDup')); return; }
+
+    const newCard = { id, title, url, type };
+    const emoji = $('promote_icon_emoji').value.trim();
+    if (emoji) newCard.icon = emoji;
+
+    if (type === 'simple') {
+        const d = $('promote_desc').value.trim(); if (d) newCard.desc = d;
+    } else if (type === 'desc-clickable') {
+        newCard.descClickable = $('promote_descClickable').value.trim();
+        newCard.descUrl = $('promote_descUrl').value.trim();
+    } else if (type === 'expandable') {
+        const d  = $('promote_desc').value.trim();
+        const dc = $('promote_descClickable').value.trim();
+        const du = $('promote_descUrl').value.trim();
+        if (d) newCard.desc = d;
+        if (dc) { newCard.descClickable = dc; newCard.descUrl = du; }
+        newCard.subCards = [];
+    }
+    if ($('promote_isLocal').checked) newCard.isLocal = true;
+
+    if (!Array.isArray(store[targetSection])) store[targetSection] = [];
+    store[targetSection].push(newCard);
+
+    // 从原母卡片的 subCards 移除
+    editingCardDraft.subCards.splice(promotingSubIndex, 1);
+    if (editingCardIndex >= 0) {
+        const src = store[currentSection][editingCardIndex];
+        if (src) {
+            if (!Array.isArray(src.subCards)) src.subCards = [];
+            src.subCards = deepClone(editingCardDraft.subCards);
+        }
+    }
+
+    hide('promoteSubModal');
+    renderSubCardsList();
+    renderCurrentSection();
+
+    const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
+    toast(t('toastPromotedOk', { sec: tgtSecLabel }));
+    promotingSubIndex = -1;
+}
+
+/* ================================================================
    Sections management
 ================================================================ */
 function openSectionsModal() { renderSectionsModalLists(); show('sectionsModal'); }
@@ -2360,6 +2520,7 @@ function renderSubCardsList() {
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-sact="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-sact="down">⬇</button>' +
                        '<button class="btn btn-warn btn-sm" data-sact="move">➡</button>' +
+                       '<button class="btn btn-success btn-sm" data-sact="promote" title="升级为独立卡片">🆙</button>' +
                        '<button class="btn btn-primary btn-sm" data-sact="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-sact="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleSubAction(b.dataset.sact, i));
@@ -2373,6 +2534,7 @@ function handleSubAction(act, i) {
     else if (act === 'down' && i < subs.length - 1) { [subs[i+1],subs[i]]=[subs[i],subs[i+1]]; renderSubCardsList(); }
     else if (act === 'edit') openSubModal(i);
     else if (act === 'move') openMoveSubModal(i);
+    else if (act === 'promote') openPromoteSubModal(i);
     else if (act === 'del') { if (confirm(t('confirmDelSub'))) { subs.splice(i,1); renderSubCardsList(); } }
 }
 function openSubModal(idx) {
@@ -2513,7 +2675,6 @@ window.addEventListener('DOMContentLoaded', () => {
     applyI18n();
     boot();
 
-    // ★ 初始化 emoji picker
     initEmojiPicker();
 
     $('btnLang').onclick = toggleLang;
@@ -2586,6 +2747,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnMoveConfirm').onclick = confirmMoveSubCard;
     $('btnCardMoveCancel').onclick = () => hide('cardMoveModal');
     $('btnCardMoveConfirm').onclick = confirmMoveCard;
+
+    // ★ 子卡片升级
+    $('btnPromoteCancel').onclick = () => hide('promoteSubModal');
+    $('btnPromoteConfirm').onclick = confirmPromoteSub;
+    $('promote_type').onchange = syncPromoteTypeFields;
 
     $('btnSectionsClose').onclick = () => hide('sectionsModal');
     $('btnAddCustomSection').onclick = () => openSectionEditModal(null);
