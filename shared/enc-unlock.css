@@ -24,14 +24,13 @@
     max-width: 100%;
     backdrop-filter: blur(8px) saturate(1.4);
     -webkit-backdrop-filter: blur(8px) saturate(1.4);
-    box-shadow: 0 2px 8px rgba(156, 39, 176, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: 0 1px 4px rgba(156, 39, 176, 0.08);
 }
 .enc-locked-pill:hover {
     background: linear-gradient(135deg, rgba(225, 187, 231, 0.6), rgba(248, 187, 208, 0.6));
     transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(156,39,176,.25),
-                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 8px rgba(156,39,176, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 .enc-locked-pill:active { transform: translateY(0); }
 .enc-locked-pill .lk-icon { font-size: 14px; }
