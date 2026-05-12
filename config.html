@@ -170,6 +170,85 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     color: #aaa; padding: 20px; font-size: 13px;
 }
 
+/* ============================================================
+   ★ Markdown 工具栏样式（卡片/子卡片 comment 编辑器共用）
+============================================================ */
+.md-editor-wrap {
+    border: 1px solid #ddd; border-radius: 6px;
+    overflow: hidden; background: #fafafa;
+    transition: border-color .15s, box-shadow .15s;
+}
+.md-editor-wrap:focus-within {
+    border-color: #667eea; background: #fff;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+}
+.md-editor-wrap > textarea {
+    border: none !important; border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    margin: 0;
+}
+.md-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 2px; padding: 5px 6px;
+    background: #f0f2f8; border-bottom: 1px solid #e0e3ec;
+    user-select: none;
+}
+.md-tb-btn {
+    background: transparent; border: none; cursor: pointer;
+    padding: 4px 7px; min-width: 26px; height: 26px;
+    border-radius: 4px; font-size: 12px; font-weight: 600;
+    color: #555; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: inherit;
+    transition: background .12s, color .12s, transform .08s;
+}
+.md-tb-btn:hover { background: #dfe4f4; color: #667eea; }
+.md-tb-btn:active { transform: scale(0.92); }
+.md-tb-btn.b { font-weight: 800; }
+.md-tb-btn.i { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+.md-tb-btn.s { text-decoration: line-through; }
+.md-tb-btn.c { font-family: Consolas, Menlo, monospace; font-size: 11px; }
+.md-tb-sep { width: 1px; height: 16px; background: #d4d8e4; margin: 0 3px; align-self: center; }
+
+/* ============================================================
+   ★ 未持久化保存的注释修改 · 常驻提示 banner
+============================================================ */
+.pending-banner {
+    display: none;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border: 1px solid #ffd54f;
+    border-left: 4px solid #ff9800;
+    border-radius: 8px;
+    color: #6d4c00;
+    font-size: 13px;
+    line-height: 1.55;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.15);
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.pending-banner.show { display: flex; }
+.pending-banner .pb-icon { font-size: 20px; flex-shrink: 0; }
+.pending-banner .pb-text { flex: 1; min-width: 0; }
+.pending-banner .pb-text .pb-count { font-weight: 800; color: #e65100; }
+.pending-banner .pb-save-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    background: #ff9800; color: #fff;
+    border: none; border-radius: 6px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: background .15s, transform .1s, box-shadow .2s;
+}
+.pending-banner .pb-save-btn:hover {
+    background: #f57c00;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255,152,0,0.35);
+}
+.pending-banner .pb-save-btn:active { transform: translateY(0); }
+
 @media (max-width: 640px) {
     body { padding: 10px; }
     .card-panel { padding: 16px; border-radius: 10px; }
@@ -203,6 +282,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     .lang-btn { top: 8px; right: 8px; padding: 5px 10px; font-size: 12px; }
     .emoji-picker-popup { width: calc(100vw - 20px); max-height: 70vh; }
     .emoji-picker-grid { grid-template-columns: repeat(7, 1fr); }
+    .md-toolbar { padding: 4px 5px; }
+    .md-tb-btn { padding: 3px 5px; min-width: 24px; height: 24px; }
+    .pending-banner { padding: 10px 12px; font-size: 12px; }
+    .pending-banner .pb-save-btn { width: 100%; margin-top: 4px; }
 }
 </style>
 </head>
@@ -275,6 +358,14 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div><span data-i18n="stBackups">备份：</span><span id="bakStatus">—</span></div>
         <div><span data-i18n="stEncKey">🔐 密钥：</span><span id="encKeyStatus" class="st-warn">—</span></div>
     </div>
+
+    <!-- ★ 未持久化保存的注释修改提示（常驻直到真正保存到文件/服务器） -->
+    <div class="pending-banner" id="pendingBanner" role="alert">
+        <span class="pb-icon">⚠️</span>
+        <span class="pb-text" id="pendingBannerText"></span>
+        <button type="button" class="pb-save-btn" id="pendingBannerSaveBtn"></button>
+    </div>
+
     <div class="section-tabs" id="sectionTabs"></div>
     <div class="card-panel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
@@ -289,7 +380,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <div id="cardModal" class="modal-mask hidden">
     <div class="modal-box">
         <h2 id="cardModalTitle" data-i18n="cardModalEditTitle">编辑卡片</h2>
-        <div class="form-row"><label data-i18n="fldId">ID（唯一标识）</label><input type="text" id="f_id"></div>
+        <div class="form-row">
+            <label data-i18n="fldId">ID（唯一标识，可留空自动生成）</label>
+            <input type="text" id="f_id" data-i18n-placeholder="idAutoPh" placeholder="留空将自动生成，如 card_xxx">
+        </div>
         <div class="form-row"><label data-i18n="fldTitle">标题 (title / content)</label><input type="text" id="f_title"></div>
         <div class="form-row">
             <label data-i18n="fldIcon">图标</label>
@@ -314,13 +408,21 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
                 <option value="expandable" data-i18n="typeExpandable">expandable（带子菜单）</option>
             </select>
         </div>
-        <div class="form-row"><label data-i18n="fldUrl">主网址 URL</label><input type="url" id="f_url"></div>
+        <div class="form-row"><label data-i18n="fldUrl">主网址 URL（可留空）</label><input type="url" id="f_url"></div>
         <div class="form-row" id="descRow"><label id="f_descLabel" data-i18n="fldDesc">描述 desc（纯文本）</label><input type="text" id="f_desc"></div>
         <div class="form-row hidden" id="descClickableRow">
             <label data-i18n="fldDescClickable">描述文字 descClickable</label><input type="text" id="f_descClickable">
             <label style="margin-top:8px;" data-i18n="fldDescUrl">描述链接 descUrl</label><input type="url" id="f_descUrl">
         </div>
         <div class="form-row hidden" id="isLocalRow"><label><input type="checkbox" id="f_isLocal"> <span data-i18n="fldIsLocal">本地跳转（isLocal: true）</span></label></div>
+
+        <!-- ★★★ 注释字段（支持 Markdown；加密分类中会随卡片一起被 AES-GCM 加密） -->
+        <div class="form-row" id="commentRow">
+            <label data-i18n="fldComment">📝 注释 comment（点击卡片时弹出，支持 Markdown；加密分类内会随卡片一起加密）</label>
+            <textarea id="f_comment" style="min-height:120px;" data-i18n-placeholder="commentPh"
+                placeholder="支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用"></textarea>
+        </div>
+
         <div class="form-row hidden" id="subCardsRow">
             <label data-i18n="fldSubCards">子卡片（subCards）</label>
             <div class="subcards-wrap" id="subCardsWrap"></div>
@@ -362,8 +464,16 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="form-row" id="sf_titleRow"><label data-i18n="fldSubTitle">标题 title</label><input type="text" id="sf_title"></div>
         <div class="form-row" id="sf_descRow"><label data-i18n="fldSubDesc">描述 desc</label><input type="text" id="sf_desc"></div>
         <div class="form-row hidden" id="sf_contentRow"><label data-i18n="fldSubContent">内容 content</label><input type="text" id="sf_content"></div>
-        <div class="form-row"><label data-i18n="fldSubUrl">链接 url</label><input type="url" id="sf_url"></div>
+        <div class="form-row"><label data-i18n="fldSubUrl">链接 url（可留空）</label><input type="url" id="sf_url"></div>
         <div class="form-row"><label><input type="checkbox" id="sf_isLocal"> <span data-i18n="fldIsLocalShort">本地跳转</span></label></div>
+
+        <!-- ★★★ 子卡片注释 -->
+        <div class="form-row">
+            <label data-i18n="fldComment">📝 注释 comment（Markdown）</label>
+            <textarea id="sf_comment" style="min-height:100px;" data-i18n-placeholder="commentPh"
+                placeholder="支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用"></textarea>
+        </div>
+
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnSubCancel" data-i18n="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnSubSave" data-i18n="btnOk">确定</button>
@@ -417,7 +527,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
                 <option value="expandable" data-i18n="typeExpandable">expandable（带子菜单）</option>
             </select>
         </div>
-        <div class="form-row"><label data-i18n="fldId">ID（唯一标识）</label><input type="text" id="promote_id"></div>
+        <div class="form-row">
+            <label data-i18n="fldId">ID（唯一标识，可留空自动生成）</label>
+            <input type="text" id="promote_id" data-i18n-placeholder="idAutoPh" placeholder="留空将自动生成，如 card_xxx">
+        </div>
         <div class="form-row"><label data-i18n="fldTitle">标题</label><input type="text" id="promote_title"></div>
         <div class="form-row">
             <label data-i18n="fldIcon">图标</label>
@@ -426,7 +539,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
                 <button type="button" class="emoji-picker-trigger" data-target="promote_icon_emoji" title="选择 emoji">😀</button>
             </div>
         </div>
-        <div class="form-row"><label data-i18n="fldUrl">主网址 URL</label><input type="url" id="promote_url"></div>
+        <div class="form-row"><label data-i18n="fldUrl">主网址 URL（可留空）</label><input type="url" id="promote_url"></div>
         <div class="form-row" id="promote_descRow"><label data-i18n="fldDesc">描述 desc</label><input type="text" id="promote_desc"></div>
         <div class="form-row hidden" id="promote_descClickableRow">
             <label data-i18n="fldDescClickable">描述文字 descClickable</label><input type="text" id="promote_descClickable">
@@ -646,7 +759,7 @@ async function verifyPassword(password, enc) {
 }
 
 /* ================================================================
-   i18n
+   i18n（★ 新增了 toolbar 相关的 key；其它完全不变）
 ================================================================ */
 const I18N = {
     zh: {
@@ -697,14 +810,18 @@ const I18N = {
         emptyCards: '暂无数据，点击右上角「➕ 新增卡片」',
         noTitle: '(无标题)', subCardCount: '{n} 子卡', subCardCount2: '（{n} 子卡）',
         cardModalEditInSec: '编辑卡片（{sec}）', cardModalNewInSec: '新增卡片（{sec}）',
-        fldId: 'ID（唯一标识）', fldTitle: '标题 (title / content)', fldIcon: '图标',
+        fldId: 'ID（唯一标识，可留空自动生成）',
+        idAutoPh: '留空将自动生成，如 card_xxx',
+        fldTitle: '标题 (title / content)', fldIcon: '图标',
         iconKindEmoji: 'Emoji/文字', iconKindImg: '图片URL', iconKindSvg: '内联SVG',
         iconEmojiPh: '例如：🔥 或 AI', iconPreviewLabel: '预览：',
         fldType: '卡片类型', typeSimple: 'simple（整卡跳转）',
         typeDescClickable: 'desc-clickable（描述可点击）', typeExpandable: 'expandable（带子菜单）',
-        fldUrl: '主网址 URL', fldDesc: '描述 desc（纯文本）', fldAddress: '邮箱地址 address',
+        fldUrl: '主网址 URL（可留空）', fldDesc: '描述 desc（纯文本）', fldAddress: '邮箱地址 address',
         fldDescClickable: '描述文字 descClickable', fldDescUrl: '描述链接 descUrl',
         fldIsLocal: '本地跳转（isLocal: true）', fldIsLocalShort: '本地跳转',
+        fldComment: '📝 注释 comment（点击卡片时弹出，支持 Markdown；加密分类内会随卡片一起加密）',
+        commentPh: '支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用',
         fldSubCards: '子卡片（subCards）', btnAddSub: '➕ 添加子卡片',
         subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。<b>🆙</b> 按钮可把子卡片升级为一个独立的主卡片。',
         btnCancel: '取消', btnOk: '确定',
@@ -712,7 +829,7 @@ const I18N = {
         fldSubStyle: '样式', subStyleTwo: '两行式（icon + title + desc）',
         subStyleCompact: '紧凑式（icon + content）',
         fldSubTitle: '标题 title', fldSubDesc: '描述 desc', fldSubContent: '内容 content',
-        fldSubUrl: '链接 url', compactTag: '[紧凑]',
+        fldSubUrl: '链接 url（可留空）', compactTag: '[紧凑]',
         moveModalTitle: '➡ 移动子卡片', moveTargetSection: '目标大类', moveTargetCard: '目标卡片',
         moveConfirm: '确认移动', moveSrcHint: '将子卡片 <b>{sub}</b> 从 <b>{src}</b> 移动到：',
         moveTgtNone: '(该大类无可选目标)',
@@ -797,6 +914,7 @@ const I18N = {
         toastLoadedToEditor: '已载入编辑器', toastImportHint: '请粘贴或选择文件',
         toastNeedId: '请填写 ID', toastNeedTitle: '请填写标题',
         toastIdInvalid: 'ID 只能包含字母/数字/下划线/横线', toastIdDup: '该 ID 已存在',
+        toastIdAutoGen: '已自动生成 ID：{id}',
         toastNeedContent: '请填 content', toastNeedSubTitle: '请填 title',
         toastSubNotExist: '子卡片不存在', toastCardNotExist: '卡片不存在',
         toastNeedTarget: '请选择目标卡片', toastCantMoveSelf: '不能移动到当前卡片自身',
@@ -833,7 +951,18 @@ const I18N = {
         langToggle: '🌐 EN',
         emojiSearchPh: '🔍 搜索分类...',
         emojiNotFound: '未找到匹配的 emoji 分类',
-        emojiPickerUnavailable: 'Emoji 数据未加载（shared/emoji-data.js）'
+        emojiPickerUnavailable: 'Emoji 数据未加载（shared/emoji-data.js）',
+        /* ★ toolbar tooltips */
+        mdTbH1:'一级标题', mdTbH2:'二级标题', mdTbH3:'三级标题',
+        mdTbBold:'粗体 (Ctrl+B)', mdTbItalic:'斜体 (Ctrl+I)', mdTbStrike:'删除线',
+        mdTbQuote:'引用', mdTbUl:'无序列表', mdTbOl:'有序列表',
+        mdTbCode:'行内代码', mdTbCodeBlock:'代码块',
+        mdTbLink:'链接 (Ctrl+K)', mdTbImage:'图片', mdTbHr:'分隔线',
+        toastOverridesMerged:'已合并 {n} 条来自浏览器本地的注释编辑（保存后将写入 data.js）',
+        toastOverridesCleared:'本地注释编辑缓存已清理',
+        /* ★ 未持久化保存 banner */
+        pendingBannerText:'检测到 <span class="pb-count">{n}</span> 条来自本浏览器的注释编辑尚未写入 data.js。请点击右侧按钮或顶部「💾 保存」按钮完成持久化。',
+        pendingBannerSaveBtn:'💾 立即保存'
     },
     en: {
         docTitle: 'Bookmarks Config',
@@ -882,14 +1011,18 @@ const I18N = {
         emptyCards: 'No data. Click "➕ Add Card" at top right.',
         noTitle: '(Untitled)', subCardCount: '{n} sub', subCardCount2: ' ({n} sub)',
         cardModalEditInSec: 'Edit Card ({sec})', cardModalNewInSec: 'New Card ({sec})',
-        fldId: 'ID (unique)', fldTitle: 'Title (title / content)', fldIcon: 'Icon',
+        fldId: 'ID (unique, leave blank to auto-generate)',
+        idAutoPh: 'Leave blank to auto-generate, e.g. card_xxx',
+        fldTitle: 'Title (title / content)', fldIcon: 'Icon',
         iconKindEmoji: 'Emoji/Text', iconKindImg: 'Image URL', iconKindSvg: 'Inline SVG',
         iconEmojiPh: 'e.g. 🔥 or AI', iconPreviewLabel: 'Preview: ',
         fldType: 'Card type', typeSimple: 'simple (whole card)',
         typeDescClickable: 'desc-clickable', typeExpandable: 'expandable (with sub-cards)',
-        fldUrl: 'URL', fldDesc: 'Description', fldAddress: 'Email address',
+        fldUrl: 'URL (optional)', fldDesc: 'Description', fldAddress: 'Email address',
         fldDescClickable: 'Description text', fldDescUrl: 'Description URL',
         fldIsLocal: 'Local link (isLocal: true)', fldIsLocalShort: 'Local link',
+        fldComment: '📝 Comment (shown when card is clicked, Markdown; auto-encrypted inside encrypted sections)',
+        commentPh: 'Markdown: # heading | **bold** *italic* | `code` | [text](url) | - list | > quote',
         fldSubCards: 'Sub-cards', btnAddSub: '➕ Add Sub-card',
         subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade. The <b>🆙</b> button promotes a sub-card to a standalone top-level card.',
         btnCancel: 'Cancel', btnOk: 'OK',
@@ -897,7 +1030,7 @@ const I18N = {
         fldSubStyle: 'Style', subStyleTwo: 'Two-line (icon + title + desc)',
         subStyleCompact: 'Compact (icon + content)',
         fldSubTitle: 'Title', fldSubDesc: 'Description', fldSubContent: 'Content',
-        fldSubUrl: 'URL', compactTag: '[compact]',
+        fldSubUrl: 'URL (optional)', compactTag: '[compact]',
         moveModalTitle: '➡ Move Sub-card', moveTargetSection: 'Target section', moveTargetCard: 'Target card',
         moveConfirm: 'Confirm', moveSrcHint: 'Move sub-card <b>{sub}</b> from <b>{src}</b> to:',
         moveTgtNone: '(No available targets)',
@@ -982,6 +1115,7 @@ const I18N = {
         toastLoadedToEditor: 'Loaded into editor', toastImportHint: 'Paste or pick a file',
         toastNeedId: 'Please enter an ID', toastNeedTitle: 'Please enter a title',
         toastIdInvalid: 'ID: letters / digits / _ / - only', toastIdDup: 'This ID already exists',
+        toastIdAutoGen: 'ID auto-generated: {id}',
         toastNeedContent: 'Please fill in content', toastNeedSubTitle: 'Please fill in title',
         toastSubNotExist: 'Sub-card not found', toastCardNotExist: 'Card not found',
         toastNeedTarget: 'Select a target card', toastCantMoveSelf: 'Cannot move to the same card',
@@ -1018,7 +1152,18 @@ const I18N = {
         langToggle: '🌐 中',
         emojiSearchPh: '🔍 Search category...',
         emojiNotFound: 'No matching emoji category',
-        emojiPickerUnavailable: 'Emoji data not loaded (shared/emoji-data.js)'
+        emojiPickerUnavailable: 'Emoji data not loaded (shared/emoji-data.js)',
+        /* ★ toolbar tooltips */
+        mdTbH1:'Heading 1', mdTbH2:'Heading 2', mdTbH3:'Heading 3',
+        mdTbBold:'Bold (Ctrl+B)', mdTbItalic:'Italic (Ctrl+I)', mdTbStrike:'Strikethrough',
+        mdTbQuote:'Quote', mdTbUl:'Bullet list', mdTbOl:'Numbered list',
+        mdTbCode:'Inline code', mdTbCodeBlock:'Code block',
+        mdTbLink:'Link (Ctrl+K)', mdTbImage:'Image', mdTbHr:'Horizontal rule',
+        toastOverridesMerged:'Merged {n} local comment edit(s) (will be written to data.js on save)',
+        toastOverridesCleared:'Local comment edit cache cleared',
+        /* ★ 未持久化保存 banner */
+        pendingBannerText:'<span class="pb-count">{n}</span> comment edit(s) from this browser are not yet written to data.js. Click the button on the right, or "💾 Save" at the top, to persist.',
+        pendingBannerSaveBtn:'💾 Save Now'
     }
 };
 
@@ -1039,6 +1184,10 @@ function applyI18n() {
     document.querySelectorAll('[data-i18n-title]').forEach(el => el.setAttribute('title', t(el.getAttribute('data-i18n-title'))));
     const lb = $('btnLang'); if (lb) lb.textContent = t('langToggle');
     const eps = $('emojiPickerSearch'); if (eps) eps.placeholder = t('emojiSearchPh');
+    // ★ 工具栏按钮 title 更新
+    document.querySelectorAll('.md-tb-btn[data-i18n-title-key]').forEach(el => {
+        el.title = t(el.getAttribute('data-i18n-title-key'));
+    });
     if (Array.isArray(customSectionsMeta)) {
         customSectionsMeta.forEach(c => { if (c.key === UNCLASSIFIED_KEY) c.label = t('secUnclassified'); });
     }
@@ -1047,6 +1196,7 @@ function applyI18n() {
         try { renderSectionTabs(); } catch(e) {}
         try { renderCurrentSection(); } catch(e) {}
         try { updateEncKeyStatus(); } catch(e) {}
+        try { refreshPendingBanner(); } catch(e) {}
     }
     if (!$('authPage').classList.contains('hidden')) { try { refreshAuthPageTexts(); } catch(e) {} }
     if (!$('modePage').classList.contains('hidden')) { try { refreshModePageTexts(); } catch(e) {} }
@@ -1161,10 +1311,245 @@ function renderIconTo(el, item) {
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 function genCustomKey() { return 'custom_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
 
+/* ★★★ 自动生成唯一卡片 ID（格式：card_时间戳_随机串；仅含字母数字下划线） */
+function generateCardId() {
+    return 'card_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+}
+/* ★★★ 在给定卡片数组中生成不重复的新 ID */
+function generateUniqueCardId(arr, excludeIndex) {
+    const list = Array.isArray(arr) ? arr : [];
+    let id = generateCardId(), guard = 0;
+    while (list.findIndex((c, i) => c && c.id === id && i !== excludeIndex) >= 0 && guard < 20) {
+        id = generateCardId(); guard++;
+    }
+    return id;
+}
+
 function updateEncKeyStatus() {
     const el = $('encKeyStatus'); if (!el) return;
     if (getEncPassword()) { el.textContent = t('stEncKeyReady'); el.className = 'st-ok'; }
     else { el.textContent = t('stEncKeyNone'); el.className = 'st-warn'; }
+}
+
+/* ================================================================
+   ★★★ Markdown 工具栏（卡片/子卡片 comment 编辑器共用）
+   ────────────────────────────────────────────────────────────────
+   - attachMdToolbar(textareaId) 在 textarea 外层包一层工具栏
+   - 只执行一次，重复调用会跳过
+   - 按钮：H1/H2/H3 | B/I/S | ❝/•/1. | </>/{} | 🔗/🖼/—
+   - 快捷键：Ctrl+B 粗体、Ctrl+I 斜体、Ctrl+K 链接
+================================================================ */
+function mdTbWrap(ta, left, right, placeholder) {
+    const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+    const sel = v.substring(s, e);
+    const used = sel || (placeholder || '');
+    ta.value = v.substring(0, s) + left + used + right + v.substring(e);
+    ta.focus();
+    const ns = s + left.length;
+    ta.setSelectionRange(ns, ns + used.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function mdTbLinePrefix(ta, prefix) {
+    const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+    const ls = v.lastIndexOf('\n', s - 1) + 1;
+    let le = v.indexOf('\n', e); if (le === -1) le = v.length;
+    const block = v.substring(ls, le);
+    const lines = block.split('\n');
+    const allHave = lines.length > 0 && lines.every(l => l.indexOf(prefix) === 0);
+    const newLines = allHave ? lines.map(l => l.substring(prefix.length)) : lines.map(l => prefix + l);
+    const newBlock = newLines.join('\n');
+    ta.value = v.substring(0, ls) + newBlock + v.substring(le);
+    ta.focus();
+    ta.setSelectionRange(ls, ls + newBlock.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function mdTbCodeBlock(ta) {
+    const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+    const sel = v.substring(s, e) || '代码';
+    const nlB = s > 0 && v.charAt(s - 1) !== '\n';
+    const nlA = v.charAt(e) !== '\n';
+    const insert = (nlB ? '\n' : '') + '```\n' + sel + '\n```' + (nlA ? '\n' : '');
+    ta.value = v.substring(0, s) + insert + v.substring(e);
+    ta.focus();
+    const codeStart = s + (nlB ? 1 : 0) + 4;
+    ta.setSelectionRange(codeStart, codeStart + sel.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function mdTbLink(ta) {
+    const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+    const sel = v.substring(s, e);
+    const text = sel || '链接文字', url = 'https://';
+    const insert = '[' + text + '](' + url + ')';
+    ta.value = v.substring(0, s) + insert + v.substring(e);
+    ta.focus();
+    const urlStart = s + text.length + 3;
+    ta.setSelectionRange(urlStart, urlStart + url.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function mdTbImage(ta) {
+    const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+    const sel = v.substring(s, e);
+    const alt = sel || '图片说明', url = 'https://';
+    const insert = '![' + alt + '](' + url + ')';
+    ta.value = v.substring(0, s) + insert + v.substring(e);
+    ta.focus();
+    const urlStart = s + alt.length + 4;
+    ta.setSelectionRange(urlStart, urlStart + url.length);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function mdTbHr(ta) {
+    const s = ta.selectionStart, v = ta.value;
+    const nlB = s > 0 && v.charAt(s - 1) !== '\n';
+    const insert = (nlB ? '\n' : '') + '\n---\n\n';
+    ta.value = v.substring(0, s) + insert + v.substring(ta.selectionEnd);
+    ta.focus();
+    const pos = s + insert.length;
+    ta.setSelectionRange(pos, pos);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function attachMdToolbar(textareaId) {
+    const ta = $(textareaId);
+    if (!ta || ta._mdTbAttached) return;
+    ta._mdTbAttached = true;
+
+    const groups = [
+        [
+            { lbl: 'H1', titleKey: 'mdTbH1', run: () => mdTbLinePrefix(ta, '# ') },
+            { lbl: 'H2', titleKey: 'mdTbH2', run: () => mdTbLinePrefix(ta, '## ') },
+            { lbl: 'H3', titleKey: 'mdTbH3', run: () => mdTbLinePrefix(ta, '### ') }
+        ],
+        [
+            { lbl: 'B', cls: 'b', titleKey: 'mdTbBold',   run: () => mdTbWrap(ta, '**', '**', '加粗文字') },
+            { lbl: 'I', cls: 'i', titleKey: 'mdTbItalic', run: () => mdTbWrap(ta, '*', '*', '斜体文字') },
+            { lbl: 'S', cls: 's', titleKey: 'mdTbStrike', run: () => mdTbWrap(ta, '~~', '~~', '删除') }
+        ],
+        [
+            { lbl: '❝',  titleKey: 'mdTbQuote', run: () => mdTbLinePrefix(ta, '> ') },
+            { lbl: '•',  titleKey: 'mdTbUl',    run: () => mdTbLinePrefix(ta, '- ') },
+            { lbl: '1.', titleKey: 'mdTbOl',    run: () => mdTbLinePrefix(ta, '1. ') }
+        ],
+        [
+            { lbl: '</>', cls: 'c', titleKey: 'mdTbCode',      run: () => mdTbWrap(ta, '`', '`', 'code') },
+            { lbl: '{ }', cls: 'c', titleKey: 'mdTbCodeBlock', run: () => mdTbCodeBlock(ta) }
+        ],
+        [
+            { lbl: '🔗', titleKey: 'mdTbLink',  run: () => mdTbLink(ta) },
+            { lbl: '🖼', titleKey: 'mdTbImage', run: () => mdTbImage(ta) },
+            { lbl: '—',  titleKey: 'mdTbHr',    run: () => mdTbHr(ta) }
+        ]
+    ];
+
+    const tb = document.createElement('div');
+    tb.className = 'md-toolbar';
+    groups.forEach((g, gi) => {
+        if (gi > 0) {
+            const sep = document.createElement('span'); sep.className = 'md-tb-sep';
+            tb.appendChild(sep);
+        }
+        g.forEach(item => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'md-tb-btn' + (item.cls ? ' ' + item.cls : '');
+            b.textContent = item.lbl;
+            b.title = t(item.titleKey);
+            b.setAttribute('data-i18n-title-key', item.titleKey);
+            b.addEventListener('mousedown', e => e.preventDefault());
+            b.addEventListener('click', e => { e.preventDefault(); item.run(); });
+            tb.appendChild(b);
+        });
+    });
+
+    const wrap = document.createElement('div');
+    wrap.className = 'md-editor-wrap';
+    ta.parentNode.insertBefore(wrap, ta);
+    wrap.appendChild(tb);
+    wrap.appendChild(ta);
+
+    ta.addEventListener('keydown', e => {
+        const mod = e.ctrlKey || e.metaKey;
+        if (!mod || e.shiftKey || e.altKey) return;
+        const k = e.key.toLowerCase();
+        if (k === 'b')      { e.preventDefault(); mdTbWrap(ta, '**', '**', '加粗文字'); }
+        else if (k === 'i') { e.preventDefault(); mdTbWrap(ta, '*', '*', '斜体文字'); }
+        else if (k === 'k') { e.preventDefault(); mdTbLink(ta); }
+    });
+}
+
+/* ================================================================
+   ★★★ localStorage 注释 override 合并 / 清理
+   ────────────────────────────────────────────────────────────────
+   - 配合 shared/note-modal.js：后者保存时写入
+       localStorage['bm_comment_overrides']  { cardId: "comment...", ... }
+   - 配置后台加载数据后，把这些 override 合并进内存中的 store
+   - 保存成功后清空该 localStorage，避免下次又覆盖一次
+================================================================ */
+const LS_COMMENT_OVERRIDES = 'bm_comment_overrides';
+
+function readCommentOverrides() {
+    try { return JSON.parse(localStorage.getItem(LS_COMMENT_OVERRIDES) || '{}') || {}; }
+    catch (e) { return {}; }
+}
+function clearCommentOverrides() {
+    try { localStorage.removeItem(LS_COMMENT_OVERRIDES); } catch (e) {}
+}
+/* 把 override 中的 comment 合并到所有匹配 id 的卡片（含子卡片）上
+   返回合并的条数 */
+function mergeCommentOverrides() {
+    const ov = readCommentOverrides();
+    const keys = Object.keys(ov);
+    if (!keys.length) return 0;
+    let applied = 0;
+
+    function handleCard(card) {
+        if (!card) return;
+        const cid = card.id;
+        if (cid && Object.prototype.hasOwnProperty.call(ov, cid)) {
+            const v = ov[cid];
+            if (v) card.comment = v; else delete card.comment;
+            applied++;
+        } else if (cid) {
+            // 兜底：override key 可能是 "sectionKey::cardId" 等格式
+            for (let i = 0; i < keys.length; i++) {
+                const k = keys[i];
+                if (k === cid) continue;
+                if (k.endsWith('::' + cid) || k.endsWith('/' + cid) || k.endsWith(':' + cid)) {
+                    const v = ov[k];
+                    if (v) card.comment = v; else delete card.comment;
+                    applied++;
+                    break;
+                }
+            }
+        }
+        if (Array.isArray(card.subCards)) card.subCards.forEach(handleCard);
+    }
+
+    Object.keys(store).forEach(k => {
+        if (Array.isArray(store[k])) store[k].forEach(handleCard);
+    });
+    return applied;
+}
+
+/* ★ 刷新"未持久化保存"常驻 banner
+   - localStorage 中 bm_comment_overrides 非空 ⇒ 显示
+   - 为空 ⇒ 隐藏
+   - 不使用 setTimeout 自动隐藏；只有"真正写入 data.js / 服务器"成功时才会隐藏 */
+function refreshPendingBanner() {
+    const banner = $('pendingBanner');
+    if (!banner) return;
+    const ov = readCommentOverrides();
+    const n = ov ? Object.keys(ov).length : 0;
+    if (n > 0) {
+        const txt = $('pendingBannerText');
+        const btn = $('pendingBannerSaveBtn');
+        if (txt) txt.innerHTML = t('pendingBannerText', { n });
+        if (btn) {
+            btn.textContent = t('pendingBannerSaveBtn');
+            btn.onclick = () => doSave();
+        }
+        banner.classList.add('show');
+    } else {
+        banner.classList.remove('show');
+    }
 }
 
 /* ================================================================
@@ -1568,6 +1953,11 @@ async function saveDataJs_online() {
         toast(msg);
         $('dataStatus').textContent = t('stServerSaved', { time: new Date().toLocaleString() });
         $('dataStatus').className = 'st-ok';
+
+        // ★ 保存成功 → 清空 localStorage 中的 comment override
+        clearCommentOverrides();
+        refreshPendingBanner();
+
         await refreshBackupStatus_online(); await loadSourceStatus_online();
     } else toast((r.data && r.data.error) || t('toastSaveFail'));
 }
@@ -1742,6 +2132,11 @@ async function saveDataJs_local() {
         else if (backupName) { msg = t('toastSaveLocalOk', { name: backupName }); if (cleaned > 0) msg += t('toastSaveLocalCleaned', { n: cleaned }); }
         else msg = t('toastSaved');
         toast(msg);
+
+        // ★ 保存成功 → 清空 localStorage 中的 comment override
+        clearCommentOverrides();
+        refreshPendingBanner();
+
         await refreshBackupStatus_local();
     } catch (e) { alert(t('alertSaveFail', { msg: e.message })); }
 }
@@ -1895,6 +2290,7 @@ function extractComments(text) {
 
 /* ================================================================
    parseAndLoad（async）
+   ★ 末尾新增：合并 localStorage 中来自 index 页面的注释编辑
 ================================================================ */
 async function parseAndLoad(text) {
     try {
@@ -1944,6 +2340,14 @@ async function parseAndLoad(text) {
         }
 
         if (!getSections().find(s => s.key === currentSection)) currentSection = BUILTIN_SECTIONS[0].key;
+
+        // ★ 合并 index 页面上暂存的注释编辑（cardId -> comment）
+        const mergedN = mergeCommentOverrides();
+        if (mergedN > 0) {
+            setTimeout(() => toast(t('toastOverridesMerged', { n: mergedN }), 3200), 300);
+        }
+
+        refreshPendingBanner();   // ★ 新增：刷新未持久化保存提示 banner
         renderSectionTabs(); renderCurrentSection(); updateEncKeyStatus();
         return true;
     } catch (e) {
@@ -1953,6 +2357,7 @@ async function parseAndLoad(text) {
 
 /* ================================================================
    generateDataJs（async）
+   ★ 加密分类中的 cards（含每个卡片的 comment 字段）会一起被 AES-GCM 加密
 ================================================================ */
 async function generateDataJs() {
     const parts = [];
@@ -2073,6 +2478,7 @@ function renderCurrentSection() {
             metaParts.push(tb + '🔗 ' + escapeHtml(item.url || ''));
             if (item.type === 'expandable' && item.subCards) metaParts.push('📁 ' + escapeHtml(t('subCardCount', { n: item.subCards.length })));
         }
+        if (item.comment) metaParts.push('📝');
         info.innerHTML = '<div class="card-title">' + escapeHtml(title) + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
@@ -2148,7 +2554,6 @@ function openPromoteSubModal(subIdx) {
     const subName = sub.title || sub.content || t('noTitle');
     $('promoteSrcHint').innerHTML = t('promoteSrcHint', { sub: escapeHtml(subName), src: escapeHtml(srcTitle) });
 
-    // 目标大类：card 类型、未锁定
     const selSec = $('promote_section'); selSec.innerHTML = '';
     getSections().filter(s => s.kind === 'card' && !s.locked).forEach(s => {
         const opt = document.createElement('option');
@@ -2160,7 +2565,6 @@ function openPromoteSubModal(subIdx) {
     });
     selSec.value = currentSection;
 
-    // 从子卡片预填（复用重复的内容：标题、网址、描述、本地跳转、图标）
     const titleText = sub.title || sub.content || '';
     $('promote_title').value = titleText;
     $('promote_url').value = sub.url || '';
@@ -2169,9 +2573,8 @@ function openPromoteSubModal(subIdx) {
     $('promote_descUrl').value = '';
     $('promote_isLocal').checked = !!sub.isLocal;
     $('promote_type').value = 'simple';
-    $('promote_id').value = suggestCardId(titleText);
+    $('promote_id').value = '';
 
-    // 图标：仅 emoji 文本可自动复用；图片/SVG 留空
     if (sub.iconImg || (sub.icon && String(sub.icon).trim().startsWith('<svg'))) {
         $('promote_icon_emoji').value = '';
     } else {
@@ -2189,12 +2592,6 @@ function syncPromoteTypeFields() {
     else if (ty === 'expandable')     { show('promote_descRow'); show('promote_descClickableRow'); }
 }
 
-function suggestCardId(title) {
-    let s = (title || '').toLowerCase().replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '');
-    if (!s) s = 'card_' + Date.now().toString(36);
-    return s.substring(0, 40);
-}
-
 function confirmPromoteSub() {
     const sub = editingCardDraft && editingCardDraft.subCards && editingCardDraft.subCards[promotingSubIndex];
     if (!sub) { toast(t('toastSubNotExist')); return; }
@@ -2203,15 +2600,22 @@ function confirmPromoteSub() {
     if (!targetSection) { toast(t('toastNeedTargetSec')); return; }
     if (isLockedKey(targetSection)) { toast(t('toastLockedSkippedInMove')); return; }
 
-    const id = $('promote_id').value.trim();
+    let id = $('promote_id').value.trim();
     const title = $('promote_title').value.trim();
     const url = $('promote_url').value.trim();
     const type = $('promote_type').value;
 
-    if (!id)    { toast(t('toastNeedId')); return; }
     if (!title) { toast(t('toastNeedTitle')); return; }
-    if (!/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
-    if ((store[targetSection] || []).some(c => c.id === id)) { toast(t('toastIdDup')); return; }
+    if (id && !/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
+
+    if (!Array.isArray(store[targetSection])) store[targetSection] = [];
+    const tgtArr = store[targetSection];
+
+    if (!id) {
+        id = generateUniqueCardId(tgtArr, -1);
+    } else if (tgtArr.some(c => c.id === id)) {
+        toast(t('toastIdDup')); return;
+    }
 
     const newCard = { id, title, url, type };
     const emoji = $('promote_icon_emoji').value.trim();
@@ -2232,10 +2636,10 @@ function confirmPromoteSub() {
     }
     if ($('promote_isLocal').checked) newCard.isLocal = true;
 
-    if (!Array.isArray(store[targetSection])) store[targetSection] = [];
-    store[targetSection].push(newCard);
+    if (sub.comment) newCard.comment = sub.comment;
 
-    // 从原母卡片的 subCards 移除
+    tgtArr.push(newCard);
+
     editingCardDraft.subCards.splice(promotingSubIndex, 1);
     if (editingCardIndex >= 0) {
         const src = store[currentSection][editingCardIndex];
@@ -2402,6 +2806,11 @@ async function confirmUnlock() {
     }
     hide('unlockModal');
     updateEncKeyStatus();
+
+    // ★ 解锁后重新合并 override（因为刚刚 locked 分类里的卡片现在可见了）
+    mergeCommentOverrides();
+
+    refreshPendingBanner();   // ★ 新增：刷新未持久化保存提示 banner
     renderSectionTabs(); renderCurrentSection();
     toast(t('toastEncUnlockOk', { n: unlockedN }));
 }
@@ -2414,6 +2823,7 @@ function autoPromptUnlockIfNeeded() {
 
 /* ================================================================
    Card edit
+   ★ comment 字段：支持 Markdown；加密分类中会随卡片一起被 AES-GCM 加密
 ================================================================ */
 function openCardModal(idx) {
     if (isLockedKey(currentSection)) { toast(t('toastEncCantEditLocked')); return; }
@@ -2427,6 +2837,7 @@ function openCardModal(idx) {
     $('f_url').value = item.url || ''; $('f_desc').value = item.desc || '';
     $('f_descClickable').value = item.descClickable || ''; $('f_descUrl').value = item.descUrl || '';
     $('f_isLocal').checked = !!item.isLocal;
+    $('f_comment').value = item.comment || '';
     setIconFields(item, 'f_icon_emoji', 'f_icon_img', 'f_icon_svg', 'iconPreview');
     if (isEmail || isContact) hide('typeRow'); else { show('typeRow'); $('f_type').value = item.type || 'simple'; }
     if (isEmail) { $('f_desc').value = item.address || ''; $('f_descLabel').textContent = t('fldAddress'); } else $('f_descLabel').textContent = t('fldDesc');
@@ -2473,6 +2884,8 @@ function saveCardFromModal() {
     const sec = getSections().find(x => x.key === currentSection);
     let obj = {};
     Object.assign(obj, getIconFromFields('f_icon_emoji','f_icon_img','f_icon_svg'));
+    const cmt = $('f_comment').value;
+
     if (sec.kind === 'email') {
         obj.title = $('f_title').value.trim(); obj.address = $('f_desc').value.trim(); obj.url = $('f_url').value.trim(); obj.mailto = obj.url;
         if (!obj.title) { toast(t('toastNeedTitle')); return; }
@@ -2481,12 +2894,23 @@ function saveCardFromModal() {
         const du = $('f_descUrl').value.trim(); if (du) obj.descUrl = du;
         if (!obj.title) { toast(t('toastNeedTitle')); return; }
     } else {
-        const id = $('f_id').value.trim(), title = $('f_title').value.trim(), url = $('f_url').value.trim(), type = $('f_type').value;
-        if (!id) { toast(t('toastNeedId')); return; }
+        let id = $('f_id').value.trim();
+        const title = $('f_title').value.trim();
+        const url = $('f_url').value.trim();
+        const type = $('f_type').value;
+
         if (!title) { toast(t('toastNeedTitle')); return; }
-        if (!/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
+        if (id && !/^[\w\-]+$/.test(id)) { toast(t('toastIdInvalid')); return; }
+
         const arr = store[currentSection];
-        if (arr.findIndex((c, i) => c.id === id && i !== editingCardIndex) >= 0) { toast(t('toastIdDup')); return; }
+        let autoGen = false;
+        if (!id) {
+            id = generateUniqueCardId(arr, editingCardIndex);
+            autoGen = true;
+        } else if (arr.findIndex((c, i) => c.id === id && i !== editingCardIndex) >= 0) {
+            toast(t('toastIdDup')); return;
+        }
+
         obj.id = id; obj.title = title; obj.url = url; obj.type = type;
         if (type === 'simple') { const d = $('f_desc').value.trim(); if (d) obj.desc = d; }
         else if (type === 'desc-clickable') { obj.descClickable = $('f_descClickable').value.trim(); obj.descUrl = $('f_descUrl').value.trim(); }
@@ -2496,7 +2920,12 @@ function saveCardFromModal() {
             obj.subCards = (editingCardDraft && editingCardDraft.subCards) ? editingCardDraft.subCards : [];
         }
         if ($('f_isLocal').checked) obj.isLocal = true;
+
+        if (autoGen) { try { $('f_id').value = id; } catch(e) {} toast(t('toastIdAutoGen', { id })); }
     }
+
+    if (cmt && cmt.trim()) obj.comment = cmt;
+
     const arr = store[currentSection];
     if (editingCardIndex >= 0) arr[editingCardIndex] = obj; else arr.push(obj);
     hide('cardModal'); renderCurrentSection(); toast(t('toastUpdatedUnsaved'));
@@ -2514,7 +2943,8 @@ function renderSubCardsList() {
         const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, sc); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'subcard-info';
         const title = sc.title || sc.content || t('noTitle');
-        info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">' + escapeHtml(t('compactTag')) + '</span>' : '') + '</div><div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
+        const noteMark = sc.comment ? ' <span style="color:#c62828;font-size:11px;">📝</span>' : '';
+        info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">' + escapeHtml(t('compactTag')) + '</span>' : '') + noteMark + '</div><div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-sact="up">⬆</button>' +
@@ -2545,6 +2975,7 @@ function openSubModal(idx) {
     $('sf_title').value = sub.title || ''; $('sf_desc').value = sub.desc || '';
     $('sf_content').value = sub.content || ''; $('sf_url').value = sub.url || '';
     $('sf_isLocal').checked = !!sub.isLocal;
+    $('sf_comment').value = sub.comment || '';
     setIconFields(sub, 'sf_icon_emoji', 'sf_icon_img', 'sf_icon_svg', 'subIconPreview');
     syncSubStyle(); show('subModal');
 }
@@ -2555,6 +2986,10 @@ function saveSubFromModal() {
     if (s === 'compact') { obj.content = $('sf_content').value.trim(); if (!obj.content) { toast(t('toastNeedContent')); return; } }
     else { obj.title = $('sf_title').value.trim(); obj.desc = $('sf_desc').value.trim(); if (!obj.title) { toast(t('toastNeedSubTitle')); return; } }
     obj.url = $('sf_url').value.trim(); if ($('sf_isLocal').checked) obj.isLocal = true;
+
+    const cmt = $('sf_comment').value;
+    if (cmt && cmt.trim()) obj.comment = cmt;
+
     if (!editingCardDraft.subCards) editingCardDraft.subCards = [];
     if (editingSubIndex >= 0) editingCardDraft.subCards[editingSubIndex] = obj; else editingCardDraft.subCards.push(obj);
     hide('subModal'); renderSubCardsList();
@@ -2677,6 +3112,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     initEmojiPicker();
 
+    // ★ 把 Markdown 工具栏挂到两个注释编辑区上（只挂一次）
+    attachMdToolbar('f_comment');
+    attachMdToolbar('sf_comment');
+
     $('btnLang').onclick = toggleLang;
     $('authBtn').onclick = handleAuth;
     $('authPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
@@ -2748,7 +3187,6 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnCardMoveCancel').onclick = () => hide('cardMoveModal');
     $('btnCardMoveConfirm').onclick = confirmMoveCard;
 
-    // ★ 子卡片升级
     $('btnPromoteCancel').onclick = () => hide('promoteSubModal');
     $('btnPromoteConfirm').onclick = confirmPromoteSub;
     $('promote_type').onchange = syncPromoteTypeFields;
@@ -2761,6 +3199,36 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnUnlockCancel').onclick = () => hide('unlockModal');
     $('btnUnlockConfirm').onclick = confirmUnlock;
     $('unlockPwd').addEventListener('keydown', e => { if (e.key === 'Enter') confirmUnlock(); });
+
+    // ★ 跨标签页同步：其它 tab 修改 bm_comment_overrides 时同步刷新 banner
+    window.addEventListener('storage', e => {
+        if (e.key === LS_COMMENT_OVERRIDES) refreshPendingBanner();
+    });
+    // ★ 窗口重新聚焦时也刷新一次（防止用户在别处保存后切回来仍显示旧状态）
+    window.addEventListener('focus', refreshPendingBanner);
+    // ★ 首次进入主页也刷新一次（在 boot 还没拉到数据时也能显示）
+    setTimeout(refreshPendingBanner, 600);
+    /* ================================================================
+       ★ 点击对话框外部（遮罩区域）自动关闭
+       ────────────────────────────────────────────────────────────────
+       - 适用于所有 .modal-mask 对话框（卡片编辑/子卡片/移动/升级/
+         大类管理/解锁/历史/数据源/导入导出/修改密码 等）
+       - 采用 mousedown + mouseup 双重判定：必须两次事件都发生在
+         mask 本身（而不是 .modal-box 内），才真正关闭。
+         这样可以避免在对话框内拖选文本时，鼠标滑到外部松开被误关。
+       ================================================================ */
+    document.querySelectorAll('.modal-mask').forEach(mask => {
+        let mdOnMask = false;
+        mask.addEventListener('mousedown', e => {
+            mdOnMask = (e.target === mask);
+        });
+        mask.addEventListener('mouseup', e => {
+            if (mdOnMask && e.target === mask) {
+                mask.classList.add('hidden');
+            }
+            mdOnMask = false;
+        });
+    });
 });
 </script>
 </body>

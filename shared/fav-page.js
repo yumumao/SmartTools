@@ -4,23 +4,20 @@
  * 收藏夹页面通用逻辑（index1 / index2 / index3 / index4 / index5 五个风格共用）
  *
  * 依赖（必须在本文件之前加载）：
- *   1. data.js            → 提供 usbDriveData / teachingData / onlineAIData /
- *                            videoData / contactData / emailData / customSections
- *   2. shared/enc-unlock.js  → 加密大类解锁模块（可选）
+ *   1. data.js                → 提供 usbDriveData / teachingData / onlineAIData /
+ *                               videoData / contactData / emailData / customSections
+ *   2. shared/enc-unlock.js   → 加密大类解锁模块（可选）
  *   3. shared/enc-rerender.js → 加密模块锁/解锁无刷新重渲染（可选）
+ *   4. shared/note-modal.js   → 卡片注释模态框（可选）
  *
  * 每个页面在引入本文件之前，需要设置：
  *   <script>window.__FAV_PAGE_ID = 'indexN.html';</script>
- * 用于 localStorage 记录最近使用的风格。
  * ================================================================================ */
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 1】风格持久化：记录用户最近一次使用的页面风格
- * ════════════════════════════════════════════════════════════════════════════════
- * 作用：其它页面（比如 toolsindex.html）可以读取 fav_last_style，
- *       自动跳到用户上次选择的收藏夹风格。
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * 【区块 1】风格持久化
+ * ════════════════════════════════════════════════════════════════════════════════ */
 try {
     if (window.__FAV_PAGE_ID) {
         localStorage.setItem('fav_last_style', window.__FAV_PAGE_ID);
@@ -30,10 +27,7 @@ try {
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 2】数据缺失兜底
- * ════════════════════════════════════════════════════════════════════════════════
- * 作用：如果 data.js 加载失败或内部有语法错误导致变量未定义，
- *       在页面上显示一个友好的错误卡片，而不是白屏。
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
     var _container = document.querySelector('.container');
     if (_container) {
@@ -59,12 +53,7 @@ if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 3】全局状态变量
- * ════════════════════════════════════════════════════════════════════════════════
- * currentExpanded  : 当前展开的子卡片容器 id（null 表示无）
- * currentLayout    : 当前布局 'mobile' | 'tablet' | 'desktop'
- * currentEmailData : 当前选中的邮箱数据（用于邮箱卡片切换动画）
- * isAnimating      : 邮箱切换动画是否进行中（防止动画期间重复触发）
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 var currentExpanded  = null;
 var currentLayout    = 'mobile';
 var currentEmailData = emailData[0];
@@ -72,13 +61,96 @@ var isAnimating      = false;
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 4】基础工具函数
- * ════════════════════════════════════════════════════════════════════════════════ */
+ * 【区块 3.5】卡片注册表（供 NoteModal 定位卡片对象 + 保存时回写 meta）
+ * ════════════════════════════════════════════════════════════════════════════════
+ * 每次重渲染会重新生成新的 id，旧 id 仍留在表里不影响当前页面使用。
+ * meta 字段：
+ *   sectionKey   → 'usb-drive' / 'teaching' / 'ai' / 'video' / 'contact' / 自定义 key
+ *   cardIndex    → 在该大类数组里的下标
+ *   subIndex     → 子卡片下标（仅子卡片）
+ *   emailIndex   → 邮箱 Tab 下标（仅邮箱卡）
+ *   encrypted    → 是否加密大类
+ *   uniqueKey    → 会话级备份用的稳定 key
+ * ──────────────────────────────────────────────────────────────────────────────── */
+var __cardRegistry = {};
+var __cardIdSeq    = 0;
+
+function __registerCard(card, meta) {
+    meta = meta || {};
+    if (!meta.uniqueKey) {
+        meta.uniqueKey =
+            (meta.sectionKey || '?') +
+            '/' + (meta.cardIndex != null ? meta.cardIndex : (meta.emailIndex != null ? 'email' + meta.emailIndex : '?')) +
+            (meta.subIndex != null ? '/' + meta.subIndex : '');
+    }
+    var id = '__fc_' + (++__cardIdSeq);
+    __cardRegistry[id] = { card: card, meta: meta };
+    return id;
+}
 
 /**
- * 根据窗口宽度检测当前布局类型。
- * 断点：≤480 手机 / 481–799 平板 / ≥800 桌面。
+ * 卡片点击统一入口（非 <a> 标签使用）：
+ *   有 comment → 弹注释；无 comment → 打开 url；两者都没有 → 不响应
  */
+window.__favCardOpen = function(cardId) {
+    var entry = __cardRegistry[cardId];
+    if (!entry) return;
+    var card = entry.card;
+    if (card.comment && window.NoteModal) {
+        window.NoteModal.show(cardId);
+        return;
+    }
+    var url = card.url || '';
+    if (!url) return;
+    if (card.isLocal) window.location.href = url;
+    else              window.open(url, '_blank');
+};
+
+/**
+ * <a href> 版本的点击拦截：有 comment 就拦截，否则让浏览器默认行为（支持中键）
+ */
+window.__favLinkClick = function(cardId, event) {
+    var entry = __cardRegistry[cardId];
+    if (!entry || !entry.card.comment || !window.NoteModal) return true;
+    if (event && event.preventDefault) event.preventDefault();
+    window.NoteModal.show(cardId);
+    return false;
+};
+
+/**
+ * 邮箱卡片点击（currentEmailData 会变，所以每次点击时动态注册）
+ */
+window.__favEmailClick = function() {
+    var cd = currentEmailData;
+    if (!cd) return;
+    if (cd.comment && window.NoteModal) {
+        var idx = emailData.indexOf(cd);
+        var cid = __registerCard(cd, {
+            sectionKey: 'contact',
+            emailIndex: idx,
+            uniqueKey:  'contact/email/' + idx
+        });
+        window.NoteModal.show(cid);
+    } else if (cd.url) {
+        window.open(cd.url, '_blank');
+    }
+};
+
+/** 有注释的卡片类名（用于右上角小红点） */
+function __noteCls(card) { return card && card.comment ? ' has-note' : ''; }
+
+/** 工具：把字符串安全地嵌入到 HTML 属性里（仅针对 url / descUrl 等） */
+function __attr(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════════
+ * 【区块 4】基础工具函数
+ * ════════════════════════════════════════════════════════════════════════════════ */
 function detectLayout() {
     var w = window.innerWidth;
     if (w <= 480) return 'mobile';
@@ -86,10 +158,6 @@ function detectLayout() {
     return 'desktop';
 }
 
-/**
- * 把右上角的风格切换器水平对齐到 .container 的右边缘。
- * 在 resize 和 ResizeObserver 里都会被调用。
- */
 function alignStyleSwitcher() {
     var container = document.querySelector('.container');
     var switcher  = document.getElementById('styleSwitcher');
@@ -98,12 +166,6 @@ function alignStyleSwitcher() {
     switcher.style.right = (document.documentElement.clientWidth - rect.right) + 'px';
 }
 
-/**
- * 渲染卡片左上角的图标。支持三种格式：
- *   1. iconImg → <img> 图片 URL
- *   2. icon 以 '<' 开头 → 内联 SVG 字符串
- *   3. icon 普通字符串 → emoji 或文字
- */
 function renderIcon(item, extraAttrs) {
     extraAttrs = extraAttrs || '';
     if (item.iconImg) {
@@ -119,45 +181,74 @@ function renderIcon(item, extraAttrs) {
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 5】卡片 HTML 生成器
- * ════════════════════════════════════════════════════════════════════════════════
- * 支持三种卡片类型：
- *   - simple         : 整张卡片点击打开 url
- *   - desc-clickable : 卡片主体点 url，描述文字单独点 descUrl
- *   - expandable     : 有子卡片，左 60% 打开 url，右 40% 展开子卡片浮层
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 
-function generateCardHTML(card) {
+function generateCardHTML(card, meta) {
+    var cid = __registerCard(card, meta || {});
+    var noteCls = __noteCls(card);
+
     // ─── 类型 1：简单卡片 ──────────────────────────────────────────────
     if (card.type === 'simple') {
-        return '<a href="' + card.url + '" target="_blank" class="link-card">' +
+        // ★ 有 url → 用 <a>（支持中键 / Ctrl+点击在新标签打开）
+        // ★ 无 url → 用 <div>（避免 href=undefined 空白页；此时一般都有 comment）
+        if (card.url) {
+            return '<a href="' + __attr(card.url) + '" target="_blank" class="link-card' + noteCls + '" ' +
+                   'data-card-id="' + cid + '" ' +
+                   'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+                renderIcon(card) +
+                '<h3 class="link-title">' + card.title + '</h3>' +
+                '<p class="link-desc">' + (card.desc || '') + '</p></a>';
+        }
+        return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
+               'onclick="__favCardOpen(\'' + cid + '\')">' +
             renderIcon(card) +
             '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc">' + (card.desc || '') + '</p></a>';
+            '<p class="link-desc">' + (card.desc || '') + '</p></div>';
     }
 
     // ─── 类型 2：描述可独立点击的卡片 ───────────────────────────────
     if (card.type === 'desc-clickable') {
-        return '<div class="link-card" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
+        // 描述行独立跳转：descUrl 为空则只触发父卡片点击（不 stopPropagation 也不 open）
+        var descClickHandler = card.descUrl
+            ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
+            : '';
+        return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
+               'onclick="__favCardOpen(\'' + cid + '\')">' +
             renderIcon(card) +
             '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p></div>';
+            '<p class="link-desc-clickable"' +
+                (descClickHandler ? ' onclick="' + descClickHandler + '"' : '') +
+            '>' + card.descClickable + '</p></div>';
     }
 
     // ─── 类型 3：可展开子卡片的卡片 ─────────────────────────────────
     if (card.type === 'expandable') {
-        // 描述区（可点击或静态）
         var descHTML = '';
         if (card.descClickable) {
-            descHTML = '<p class="link-desc-clickable" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.descClickable + '</p>';
+            var descClickHandler2 = card.descUrl
+                ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
+                : '';
+            descHTML = '<p class="link-desc-clickable"' +
+                (descClickHandler2 ? ' onclick="' + descClickHandler2 + '"' : '') +
+                '>' + card.descClickable + '</p>';
         } else if (card.desc) {
             descHTML = '<p class="link-desc">' + card.desc + '</p>';
         }
-        // 子卡片列表
+        // 子卡片继承主卡片的 sectionKey + cardIndex，加 subIndex
         var subHTML = '';
-        card.subCards.forEach(function(sc) { subHTML += generateSubCardHTML(sc); });
+        (card.subCards || []).forEach(function(sc, idx) {
+            subHTML += generateSubCardHTML(sc, {
+                sectionKey: (meta && meta.sectionKey) || '',
+                cardIndex:  (meta && meta.cardIndex),
+                subIndex:   idx,
+                encrypted:  (meta && meta.encrypted)
+            });
+        });
 
         return '<div class="card-container">' +
-            '<div class="link-card link-card-with-expand" onclick="handleCardClick(event, \'' + card.url + '\', \'' + card.id + '-subcards\')">' +
+            '<div class="link-card link-card-with-expand' + noteCls + '" ' +
+                 'data-card-id="' + cid + '" ' +
+                 'onclick="handleCardClick(event, \'' + cid + '\', \'' + card.id + '-subcards\')">' +
             renderIcon(card) +
             '<h3 class="link-title">' + card.title + '</h3>' +
             descHTML +
@@ -169,25 +260,24 @@ function generateCardHTML(card) {
 }
 
 /**
- * 渲染浮层中的子卡片。
- *   - sc.content 存在 → compact-card（单行紧凑）
- *   - 否则            → two-line-card（两行：标题 + 描述）
- *   - sc.isLocal      → 本页跳转（不新开标签页）
+ * 生成子卡片。注意：compact-card 里的 sc.note 是"额外小字说明"，
+ * 新注释功能使用 sc.comment 字段，二者互不冲突。
  */
-function generateSubCardHTML(sc) {
+function generateSubCardHTML(sc, meta) {
+    var cid      = __registerCard(sc, meta || {});
     var iconHTML = renderIcon(sc);
-    var onclick = sc.isLocal
-        ? 'window.location.href=\'' + sc.url + '\''
-        : 'window.open(\'' + sc.url + '\', \'_blank\')';
+    var noteCls  = __noteCls(sc);
 
     if (sc.content !== undefined) {
-        return '<div class="sub-card compact-card" onclick="' + onclick + '">' +
+        return '<div class="sub-card compact-card' + noteCls + '" data-card-id="' + cid + '" ' +
+               'onclick="__favCardOpen(\'' + cid + '\')">' +
             iconHTML +
             '<div class="link-content"><span class="link-url">' + sc.content + '</span>' +
             (sc.note ? '<span class="link-note">' + sc.note + '</span>' : '') +
             '</div></div>';
     }
-    return '<div class="sub-card two-line-card" onclick="' + onclick + '">' +
+    return '<div class="sub-card two-line-card' + noteCls + '" data-card-id="' + cid + '" ' +
+           'onclick="__favCardOpen(\'' + cid + '\')">' +
         '<div class="card-header">' + iconHTML +
         '<h3 class="link-title">' + sc.title + '</h3></div>' +
         '<p class="link-url">' + (sc.desc || '') + '</p></div>';
@@ -195,23 +285,21 @@ function generateSubCardHTML(sc) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 6】网格生成器（静态 & 动态）
- * ════════════════════════════════════════════════════════════════════════════════
- * - 静态网格：一次性显示全部卡片（用于在线U盘、授课资料）
- * - 动态网格：超出 N 张自动折叠 + 展开/收起按钮（用于 网络资源 / 视频聚合 / 自定义大类）
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * 【区块 6】网格生成器
+ * ════════════════════════════════════════════════════════════════════════════════ */
 
-/** 生成静态网格（不折叠）。 */
-function generateStaticGrid(data) {
+function generateStaticGrid(data, sectionKey, encrypted) {
     var html = '<div class="links-grid">';
-    data.forEach(function(card) { html += generateCardHTML(card); });
+    data.forEach(function(card, idx) {
+        html += generateCardHTML(card, {
+            sectionKey: sectionKey || '',
+            cardIndex:  idx,
+            encrypted:  !!encrypted
+        });
+    });
     return html + '</div>';
 }
 
-/**
- * 根据大类前缀和布局，返回"首屏可见卡片数"。
- * 超出该数字的卡片会放进 .hidden-cards 折叠区。
- */
 function getVisibleCount(prefix, layout) {
     if (prefix === 'video') {
         return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
@@ -225,23 +313,32 @@ function getVisibleCount(prefix, layout) {
     return 999;
 }
 
-/** 生成动态网格（首屏 + 折叠区 + 展开/收起按钮）。 */
-function generateDynamicGrid(prefix, data, layout) {
+function generateDynamicGrid(prefix, data, layout, encrypted) {
     var count   = getVisibleCount(prefix, layout);
     var visible = data.slice(0, count);
     var hidden  = data.slice(count);
 
-    // 首屏可见卡片
     var html = '<div class="links-grid">';
-    visible.forEach(function(card) { html += generateCardHTML(card); });
+    visible.forEach(function(card, idx) {
+        html += generateCardHTML(card, {
+            sectionKey: prefix,
+            cardIndex:  idx,
+            encrypted:  !!encrypted
+        });
+    });
     html += '</div>';
 
-    // 折叠区 + 展开/收起按钮
     if (hidden.length > 0) {
         html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-expand-btn">' +
             '<span>展开卡片</span><span class="arrow">▼</span></button>';
         html += '<div class="hidden-cards" id="' + prefix + '-hidden-cards">';
-        hidden.forEach(function(card) { html += generateCardHTML(card); });
+        hidden.forEach(function(card, idx) {
+            html += generateCardHTML(card, {
+                sectionKey: prefix,
+                cardIndex:  count + idx,
+                encrypted:  !!encrypted
+            });
+        });
         html += '</div>';
         html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-collapse-btn" style="display:none;">' +
             '<span>折叠卡片</span><span class="arrow">▲</span></button>';
@@ -252,43 +349,53 @@ function generateDynamicGrid(prefix, data, layout) {
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 7】联系方式 / 邮箱卡片
- * ════════════════════════════════════════════════════════════════════════════════
- * 邮箱卡片特殊：右侧有 5 个垂直 Tab，切换时左侧主区域有滑动动画。
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 
-/** 生成邮箱卡片 HTML（含右侧 Tab 切换条）。 */
 function generateEmailCardHTML() {
     var tabsHTML = '';
     emailData.forEach(function(em, i) {
         var cls = i === 0 ? ' active' : '';
         tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
     });
+    // 邮箱卡主区域改走 __favEmailClick，内部判断 currentEmailData.comment
+    var noteCls = __noteCls(emailData[0]);
     return '<div class="card-container">' +
-        '<div class="link-card email-card" onclick="openEmail(currentEmailData.url)">' +
+        '<div class="link-card email-card' + noteCls + '" id="email-card-root" onclick="__favEmailClick()">' +
         '<div class="email-main-content" id="email-main-content">' +
         '<div class="email-contact-header">' +
         renderIcon(emailData[0], 'id="email-icon"') +
         '<h3 class="link-title" id="email-title">' + emailData[0].title + '</h3>' +
         '</div>' +
-        '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); window.open(currentEmailData.mailto, \'_blank\')">' + emailData[0].address + '</p>' +
+        '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); if(currentEmailData.mailto) window.open(currentEmailData.mailto, \'_blank\')">' + emailData[0].address + '</p>' +
         '</div>' +
         '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
         '</div></div>';
 }
 
-/** 生成一个普通联系方式卡片（Telegram / 微信 等）。 */
-function generateContactCardHTML(card) {
-    return '<div class="link-card contact-card-wrap" onclick="window.open(\'' + card.url + '\', \'_blank\')">' +
+function generateContactCardHTML(card, meta) {
+    var cid = __registerCard(card, meta || {});
+    var noteCls = __noteCls(card);
+    var descClickHandler = card.descUrl
+        ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
+        : '';
+    return '<div class="link-card contact-card-wrap' + noteCls + '" data-card-id="' + cid + '" ' +
+           'onclick="__favCardOpen(\'' + cid + '\')">' +
         '<div class="contact-header">' + renderIcon(card) +
         '<h3 class="link-title">' + card.title + '</h3></div>' +
-        '<p class="contact-desc" onclick="event.stopPropagation(); window.open(\'' + card.descUrl + '\', \'_blank\')">' + card.desc + '</p></div>';
+        '<p class="contact-desc"' +
+            (descClickHandler ? ' onclick="' + descClickHandler + '"' : '') +
+        '>' + card.desc + '</p></div>';
 }
 
-/** 生成整个联系方式大类的网格（邮箱卡 + 其他联系卡）。 */
 function generateContactGrid() {
     var html = '<div class="links-grid contact-row">';
     html += generateEmailCardHTML();
-    contactData.forEach(function(card) { html += generateContactCardHTML(card); });
+    contactData.forEach(function(card, idx) {
+        html += generateContactCardHTML(card, {
+            sectionKey: 'contact',
+            cardIndex:  idx
+        });
+    });
     return html + '</div>';
 }
 
@@ -298,39 +405,33 @@ function generateContactGrid() {
  * ════════════════════════════════════════════════════════════════════════════════ */
 
 /**
- * 可展开卡片的点击分区逻辑：
- *   - 点击左 60%：打开 url
- *   - 点击右 40%：展开/收起子卡片
+ * 可展开卡片的点击分区：
+ *   - 右 40% → 展开/收起
+ *   - 左 60% → __favCardOpen（有 comment 弹注释，否则打开 url）
  */
-function handleCardClick(event, url, subcardId) {
-    var card   = event.currentTarget;
-    var rect   = card.getBoundingClientRect();
+function handleCardClick(event, cardId, subcardId) {
+    var cardEl = event.currentTarget;
+    var rect   = cardEl.getBoundingClientRect();
     var clickX = event.clientX - rect.left;
     if (clickX > rect.width * 3 / 5) {
-        var btn = card.querySelector('.expand-btn');
+        var btn = cardEl.querySelector('.expand-btn');
         if (btn) toggleSubCards(subcardId, btn);
     } else {
-        window.open(url, '_blank');
+        __favCardOpen(cardId);
     }
 }
 
-/** 右侧透明"展开区"（.expand-zone）被点击时的处理。 */
 function handleExpandZone(subcardId, zone) {
     var btn = zone.closest('.link-card').querySelector('.expand-btn');
     if (btn) toggleSubCards(subcardId, btn);
 }
 
-/**
- * 展开/收起子卡片浮层 + 黑色半透明遮罩。
- * 同一时间只允许一个子卡片浮层打开；打开新浮层时会自动关闭旧的。
- */
 function toggleSubCards(subcardId, button) {
     var subcards      = document.getElementById(subcardId);
     var overlay       = document.getElementById('overlay');
     var cardContainer = button.closest('.card-container');
     var isExpanded    = subcards.classList.contains('expanded');
 
-    // 关闭其它已展开的浮层
     if (currentExpanded && currentExpanded !== subcardId) {
         var otherSubcards = document.getElementById(currentExpanded);
         if (otherSubcards) {
@@ -342,7 +443,6 @@ function toggleSubCards(subcardId, button) {
         }
     }
 
-    // 切换当前浮层状态
     if (isExpanded) {
         subcards.classList.remove('expanded');
         button.classList.remove('expanded');
@@ -358,10 +458,6 @@ function toggleSubCards(subcardId, button) {
     }
 }
 
-/**
- * 大类"展开卡片 / 折叠卡片"按钮的切换逻辑。
- * 包含依次出现 / 依次隐藏的动画、按钮显隐切换。
- */
 function toggleSection(prefix) {
     var section     = document.getElementById(prefix + '-hidden-cards');
     var expandBtn   = document.getElementById(prefix + '-expand-btn');
@@ -369,7 +465,6 @@ function toggleSection(prefix) {
     var isExpanded  = section.classList.contains('expanded');
 
     if (isExpanded) {
-        // 收起动画
         section.classList.remove('hover-ready');
         section.classList.add('collapsing');
         collapseBtn.classList.add('moving');
@@ -383,12 +478,10 @@ function toggleSection(prefix) {
             }, 100);
         }, 600);
     } else {
-        // 展开动画
         expandBtn.classList.add('moving');
         setTimeout(function() {
             expandBtn.style.display = 'none';
             section.classList.add('expanded');
-            // 动画结束后加 hover-ready，避免动画期间 hover 冲突
             setTimeout(function() { section.classList.add('hover-ready'); }, 2500);
             setTimeout(function() {
                 collapseBtn.style.display = 'flex';
@@ -398,10 +491,6 @@ function toggleSection(prefix) {
     }
 }
 
-/**
- * 桌面布局下，初始化完就自动展开折叠区（不播放动画）。
- * 用于 ai / video / 自定义大类，让桌面端一屏看到更多卡片。
- */
 function autoExpandSection(prefix) {
     var section     = document.getElementById(prefix + '-hidden-cards');
     var expandBtn   = document.getElementById(prefix + '-expand-btn');
@@ -414,16 +503,8 @@ function autoExpandSection(prefix) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 9】邮箱切换（带滑动动画）
+ * 【区块 9】邮箱切换
  * ════════════════════════════════════════════════════════════════════════════════ */
-
-/**
- * 切换邮箱 Tab：
- *   1. 主内容向左滑出
- *   2. 替换图标 / 标题 / 地址 / onclick
- *   3. 主内容从右滑入
- *   4. Tab 视觉状态切换（active-N）
- */
 function switchEmail(index) {
     if (isAnimating) return;
     var currentIndex = emailData.indexOf(currentEmailData);
@@ -436,7 +517,6 @@ function switchEmail(index) {
     setTimeout(function() {
         currentEmailData = emailData[index];
 
-        // 更新图标（兼容 emoji / SVG / iconImg）
         var emailIconEl = document.getElementById('email-icon');
         if (currentEmailData.iconImg) {
             emailIconEl.innerHTML = '<img src="' + currentEmailData.iconImg + '" alt="" />';
@@ -449,18 +529,24 @@ function switchEmail(index) {
             emailIconEl.className = 'link-icon';
         }
 
-        // 更新标题和地址
         document.getElementById('email-title').textContent   = currentEmailData.title;
         document.getElementById('email-address').textContent = currentEmailData.address;
 
-        // 重新绑定地址点击（因为闭包变量需要刷新）
         var addressEl = document.getElementById('email-address');
         addressEl.onclick = function(event) {
             event.stopPropagation();
-            window.open(currentEmailData.mailto, '_blank');
+            if (currentEmailData.mailto) {
+                window.open(currentEmailData.mailto, '_blank');
+            }
         };
 
-        // 滑入动画
+        // 切换时同步"有注释"红点状态
+        var emailRoot = document.getElementById('email-card-root');
+        if (emailRoot) {
+            if (currentEmailData.comment) emailRoot.classList.add('has-note');
+            else                          emailRoot.classList.remove('has-note');
+        }
+
         mainContent.classList.remove('slide-out');
         mainContent.classList.add('slide-in');
         setTimeout(function() {
@@ -473,7 +559,6 @@ function switchEmail(index) {
         }, 50);
     }, 200);
 
-    // Tab 视觉状态切换
     document.querySelectorAll('.email-tab').forEach(function(tab, i) {
         if (i === index) tab.classList.add('active');
         else tab.classList.remove('active');
@@ -481,21 +566,13 @@ function switchEmail(index) {
     document.getElementById('email-tabs').className = 'email-tabs active-' + index;
 }
 
-/** 邮箱卡片主区域点击：打开 mailto/url。 */
 function openEmail(url) { window.open(url, '_blank'); }
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 10】自定义大类 + 加密大类（锁定/解锁占位）
- * ════════════════════════════════════════════════════════════════════════════════
- * customSections 在 data.js 里定义，会被动态插入到"联系方式"大类之前。
- * 加密大类未解锁时：只渲染一个小药丸占位（不显示标题、不显示卡片内容）。
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * 【区块 10】自定义大类 + 加密大类
+ * ════════════════════════════════════════════════════════════════════════════════ */
 
-/**
- * 首次渲染时，把 customSections 从 data.js 注入到 DOM。
- * 每个自定义大类会生成一个 <div class="section"> 插在联系方式之前。
- */
 function injectCustomSections(layout) {
     if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
 
@@ -506,18 +583,16 @@ function injectCustomSections(layout) {
 
     customSections.forEach(function(cs) {
         if (!cs || !cs.key || typeof cs.key !== 'string') return;
-        if (document.getElementById(cs.key + '-content')) return; // 已存在则跳过
+        if (document.getElementById(cs.key + '-content')) return;
 
         var sectionEl = document.createElement('div');
         sectionEl.className = 'section';
         sectionEl.dataset.customKey = cs.key;
 
-        // 🔐 锁定状态：不渲染标题，只留药丸占位（隐私保护）
         if (window.EncUnlock && EncUnlock.isLocked(cs)) {
             sectionEl.classList.add('section-locked-pill');
             sectionEl.innerHTML = '<div id="' + cs.key + '-content"></div>';
         } else {
-            // 普通状态：渲染标题
             sectionEl.innerHTML =
                 '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
                 '<div id="' + cs.key + '-content"></div>';
@@ -528,15 +603,10 @@ function injectCustomSections(layout) {
     });
 }
 
-/**
- * 渲染单个自定义大类的内容区（卡片 or 锁定占位）。
- * 会在 resize 布局变化、锁定/解锁时被调用。
- */
 function renderCustomSection(cs, layout) {
     var contentEl = document.getElementById(cs.key + '-content');
     if (!contentEl) return;
 
-    // 🔐 加密大类未解锁 → 渲染小药丸占位
     if (window.EncUnlock && EncUnlock.isLocked(cs)) {
         contentEl.innerHTML = '';
         contentEl.appendChild(EncUnlock.makeLockedPlaceholder(cs));
@@ -549,24 +619,24 @@ function renderCustomSection(cs, layout) {
         return;
     }
     if (cs.dynamic) {
-        contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout);
+        contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout, !!cs.encrypted);
         if (layout === 'desktop') {
             autoExpandSection(cs.key);
         }
     } else {
-        contentEl.innerHTML = generateStaticGrid(cards);
+        contentEl.innerHTML = generateStaticGrid(cards, cs.key, !!cs.encrypted);
     }
 }
 
 /**
- * 暴露给 shared/enc-rerender.js 使用的 API。
- * 加密大类锁/解锁时会调用这里的方法实现无刷新更新。
+ * 暴露给 shared/enc-rerender.js + shared/note-modal.js 使用的 API。
  */
 window.__favPageAPI = {
     getLayout: function() { return currentLayout; },
     renderSection: function(cs, layout) { renderCustomSection(cs, layout); },
+    // NoteModal 通过这个取卡片
+    getCardById: function(id) { return __cardRegistry[id] || null; },
     clearExpandedState: function() {
-        // 锁定时如果正好某个加密卡片的子浮层在开，需要强制关掉
         if (!currentExpanded) return;
         var subs = document.getElementById(currentExpanded);
         if (subs) {
@@ -586,8 +656,6 @@ window.__favPageAPI = {
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 11】右上角风格切换下拉菜单
  * ════════════════════════════════════════════════════════════════════════════════ */
-
-/** 切换风格下拉菜单的展开/收起状态。 */
 function toggleStyleMenu(e) {
     e.stopPropagation();
     var menu = document.getElementById('styleMenu');
@@ -606,22 +674,10 @@ function toggleStyleMenu(e) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 12】页面初始化（DOMContentLoaded）
- * ════════════════════════════════════════════════════════════════════════════════
- * 执行顺序：
- *   1. 注册"点击页面其它地方关闭下拉菜单"
- *   2. 检测当前布局
- *   3. 等待 EncUnlock bootstrap（如果 sessionStorage 有密码就自动解锁）
- *   4. 渲染静态大类（U盘、授课资料）
- *   5. 注入自定义大类（含加密大类占位）
- *   6. 渲染联系方式 / 网络资源 / 视频聚合
- *   7. 桌面布局自动展开折叠区
- *   8. 对齐风格切换器、监听 container 尺寸变化
- *   9. 挂载"立即锁定"浮动按钮（如果有解锁的加密大类）
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * 【区块 12】页面初始化
+ * ════════════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async function() {
 
-    // 1️⃣ 点击空白处关闭风格下拉菜单
     document.addEventListener('click', function(e) {
         if (!e.target.closest('#styleSwitcher')) {
             var menu = document.getElementById('styleMenu');
@@ -634,45 +690,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // 2️⃣ 检测布局
     currentLayout = detectLayout();
 
-    // 3️⃣ 加密模块启动（尝试自动解锁）
     if (window.EncUnlock) {
         try { await EncUnlock.bootstrap(); } catch (e) { console.warn('EncUnlock bootstrap error:', e); }
     }
 
-    // 4️⃣ 静态大类
-    document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData);
-    document.getElementById('teaching-content').innerHTML  = generateStaticGrid(teachingData);
+    // 传入 sectionKey 以便注释功能定位
+    document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData, 'usb-drive');
+    document.getElementById('teaching-content').innerHTML  = generateStaticGrid(teachingData,  'teaching');
 
-    // 5️⃣ 自定义大类（含加密占位）
     injectCustomSections(currentLayout);
 
-    // 6️⃣ 联系方式 / 网络资源 / 视频聚合
     document.getElementById('contact-content').innerHTML   = generateContactGrid();
     document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai',    onlineAIData, currentLayout);
     document.getElementById('video-content').innerHTML     = generateDynamicGrid('video', videoData,    currentLayout);
 
-    // 7️⃣ 桌面自动展开折叠区
     if (currentLayout === 'desktop') {
         autoExpandSection('ai');
         autoExpandSection('video');
     }
 
-    // 8️⃣ 对齐风格切换器 + 监听容器尺寸
     alignStyleSwitcher();
     var containerEl = document.querySelector('.container');
     if (typeof ResizeObserver !== 'undefined' && containerEl) {
         new ResizeObserver(function() { alignStyleSwitcher(); }).observe(containerEl);
     }
 
-    // 9️⃣ 挂载"立即锁定"浮动按钮
     if (window.EncUnlock && EncUnlock.mountLockButton) {
         EncUnlock.mountLockButton();
     }
 
-    // 🔟 遮罩点击：关闭当前展开的子卡片浮层
     var ol = document.getElementById('overlay');
     if (ol) {
         ol.addEventListener('click', function() {
@@ -695,13 +743,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 13】窗口 resize 响应
- * ════════════════════════════════════════════════════════════════════════════════
- * 布局发生跨档切换（mobile ↔ tablet ↔ desktop）时：
- *   - 关闭已展开的子卡片浮层
- *   - 重新渲染动态网格（可见/折叠的数量会变）
- *   - 重新渲染自定义大类
- *   - 桌面自动展开折叠区
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 window.addEventListener('resize', function() {
     var newLayout = detectLayout();
     if (newLayout !== currentLayout) {
@@ -727,19 +769,14 @@ window.addEventListener('resize', function() {
         }
     }
 
-    // 任何 resize 都重新对齐风格切换器
     requestAnimationFrame(alignStyleSwitcher);
 });
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 14】Ripple 波纹点击效果
- * ════════════════════════════════════════════════════════════════════════════════
- * 在指定元素被点击时，从点击位置生成一个放大淡出的圆形波纹（Material Design 风格）。
- * 元素自身需在 CSS 里声明 position:relative 和 overflow:hidden 以裁剪波纹边缘。
- * ──────────────────────────────────────────────────────────────────────────────── */
+ * ════════════════════════════════════════════════════════════════════════════════ */
 (function initRipple() {
-    // 所有支持 ripple 效果的选择器
     var rippleSelector = [
         '.link-card',
         '.sub-card',
@@ -753,9 +790,7 @@ window.addEventListener('resize', function() {
         '.enc-lock-fab'
     ].join(',');
 
-    /** 在 target 内部的点击位置生成一个波纹 span。 */
     function createRipple(e, target) {
-        // 已激活的风格选项不需要波纹
         if (target.classList.contains('style-opt-active')) return;
 
         var rect  = target.getBoundingClientRect();
@@ -773,7 +808,6 @@ window.addEventListener('resize', function() {
 
         target.appendChild(ripple);
 
-        // 动画结束后清理 DOM
         setTimeout(function() {
             if (ripple && ripple.parentNode) {
                 ripple.parentNode.removeChild(ripple);
@@ -781,7 +815,6 @@ window.addEventListener('resize', function() {
         }, 850);
     }
 
-    // 优先使用 PointerEvent（鼠标 + 触摸统一）；否则降级到 mousedown + touchstart
     var supportsPointer = 'PointerEvent' in window;
     var eventName = supportsPointer ? 'pointerdown' : 'mousedown';
 

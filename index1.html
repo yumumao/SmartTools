@@ -11,6 +11,8 @@
 
     <!-- 🔐 EncUnlock: 加载加密解锁模块样式 -->
     <link rel="stylesheet" href="shared/enc-unlock.css">
+    <!-- 📝 NoteModal: 卡片注释模态框样式（新增） -->
+    <link rel="stylesheet" href="shared/note-modal.css">
 
     <style>
         * {
@@ -1865,6 +1867,9 @@ if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
 <script src="shared/enc-unlock.js"></script>
 <!-- 🔐 EncUnlock: 加载重渲染器（锁/解锁后无刷新更新大类） -->
 <script src="shared/enc-rerender.js"></script>
+
+<!-- 📝 NoteModal: 卡片注释模态框（新增，必须在 fav-page.js 之前） -->
+<script src="shared/note-modal.js"></script>
 
 <!-- 📦 收藏夹通用逻辑（5 页共用） -->
 <script src="shared/fav-page.js"></script>

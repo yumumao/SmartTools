@@ -48,8 +48,8 @@ window.APP_DATA_META = {
 // ==================== 在线U盘 ====================
 var usbDriveData = [
     {
-        id: 'lty-xinhua',
         icon: '👩🏻‍🏫',
+        id: 'lty-xinhua',
         title: 'lty在线U盘(新华)',
         url: 'https://www.jianguoyun.com/p/DTPAg6sQptHYCBjA6_YFIAA',
         type: 'desc-clickable',
@@ -66,8 +66,8 @@ var usbDriveData = [
         descUrl: 'http://mrr.cc/la'
     },
     {
-        id: 'zz',
         icon: '💾',
+        id: 'zz',
         title: 'zz在线U盘',
         url: 'https://www.jianguoyun.com/p/DRNDENoQyu2zDBjYlZ0GIAA',
         type: 'expandable',
@@ -708,9 +708,9 @@ var customSections = [
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 100000,
-            salt: '5GXHQAJZrY3C5uDcyg8HFA==',
-            iv: 'gRrNAWRy4rKMisDz',
-            data: 'O9KHtKOJU5pHaTzibVq6aB0jXRqwbwmEV6dUEv3MxBfMo33a9pupYkxwJkyline9KQcDd5qtHRkzLhIIogcCP1Cxot5kXT+bpjTOzD8qut/hDaJ+6wVxeQygdAxAWfp3fxo8xUAdec36Snh8lTEOuo8ips0jYnhMAA3hLuC6Y5TvQNuRmUPV3RbdK4DuX+4fZW+pTtS0kqrSl9IMRNFcJf6TGLT0o6yDd/tqBVP5UlnKSNp9CB+FZvbY/+FyFS/A2sVXD8jrDzi7GOuuIjfRTFbdBW7MEXznlyZs3grffCnW2zJG2LP7Opli50Evl37YfjSqeOIqskvV+EnrMNf0k/Aq+sQVszo9dK3blf7wtvsHWA1IN7e/NYN7TX8vF910R83m53rzdR+uKxkkzB32YXLBRkMKYRZZVZpT67F8/Ts+i1kdtoyXxHa+weddaVzUGbVkLdPCHWsaBoM2BDoej0XnmbFNDLczsxt4TNIUncW2wqp9N1DpckS5SXVvMu9/kaJhYA33VY0Ow2ijS1YHOn0pZ+xxXLIA1q6lAo4luvSOXfbix6wWv3HcOo1eHoKY3MFuJLLMvunwtXRhJTVlPk8n/xHjXEX+rvU/bbQCQS2BGOSGgMC2P2hltrq90MG7aLno8EDtSsYJwRPwjBF3pARzgsg5KKjHZdNmiPUhajfPieALnRr972TW+A3+bjKf79nlBdcn3u1qisDJyYDUnVCJ2JyoStVJsbxmTpuYJ/nGdSqtYCwMiIsfR3aiVLZ2me4LkNH531OKNtzGR+u4GPAltyC808/8YZdg8wY5U2RJOh5jf7pqIexfXCdUZWbADGSXuzmwOgRRwFk6VZeD1ePh4CCP4W2DH7rcL6PmfbgX5B2phYeZNhT5hBuEObJbOD3ZMwqUW7XrAJ0mPID+CnFzAfpfFBZZuFaoPCqa2aPacfRfH848CHri+A3kpKM08JmTdIVkeXuXgRuZ9Fn054LSwv+E2slSFgD3L/WZEZ3E0EBjLiy27TubhEI7UcZaO1buvme0f8YGtY0MoGTGijWXhHrPOWS5zdiLS7EP+Vq34FKlWpAjz8F6q64hLbfq/a81HFSf1myxFleiglSb5sEmD7yn4QhTIyPR4mIl0QAkFErKjnkP0Nnnx35A2JsBfw0Hm5cxT76PSLFHFl41mnu2bGtXkL++sH3Btd9poyVezbKvVcOaO29xBAn7HuOHVDtH+Tm02eAz3Fx1a5KO1eP2sk7iCiXkC6GkXR8T6Aycid48tLlCxGdPd1KGG77f5Hc9LiGZ2AsgRNCFheqYULGC4asv1/Z5vf5Z1kwxbCXDA6y3k2W85JTolJgrsdSnIlAti6lJRuP9lgLwzq2S+UO+K6lcM/vcmbZSZhwPYCSMu84lqXExvgg1C1QNgnc02g/3FniaokiIIUWKN9gqnCtOfV2UEygUGDda4/EWwJ83BE1uACRr31XfEYP0srl+LjOMoUVp+bKFRt0k7ZUU9eBRf6hvupPVyOv3i1jhat31l66MY0GNWDhjKe4ny8fCfO1nM8nrRa5dQZh2cvKtiElWyB9pHsmx32wnCultYhAixWAk4NieVeGSVEqzF1DXffppuOWP6whX+T2BK3FgOsewscdd15JHftwvabdQ+IgkNyOdNdxie9nYmGMl4xSnnzrH2mXXwzkP/dp66ALM68W8qrmNWOkk5XOb7zGmMP9/qFKtP2NWoB2dNbbuCiLoAtTaJkFMWGYtMuGRQA9suZ7Yqy95Ie4G2UnwjkG4FcAvbePyuETnas0zmBfYELZsrOggSblUGVAijHu3bWA1UEVM7PAXz2QpBUCbSSotq946/gNRn3Lygo/TBZ5+HLH/gMX09d9x6xculxetI0Nridy9nyxJg5simdyQPhdaD3SgXSEPROBNc9nclnIeS0qJjEctaklTryu9SAs4wHiLR/YlSfsJ5v2xy4dxjFqDyBQS2xHNP8LY5ZUyLtqtfnphgPblvzarAmDEcsu5'
+            salt: 'p00C8WDlahNP1f+e/0TSPw==',
+            iv: 'n6TuNewYQFfEbXGP',
+            data: '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'
         },
         cards: []
     }

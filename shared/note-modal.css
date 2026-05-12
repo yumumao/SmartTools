@@ -1,0 +1,662 @@
+/* ================================================================================
+ * shared/note-modal.css
+ * 卡片注释（comment）模态框 + Markdown 渲染 + 工具栏 + 5 套主题
+ *
+ * ★ 本版新增/调整：
+ *   - 全页面波纹：新增 .note-ripple-fullpage（position: fixed 覆盖整个视口），
+ *     由 JS 在 .note-mask 里创建，配合 .note-box 的 z-index: 2 形成"从点击点
+ *     向全屏扩散"的视觉效果。
+ *   - .note-body 的 hover 颜色大幅加深，并加 inset 阴影强化边界感。
+ *   - 保留按钮的局部波纹（.note-ripple）。
+ *   - 红点：默认偏小，hover 放大；显式重置主题 CSS 可能继承的
+ *     opacity/transform/bottom/right，避免与页面自有 ::after 冲突
+ *     （例如 index5 的 .link-card::after 绿色竖条导致的红点消失问题）。
+ * ================================================================================ */
+
+/* ─── 有注释的卡片：左上角小红点（与主题无关，不主题化） ─── */
+.link-card.has-note,
+.sub-card.has-note { position: relative; }
+
+.link-card.has-note::after,
+.sub-card.has-note::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    /* ★ 显式重置：避免页面自有的 .link-card::after 带来
+       opacity/transform/bottom/right 等属性污染红点 */
+    right: auto;
+    bottom: auto;
+    opacity: 1;
+    transform: none;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ff8b8b;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55),
+                0 0 1px rgba(255, 107, 107, 0.3);
+    pointer-events: none;
+    z-index: 3;
+    transition: width 0.22s ease,
+                height 0.22s ease,
+                top 0.22s ease,
+                left 0.22s ease,
+                background-color 0.22s ease,
+                box-shadow 0.22s ease;
+}
+
+/* ★ hover 时红点变大、变艳 */
+.link-card.has-note:hover::after,
+.sub-card.has-note:hover::after {
+    width: 8px;
+    height: 8px;
+    top: 6px;
+    left: 6px;
+    background: #ff6b6b;
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.7),
+                0 0 4px rgba(255, 107, 107, 0.5);
+}
+
+/* 带展开钮的主卡片：强制左上角（和默认一致，保留规则以防其它主题污染） */
+.link-card-with-expand.has-note::after {
+    right: auto;
+    left: 7px;
+    top: 7px;
+}
+.link-card-with-expand.has-note:hover::after {
+    right: auto;
+    left: 6px;
+    top: 6px;
+}
+
+/* ============================================================
+ * 默认主题变量（= nebula）
+ * ============================================================ */
+.note-mask {
+    --nm-mask-bg: rgba(20, 15, 45, 0.55);
+    --nm-box-bg: #ffffff;
+    --nm-box-border: transparent;
+    --nm-box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+
+    --nm-text: #333;
+    --nm-text-secondary: #666;
+    --nm-text-muted: #aaa;
+    --nm-title-color: #333;
+    --nm-border-soft: #eee;
+
+    --nm-close-color: #999;
+    --nm-close-hover-bg: #f2f3f7;
+    --nm-close-hover-color: #333;
+
+    /* ★ hover 底色加深 + inset 阴影强化边界 */
+    --nm-body-hover: rgba(102,126,234,0.20);
+    --nm-body-hover-border: rgba(102,126,234,0.35);
+
+    /* ★ 全页面波纹颜色（由各主题覆盖） */
+    --nm-ripple-color: rgba(102,126,234,0.55);
+
+    --nm-accent: #667eea;
+    --nm-accent-hover: #5566dd;
+
+    --nm-code-bg: #f3f4f8;
+    --nm-code-color: #c0392b;
+    --nm-pre-bg: #2d2d2d;
+    --nm-pre-color: #f8f8f2;
+    --nm-quote-bg: #f7f8fc;
+    --nm-quote-border: #667eea;
+    --nm-quote-color: #555;
+    --nm-table-head-bg: #f7f8fc;
+    --nm-table-border: #ddd;
+    --nm-strong-color: #222;
+    --nm-heading-color: #222;
+
+    --nm-editor-bg: #fff;
+    --nm-editor-border: #ddd;
+    --nm-editor-focus: #667eea;
+    --nm-editor-focus-ring: rgba(102,126,234,0.15);
+    --nm-editor-text: #333;
+
+    --nm-toolbar-bg: #fafbff;
+    --nm-toolbar-btn-color: #555;
+    --nm-toolbar-btn-hover-bg: #eef0f8;
+    --nm-toolbar-btn-hover-color: #667eea;
+    --nm-toolbar-sep: #e0e3ec;
+
+    --nm-btn-secondary-bg: #f0f1f5;
+    --nm-btn-secondary-hover: #e5e6eb;
+    --nm-btn-secondary-color: #555;
+
+    --nm-btn-primary-bg: linear-gradient(135deg, #667eea, #764ba2);
+    --nm-btn-primary-color: #fff;
+    --nm-btn-primary-shadow: 0 3px 10px rgba(102,126,234,0.35);
+    --nm-btn-primary-shadow-h: 0 5px 14px rgba(102,126,234,0.45);
+
+    --nm-btn-danger-bg: transparent;
+    --nm-btn-danger-color: #c0392b;
+    --nm-btn-danger-border: #e74c3c;
+    --nm-btn-danger-hover-bg: #ffecec;
+
+    --nm-status-default: #999;
+    --nm-status-ok: #27ae60;
+    --nm-status-err: #e74c3c;
+}
+
+/* ─── 遮罩 ─── */
+.note-mask {
+    position: fixed; inset: 0;
+    background: var(--nm-mask-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: note-mask-fade 0.2s ease;
+}
+@keyframes note-mask-fade { from{opacity:0} to{opacity:1} }
+
+/* ─── 模态框主体（position: relative + z-index: 2 → 浮在全页面波纹上方） ─── */
+.note-box {
+    position: relative;
+    z-index: 2;
+    background: var(--nm-box-bg);
+    border: 1px solid var(--nm-box-border);
+    border-radius: 14px;
+    width: 100%; max-width: 540px; max-height: 85vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: var(--nm-box-shadow);
+    animation: note-box-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--nm-text);
+}
+@keyframes note-box-pop {
+    from { opacity:0; transform: translateY(10px) scale(0.96); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.note-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--nm-border-soft);
+    display: flex; align-items: center; gap: 10px;
+}
+.note-header .note-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
+.note-header .note-icon img { width: 22px; height: 22px; object-fit: contain; }
+.note-header .note-icon.note-icon-svg svg { width: 22px; height: 22px; }
+.note-header .note-title {
+    flex: 1; margin: 0;
+    font-size: 15px; font-weight: 600; color: var(--nm-title-color);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.note-close {
+    background: transparent; border: none; color: var(--nm-close-color);
+    font-size: 18px; cursor: pointer;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; transition: all .2s ease;
+}
+.note-close:hover {
+    background: var(--nm-close-hover-bg);
+    color: var(--nm-close-hover-color);
+}
+
+/* ─── 正文区 ─── */
+.note-body {
+    flex: 1; overflow: auto;
+    padding: 18px;
+    color: var(--nm-text);
+}
+/* ★ 可跳转时：更强的 hover 反馈 */
+.note-body.clickable {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color .2s ease, box-shadow .2s ease;
+}
+.note-body.clickable:hover {
+    background-color: var(--nm-body-hover);
+    box-shadow: inset 0 0 0 1.5px var(--nm-body-hover-border);
+}
+
+/* ─── 按钮局部波纹（容器） ─── */
+.note-btn,
+.note-tb-btn {
+    position: relative;
+    overflow: hidden;
+}
+.note-btn > *,
+.note-tb-btn > * {
+    position: relative;
+    z-index: 1;
+}
+.note-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.28;
+    transform: scale(0);
+    pointer-events: none;
+    animation: note-ripple-anim 0.6s ease-out forwards;
+    z-index: 0;
+}
+@keyframes note-ripple-anim {
+    to { transform: scale(2.5); opacity: 0; }
+}
+
+/* ─── ★ 全页面波纹（从点击点向全屏扩散；在 .note-mask 里，z-index:1，位于 box 下方） ─── */
+.note-ripple-fullpage {
+    position: fixed;
+    border-radius: 50%;
+    background: var(--nm-ripple-color);
+    opacity: 0.55;
+    transform: scale(0);
+    pointer-events: none;
+    animation: note-ripple-fullpage-anim 0.8s cubic-bezier(0.25, 0.8, 0.4, 1) forwards;
+    z-index: 1;
+    will-change: transform, opacity;
+}
+@keyframes note-ripple-fullpage-anim {
+    0%   { transform: scale(0); opacity: 0.55; }
+    60%  { opacity: 0.35; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+/* ─── Config 页面跳转链接 ─── */
+.note-config-link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+.note-config-link:hover { opacity: 0.75; }
+
+/* ─── Markdown 内容 ─── */
+.note-md { font-size: 14px; line-height: 1.7; color: var(--nm-text); word-wrap: break-word; }
+.note-md h1,.note-md h2,.note-md h3,.note-md h4,.note-md h5,.note-md h6 {
+    margin: .8em 0 .4em; font-weight: 600; color: var(--nm-heading-color);
+}
+.note-md h1 { font-size: 20px; }
+.note-md h2 { font-size: 17px; }
+.note-md h3 { font-size: 15px; }
+.note-md h4,.note-md h5,.note-md h6 { font-size: 14px; }
+.note-md p { margin: .5em 0; }
+.note-md a { color: var(--nm-accent); text-decoration: underline; word-break: break-all; }
+.note-md a:hover { color: var(--nm-accent-hover); }
+.note-md code {
+    background: var(--nm-code-bg); color: var(--nm-code-color);
+    padding: 1px 6px; border-radius: 4px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px;
+}
+.note-md pre {
+    background: var(--nm-pre-bg); color: var(--nm-pre-color);
+    padding: 12px 14px; border-radius: 8px;
+    overflow-x: auto; font-size: 12.5px;
+    margin: .6em 0; line-height: 1.5;
+}
+.note-md pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+.note-md ul,.note-md ol { margin: .5em 0; padding-left: 1.6em; }
+.note-md li { margin: .2em 0; }
+.note-md blockquote {
+    margin: .6em 0; padding: 6px 14px;
+    border-left: 3px solid var(--nm-quote-border);
+    background: var(--nm-quote-bg); color: var(--nm-quote-color);
+    border-radius: 0 6px 6px 0;
+}
+.note-md hr { border: none; border-top: 1px solid var(--nm-border-soft); margin: 1em 0; }
+.note-md img { max-width: 100%; border-radius: 6px; margin: .4em 0; }
+.note-md strong { color: var(--nm-strong-color); }
+.note-md table { border-collapse: collapse; margin: .6em 0; }
+.note-md th,.note-md td {
+    border: 1px solid var(--nm-table-border);
+    padding: 6px 10px; font-size: 13px;
+}
+.note-md th { background: var(--nm-table-head-bg); }
+
+.note-empty-hint {
+    text-align: center; color: var(--nm-text-muted);
+    font-size: 13px; padding: 14px 0;
+}
+
+/* ─── 编辑器（工具栏 + textarea） ─── */
+.note-editor-wrap {
+    display: flex; flex-direction: column;
+    border: 1px solid var(--nm-editor-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .2s ease, box-shadow .2s ease;
+    background: var(--nm-editor-bg);
+}
+.note-editor-wrap:focus-within {
+    border-color: var(--nm-editor-focus);
+    box-shadow: 0 0 0 3px var(--nm-editor-focus-ring);
+}
+.note-toolbar {
+    background: var(--nm-toolbar-bg);
+    border-bottom: 1px solid var(--nm-toolbar-sep);
+    padding: 6px 8px;
+    display: flex; flex-wrap: wrap; gap: 2px;
+    align-items: center;
+    user-select: none;
+}
+.note-tb-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    min-width: 28px; height: 28px;
+    border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    color: var(--nm-toolbar-btn-color);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s ease, color .15s ease, transform .08s ease;
+    font-family: inherit;
+    line-height: 1;
+}
+.note-tb-btn:hover {
+    background: var(--nm-toolbar-btn-hover-bg);
+    color: var(--nm-toolbar-btn-hover-color);
+}
+.note-tb-btn:active { transform: scale(0.92); }
+.note-tb-btn.tb-bold   { font-weight: 800; }
+.note-tb-btn.tb-italic { font-style: italic; font-family: 'Georgia', 'Times New Roman', serif; }
+.note-tb-btn.tb-strike { text-decoration: line-through; }
+.note-tb-btn.tb-code   { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; }
+.note-tb-sep {
+    width: 1px; height: 18px;
+    background: var(--nm-toolbar-sep);
+    margin: 0 4px;
+    align-self: center;
+}
+.note-editor {
+    width: 100%; min-height: 200px; max-height: 50vh;
+    padding: 12px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.6;
+    border: none; border-radius: 0;
+    outline: none; resize: vertical;
+    background: var(--nm-editor-bg);
+    color: var(--nm-editor-text);
+    box-sizing: border-box;
+}
+.note-editor::placeholder { color: var(--nm-text-muted); opacity: 0.75; }
+
+/* ─── 底部按钮区 ─── */
+.note-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--nm-border-soft);
+    display: flex; gap: 10px; align-items: center;
+    justify-content: flex-end; flex-wrap: wrap;
+}
+.note-status {
+    flex: 1; font-size: 12px;
+    color: var(--nm-status-default);
+    text-align: left; min-width: 0;
+}
+.note-status.ok  { color: var(--nm-status-ok); }
+.note-status.err { color: var(--nm-status-err); }
+.note-status.pending { color: var(--nm-status-ok); }
+
+.note-btn {
+    padding: 7px 16px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .2s ease; font-family: inherit;
+}
+.note-btn-secondary {
+    background: var(--nm-btn-secondary-bg);
+    color: var(--nm-btn-secondary-color);
+}
+.note-btn-secondary:hover { background: var(--nm-btn-secondary-hover); }
+.note-btn-primary {
+    background: var(--nm-btn-primary-bg);
+    color: var(--nm-btn-primary-color);
+    box-shadow: var(--nm-btn-primary-shadow);
+}
+.note-btn-primary:hover {
+    box-shadow: var(--nm-btn-primary-shadow-h);
+    transform: translateY(-1px);
+}
+.note-btn-danger {
+    background: var(--nm-btn-danger-bg);
+    color: var(--nm-btn-danger-color);
+    border: 1px solid var(--nm-btn-danger-border);
+}
+.note-btn-danger:hover { background: var(--nm-btn-danger-hover-bg); }
+.note-btn[disabled] { opacity: .5; cursor: not-allowed; pointer-events: none; }
+
+.note-readonly-tip { font-size: 12px; color: var(--nm-text-muted); }
+
+
+/* ╔══════════════════════════════════════════════════════════╗
+ * ║                  主题变量覆盖 THEMES                     ║
+ * ╚══════════════════════════════════════════════════════════╝ */
+
+/* 🌌 NEBULA */
+.note-mask[data-note-theme="nebula"] {
+    --nm-mask-bg: rgba(40, 30, 80, 0.55);
+    --nm-accent: #667eea;
+    --nm-accent-hover: #5566dd;
+    --nm-quote-border: #667eea;
+    --nm-body-hover: rgba(102,126,234,0.22);
+    --nm-body-hover-border: rgba(102,126,234,0.40);
+    --nm-ripple-color: rgba(120,140,255,0.55);
+    --nm-btn-primary-bg: linear-gradient(135deg, #667eea, #764ba2);
+    --nm-btn-primary-shadow: 0 3px 10px rgba(102,126,234,0.35);
+    --nm-btn-primary-shadow-h: 0 5px 14px rgba(102,126,234,0.45);
+    --nm-editor-focus: #667eea;
+    --nm-editor-focus-ring: rgba(102,126,234,0.15);
+    --nm-toolbar-btn-hover-color: #667eea;
+}
+
+/* 📄 NOTION */
+.note-mask[data-note-theme="notion"] {
+    --nm-mask-bg: rgba(55, 53, 47, 0.42);
+    --nm-box-bg: #ffffff;
+    --nm-box-shadow: 0 12px 40px rgba(55,53,47,0.25), 0 4px 12px rgba(55,53,47,0.12);
+    --nm-text: #37352F;
+    --nm-text-secondary: #787774;
+    --nm-text-muted: #BCBAB6;
+    --nm-title-color: #37352F;
+    --nm-heading-color: #37352F;
+    --nm-strong-color: #37352F;
+    --nm-border-soft: #DDD9D3;
+    --nm-close-color: #787774;
+    --nm-close-hover-bg: #F7F6F3;
+    --nm-close-hover-color: #37352F;
+    --nm-body-hover: rgba(110, 86, 207, 0.20);
+    --nm-body-hover-border: rgba(110, 86, 207, 0.40);
+    --nm-ripple-color: rgba(110, 86, 207, 0.50);
+    --nm-accent: #6E56CF;
+    --nm-accent-hover: #5946B2;
+    --nm-code-bg: #F5F2EC;
+    --nm-code-color: #6E56CF;
+    --nm-pre-bg: #2D2B26;
+    --nm-pre-color: #E8E6E1;
+    --nm-quote-bg: #F7F6F3;
+    --nm-quote-border: #6E56CF;
+    --nm-quote-color: #555;
+    --nm-table-head-bg: #F7F6F3;
+    --nm-table-border: #DDD9D3;
+    --nm-editor-bg: #FFFFFF;
+    --nm-editor-border: #DDD9D3;
+    --nm-editor-focus: #6E56CF;
+    --nm-editor-focus-ring: rgba(110,86,207,0.15);
+    --nm-editor-text: #37352F;
+    --nm-toolbar-bg: #F7F6F3;
+    --nm-toolbar-btn-color: #787774;
+    --nm-toolbar-btn-hover-bg: #EFEEEB;
+    --nm-toolbar-btn-hover-color: #6E56CF;
+    --nm-toolbar-sep: #DDD9D3;
+    --nm-btn-secondary-bg: #F7F6F3;
+    --nm-btn-secondary-hover: #EFEEEB;
+    --nm-btn-secondary-color: #37352F;
+    --nm-btn-primary-bg: #6E56CF;
+    --nm-btn-primary-shadow: 0 2px 6px rgba(110,86,207,0.30);
+    --nm-btn-primary-shadow-h: 0 4px 12px rgba(110,86,207,0.40);
+}
+
+/* 💎 STRIPE */
+.note-mask[data-note-theme="stripe"] {
+    --nm-mask-bg: rgba(5, 15, 30, 0.58);
+    --nm-box-bg: #ffffff;
+    --nm-box-shadow: 0 20px 60px rgba(10,37,64,0.5), 0 0 40px rgba(99,91,255,0.12);
+    --nm-text: #0A2540;
+    --nm-text-secondary: #425466;
+    --nm-text-muted: #8898aa;
+    --nm-title-color: #0A2540;
+    --nm-heading-color: #0A2540;
+    --nm-strong-color: #0A2540;
+    --nm-border-soft: #e5e7ef;
+    --nm-close-color: #8898aa;
+    --nm-close-hover-bg: #f0f2f7;
+    --nm-close-hover-color: #635BFF;
+    --nm-body-hover: rgba(99, 91, 255, 0.20);
+    --nm-body-hover-border: rgba(99, 91, 255, 0.42);
+    --nm-ripple-color: rgba(99, 91, 255, 0.55);
+    --nm-accent: #635BFF;
+    --nm-accent-hover: #4F46E5;
+    --nm-code-bg: #f0f2f7;
+    --nm-code-color: #635BFF;
+    --nm-pre-bg: #0A2540;
+    --nm-pre-color: #e8ebf5;
+    --nm-quote-bg: #f5f6fb;
+    --nm-quote-border: #635BFF;
+    --nm-quote-color: #425466;
+    --nm-table-head-bg: #f5f6fb;
+    --nm-table-border: #e5e7ef;
+    --nm-editor-bg: #ffffff;
+    --nm-editor-border: #e5e7ef;
+    --nm-editor-focus: #635BFF;
+    --nm-editor-focus-ring: rgba(99,91,255,0.15);
+    --nm-editor-text: #0A2540;
+    --nm-toolbar-bg: #f5f6fb;
+    --nm-toolbar-btn-color: #425466;
+    --nm-toolbar-btn-hover-bg: #e9ebf4;
+    --nm-toolbar-btn-hover-color: #635BFF;
+    --nm-toolbar-sep: #e5e7ef;
+    --nm-btn-secondary-bg: #f0f2f7;
+    --nm-btn-secondary-hover: #e5e8ef;
+    --nm-btn-secondary-color: #425466;
+    --nm-btn-primary-bg: linear-gradient(135deg, #635BFF, #00D4FF);
+    --nm-btn-primary-shadow: 0 3px 10px rgba(99,91,255,0.35);
+    --nm-btn-primary-shadow-h: 0 6px 18px rgba(99,91,255,0.45);
+}
+
+/* 🖤 DARK */
+.note-mask[data-note-theme="dark"] {
+    --nm-mask-bg: rgba(0, 0, 0, 0.72);
+    --nm-box-bg: #111111;
+    --nm-box-border: rgba(0,153,255,0.40);
+    --nm-box-shadow: 0 0 30px rgba(0,153,255,0.25),
+                     0 0 60px rgba(0,153,255,0.10),
+                     0 20px 60px rgba(0,0,0,0.6);
+    --nm-text: #ffffff;
+    --nm-text-secondary: rgba(255,255,255,0.65);
+    --nm-text-muted: rgba(255,255,255,0.40);
+    --nm-title-color: #ffffff;
+    --nm-heading-color: #ffffff;
+    --nm-strong-color: #ffffff;
+    --nm-border-soft: rgba(255,255,255,0.10);
+    --nm-close-color: rgba(255,255,255,0.5);
+    --nm-close-hover-bg: rgba(0,153,255,0.15);
+    --nm-close-hover-color: #0099FF;
+    --nm-body-hover: rgba(0,153,255,0.28);
+    --nm-body-hover-border: rgba(0,153,255,0.55);
+    --nm-ripple-color: rgba(0,153,255,0.65);
+    --nm-accent: #33B0FF;
+    --nm-accent-hover: #66C2FF;
+    --nm-code-bg: rgba(0,153,255,0.12);
+    --nm-code-color: #66CCFF;
+    --nm-pre-bg: #0a0a0a;
+    --nm-pre-color: #d4e4f0;
+    --nm-quote-bg: rgba(0,153,255,0.08);
+    --nm-quote-border: #0099FF;
+    --nm-quote-color: rgba(255,255,255,0.78);
+    --nm-table-head-bg: rgba(0,153,255,0.10);
+    --nm-table-border: rgba(255,255,255,0.12);
+    --nm-editor-bg: #191919;
+    --nm-editor-border: rgba(255,255,255,0.12);
+    --nm-editor-focus: #0099FF;
+    --nm-editor-focus-ring: rgba(0,153,255,0.22);
+    --nm-editor-text: #ffffff;
+    --nm-toolbar-bg: #191919;
+    --nm-toolbar-btn-color: rgba(255,255,255,0.70);
+    --nm-toolbar-btn-hover-bg: rgba(0,153,255,0.15);
+    --nm-toolbar-btn-hover-color: #0099FF;
+    --nm-toolbar-sep: rgba(255,255,255,0.10);
+    --nm-btn-secondary-bg: rgba(255,255,255,0.06);
+    --nm-btn-secondary-hover: rgba(0,153,255,0.15);
+    --nm-btn-secondary-color: rgba(255,255,255,0.85);
+    --nm-btn-primary-bg: linear-gradient(135deg, #0099FF, #0066CC);
+    --nm-btn-primary-color: #ffffff;
+    --nm-btn-primary-shadow: 0 0 14px rgba(0,153,255,0.45), 0 3px 10px rgba(0,0,0,0.5);
+    --nm-btn-primary-shadow-h: 0 0 22px rgba(0,153,255,0.65), 0 5px 16px rgba(0,0,0,0.55);
+    --nm-btn-danger-bg: transparent;
+    --nm-btn-danger-color: #ff6b6b;
+    --nm-btn-danger-border: rgba(255,107,107,0.55);
+    --nm-btn-danger-hover-bg: rgba(255,107,107,0.12);
+    --nm-status-default: rgba(255,255,255,0.55);
+    --nm-status-ok: #10D48B;
+    --nm-status-err: #ff6b6b;
+}
+.note-mask[data-note-theme="dark"] .note-md a {
+    text-shadow: 0 0 8px rgba(0,153,255,0.35);
+}
+
+/* 🌿 MINT */
+.note-mask[data-note-theme="mint"] {
+    --nm-mask-bg: rgba(6, 140, 108, 0.22);
+    --nm-box-bg: #ffffff;
+    --nm-box-shadow: 0 20px 60px rgba(13,147,115,0.20), 0 10px 30px rgba(0,0,0,0.12);
+    --nm-text: #111827;
+    --nm-text-secondary: #6B7280;
+    --nm-text-muted: #9CA3AF;
+    --nm-title-color: #111827;
+    --nm-heading-color: #111827;
+    --nm-strong-color: #111827;
+    --nm-border-soft: rgba(0,0,0,0.07);
+    --nm-close-color: #6B7280;
+    --nm-close-hover-bg: #F0FAF7;
+    --nm-close-hover-color: #0D9373;
+    --nm-body-hover: rgba(13,147,115,0.22);
+    --nm-body-hover-border: rgba(13,147,115,0.42);
+    --nm-ripple-color: rgba(13,147,115,0.55);
+    --nm-accent: #0D9373;
+    --nm-accent-hover: #087F5B;
+    --nm-code-bg: #F0FAF7;
+    --nm-code-color: #087F5B;
+    --nm-pre-bg: #0F1F1A;
+    --nm-pre-color: #D1FAE5;
+    --nm-quote-bg: #F0FAF7;
+    --nm-quote-border: #0D9373;
+    --nm-quote-color: #374151;
+    --nm-table-head-bg: #F0FAF7;
+    --nm-table-border: #E5E7EB;
+    --nm-editor-bg: #FFFFFF;
+    --nm-editor-border: #E5E7EB;
+    --nm-editor-focus: #0D9373;
+    --nm-editor-focus-ring: rgba(13,147,115,0.15);
+    --nm-editor-text: #111827;
+    --nm-toolbar-bg: #FAFBFC;
+    --nm-toolbar-btn-color: #6B7280;
+    --nm-toolbar-btn-hover-bg: #F0FAF7;
+    --nm-toolbar-btn-hover-color: #0D9373;
+    --nm-toolbar-sep: #E5E7EB;
+    --nm-btn-secondary-bg: #F0FAF7;
+    --nm-btn-secondary-hover: #DCF5ED;
+    --nm-btn-secondary-color: #087F5B;
+    --nm-btn-primary-bg: #0D9373;
+    --nm-btn-primary-color: #ffffff;
+    --nm-btn-primary-shadow: 0 2px 8px rgba(13,147,115,0.30);
+    --nm-btn-primary-shadow-h: 0 4px 14px rgba(13,147,115,0.40);
+}
+
+/* ─── 响应式 ─── */
+@media (max-width: 480px) {
+    .note-box    { max-height: 92vh; }
+    .note-header { padding: 12px 14px; }
+    .note-body   { padding: 14px; }
+    .note-footer { padding: 10px 14px; gap: 8px; }
+    .note-btn    { padding: 6px 12px; font-size: 12px; }
+    .note-toolbar { padding: 5px 6px; gap: 1px; }
+    .note-tb-btn  { padding: 4px 6px; min-width: 26px; height: 26px; font-size: 12px; }
+    .note-tb-sep  { margin: 0 2px; }
+}
