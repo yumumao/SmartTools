@@ -200,6 +200,17 @@
                         .replace(/>/g, '&gt;');
     }
 
+    /* ───────────────────────── SVG 安全过滤 ───────────────────────── */
+    function sanitizeSVG(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        return raw
+            .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+            .replace(/<foreignObject\b[\s\S]*?<\/foreignObject\s*>/gi, '')
+            .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+            .replace(/\bon\w+\s*=\s*[^\s>\/]+/gi, '')
+            .replace(/(?:href|xlink:href)\s*=\s*["']\s*javascript:/gi, 'data-removed="javascript-uri"');
+    }
+
     /* ════════════════════════════════════════════════════════════
      * 轻量 Markdown 渲染器(+ 裸 URL 自动识别)
      * ════════════════════════════════════════════════════════════ */
@@ -536,7 +547,7 @@
         if (card.iconImg) {
             iconHtml = '<span class="note-icon"><img src="' + esc(card.iconImg) + '" alt=""></span>';
         } else if (card.icon && String(card.icon).charAt(0) === '<') {
-            iconHtml = '<span class="note-icon note-icon-svg">' + card.icon + '</span>';
+            iconHtml = '<span class="note-icon note-icon-svg">' + sanitizeSVG(card.icon) + '</span>';
         } else if (card.icon) {
             iconHtml = '<span class="note-icon">' + esc(card.icon) + '</span>';
         } else {

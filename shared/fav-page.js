@@ -166,6 +166,17 @@ function alignStyleSwitcher() {
     switcher.style.right = (document.documentElement.clientWidth - rect.right) + 'px';
 }
 
+/** SVG 安全过滤：移除事件处理器、脚本、危险元素，防存储型 XSS */
+function sanitizeSVG(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw
+        .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+        .replace(/<foreignObject\b[\s\S]*?<\/foreignObject\s*>/gi, '')
+        .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+        .replace(/\bon\w+\s*=\s*[^\s>\/]+/gi, '')
+        .replace(/(?:href|xlink:href)\s*=\s*["']\s*javascript:/gi, 'data-removed="javascript-uri"');
+}
+
 function renderIcon(item, extraAttrs) {
     extraAttrs = extraAttrs || '';
     if (item.iconImg) {
@@ -173,7 +184,7 @@ function renderIcon(item, extraAttrs) {
     }
     var icon = item.icon || '';
     if (icon.charAt(0) === '<') {
-        return '<span class="link-icon link-icon-svg" ' + extraAttrs + '>' + icon + '</span>';
+        return '<span class="link-icon link-icon-svg" ' + extraAttrs + '>' + sanitizeSVG(icon) + '</span>';
     }
     return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
 }
@@ -522,7 +533,7 @@ function switchEmail(index) {
             emailIconEl.innerHTML = '<img src="' + currentEmailData.iconImg + '" alt="" />';
             emailIconEl.className = 'link-icon';
         } else if (currentEmailData.icon && currentEmailData.icon.charAt(0) === '<') {
-            emailIconEl.innerHTML = currentEmailData.icon;
+            emailIconEl.innerHTML = sanitizeSVG(currentEmailData.icon);
             emailIconEl.className = 'link-icon link-icon-svg';
         } else {
             emailIconEl.innerHTML = currentEmailData.icon || '';

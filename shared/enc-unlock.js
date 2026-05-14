@@ -17,7 +17,7 @@
             base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
     }
     async function decryptEnc(pwd, enc) {
-        const key = await deriveKey(pwd, b64d(enc.salt), enc.iter || 100000);
+        const key = await deriveKey(pwd, b64d(enc.salt), enc.iter || 300000);
         const pt = await crypto.subtle.decrypt(
             { name: 'AES-GCM', iv: b64d(enc.iv) }, key, b64d(enc.data));
         return JSON.parse(new TextDecoder().decode(pt));
@@ -124,8 +124,14 @@
         async function confirm() {
             const pwd = input.value;
             if (!pwd) { errEl.textContent = '请输入密码'; return; }
-            errEl.textContent = '解锁中...';
+            errEl.innerHTML = '<span class="enc-spinner"></span> 解密中...';
+            input.disabled = true;
+            mask.querySelector('#__enc_ok').disabled = true;
+            mask.querySelector('#__enc_cancel').disabled = true;
             const r = await unlockAll(pwd);
+            input.disabled = false;
+            mask.querySelector('#__enc_ok').disabled = false;
+            mask.querySelector('#__enc_cancel').disabled = false;
             if (r.ok && r.n > 0) {
                 mask.remove();
                 if (typeof onDone === 'function') onDone(r);

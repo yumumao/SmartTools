@@ -590,7 +590,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <label><input type="checkbox" id="se_encrypted"> <span data-i18n="secEncryptedField">🔐 加密存储（AES-GCM-256）</span></label>
             <div class="enc-hint" data-i18n-html="secEncryptedHint">
                 🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>
-                🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 100,000 轮）。只有登录后才能解密查看。<br>
+                🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 300,000 轮）。只有登录后才能解密查看。<br>
                 ⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>
             </div>
         </div>
@@ -698,7 +698,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 
 <script>
 /* ================================================================
-   ★★★ 加密模块（AES-GCM-256 + PBKDF2-SHA256 100k）
+   ★★★ 加密模块（AES-GCM-256 + PBKDF2-SHA256 300k）
 ================================================================ */
 const SS_ENC_PWD = 'bm_cfg_enc_pwd';
 
@@ -738,7 +738,7 @@ async function encryptJSON(password, obj) {
     const plaintext = JSON.stringify(obj);
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const iter = 100000;
+    const iter = 300000;  // PBKDF2-SHA256 300K 轮，平衡安全与移动端体验
     const key = await deriveAesKey(password, salt, iter);
     const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
     return {
@@ -748,7 +748,7 @@ async function encryptJSON(password, obj) {
 }
 async function decryptJSON(password, enc) {
     if (!enc || !enc.salt || !enc.iv || !enc.data) throw new Error('invalid-enc');
-    const key = await deriveAesKey(password, b64d(enc.salt), enc.iter || 100000);
+    const key = await deriveAesKey(password, b64d(enc.salt), enc.iter || 300000);
     const pt = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: b64d(enc.iv) }, key, b64d(enc.data)
     );
@@ -862,7 +862,7 @@ const I18N = {
         secDynamicField: '启用展开/折叠',
         secDynamicHint: '勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。',
         secEncryptedField: '🔐 加密存储（AES-GCM-256）',
-        secEncryptedHint: '🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 100,000 轮）。只有登录后才能解密查看。<br>⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>',
+        secEncryptedHint: '🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 300,000 轮）。只有登录后才能解密查看。<br>⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>',
         unlockTitle: '🔓 解锁加密大类', unlockPwdLabel: '登录密码', unlockConfirm: '解锁',
         unlockDescOne: '大类「{label}」已加密，请输入登录密码解锁。',
         unlockDescAll: '当前有 <b>{n}</b> 个加密大类处于锁定状态。输入登录密码即可全部解锁。',
@@ -1063,7 +1063,7 @@ const I18N = {
         secDynamicField: 'Enable expand/collapse',
         secDynamicHint: 'When checked, behaves like "Videos": first 4/6 cards shown on mobile/tablet, rest expandable. Desktop shows all.',
         secEncryptedField: '🔐 Encrypted storage (AES-GCM-256)',
-        secEncryptedHint: '🔒 When checked, all cards of this section are AES-256-GCM encrypted before writing to data.js / KV.<br>🔑 Key derived from your <b>login password</b> (PBKDF2 100,000 rounds). Only viewable after login.<br>⚠️ <b>After changing login password, save immediately, or the old encrypted data can no longer be unlocked!</b>',
+        secEncryptedHint: '🔒 When checked, all cards of this section are AES-256-GCM encrypted before writing to data.js / KV.<br>🔑 Key derived from your <b>login password</b> (PBKDF2 300,000 rounds). Only viewable after login.<br>⚠️ <b>After changing login password, save immediately, or the old encrypted data can no longer be unlocked!</b>',
         unlockTitle: '🔓 Unlock Encrypted Sections', unlockPwdLabel: 'Login password', unlockConfirm: 'Unlock',
         unlockDescOne: 'Section "{label}" is encrypted. Enter login password to unlock.',
         unlockDescAll: 'There are <b>{n}</b> locked encrypted section(s). Enter login password to unlock all.',
@@ -1302,10 +1302,19 @@ function toast(msg, dur = 2400) {
     document.body.appendChild(el); setTimeout(() => el.remove(), dur);
 }
 function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function sanitizeSVG(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw
+        .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+        .replace(/<foreignObject\b[\s\S]*?<\/foreignObject\s*>/gi, '')
+        .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+        .replace(/\bon\w+\s*=\s*[^\s>\/]+/gi, '')
+        .replace(/(?:href|xlink:href)\s*=\s*["']\s*javascript:/gi, 'data-removed="javascript-uri"');
+}
 function renderIconTo(el, item) {
     el.innerHTML = '';
     if (item && item.iconImg) { const img = document.createElement('img'); img.src = item.iconImg; img.onerror = () => { el.innerHTML = '🖼'; }; el.appendChild(img); }
-    else if (item && item.icon) { if (String(item.icon).trim().startsWith('<svg')) el.innerHTML = item.icon; else el.textContent = item.icon; }
+    else if (item && item.icon) { if (String(item.icon).trim().startsWith('<svg')) el.innerHTML = sanitizeSVG(item.icon); else el.textContent = item.icon; }
     else el.textContent = '❓';
 }
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }

@@ -12,11 +12,16 @@ export async function onRequestGet({ request, env }) {
     const format = url.searchParams.get('format') || 'js';
     const forceSource = url.searchParams.get('source');  // config 页面预览用
 
-    // 读取切换开关
+    // ★ 并行读取 SOURCE_KEY 和 DATA_KEY，减少串行 KV 往返
     let source = 'static';
+    let kvContent = null;
     if (env.FAV_KV) {
-        const saved = await env.FAV_KV.get(SOURCE_KEY);
+        const [saved, dataResult] = await Promise.all([
+            env.FAV_KV.get(SOURCE_KEY),
+            env.FAV_KV.get(DATA_KEY)
+        ]);
         if (saved === 'kv' || saved === 'static') source = saved;
+        kvContent = dataResult || null;
     }
     if (forceSource === 'kv' || forceSource === 'static') source = forceSource;
 
@@ -24,14 +29,14 @@ export async function onRequestGet({ request, env }) {
     let actualSource = source;
 
     if (source === 'kv' && env.FAV_KV) {
-        content = await env.FAV_KV.get(DATA_KEY);
+        content = kvContent;
         if (!content) {
             // KV 为空时自动回退到静态文件
             actualSource = 'static-fallback';
         }
     }
 
-    // 读取仓库静态 data.js
+    // 读取仓库静态 data.js（KV 为空或 source=static 时）
     if (!content) {
         try {
             const fallbackUrl = new URL('/data.js', request.url);
@@ -58,7 +63,7 @@ var contactData = [];
     return new Response(content, {
         headers: {
             'Content-Type': 'application/javascript;charset=utf-8',
-            'Cache-Control': 'no-store',
+            'Cache-Control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=300',
             'X-Data-Source': actualSource
         }
     });

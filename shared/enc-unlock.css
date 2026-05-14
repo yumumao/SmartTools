@@ -84,6 +84,20 @@
 }
 .enc-box .btn-ok { background: #9c27b0; color: #fff; }
 .enc-box .btn-cancel { background: #eee; color: #333; }
+.enc-box button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* PBKDF2 解密中的 spinner */
+.enc-spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(156, 39, 176, 0.2);
+    border-top-color: #9c27b0;
+    border-radius: 50%;
+    animation: enc-spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+@keyframes enc-spin { to { transform: rotate(360deg); } }
 
 /* ============================================================
    ★ 立即锁定浮动按钮（左下角，主页按钮上方）

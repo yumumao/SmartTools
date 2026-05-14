@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="shared/enc-unlock.css">
     <!-- 📝 NoteModal: 卡片注释模态框样式（新增） -->
     <link rel="stylesheet" href="shared/note-modal.css">
+    <!-- ⚡ 预加载数据：浏览器在解析 HTML 早期就并行请求 /api/data -->
+    <link rel="preload" as="script" href="/api/data">
 
     <style>
         * {
@@ -1891,11 +1893,11 @@
      - 在线但 API 挂了 → 自动回退到 data.js
 ================================================================ -->
 <script>
-(function() {
-    var src = location.protocol === 'file:' ? 'data.js' : '/api/data?t=' + Date.now();
-    document.write('<script src="' + src + '"><\/' + 'script>');
-})();
+if (location.protocol === 'file:') {
+    document.write('<script src="data.js"><\/' + 'script>');
+}
 </script>
+<script src="/api/data"></script>
 <script>
 if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
     document.write('<script src="data.js"><\/' + 'script>');
