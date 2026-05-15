@@ -738,13 +738,22 @@ function renderOneSection(sec, layout) {
     }
 }
 
+// ★ 显示用排序：内置 card 类 → 自定义大类 → 内置 email/contact 类
+//   （导出顺序与之解耦，自定义在 data.js 文件中仍位于末尾）
+function getDisplayOrderedSections() {
+    var builtinCards = __allSections.filter(function(s) { return s.builtin && s.kind === 'card'; });
+    var customAll    = __allSections.filter(function(s) { return !s.builtin; });
+    var builtinRest  = __allSections.filter(function(s) { return s.builtin && s.kind !== 'card'; });
+    return builtinCards.concat(customAll, builtinRest);
+}
+
 // ★ 统一渲染所有可见 section 到 #sectionsRoot
 function renderAllSections(layout) {
     var root = document.getElementById('sectionsRoot');
     if (!root) return;
     root.innerHTML = '';
 
-    __allSections.forEach(function(sec) {
+    getDisplayOrderedSections().forEach(function(sec) {
         if (sec.visible === false) return;
         // ★ contactData 合并到 email section 中渲染，此处跳过
         if (sec.key === 'contactData') return;

@@ -198,7 +198,7 @@
         // 两种状态：已解密未展开 / 完全未解密
         const decrypted = !!section.__unlocked;
         const iconChar  = decrypted ? '🔓' : '🔒';
-        const labelText = decrypted ? '__点击显示__' : '（解锁查看）';
+        const labelText = decrypted ? '_点击显示__' : '（解锁查看）';
         const title     = decrypted ? '密码已解锁，点击展开内容' : '点击输入密码解锁';
 
         wrap.innerHTML = `
