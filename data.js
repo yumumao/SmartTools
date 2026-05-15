@@ -45,15 +45,17 @@
    ⚠️ 以下 __META__ 区块由 scripts/update-timestamp.js 自动维护
       请勿手动编辑，手动改也会被下一次脚本运行覆盖
    ============================================================ */
+
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-05-15-001',
-    updatedAt: '2026-05-15T03:36:30.938Z',
-    source:    'github'
+    version:   '2026-05-15-006',
+    updatedAt: '2026-05-15T13:42:41.555Z',
+    source:    'kv'
 };
 /* __META_END__ */
 
 var sections = [
+    // ==================== ☁️ 在线U盘 ====================
     {
         builtin: true,
         key: 'usbDriveData',
@@ -146,6 +148,7 @@ var sections = [
             }
         ]
     },
+    // ==================== 📚 授课资料 ====================
     {
         builtin: true,
         key: 'teachingData',
@@ -332,6 +335,7 @@ var sections = [
             }
         ]
     },
+    // ==================== 🖥️ 网络资源 ====================
     {
         builtin: true,
         key: 'onlineAIData',
@@ -494,6 +498,7 @@ var sections = [
             }
         ]
     },
+    // ==================== 🎬 视频聚合 ====================
     {
         builtin: true,
         key: 'videoData',
@@ -679,24 +684,7 @@ var sections = [
             }
         ]
     },
-    {
-        builtin: false,
-        key: 'custom_moyq5cad_ezc0r',
-        kind: 'card',
-        dynamic: true,
-        label: '💟私人项目',
-        visible: true,
-        encrypted: true,
-        enc: {
-            v: 1,
-            alg: 'AES-GCM-256/PBKDF2-SHA256',
-            iter: 300000,
-            salt: 'mAZ3dGfCx4Gx83eiM+AtHA==',
-            iv: 'D/XRYO2frsQad2DQ',
-            data: 'OSSTywJFdHBYfq5NHwmWA7LAjjNhjC43pdH5/rIro/lknjsfPonFwWKjDaFCpg2odL8YrIQcFvfhfxzaRx7XHjUQfoZ+IPQZz0AH0rZnaNIkpUH+NUtDz4QR1z1lr4/CmDhWMH3VaXdju/mScRLKGzM0cb9WJPdFGTHzM47ncZr6vstskVULnKvx6X2rSJTHXESMYyDLEE5KlvnU813VkeG5cBSdWMgRwnqsql3zuL5Ns58Z7JpJL+5+ZE04q2bh8KlpVKAu1UxEP0UrC1QkUiAIcPMG8ZLnBtJGz9S6DoKOfQ+f5qiV9BXp1JCrFLP/SH4Jm3DHd4bVb56b7XWe/A5MIrc2epdAFx1S2DoGnP0FdXTpCfxq1cT8pYlxgkEbgt/OJGZGSnj2j7qVtr5OiD5nxJw9bFsz5M9aKj6tn5kCMbETmlQBUCBVqQ+emwvnglAQr/yNA4GobdUbMOIYugyme43te8yNFiI66fhpS85fdCkiUKUPRIgPD8WRmjET6eCbZ6cu/qKlAdGZFNkYXq0Qn+T+PSNB2qHxlxLnhsGFu19IbUoX8Cyh3d7F8q1wV7FjG9Bkn81pTabpr3PQegUkzDpJQRrITYhDMiATXJ79EBxqzfSldEyZ5nP7wrUqYs2DXXlk6QQsOWFfe1NEMQJlH2G28d3ugMWT+8GnpeBglIbMPRJqiUCSnZ20SR9Jqt/hmU9NM/UODOGXnQ0CWJQT8odEcjF2GDXv3YTxZXUEdteUADIuq9ClDzyrNDsxAhnKPoz4/4MyAT9FTjr22YQ/ZWoV+QePVhwh80eFelRW8Ha7bJ+sPTuxuIDq9u1Q6FxNlBcBrh19S/HUiQ7UrLQpmXrkgMf7PI2YKU5GNtmEwxeaU+FljXAGPNBJW4cE/6rLOoSvgxHiWUy8US5VkFztwlr++Liyix9+IsOUbjjhVeYnuOW4Ocd5GDgeF4xLspoi4PalXoaZYTWFQ0OCTyAbBGH5Ox6tbOARLDbBJiFHRbBd88FWbu07hsLnV0Zh2lipjD3/K8/xPSf9/Ctvx+bs+98r24hE+iHsm+64zkL0/ycQiDAwm+WN+UX25+cZvp0hDmGQGqCr0n7MQCVG9Q5A29kbdwao5YkGdJMrJ02QK2/zUlk1rg1S5dsWD3JeWYeCp1DWjeV+3VBgQGDaHLUB8ey639Pr0tjw+KuAyCGQEyz6zDaq8pcfTegfY7wx1PNSjNqVhfhQrIgi0EgCRaoecGwdwlc81lcND0u+tyT/80BhI+rmkO34Oqf9tpTvWgtG/BartV9e6zIboxkMBeyXI5/m2Vp0S12uDp7+MpTOLs4GF/jGnEO8A+vOOVwKaEI0mE+nI14xIQtNkC0+rD81/ARt9ach4FYDS3Gi8UC1qqQi+WSQCUWgThwcaBGpx2mjip1sQzkVZiN3jh/KFVLLkFR4AQ192kQf0HPYo8PW03HJqSoEGczQRUUeqJ4l1DP/svvUTMNz8/MGdr73vDABISU1pPtVeNAO26/Lmf6qDkj/3FcluObEeu8lCaSYAnFu3K6oxfpxVF09Uj6C3nLo38LDKqazBm7V2Mx0P4M/OzS5RugAWceY9nJL90HGgFgIwS7kX6WBozQ9RUlRxByerAjXcekZKMO1IfslEdL3K/dPzWe7JGGPSqAtedPbX/hhG2ocFAzLcaNZk10LAB80MaC3lGcoV7I05/IrOxELgD1Z+7Hhrmv7NR8xTUyboCF2e/t5+51XwJnzPsu4XxyWENDDax1CigxebfCKFXDTPSzzlMzfpHzAQNkqhRlSMD/MvxHzjX8ksI4cXmbIzg4yQc9Yo+9MpdCpEJ+jGuYTn9MZXsSUTP9vQEdeuywocX1nPXOJ80joYr3Lh37EVCtLpKQJEar/+dS4+0UYJRgAic/FYx2zGOkBJMxCNgAE8/4V75q879g4/YPLlPmfiSxOg66JUMF4FQy8AyXmGkXRyspGAHyHEDjiGkrF+MVdqSLng4FLjwzkJZQw08IX5ub5fNDp5GTIYWnN5+PIpa1YcVYdFU2L1QevJJSs4JySCyDPxRLD46DFQmEz4phcm0OM1bT+vHVGwA0sY5qFlAnGB5GfXzFjNC6mFNxtgk3IFJDc'
-        },
-        cards: []
-    },
+    // ==================== 📨 联系方式 ====================
     {
         builtin: true,
         key: 'emailData',
@@ -742,6 +730,7 @@ var sections = [
             }
         ]
     },
+    // ==================== 📨 其他联系方式 ====================
     {
         builtin: true,
         key: 'contactData',
@@ -758,5 +747,26 @@ var sections = [
                 descUrl: 'https://github.com/yumumao?tab=repositories'
             }
         ]
+    },
+
+    // ==================== 自定义大类（可在配置后台增删改） ====================
+    // ----- 💟私人项目 -----
+    {
+        builtin: false,
+        key: 'custom_moyq5cad_ezc0r',
+        kind: 'card',
+        dynamic: true,
+        label: '💟私人项目',
+        visible: true,
+        encrypted: true,
+        enc: {
+            v: 1,
+            alg: 'AES-GCM-256/PBKDF2-SHA256',
+            iter: 300000,
+            salt: 'VGKs8Kq0UxMM3U636nzqNw==',
+            iv: 'H726ZjjXcbfRc2+U',
+            data: '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'
+        },
+        cards: []
     }
 ];

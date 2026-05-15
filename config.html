@@ -969,6 +969,8 @@ const I18N = {
         toastOverridesCleared:'本地注释编辑缓存已清理',
         /* ★ 未持久化保存 banner */
         pendingBannerText:'检测到 <span class="pb-count">{n}</span> 条来自本浏览器的注释编辑尚未写入 data.js。请点击右侧按钮或顶部「💾 保存」按钮完成持久化。',
+        pendingBannerDirtyText:'配置后台有未保存的修改，尚未写入 data.js。请点击右侧按钮或顶部「💾 保存」按钮完成持久化。',
+        pendingBannerBothText:'检测到 <span class="pb-count">{n}</span> 条本浏览器注释编辑 + 配置后台的修改，均尚未持久化。请点击右侧或顶部「💾 保存」按钮。',
         pendingBannerSaveBtn:'💾 立即保存'
     },
     en: {
@@ -1177,6 +1179,8 @@ const I18N = {
         toastOverridesCleared:'Local comment edit cache cleared',
         /* ★ 未持久化保存 banner */
         pendingBannerText:'<span class="pb-count">{n}</span> comment edit(s) from this browser are not yet written to data.js. Click the button on the right, or "💾 Save" at the top, to persist.',
+        pendingBannerDirtyText:'You have unsaved changes in the config admin. Click the button on the right, or "💾 Save" at the top, to persist.',
+        pendingBannerBothText:'<span class="pb-count">{n}</span> local comment edit(s) AND config admin changes are not yet persisted. Click the button on the right, or "💾 Save" at the top.',
         pendingBannerSaveBtn:'💾 Save Now'
     }
 };
@@ -1531,6 +1535,12 @@ function attachMdToolbar(textareaId) {
 ================================================================ */
 const LS_COMMENT_OVERRIDES = 'bm_comment_overrides';
 
+/* ★ 配置后台内存级 "脏" 标志：在前端做了任何 store / 大类元数据修改但还没保存
+   true 时与 localStorage override 一样会让 pendingBanner 常驻显示 */
+let configDirty = false;
+function markConfigDirty()  { configDirty = true;  refreshPendingBanner(); }
+function clearConfigDirty() { configDirty = false; refreshPendingBanner(); }
+
 function readCommentOverrides() {
     try { return JSON.parse(localStorage.getItem(LS_COMMENT_OVERRIDES) || '{}') || {}; }
     catch (e) { return {}; }
@@ -1576,18 +1586,23 @@ function mergeCommentOverrides() {
 }
 
 /* ★ 刷新"未持久化保存"常驻 banner
-   - localStorage 中 bm_comment_overrides 非空 ⇒ 显示
-   - 为空 ⇒ 隐藏
+   - localStorage 中 bm_comment_overrides 非空 ⇒ 显示（来源：index 页面注释编辑）
+   - configDirty === true              ⇒ 显示（来源：配置后台直接修改）
+   - 二者皆有                          ⇒ 合并提示
    - 不使用 setTimeout 自动隐藏；只有"真正写入 data.js / 服务器"成功时才会隐藏 */
 function refreshPendingBanner() {
     const banner = $('pendingBanner');
     if (!banner) return;
     const ov = readCommentOverrides();
     const n = ov ? Object.keys(ov).length : 0;
-    if (n > 0) {
+    if (n > 0 || configDirty) {
         const txt = $('pendingBannerText');
         const btn = $('pendingBannerSaveBtn');
-        if (txt) txt.innerHTML = t('pendingBannerText', { n });
+        let html;
+        if (configDirty && n > 0)      html = t('pendingBannerBothText',  { n });
+        else if (configDirty)          html = t('pendingBannerDirtyText');
+        else                           html = t('pendingBannerText',      { n });
+        if (txt) txt.innerHTML = html;
         if (btn) {
             btn.textContent = t('pendingBannerSaveBtn');
             btn.onclick = () => doSave();
@@ -2000,9 +2015,9 @@ async function saveDataJs_online() {
         $('dataStatus').textContent = t('stServerSaved', { time: new Date().toLocaleString() });
         $('dataStatus').className = 'st-ok';
 
-        // ★ 保存成功 → 清空 localStorage 中的 comment override
+        // ★ 保存成功 → 清空 localStorage 中的 comment override + 配置后台 dirty 标志
         clearCommentOverrides();
-        refreshPendingBanner();
+        clearConfigDirty();   // 内部已会调用 refreshPendingBanner
 
         await refreshBackupStatus_online(); await loadSourceStatus_online();
     } else toast((r.data && r.data.error) || t('toastSaveFail'));
@@ -2179,9 +2194,9 @@ async function saveDataJs_local() {
         else msg = t('toastSaved');
         toast(msg);
 
-        // ★ 保存成功 → 清空 localStorage 中的 comment override
+        // ★ 保存成功 → 清空 localStorage 中的 comment override + 配置后台 dirty 标志
         clearCommentOverrides();
-        refreshPendingBanner();
+        clearConfigDirty();   // 内部已会调用 refreshPendingBanner
 
         await refreshBackupStatus_local();
     } catch (e) { alert(t('alertSaveFail', { msg: e.message })); }
@@ -2374,7 +2389,7 @@ async function parseAndLoad(text) {
         const mergedN = mergeCommentOverrides();
         if (mergedN > 0) { setTimeout(() => toast(t('toastOverridesMerged', { n: mergedN }), 3200), 300); }
 
-        refreshPendingBanner();
+        clearConfigDirty();   // 重新载入数据后，配置后台无未保存改动
         renderSectionTabs(); renderCurrentSection(); updateEncKeyStatus();
         return true;
     } catch (e) {
@@ -2583,14 +2598,36 @@ async function generateDataJs() {
         outSections.push(secObj);
     }
 
-    // ★ 手动逐项渲染 sections 数组：每个元素前插入 // ===== 大类名 ===== 分节注释
+    // ★ 手动逐项渲染 sections 数组：
+    //   - 内置大类放前面，每个元素前插入 // ===== 大类名 ===== 分节注释
+    //   - 自定义大类统一挪到最后（与前端显示顺序解耦），并加一行总注释
+    const builtinSecs = outSections.filter(s => s.builtin);
+    const customSecs  = outSections.filter(s => !s.builtin);
+
     const sectionLines = ['', 'var sections = ['];
-    outSections.forEach((sec, i) => {
+
+    // 内置大类
+    builtinSecs.forEach((sec, i) => {
         const labelText = sec.label || sec.key;
         sectionLines.push('    // ==================== ' + labelText + ' ====================');
         const body = pretty(sec, 1);
-        sectionLines.push('    ' + body + (i < outSections.length - 1 ? ',' : ''));
+        const isLast = (i === builtinSecs.length - 1) && customSecs.length === 0;
+        sectionLines.push('    ' + body + (isLast ? '' : ','));
     });
+
+    // 自定义大类（统一放末尾）
+    if (customSecs.length > 0) {
+        sectionLines.push('');
+        sectionLines.push('    // ==================== 自定义大类（可在配置后台增删改） ====================');
+        customSecs.forEach((sec, i) => {
+            const labelText = sec.label || sec.key;
+            sectionLines.push('    // ----- ' + labelText + ' -----');
+            const body = pretty(sec, 1);
+            const isLast = i === customSecs.length - 1;
+            sectionLines.push('    ' + body + (isLast ? '' : ','));
+        });
+    }
+
     sectionLines.push('];');
     sectionLines.push('');
     parts.push('\n' + sectionLines.join('\n'));
@@ -2700,11 +2737,11 @@ function renderCurrentSection() {
 }
 function handleCardAction(act, idx) {
     const arr = store[currentSection];
-    if (act === 'up' && idx > 0) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; renderCurrentSection(); }
-    else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); }
+    if (act === 'up' && idx > 0) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; renderCurrentSection(); markConfigDirty(); }
+    else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); markConfigDirty(); }
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
-    else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); toast(t('toastDeletedUnsaved')); } }
+    else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); markConfigDirty(); toast(t('toastDeletedUnsaved')); } }
 }
 
 /* ================================================================
@@ -2745,6 +2782,7 @@ function confirmMoveCard() {
     renderCurrentSection();
     const tgtLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     toast(t('toastMovedToUnsaved', { tgt: tgtLabel }));
+    markConfigDirty();
     movingCardSourceSection = null; movingCardSourceIndex = -1;
 }
 
@@ -2861,6 +2899,7 @@ function confirmPromoteSub() {
 
     const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     toast(t('toastPromotedOk', { sec: tgtSecLabel }));
+    markConfigDirty();
     promotingSubIndex = -1;
 }
 
@@ -2934,6 +2973,7 @@ function handleBuiltinSectionAction(act, key) {
         else delete builtinSectionMeta[key].visible;
         if (!Object.keys(builtinSectionMeta[key]).length) delete builtinSectionMeta[key];
         renderSectionsModalLists(); renderSectionTabs();
+        markConfigDirty();
         toast(t('toastUpdatedUnsaved'));
     } else if (act === 'edit') {
         openSectionEditModal({ type: 'builtin', key });
@@ -2943,13 +2983,14 @@ function handleBuiltinSectionAction(act, key) {
             if (!Object.keys(builtinSectionMeta[key]).length) delete builtinSectionMeta[key];
         }
         renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+        markConfigDirty();
         toast(t('toastUpdatedUnsaved'));
     }
 }
 
 function handleCustomSectionAction(act, idx) {
-    if (act === 'up' && idx > 0) { [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedUp')); }
-    else if (act === 'down' && idx < customSectionsMeta.length - 1) { [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedDown')); }
+    if (act === 'up' && idx > 0) { [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]]; renderSectionsModalLists(); renderSectionTabs(); markConfigDirty(); toast(t('toastMovedUp')); }
+    else if (act === 'down' && idx < customSectionsMeta.length - 1) { [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]]; renderSectionsModalLists(); renderSectionTabs(); markConfigDirty(); toast(t('toastMovedDown')); }
     else if (act === 'edit') openSectionEditModal(idx);
     else if (act === 'del') deleteCustomSection(idx);
 }
@@ -2969,6 +3010,7 @@ function deleteCustomSection(idx) {
     customSectionsMeta.splice(idx, 1); delete store[c.key];
     if (currentSection === c.key) currentSection = customSectionsMeta.find(x => x.key === UNCLASSIFIED_KEY) ? UNCLASSIFIED_KEY : BUILTIN_SECTIONS[0].key;
     renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+    markConfigDirty();
     toast(t('toastDeletedSectionUnsaved'));
 }
 function openSectionEditModal(target) {
@@ -3033,6 +3075,7 @@ function saveSectionEdit() {
         if (!Object.keys(builtinSectionMeta[editingBuiltinKey]).length) delete builtinSectionMeta[editingBuiltinKey];
         hide('sectionEditModal');
         renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+        markConfigDirty();
         toast(t('toastUpdatedUnsaved'));
         editingBuiltinKey = null;
         return;
@@ -3062,6 +3105,7 @@ function saveSectionEdit() {
     }
     hide('sectionEditModal');
     renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+    markConfigDirty();
 }
 
 /* ================================================================
@@ -3229,6 +3273,7 @@ function saveCardFromModal() {
     const arr = store[currentSection];
     if (editingCardIndex >= 0) arr[editingCardIndex] = obj; else arr.push(obj);
     hide('cardModal'); renderCurrentSection(); toast(t('toastUpdatedUnsaved'));
+    markConfigDirty();
 }
 
 /* ================================================================
@@ -3356,6 +3401,7 @@ function confirmMoveSubCard() {
     const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     const tgtCardLabel = tgtCard.title || tgtCard.id || t('noTitle');
     toast(t('toastMovedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
+    markConfigDirty();
 }
 
 /* ================================================================
