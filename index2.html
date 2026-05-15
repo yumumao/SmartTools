@@ -1056,7 +1056,7 @@ if (location.protocol === 'file:') {
 </script>
 <script src="/api/data"></script>
 <script>
-if (typeof usbDriveData === 'undefined' && location.protocol !== 'file:') {
+if (typeof usbDriveData === 'undefined' && typeof sections === 'undefined' && location.protocol !== 'file:') {
     document.write('<script src="data.js"><\/' + 'script>');
 }
 </script>

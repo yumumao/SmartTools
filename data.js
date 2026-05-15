@@ -1,7 +1,57 @@
 /* ============================================================
    data.js  —  收藏夹数据
    只需编辑此文件即可增删改收藏内容，无需修改页面代码
+
+   卡片 type：
+     'simple'         — 整卡点击打开 url
+     'desc-clickable' — 卡片打开 url，描述文字打开 descUrl
+     'expandable'     — 带展开子菜单（subCards）
+                        描述可用 desc（纯文本）或 descClickable + descUrl（可点击链接）
+
+   子卡片：
+     两行式  { icon, title, desc, url }
+     紧凑式  { icon, content, url }
+     图片图标用 iconImg 代替 icon；本地跳转加 isLocal: true
+
+   图标 icon 的三种写法：
+     1. Emoji / 文字
+        icon: '🔥'
+        icon: 'AI'
+
+     2. 图片链接（使用 iconImg 字段代替 icon）
+        iconImg: 'https://example.com/logo.png'
+
+     3. 内联 SVG（使用 icon 字段，值为 SVG 字符串，SVG 字符串必须写在同一行）
+        单行写法（普通引号）：
+          icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">...</svg>'
+
+   SVG 图标注意事项：
+     - SVG 必须写成单行字符串，多行写法可能导致 JS 解析失败
+     - 必须包含 xmlns="http://www.w3.org/2000/svg" 和 viewBox
+     - 避免使用 <linearGradient> 等带 id 的元素，若使用请确保 id 全局唯一
+     - CSS 中 .link-icon-svg svg 需设为 width/height: 100% 以匹配图片图标大小
+     - 建议 viewBox 统一用 "0 0 128 128"，保持图标风格一致
+
+   Section 字段：
+     builtin: true=内置不可删 / false=自定义可删
+     key:     唯一标识（内置项锁死，对应旧变量名）
+     kind:    'card' | 'email' | 'contact'
+     dynamic: 是否启用卡片展开/折叠
+     visible: 用户可关闭显示
+     label:   用户可改名 | defaultLabel: 用于恢复默认
    ============================================================ */
+
+/* ============================================================
+   ⚠️ 以下 __META__ 区块由 scripts/update-timestamp.js 自动维护
+      请勿手动编辑，手动改也会被下一次脚本运行覆盖
+   ============================================================ */
+/* __META_START__ */
+window.APP_DATA_META = {
+    version:   '2026-05-14-001',
+    updatedAt: '2026-05-14T21:04:54.756Z',
+    source:    'github'
+};
+/* __META_END__ */
 
 var sections = [
     {
