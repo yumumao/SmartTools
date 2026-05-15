@@ -1299,22 +1299,21 @@ let promotingSubIndex = -1;
 let editingCustomSectionIdx = -2;
 const MAX_BACKUPS_LOCAL = 100;
 
+/* ★ 默认 header 注释（仅在原 data.js 中没有任何头部注释时使用）
+   原本的 sections.* 按节注释对象已删除：新格式只有一个 sections 数组，
+   按节注释失去意义；只保留 header。 */
 const DEFAULT_COMMENTS = {
     header: `/* ============================================================
    data.js  —  收藏夹数据
    只需编辑此文件即可增删改收藏内容，无需修改页面代码
-   ============================================================ */`,
-    sections: {
-        usbDriveData:   '// ==================== 在线U盘 ====================',
-        teachingData:   '// ==================== 授课资料 ====================',
-        onlineAIData:   '// ==================== 网络资源 ====================',
-        videoData:      '// ==================== 视频聚合 ====================',
-        emailData:      '// ==================== 邮箱数据 ====================',
-        contactData:    '// ==================== 其他联系方式 ====================',
-        customSections: '// ==================== 自定义大类（可在配置后台增删改；支持 AES-GCM 加密） ===================='
-    }
+   ============================================================ */`
 };
-let preservedComments = { header: null, sections: {} };
+
+/* ★ 用于在重新生成 data.js 时保留原文件顶部的 header 注释
+   - 旧版本曾包含 sections: {...} 用来保留按节注释；
+     新版只有 sections 数组，按节注释已无处可放，故只保留 header */
+let preservedComments = { header: null };
+
 const LS_USER = 'bm_cfg_user', LS_PASS = 'bm_cfg_pass', LS_SESS = 'bm_cfg_sess';
 
 /* ================================================================
@@ -2294,43 +2293,34 @@ function doSwitchMode() {
 
 /* ================================================================
    Comment preservation
+   ────────────────────────────────────────────────────────────────
+   只提取原 data.js 文件顶部的 header 注释（保存时再原样写回）。
+   先前还会按节提取注释（usbDriveData / teachingData ... 各自上方），
+   但新版 data.js 只有一个 sections 数组，按节注释已无意义，
+   故只保留 header 提取逻辑。
 ================================================================ */
 function extractComments(text) {
-    const result = { header: '', sections: {} };
+    // 只提取首个真实代码行（var/let/const 声明、window.APP_DATA_META、META 标记）之前的注释作为 header
+    const result = { header: '' };
     const lines = text.split('\n');
-    const sectionLineIdx = {};
-    const sectionKeys = [...BUILTIN_SECTIONS.map(s => s.key), 'customSections'];
-    lines.forEach((line, idx) => {
-        sectionKeys.forEach(key => {
-            if (sectionLineIdx[key] === undefined) {
-                const re = new RegExp('^\\s*(?:var|let|const)\\s+' + key + '\\s*=');
-                if (re.test(line)) sectionLineIdx[key] = idx;
-            }
-        });
-    });
-    Object.keys(sectionLineIdx).forEach(key => {
-        const start = sectionLineIdx[key]; const collected = []; let i = start - 1;
-        while (i >= 0 && lines[i].trim() === '') i--;
-        let inB = false;
-        while (i >= 0) {
-            const ts = lines[i].trim();
-            if (inB) { collected.unshift(lines[i]); if (ts.startsWith('/*')) inB = false; i--; continue; }
-            if (ts === '') break;
-            if (ts.startsWith('//')) { collected.unshift(lines[i]); i--; continue; }
-            if (ts.endsWith('*/')) { collected.unshift(lines[i]); if (!ts.startsWith('/*')) inB = true; i--; continue; }
-            if (ts.startsWith('/*')) { collected.unshift(lines[i]); i--; continue; }
+
+    // 找到第一行真正的代码：变量声明 / META 起始注释 / window.APP_DATA_META 赋值
+    let firstCodeIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+        const ts = lines[i].trim();
+        if (/^(?:var|let|const)\s+\w+\s*=/.test(ts)
+            || /^window\.APP_DATA_META\s*=/.test(ts)
+            || /^\/\*\s*__META_START__/.test(ts)) {
+            firstCodeIdx = i;
             break;
         }
-        if (collected.length) result.sections[key] = collected.join('\n');
-    });
-    const firstKey = sectionKeys.find(k => sectionLineIdx[k] !== undefined);
-    if (firstKey !== undefined) {
-        const firstIdx = sectionLineIdx[firstKey];
-        const firstCom = result.sections[firstKey] || '';
-        const firstComLines = firstCom ? firstCom.split('\n').length : 0;
-        let headerEnd = firstIdx - firstComLines;
-        while (headerEnd > 0 && lines[headerEnd - 1].trim() === '') headerEnd--;
-        if (headerEnd > 0) result.header = lines.slice(0, headerEnd).join('\n');
+    }
+
+    // 从该行往上回溯，跳过紧邻的空行，把上方所有注释/文本作为 header
+    if (firstCodeIdx > 0) {
+        let end = firstCodeIdx;
+        while (end > 0 && lines[end - 1].trim() === '') end--;
+        if (end > 0) result.header = lines.slice(0, end).join('\n');
     }
     return result;
 }
@@ -2341,10 +2331,10 @@ function extractComments(text) {
 ================================================================ */
 async function parseAndLoad(text) {
     try {
+        // ★ 仅保留 header 注释；按节注释已废弃
         const c = extractComments(text);
         if (c.header) preservedComments.header = c.header;
         else if (preservedComments.header == null) preservedComments.header = DEFAULT_COMMENTS.header;
-        Object.keys(c.sections).forEach(k => { preservedComments.sections[k] = c.sections[k]; });
 
         // ★ 检测新旧格式
         const hasNewFormat = /\bvar\s+sections\s*=/.test(text);
@@ -2446,13 +2436,55 @@ async function parseSectionsArray(rawSections) {
 /* ================================================================
    generateDataJs（async）
    ★ 加密分类中的 cards（含每个卡片的 comment 字段）会一起被 AES-GCM 加密
+   ★ 输出格式：
+       header 注释（保留原文件顶部内容）
+       ↓
+       META 区块（每行独立换行，由脚本自动维护）
+       ↓
+       var sections = [
+           // ==================== 大类名 ====================
+           { ...大类对象... },
+           ...
+       ];
 ================================================================ */
 async function generateDataJs() {
     const parts = [];
-    const header = (preservedComments.header && preservedComments.header.trim()) ? preservedComments.header : DEFAULT_COMMENTS.header;
-    parts.push(header.replace(/\r/g, '')); parts.push('\n\n');
+    let header = (preservedComments.header && preservedComments.header.trim()) ? preservedComments.header : DEFAULT_COMMENTS.header;
+    // 剥掉历史 data.js 里已存在的 META 区块（避免与下方新生成的 META 重复 / 错位）
+    header = header
+        .replace(/\/\*\s*__META_START__\s*\*\/[\s\S]*?\/\*\s*__META_END__\s*\*\//g, '')
+        .replace(/window\.APP_DATA_META\s*=\s*\{[\s\S]*?\}\s*;?/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\s+$/, '');
+    parts.push(header);
 
-    // ★ 输出统一的 sections 数组
+    // ★ 始终输出 META 区块（版本号/时间戳，供脚本自动维护）
+    //   这里用 join('\n') 一次性生成多行字符串，避免多次 push + join('') 把所有行挤成一行
+    const now = new Date();
+    const isoTime = now.toISOString();
+    const dateStr = isoTime.slice(0, 10);
+    // 从现有数据读取版本号并自增
+    let seq = 1;
+    const currentMeta = window.APP_DATA_META || {};
+    const prevVer = (typeof currentMeta.version === 'string') ? currentMeta.version : '';
+    const verMatch = prevVer.match(/^(\d{4}-\d{2}-\d{2})-(\d+)$/);
+    if (verMatch && verMatch[1] === dateStr) seq = parseInt(verMatch[2], 10) + 1;
+    const newVersion = dateStr + '-' + String(seq).padStart(3, '0');
+
+    const metaLines = [
+        '',                                                 // 与 header 之间空一行
+        '/* __META_START__ */',
+        'window.APP_DATA_META = {',
+        "    version:   '" + newVersion + "',",
+        "    updatedAt: '" + isoTime + "',",
+        "    source:    'kv'",
+        '};',
+        '/* __META_END__ */'
+    ];
+    parts.push('\n' + metaLines.join('\n'));
+    window.APP_DATA_META = { version: newVersion, updatedAt: isoTime, source: 'kv' };
+
+    // ★ 收集所有 section 对象（顺序与 getSections() 一致）
     const outSections = [];
     for (const s of getSections()) {
         const secObj = { builtin: !!s.builtin, key: s.key, kind: s.kind };
@@ -2490,9 +2522,23 @@ async function generateDataJs() {
         }
         outSections.push(secObj);
     }
-    parts.push('var sections = ' + pretty(outSections) + ';\n');
+
+    // ★ 手动逐项渲染 sections 数组：每个元素前插入 // ===== 大类名 ===== 分节注释
+    //   这样可以在数组里"夹带注释"，pretty() 本身不支持元素间插注释，所以拆开来写
+    const sectionLines = ['', 'var sections = ['];
+    outSections.forEach((sec, i) => {
+        const labelText = sec.label || sec.key;
+        sectionLines.push('    // ==================== ' + labelText + ' ====================');
+        const body = pretty(sec, 1);   // 每个 section 对象本体仍走 pretty()，缩进 1 级
+        sectionLines.push('    ' + body + (i < outSections.length - 1 ? ',' : ''));
+    });
+    sectionLines.push('];');
+    sectionLines.push('');
+    parts.push('\n' + sectionLines.join('\n'));
+
     return parts.join('');
 }
+
 function pretty(val, indent = 0) {
     const pad = '    '.repeat(indent), pad1 = '    '.repeat(indent + 1);
     if (Array.isArray(val)) { if (!val.length) return '[]'; return '[\n' + val.map(v => pad1 + pretty(v, indent + 1)).join(',\n') + '\n' + pad + ']'; }
