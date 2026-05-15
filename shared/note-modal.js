@@ -199,11 +199,33 @@
         return path;
     }
 
-    /* ───────────────────────── HTML 转义 ───────────────────────── */
+    /* ───────────────────────── HTML 转义 ─────────────────────────
+     * 注意：& < > 必须转义防止节点注入；" ' 同时转义是为了在被嵌入
+     * 属性值时也安全（HTML 实体在文本节点内显示效果相同，无外观差异）。
+     */
     function esc(s) {
         return String(s).replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+    }
+
+    /* ───────────────────────── URL 白名单 ─────────────────────────
+     * Markdown 链接 [text](url) 的 url 必须过白名单，防止 javascript: 协议 XSS。
+     * 图片 ![alt](src) 的 src 单独走 imgUrl 白名单，允许 data:image/。
+     */
+    function safeMdUrl(u) {
+        var s = String(u || '').trim();
+        if (!s) return '';
+        if (/^(?:https?:|mailto:|tel:|\/|#|\?)/i.test(s)) return s;
+        return '#';
+    }
+    function safeMdImgUrl(u) {
+        var s = String(u || '').trim();
+        if (!s) return '';
+        if (/^(?:https?:|\/|data:image\/[a-zA-Z+.-]+;)/i.test(s)) return s;
+        return '';
     }
 
     /* ───────────────────────── SVG 安全过滤 ───────────────────────── */
@@ -243,13 +265,16 @@
 
             if (/^\s*(?:---+|\*\*\*+|___+)\s*$/.test(line)) { out.push('<hr>'); i++; continue; }
 
+            // ★ 所有用户文本内容统一过 esc()，防止 <img onerror=...> 之类直接拼进 innerHTML。
+            //   后续的 markdown 标记替换 (**bold**, [text](url), 裸 URL 等) 在已转义文本上做，
+            //   text/alt 在替换器内不再二次 esc（避免 &lt; 被双重转义成 &amp;lt;）。
             var hm = /^(#{1,6})\s+(.*)$/.exec(line);
-            if (hm) { out.push('<h' + hm[1].length + '>' + hm[2] + '</h' + hm[1].length + '>'); i++; continue; }
+            if (hm) { out.push('<h' + hm[1].length + '>' + esc(hm[2]) + '</h' + hm[1].length + '>'); i++; continue; }
 
             if (/^\s*[-*+]\s+/.test(line)) {
                 out.push('<ul>');
                 while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
-                    out.push('<li>' + lines[i].replace(/^\s*[-*+]\s+/, '') + '</li>');
+                    out.push('<li>' + esc(lines[i].replace(/^\s*[-*+]\s+/, '')) + '</li>');
                     i++;
                 }
                 out.push('</ul>'); continue;
@@ -258,7 +283,7 @@
             if (/^\s*\d+\.\s+/.test(line)) {
                 out.push('<ol>');
                 while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
-                    out.push('<li>' + lines[i].replace(/^\s*\d+\.\s+/, '') + '</li>');
+                    out.push('<li>' + esc(lines[i].replace(/^\s*\d+\.\s+/, '')) + '</li>');
                     i++;
                 }
                 out.push('</ol>'); continue;
@@ -267,7 +292,7 @@
             if (/^\s*>\s?/.test(line)) {
                 var quote = [];
                 while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
-                    quote.push(lines[i].replace(/^\s*>\s?/, '')); i++;
+                    quote.push(esc(lines[i].replace(/^\s*>\s?/, ''))); i++;
                 }
                 out.push('<blockquote>' + quote.join('<br>') + '</blockquote>'); continue;
             }
@@ -282,11 +307,11 @@
                     i++;
                 }
                 var t = '<table><thead><tr>';
-                head.forEach(function(h) { t += '<th>' + h.trim() + '</th>'; });
+                head.forEach(function(h) { t += '<th>' + esc(h.trim()) + '</th>'; });
                 t += '</tr></thead><tbody>';
                 rows.forEach(function(r) {
                     t += '<tr>';
-                    r.forEach(function(c) { t += '<td>' + c.trim() + '</td>'; });
+                    r.forEach(function(c) { t += '<td>' + esc(c.trim()) + '</td>'; });
                     t += '</tr>';
                 });
                 t += '</tbody></table>';
@@ -301,15 +326,25 @@
                    !/^\s*[-*+]\s+/.test(lines[i]) &&
                    !/^\s*\d+\.\s+/.test(lines[i]) &&
                    !/^\s*>\s?/.test(lines[i])) {
-                para.push(lines[i]); i++;
+                para.push(esc(lines[i])); i++;
             }
             out.push('<p>' + para.join('<br>') + '</p>');
         }
 
         var html = out.join('\n');
 
-        html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img alt="$1" src="$2">');
-        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        // ★ 图片/链接：url 必过白名单防 javascript: 协议；
+        //   alt/text 已经在上面逐行 esc 过了，这里不能再 esc（会双重转义成 &amp;lt;）。
+        //   url 已经经过 esc（因为它出现在段落/标题等文本里），属性值里使用安全。
+        html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function(_, alt, src) {
+            var safe = safeMdImgUrl(src);
+            if (!safe) return alt;  // 不合法的图片协议 → 退化为纯文本(alt 已 esc)
+            return '<img alt="' + alt + '" src="' + safe + '">';
+        });
+        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(_, text, url) {
+            var safe = safeMdUrl(url);
+            return '<a href="' + safe + '" target="_blank" rel="noopener noreferrer">' + text + '</a>';
+        });
         html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
         html = html.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
@@ -327,7 +362,7 @@
                 if (tm) { trailing = tm[0]; url = url.substring(0, url.length - trailing.length); }
                 if (!url) return m;
                 var href = url.indexOf('www.') === 0 ? 'http://' + url : url;
-                return pre + '<a href="' + href + '" target="_blank" rel="noopener">' + url + '</a>' + trailing;
+                return pre + '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + url + '</a>' + trailing;
             }
         );
         html = html.replace(/\u0000AT(\d+)\u0000/g, function(_, n) { return aBlocks[+n]; });
@@ -395,16 +430,20 @@
         if (m) m.remove();
     }
     function gotoUrl(card) {
-        var url = card.url || card.descUrl || card.mailto || '';
+        var rawUrl = card.url || card.descUrl || card.mailto || '';
+        if (!rawUrl) return;
+        // 协议白名单：拒绝 javascript: 等危险协议
+        var s = String(rawUrl).trim();
+        var url = /^(?:https?:|mailto:|tel:|\/|#|\?)/i.test(s) ? s : '';
         if (!url) return;
         if (card.isLocal) window.location.href = url;
-        else              window.open(url, '_blank');
+        else              window.open(url, '_blank', 'noopener,noreferrer');
     }
 
     /* ★ 统一的"待同步"提示 HTML */
     function buildPendingHTML(pending) {
         var isDelete = !pending.value;
-        var link = ' · <a href="' + CONFIG_HREF + '" target="_blank" rel="noopener" class="note-config-link">打开 Config 页面 →</a>';
+        var link = ' · <a href="' + CONFIG_HREF + '" target="_blank" rel="noopener noreferrer" class="note-config-link">打开 Config 页面 →</a>';
         return (isDelete
             ? '✅ 已在本浏览器删除,请到 Config 页面保存到文件'
             : '✅ 已保存到本浏览器,请到 Config 页面保存到文件') + link;

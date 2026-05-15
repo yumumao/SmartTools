@@ -64,7 +64,8 @@ function normalizeData() {
         // 自定义大类插在 card 之后、contact 之前
         if (Array.isArray(window.customSections)) {
             window.customSections.forEach(function(c) {
-                s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label, label:c.label, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[] });
+                // ★ P3-5: 透传 anchor 字段(老格式),fav-page 渲染时会过 __safeAnchor
+                s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label, label:c.label, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[], anchor: c.anchor || '' });
             });
         }
         contactDefs.forEach(function(d) {
@@ -143,10 +144,10 @@ window.__favCardOpen = function(cardId) {
         window.NoteModal.show(cardId);
         return;
     }
-    var url = card.url || '';
-    if (!url) return;
+    var url = __safeUrl(card.url);
+    if (!url || url === '#') return;
     if (card.isLocal) window.location.href = url;
-    else              window.open(url, '_blank');
+    else              window.open(url, '_blank', 'noopener,noreferrer');
 };
 
 /**
@@ -176,7 +177,8 @@ window.__favEmailClick = function() {
         });
         window.NoteModal.show(cid);
     } else if (cd.url) {
-        window.open(cd.url, '_blank');
+        var url = __safeUrl(cd.url);
+        if (url && url !== '#') window.open(url, '_blank', 'noopener,noreferrer');
     }
 };
 
@@ -190,6 +192,71 @@ function __attr(s) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+/** 工具：HTML 文本节点转义（防止 XSS：title/desc/label 等用户内容拼进 innerHTML 前必过） */
+function __txt(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/** 工具：URL 协议白名单（卡片跳转/描述跳转）→ 拒绝 javascript: 等危险协议 */
+function __safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) return '';
+    if (/^(?:https?:|mailto:|tel:|\/|#|\?)/i.test(s)) return s;
+    return '#';
+}
+
+/** 工具：图片 URL 白名单（iconImg）→ 允许 data:image/ + http(s) + 相对路径 */
+function __safeImgUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) return '';
+    if (/^(?:https?:|\/|data:image\/[a-zA-Z+.-]+;)/i.test(s)) return s;
+    return '';
+}
+
+/** 工具：HTML id / URL hash 的 anchor 合法性过滤（P3-5）
+ *  - 只允许 [a-zA-Z0-9_-]，避免 CSS selector 转义 / URL encode 的麻烦
+ *  - 不合法或空 → 返回空字符串，调用方降级到 sec.key */
+function __safeAnchor(s) {
+    if (s == null) return '';
+    s = String(s).trim();
+    if (!s) return '';
+    return /^[a-zA-Z0-9_-]+$/.test(s) ? s : '';
+}
+
+/**
+ * 全局事件委托：[data-desc-url] 的描述行跳转。
+ * 替代原本拼到 onclick 属性里的 window.open(...) 字符串拼接，
+ * 让 __safeUrl + __attr 真正生效，并统一加 noopener,noreferrer。
+ * 注意：必须在文档解析后注册，所以放进 DOMContentLoaded 也可以；
+ * 但 click 事件冒泡阶段委托对动态渲染同样有效，所以在脚本顶部注册即可。
+ */
+document.addEventListener('click', function(e) {
+    if (!e.target || !e.target.closest) return;
+
+    // ① 描述行独立跳转
+    var descEl = e.target.closest('[data-desc-url]');
+    if (descEl) {
+        var url = descEl.getAttribute('data-desc-url');
+        if (url && url !== '#') {
+            e.stopPropagation();
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        return;
+    }
+
+    // ② 展开/折叠 section 按钮
+    var secBtn = e.target.closest('.expand-section-btn[data-section-key]');
+    if (secBtn) {
+        var key = secBtn.getAttribute('data-section-key');
+        if (key && typeof toggleSection === 'function') toggleSection(key);
+    }
+});
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -224,13 +291,17 @@ function sanitizeSVG(raw) {
 function renderIcon(item, extraAttrs) {
     extraAttrs = extraAttrs || '';
     if (item.iconImg) {
-        return '<span class="link-icon" ' + extraAttrs + ' aria-hidden="true"><img src="' + item.iconImg + '" alt="" /></span>';
+        var safeImg = __safeImgUrl(item.iconImg);
+        if (safeImg) {
+            return '<span class="link-icon" ' + extraAttrs + ' aria-hidden="true"><img src="' + __attr(safeImg) + '" alt="" /></span>';
+        }
+        return '<span class="link-icon" ' + extraAttrs + ' aria-hidden="true"></span>';
     }
     var icon = item.icon || '';
     if (icon.charAt(0) === '<') {
         return '<span class="link-icon link-icon-svg" ' + extraAttrs + '>' + sanitizeSVG(icon) + '</span>';
     }
-    return '<span class="link-icon" ' + extraAttrs + '>' + icon + '</span>';
+    return '<span class="link-icon" ' + extraAttrs + '>' + __txt(icon) + '</span>';
 }
 
 
@@ -247,47 +318,39 @@ function generateCardHTML(card, meta) {
         // ★ 有 url → 用 <a>（支持中键 / Ctrl+点击在新标签打开）
         // ★ 无 url → 用 <div>（避免 href=undefined 空白页；此时一般都有 comment）
         if (card.url) {
-            return '<a href="' + __attr(card.url) + '" target="_blank" class="link-card' + noteCls + '" ' +
+            return '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" class="link-card' + noteCls + '" ' +
                    'data-card-id="' + cid + '" ' +
                    'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
                 renderIcon(card) +
-                '<h3 class="link-title">' + card.title + '</h3>' +
-                '<p class="link-desc">' + (card.desc || '') + '</p></a>';
+                '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
+                '<p class="link-desc">' + __txt(card.desc || '') + '</p></a>';
         }
         return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
             renderIcon(card) +
-            '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc">' + (card.desc || '') + '</p></div>';
+            '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
+            '<p class="link-desc">' + __txt(card.desc || '') + '</p></div>';
     }
 
     // ─── 类型 2：描述可独立点击的卡片 ───────────────────────────────
     if (card.type === 'desc-clickable') {
-        // 描述行独立跳转：descUrl 为空则只触发父卡片点击（不 stopPropagation 也不 open）
-        var descClickHandler = card.descUrl
-            ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
-            : '';
+        // descUrl 放 data-* 属性，由全局事件委托接管，避免 onclick 字符串拼接的 XSS
+        var descUrlAttr = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
         return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
             renderIcon(card) +
-            '<h3 class="link-title">' + card.title + '</h3>' +
-            '<p class="link-desc-clickable"' +
-                (descClickHandler ? ' onclick="' + descClickHandler + '"' : '') +
-            '>' + card.descClickable + '</p></div>';
+            '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
+            '<p class="link-desc-clickable"' + descUrlAttr + '>' + __txt(card.descClickable) + '</p></div>';
     }
 
     // ─── 类型 3：可展开子卡片的卡片 ─────────────────────────────────
     if (card.type === 'expandable') {
         var descHTML = '';
         if (card.descClickable) {
-            var descClickHandler2 = card.descUrl
-                ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
-                : '';
-            descHTML = '<p class="link-desc-clickable"' +
-                (descClickHandler2 ? ' onclick="' + descClickHandler2 + '"' : '') +
-                '>' + card.descClickable + '</p>';
+            var descUrlAttr2 = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
+            descHTML = '<p class="link-desc-clickable"' + descUrlAttr2 + '>' + __txt(card.descClickable) + '</p>';
         } else if (card.desc) {
-            descHTML = '<p class="link-desc">' + card.desc + '</p>';
+            descHTML = '<p class="link-desc">' + __txt(card.desc) + '</p>';
         }
         // 子卡片继承主卡片的 sectionKey + cardIndex，加 subIndex
         var subHTML = '';
@@ -303,13 +366,13 @@ function generateCardHTML(card, meta) {
         return '<div class="card-container">' +
             '<div class="link-card link-card-with-expand' + noteCls + '" ' +
                  'data-card-id="' + cid + '" ' +
-                 'onclick="handleCardClick(event, \'' + cid + '\', \'' + card.id + '-subcards\')">' +
+                 'onclick="handleCardClick(event, \'' + cid + '\', \'' + __attr(card.id) + '-subcards\')">' +
             renderIcon(card) +
-            '<h3 class="link-title">' + card.title + '</h3>' +
+            '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
             descHTML +
-            '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + card.id + '-subcards\', this)"></div>' +
+            '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + __attr(card.id) + '-subcards\', this)"></div>' +
             '<button class="expand-btn" title="展开更多"></button></div>' +
-            '<div class="sub-cards" id="' + card.id + '-subcards">' + subHTML + '</div></div>';
+            '<div class="sub-cards" id="' + __attr(card.id) + '-subcards">' + subHTML + '</div></div>';
     }
     return '';
 }
@@ -327,15 +390,15 @@ function generateSubCardHTML(sc, meta) {
         return '<div class="sub-card compact-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
             iconHTML +
-            '<div class="link-content"><span class="link-url">' + sc.content + '</span>' +
-            (sc.note ? '<span class="link-note">' + sc.note + '</span>' : '') +
+            '<div class="link-content"><span class="link-url">' + __txt(sc.content) + '</span>' +
+            (sc.note ? '<span class="link-note">' + __txt(sc.note) + '</span>' : '') +
             '</div></div>';
     }
     return '<div class="sub-card two-line-card' + noteCls + '" data-card-id="' + cid + '" ' +
            'onclick="__favCardOpen(\'' + cid + '\')">' +
         '<div class="card-header">' + iconHTML +
-        '<h3 class="link-title">' + sc.title + '</h3></div>' +
-        '<p class="link-url">' + (sc.desc || '') + '</p></div>';
+        '<h3 class="link-title">' + __txt(sc.title) + '</h3></div>' +
+        '<p class="link-url">' + __txt(sc.desc || '') + '</p></div>';
 }
 
 
@@ -385,9 +448,9 @@ function generateDynamicGrid(prefix, data, layout, encrypted) {
     html += '</div>';
 
     if (hidden.length > 0) {
-        html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-expand-btn">' +
+        html += '<button class="expand-section-btn" data-section-key="' + __attr(prefix) + '" id="' + __attr(prefix) + '-expand-btn">' +
             '<span>展开卡片</span><span class="arrow">▼</span></button>';
-        html += '<div class="hidden-cards" id="' + prefix + '-hidden-cards">';
+        html += '<div class="hidden-cards" id="' + __attr(prefix) + '-hidden-cards">';
         hidden.forEach(function(card, idx) {
             html += generateCardHTML(card, {
                 sectionKey: prefix,
@@ -396,7 +459,7 @@ function generateDynamicGrid(prefix, data, layout, encrypted) {
             });
         });
         html += '</div>';
-        html += '<button class="expand-section-btn" onclick="toggleSection(\'' + prefix + '\')" id="' + prefix + '-collapse-btn" style="display:none;">' +
+        html += '<button class="expand-section-btn" data-section-key="' + __attr(prefix) + '" id="' + __attr(prefix) + '-collapse-btn" style="display:none;">' +
             '<span>折叠卡片</span><span class="arrow">▲</span></button>';
     }
     return html;
@@ -421,9 +484,9 @@ function generateEmailCardHTML(cards) {
         '<div class="email-main-content" id="email-main-content">' +
         '<div class="email-contact-header">' +
         renderIcon(first, 'id="email-icon"') +
-        '<h3 class="link-title" id="email-title">' + (first.title || '') + '</h3>' +
+        '<h3 class="link-title" id="email-title">' + __txt(first.title || '') + '</h3>' +
         '</div>' +
-        '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); if(currentEmailData.mailto) window.open(currentEmailData.mailto, \'_blank\')">' + (first.address || '') + '</p>' +
+        '<p class="email-contact-desc" id="email-address">' + __txt(first.address || '') + '</p>' +
         '</div>' +
         '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
         '</div></div>';
@@ -432,16 +495,12 @@ function generateEmailCardHTML(cards) {
 function generateContactCardHTML(card, meta) {
     var cid = __registerCard(card, meta || {});
     var noteCls = __noteCls(card);
-    var descClickHandler = card.descUrl
-        ? 'event.stopPropagation(); window.open(\'' + __attr(card.descUrl) + '\', \'_blank\')'
-        : '';
+    var descUrlAttr = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
     return '<div class="link-card contact-card-wrap' + noteCls + '" data-card-id="' + cid + '" ' +
            'onclick="__favCardOpen(\'' + cid + '\')">' +
         '<div class="contact-header">' + renderIcon(card) +
-        '<h3 class="link-title">' + card.title + '</h3></div>' +
-        '<p class="contact-desc"' +
-            (descClickHandler ? ' onclick="' + descClickHandler + '"' : '') +
-        '>' + card.desc + '</p></div>';
+        '<h3 class="link-title">' + __txt(card.title) + '</h3></div>' +
+        '<p class="contact-desc"' + descUrlAttr + '>' + __txt(card.desc) + '</p></div>';
 }
 
 function generateContactGrid() {
@@ -583,13 +642,17 @@ function switchEmail(index) {
 
         var emailIconEl = document.getElementById('email-icon');
         if (currentEmailData.iconImg) {
-            emailIconEl.innerHTML = '<img src="' + currentEmailData.iconImg + '" alt="" />';
+            var safeMailImg = __safeImgUrl(currentEmailData.iconImg);
+            emailIconEl.innerHTML = safeMailImg
+                ? '<img src="' + __attr(safeMailImg) + '" alt="" />'
+                : '';
             emailIconEl.className = 'link-icon';
         } else if (currentEmailData.icon && currentEmailData.icon.charAt(0) === '<') {
             emailIconEl.innerHTML = sanitizeSVG(currentEmailData.icon);
             emailIconEl.className = 'link-icon link-icon-svg';
         } else {
-            emailIconEl.innerHTML = currentEmailData.icon || '';
+            // textContent 已经隐式做了 HTML 转义,无需再 __txt
+            emailIconEl.textContent = currentEmailData.icon || '';
             emailIconEl.className = 'link-icon';
         }
 
@@ -600,7 +663,8 @@ function switchEmail(index) {
         addressEl.onclick = function(event) {
             event.stopPropagation();
             if (currentEmailData.mailto) {
-                window.open(currentEmailData.mailto, '_blank');
+                var u = __safeUrl(currentEmailData.mailto);
+                if (u && u !== '#') window.open(u, '_blank', 'noopener,noreferrer');
             }
         };
 
@@ -630,7 +694,10 @@ function switchEmail(index) {
     document.getElementById('email-tabs').className = 'email-tabs active-' + index;
 }
 
-function openEmail(url) { window.open(url, '_blank'); }
+function openEmail(url) {
+    var u = __safeUrl(url);
+    if (u && u !== '#') window.open(u, '_blank', 'noopener,noreferrer');
+}
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -763,11 +830,15 @@ function renderAllSections(layout) {
 
         if (window.EncUnlock && EncUnlock.isLocked(sec)) {
             sectionEl.classList.add('section-locked-pill');
-            sectionEl.innerHTML = '<div id="' + sec.key + '-content"></div>';
+            sectionEl.innerHTML = '<div id="' + __attr(sec.key) + '-content"></div>';
         } else {
+            // ★ P3-5：<h2> 的 id 用独立 anchor 字段（用户可自定义短锚点，如 #video）；
+            //   未设或非法时降级到 sec.key 保持向后兼容。
+            //   <div>...-content> 内部容器仍用 sec.key（renderOneSection / __favPageAPI 都靠它定位）。
+            var anchorId = __safeAnchor(sec.anchor) || sec.key;
             sectionEl.innerHTML =
-                '<h2 class="section-title" id="' + sec.key + '">' + (sec.label || sec.key) + '</h2>' +
-                '<div id="' + sec.key + '-content"></div>';
+                '<h2 class="section-title" id="' + __attr(anchorId) + '">' + __txt(sec.label || sec.key) + '</h2>' +
+                '<div id="' + __attr(sec.key) + '-content"></div>';
         }
         root.appendChild(sectionEl);
         renderOneSection(sec, layout);

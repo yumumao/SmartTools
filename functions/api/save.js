@@ -4,6 +4,15 @@ const DATA_KEY = 'data_js';
 const SOURCE_KEY = 'data_source';
 const BACKUP_PREFIX = 'backup:';
 const MAX_BACKUPS = 100;
+const PRUNE_PROBABILITY = 0.2;  // 偶发触发 prune,降低每次保存的 KV list 开销
+
+/**
+ * 模块作用域 flag：本 isolate 内已确认 SOURCE_KEY 是 'kv'。
+ * Cloudflare Workers 同 isolate 多次请求间复用此变量,新 isolate 启动会重置。
+ * 这意味着 SOURCE_KEY 检查/写入从"每次保存"降为"每个 isolate 首次保存"。
+ * 不影响最终一致性:新 isolate 仍会重做一次检查。
+ */
+let _sourceConfirmedKv = false;
 
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
@@ -29,25 +38,31 @@ export async function onRequestPost({ request, env }) {
     if (old && old.trim() && contentChanged) {
         backupName = BACKUP_PREFIX + timestamp();
         await env.FAV_KV.put(backupName, old);
-        try { await pruneBackups(env.FAV_KV); } catch {}
+        // 偶发触发：平均 5 次新备份才扫一次,统计学上 backup 数会在 MAX 附近小幅波动
+        if (Math.random() < PRUNE_PROBABILITY) {
+            try { await pruneBackups(env.FAV_KV); } catch {}
+        }
     }
 
-    // ★ 仅当内容变化时才写入主数据（节省 KV 写次数；如想强制更新时间戳，把这判断去掉即可）
+    // ★ 主数据写入 + SOURCE_KEY 自动激活 → 并行执行
+    const writes = [];
     if (contentChanged) {
-        await env.FAV_KV.put(DATA_KEY, content);
+        writes.push(env.FAV_KV.put(DATA_KEY, content));
     }
-
-    // 保存数据后,自动确保开关在 kv 模式
-    // 这样首次部署的用户保存一次后,整个系统就自动激活了
-    const currentSource = await env.FAV_KV.get(SOURCE_KEY);
-    if (currentSource !== 'kv') {
-        await env.FAV_KV.put(SOURCE_KEY, 'kv');
+    if (!_sourceConfirmedKv) {
+        // 本 isolate 首次保存:check + 必要时切到 'kv'
+        const currentSource = await env.FAV_KV.get(SOURCE_KEY);
+        if (currentSource !== 'kv') {
+            writes.push(env.FAV_KV.put(SOURCE_KEY, 'kv'));
+        }
+        _sourceConfirmedKv = true;
     }
+    if (writes.length) await Promise.all(writes);
 
     return jsonResponse({
         ok: true,
         backup: backupName,           // 无变化时为 null
-        unchanged: !contentChanged    // ★ 新增字段，告诉前端是否真的有变化
+        unchanged: !contentChanged    // ★ 告诉前端是否真的有变化
     });
 }
 

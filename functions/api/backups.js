@@ -44,15 +44,25 @@ export async function onRequestPost({ request, env }) {
         // 保存当前作为新备份
         const old = await env.FAV_KV.get(DATA_KEY);
         if (old && old.trim()) {
-            const d = new Date(), p = n => String(n).padStart(2, '0');
-            const ts = d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' +
-                       p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
-            await env.FAV_KV.put(BACKUP_PREFIX + ts, old);
+            await env.FAV_KV.put(BACKUP_PREFIX + timestamp(), old);
         }
         await env.FAV_KV.put(DATA_KEY, content);
         return jsonResponse({ ok: true });
     }
     return jsonResponse({ ok: false, error: '未知 action' }, 400);
+}
+
+// 北京时间时间戳（与 save.js / comment.js 保持一致：Cloudflare Worker 默认 UTC，
+// 手动加 8 小时偏移得到北京时间，再用 getUTC* 系列取值避免被运行环境时区影响）
+function timestamp() {
+    const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const p = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() +
+           p(d.getUTCMonth() + 1) +
+           p(d.getUTCDate()) + '_' +
+           p(d.getUTCHours()) +
+           p(d.getUTCMinutes()) +
+           p(d.getUTCSeconds());
 }
 
 export async function onRequestDelete({ request, env }) {

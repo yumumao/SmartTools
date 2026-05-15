@@ -583,6 +583,11 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             </div>
         </div>
         <div class="form-row">
+            <label>短锚点 / anchor（用于 URL hash，可空）</label>
+            <input type="text" id="se_anchor" placeholder="如：video / ai（留空则用默认 key）" maxlength="32" autocomplete="off">
+            <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">仅允许字母、数字、下划线、连字符。设置后可用 <code>#你的anchor</code> 直接跳转到该分类。留空使用默认（内置项的 key 或自定义项的内部 key）。</p>
+        </div>
+        <div class="form-row">
             <label><input type="checkbox" id="se_dynamic"> <span data-i18n="secDynamicField">启用展开/折叠</span></label>
             <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;" data-i18n="secDynamicHint">勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。</p>
         </div>
@@ -1279,7 +1284,8 @@ function getSections() {
         label: (c.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : c.label,
         kind: 'card', builtin: false,
         visible: true,
-        dynamic: !!c.dynamic, encrypted: !!c.encrypted, locked: !!c.locked
+        dynamic: !!c.dynamic, encrypted: !!c.encrypted, locked: !!c.locked,
+        anchor: c.anchor || ''   // ★ P3-5：透传 anchor 给 generateDataJs / renderSectionTabs 使用
     }));
     return [...cardB, ...customs, ...otherB];
 }
@@ -2378,7 +2384,9 @@ async function parseAndLoad(text) {
             if (Array.isArray(r.customSections)) {
                 r.customSections.forEach(function(c) {
                     if (!c || !c.key) return;
-                    s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label||c.key, label:c.label||c.key, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[] });
+                    // ★ P3-5: 老格式 customSections 也兼容 anchor
+                    var oa = (typeof c.anchor === 'string' && /^[a-zA-Z0-9_-]+$/.test(c.anchor)) ? c.anchor : '';
+                    s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label||c.key, label:c.label||c.key, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[], anchor: oa });
                 });
             }
             await parseSectionsArray(s);
@@ -2409,7 +2417,7 @@ async function parseSectionsArray(rawSections) {
         if (sec.builtin) {
             store[sec.key] = Array.isArray(sec.cards) ? sec.cards : [];
 
-            // ★ 解析内置大类的 visible / 自定义 label
+            // ★ 解析内置大类的 visible / 自定义 label / anchor（P3-5）
             //   只有当 label 不等于 zh/en 默认值时，才视为用户自定义
             const def = BUILTIN_SECTIONS.find(b => b.key === sec.key);
             const meta = {};
@@ -2419,12 +2427,17 @@ async function parseSectionsArray(rawSections) {
                 if (sec.label !== defZh && sec.label !== defEn) meta.label = sec.label;
             }
             if (sec.visible === false) meta.visible = false;
+            if (typeof sec.anchor === 'string' && /^[a-zA-Z0-9_-]+$/.test(sec.anchor)) {
+                meta.anchor = sec.anchor;
+            }
             if (Object.keys(meta).length) builtinSectionMeta[sec.key] = meta;
         } else {
             if (isBuiltinKey(sec.key)) continue;
             if (customSectionsMeta.find(x => x.key === sec.key)) continue;
             var label = (sec.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : (sec.label || sec.key);
-            var meta = { key: sec.key, label: label, dynamic: !!sec.dynamic, encrypted: false, locked: false, _enc: null };
+            // ★ P3-5: 读取 anchor 字段；非法或缺失 → 空字符串（视为未设置）
+            var rawAnchor = (typeof sec.anchor === 'string' && /^[a-zA-Z0-9_-]+$/.test(sec.anchor)) ? sec.anchor : '';
+            var meta = { key: sec.key, label: label, anchor: rawAnchor, dynamic: !!sec.dynamic, encrypted: false, locked: false, _enc: null };
 
             if (sec.encrypted && sec.enc) {
                 meta.encrypted = true;
@@ -2573,6 +2586,13 @@ async function generateDataJs() {
         }
         secObj.label = s.label;
         secObj.visible = s.visible !== false;
+        // ★ P3-5: 输出 anchor 字段（仅在用户显式设置过时,空字符串/未设不输出）
+        if (s.builtin) {
+            const bm = builtinSectionMeta[s.key];
+            if (bm && bm.anchor) secObj.anchor = bm.anchor;
+        } else {
+            if (s.anchor) secObj.anchor = s.anchor;
+        }
 
         if (!s.builtin) {
             const c = customSectionsMeta.find(x => x.key === s.key);
@@ -3043,13 +3063,16 @@ function openSectionEditModal(target) {
         const m = builtinSectionMeta[editingBuiltinKey] || {};
         const def = BUILTIN_SECTIONS.find(b => b.key === editingBuiltinKey);
         $('se_label').value = m.label || (def ? t(def.labelKey) : '');
+        $('se_anchor').value = m.anchor || '';
     } else if (isNew) {
         $('se_label').value = '';
+        $('se_anchor').value = '';
         $('se_dynamic').checked = false;
         $('se_encrypted').checked = false;
     } else {
         const c = customSectionsMeta[editingCustomSectionIdx];
         $('se_label').value = c.label;
+        $('se_anchor').value = c.anchor || '';
         $('se_dynamic').checked = !!c.dynamic;
         $('se_encrypted').checked = !!c.encrypted;
     }
@@ -3061,7 +3084,15 @@ function saveSectionEdit() {
     if (!label) { toast(t('toastNeedSecLabel')); return; }
     if (label.length > 50) { toast(t('toastSecLabelTooLong')); return; }
 
-    // ★ 内置大类：只更新 label（与 i18n 默认值相等时视为清除自定义）
+    // ★ P3-5: anchor 字段合法性校验
+    //   留空 → 清除（用默认 key）；非法字符 → 阻止保存并提示
+    const rawAnchor = $('se_anchor').value.trim();
+    if (rawAnchor && !/^[a-zA-Z0-9_-]+$/.test(rawAnchor)) {
+        toast('anchor 只能包含字母、数字、下划线、连字符'); return;
+    }
+    const anchor = rawAnchor;  // '' 表示清除
+
+    // ★ 内置大类：只更新 label / anchor（label 与 i18n 默认值相等时视为清除自定义）
     if (editingBuiltinKey) {
         const def = BUILTIN_SECTIONS.find(b => b.key === editingBuiltinKey);
         const defZh = (def && I18N.zh && I18N.zh[def.labelKey]) || '';
@@ -3072,6 +3103,8 @@ function saveSectionEdit() {
         } else {
             builtinSectionMeta[editingBuiltinKey].label = label;
         }
+        if (anchor) builtinSectionMeta[editingBuiltinKey].anchor = anchor;
+        else delete builtinSectionMeta[editingBuiltinKey].anchor;
         if (!Object.keys(builtinSectionMeta[editingBuiltinKey]).length) delete builtinSectionMeta[editingBuiltinKey];
         hide('sectionEditModal');
         renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
@@ -3087,12 +3120,12 @@ function saveSectionEdit() {
     if (editingCustomSectionIdx === -1) {
         if (encrypted && !getEncPassword()) { toast(t('toastEncNoSessionPwd')); return; }
         const key = genCustomKey();
-        customSectionsMeta.push({ key, label, dynamic, encrypted, locked: false, _enc: null });
+        customSectionsMeta.push({ key, label, anchor, dynamic, encrypted, locked: false, _enc: null });
         store[key] = [];
         toast(t('toastAddedSectionUnsaved'));
     } else {
         const c = customSectionsMeta[editingCustomSectionIdx];
-        c.label = label; c.dynamic = dynamic;
+        c.label = label; c.dynamic = dynamic; c.anchor = anchor;
         if (encrypted && !c.encrypted) {
             if (!getEncPassword()) { toast(t('toastEncNoSessionPwd')); return; }
             c.encrypted = true; toast(t('toastEncEnabled'));

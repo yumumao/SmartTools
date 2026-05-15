@@ -27,6 +27,13 @@ const DATA_KEY = 'data_js';
 const SOURCE_KEY = 'data_source';
 const BACKUP_PREFIX = 'backup:';
 const MAX_BACKUPS = 100;
+const PRUNE_PROBABILITY = 0.2;  // 偶发触发 prune,降低每次 patch 的 KV list 开销
+
+/**
+ * 模块作用域 flag：与 save.js 同样的语义,但两个模块各自维护一份。
+ * 本 isolate 内确认过 SOURCE_KEY 已是 'kv' 后,后续 patch 跳过 check/write。
+ */
+let _sourceConfirmedKv = false;
 
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
@@ -67,16 +74,21 @@ export async function onRequestPost({ request, env }) {
     if (old.trim()) {
         backupName = BACKUP_PREFIX + timestamp();
         await env.FAV_KV.put(backupName, old);
-        try { await pruneBackups(env.FAV_KV); } catch {}
+        if (Math.random() < PRUNE_PROBABILITY) {
+            try { await pruneBackups(env.FAV_KV); } catch {}
+        }
     }
 
-    await env.FAV_KV.put(DATA_KEY, patched);
-
-    // 首次 patch 自动把源切到 kv（与 save.js 一致）
-    const currentSource = await env.FAV_KV.get(SOURCE_KEY);
-    if (currentSource !== 'kv') {
-        await env.FAV_KV.put(SOURCE_KEY, 'kv');
+    // ★ 主数据写入 + SOURCE_KEY 自动激活 → 并行
+    const writes = [env.FAV_KV.put(DATA_KEY, patched)];
+    if (!_sourceConfirmedKv) {
+        const currentSource = await env.FAV_KV.get(SOURCE_KEY);
+        if (currentSource !== 'kv') {
+            writes.push(env.FAV_KV.put(SOURCE_KEY, 'kv'));
+        }
+        _sourceConfirmedKv = true;
     }
+    await Promise.all(writes);
 
     return jsonResponse({ ok: true, backup: backupName });
 }
