@@ -109,25 +109,51 @@ async function pruneBackups(kv) {
  * ════════════════════════════════════════════════════════════════════════════════ */
 
 function patchCommentInSource(src, path, comment) {
-    const varName = path[0];
-    const varPos = findTopLevelVarDecl(src, varName);
-    if (varPos < 0) throw new Error('未找到变量 ' + varName);
+    // ★ 新格式：path = ['sections', sectionIdx, 'cards', cardIdx, ..., 'comment']
+    // 兼容老格式：path = ['usbDriveData', cardIdx, ..., 'comment']
+    const firstSeg = path[0];
 
-    const eqPos = src.indexOf('=', varPos);
-    if (eqPos < 0) throw new Error('变量声明缺少 =');
-    let pos = skipWs(src, eqPos + 1);
+    let pos;
+    if (firstSeg === 'sections') {
+        // 新格式：从 var sections = [...] 开始
+        const varPos = findTopLevelVarDecl(src, 'sections');
+        if (varPos < 0) throw new Error('未找到变量 sections');
+        const eqPos = src.indexOf('=', varPos);
+        if (eqPos < 0) throw new Error('变量声明缺少 =');
+        pos = skipWs(src, eqPos + 1);
 
-    // 按 path[1..last-1] 逐级导航（最后一段 'comment' 由 updateCommentInObject 处理）
-    for (let i = 1; i < path.length - 1; i++) {
-        const seg = path[i];
-        if (typeof seg === 'number') {
-            if (src[pos] !== '[') throw new Error('导航第 ' + i + ' 段期望 [，实际: ' + src[pos]);
-            pos = enterArrayIndex(src, pos, seg);
-        } else if (typeof seg === 'string') {
-            if (src[pos] !== '{') throw new Error('导航第 ' + i + ' 段期望 {，实际: ' + src[pos]);
-            pos = enterObjectKey(src, pos, seg);
-        } else {
-            throw new Error('path 段类型错误');
+        // 导航：跳过 path 中的 'sections'（已处理），从 path[1] 开始
+        for (let i = 1; i < path.length - 1; i++) {
+            const seg = path[i];
+            if (typeof seg === 'number') {
+                if (src[pos] !== '[') throw new Error('导航第 ' + i + ' 段期望 [，实际: ' + src[pos]);
+                pos = enterArrayIndex(src, pos, seg);
+            } else if (typeof seg === 'string') {
+                if (src[pos] !== '{') throw new Error('导航第 ' + i + ' 段期望 {，实际: ' + src[pos]);
+                pos = enterObjectKey(src, pos, seg);
+            } else {
+                throw new Error('path 段类型错误');
+            }
+        }
+    } else {
+        // 老格式：path[0] 是顶级变量名
+        const varPos = findTopLevelVarDecl(src, firstSeg);
+        if (varPos < 0) throw new Error('未找到变量 ' + firstSeg);
+        const eqPos = src.indexOf('=', varPos);
+        if (eqPos < 0) throw new Error('变量声明缺少 =');
+        pos = skipWs(src, eqPos + 1);
+
+        for (let i = 1; i < path.length - 1; i++) {
+            const seg = path[i];
+            if (typeof seg === 'number') {
+                if (src[pos] !== '[') throw new Error('导航第 ' + i + ' 段期望 [，实际: ' + src[pos]);
+                pos = enterArrayIndex(src, pos, seg);
+            } else if (typeof seg === 'string') {
+                if (src[pos] !== '{') throw new Error('导航第 ' + i + ' 段期望 {，实际: ' + src[pos]);
+                pos = enterObjectKey(src, pos, seg);
+            } else {
+                throw new Error('path 段类型错误');
+            }
         }
     }
 

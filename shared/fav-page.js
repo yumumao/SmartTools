@@ -26,29 +26,71 @@ try {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 2】数据缺失兜底
+ * 【区块 2】数据格式适配 & 缺失兜底
  * ════════════════════════════════════════════════════════════════════════════════ */
-if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
+// ★ 统一格式：老数据（分散 var）自动包装为 sections 数组
+function normalizeData() {
+    if (window.__sections) return window.__sections;
+    if (Array.isArray(window.sections)) {
+        // ★ 修正内置分类的 dynamic 标志（防止 generateDataJs 可能写入的错误值）
+        var BUILTIN_DYNAMIC = { onlineAIData: true, videoData: true };
+        window.sections.forEach(function(s) {
+            if (s.builtin && BUILTIN_DYNAMIC.hasOwnProperty(s.key)) s.dynamic = BUILTIN_DYNAMIC[s.key];
+        });
+        window.__sections = window.sections;
+        window.__sectionIndexMap = {};
+        window.__sections.forEach(function(sec, i) { window.__sectionIndexMap[sec.key] = i; });
+        return window.__sections;
+    }
+
+    // 老格式：var usbDriveData / teachingData / ... → 包装
+    if (typeof usbDriveData !== 'undefined') {
+        var s = [];
+        // ★ 普通卡片大类（自定义大类会插在它们之后）
+        var cardDefs = [
+            { key:'usbDriveData',  kind:'card',    defaultLabel:'☁️ 在线U盘',    label:'☁️ 在线U盘',    dynamic:false },
+            { key:'teachingData',  kind:'card',    defaultLabel:'📚 授课资料',    label:'📚 授课资料',    dynamic:false },
+            { key:'onlineAIData',  kind:'card',    defaultLabel:'🖥️ 网络资源',    label:'🖥️ 网络资源',    dynamic:true  },
+            { key:'videoData',     kind:'card',    defaultLabel:'🎬 视频聚合',    label:'🎬 视频聚合',    dynamic:true  }
+        ];
+        // ★ 联系类大类（永远排在自定义大类之后，让 email/contact 紧贴显示）
+        var contactDefs = [
+            { key:'emailData',     kind:'email',   defaultLabel:'📨 联系方式',    label:'📨 联系方式',    dynamic:false },
+            { key:'contactData',   kind:'contact', defaultLabel:'📨 其他联系方式', label:'📨 其他联系方式', dynamic:false }
+        ];
+        cardDefs.forEach(function(d) {
+            s.push({ builtin:true, key:d.key, kind:d.kind, defaultLabel:d.defaultLabel, label:d.label, visible:true, dynamic:d.dynamic, cards: window[d.key] || [] });
+        });
+        // 自定义大类插在 card 之后、contact 之前
+        if (Array.isArray(window.customSections)) {
+            window.customSections.forEach(function(c) {
+                s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label, label:c.label, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[] });
+            });
+        }
+        contactDefs.forEach(function(d) {
+            s.push({ builtin:true, key:d.key, kind:d.kind, defaultLabel:d.defaultLabel, label:d.label, visible:true, dynamic:d.dynamic, cards: window[d.key] || [] });
+        });
+        window.__sections = s;
+        // ★ 建立 key→index 映射供 note-modal.js 等使用
+        window.__sectionIndexMap = {};
+        s.forEach(function(sec, i) { window.__sectionIndexMap[sec.key] = i; });
+        return s;
+    }
+
+    // 完全无数据
     var _container = document.querySelector('.container');
     if (_container) {
         _container.innerHTML =
-            '<div class="error-container">' +
-                '<div class="error-card">' +
-                    '<span class="error-emoji">📂</span>' +
-                    '<h2 class="error-title">数据加载失败</h2>' +
-                    '<p class="error-message">收藏夹内容未能加载，可能是数据文件缺失或存在语法错误。</p>' +
-                    '<div class="error-hint-box">' +
-                        '<div class="error-hint-title">排查建议</div>' +
-                        '<div class="error-hint-item">确认 <code>数据文件</code> 与本页面在同一目录下</div>' +
-                        '<div class="error-hint-item">用浏览器 F12 控制台查看是否有 404 或语法报错</div>' +
-                        '<div class="error-hint-item">检查 SVG 图标是否写在同一行，避免模板字符串解析失败</div>' +
-                    '</div>' +
-                    '<a href="toolsindex.html" class="error-home-btn">← 返回主页</a>' +
-                '</div>' +
-            '</div>';
+            '<div class="error-container"><div class="error-card">' +
+                '<span class="error-emoji">📂</span>' +
+                '<h2 class="error-title">数据加载失败</h2>' +
+                '<p class="error-message">收藏夹内容未能加载，可能是数据文件缺失或存在语法错误。</p>' +
+                '<a href="toolsindex.html" class="error-home-btn">← 返回主页</a>' +
+            '</div></div>';
     }
     throw new Error('数据文件未加载');
 }
+normalizeData();
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -56,8 +98,9 @@ if (typeof usbDriveData === 'undefined' || typeof emailData === 'undefined') {
  * ════════════════════════════════════════════════════════════════════════════════ */
 var currentExpanded  = null;
 var currentLayout    = 'mobile';
-var currentEmailData = emailData[0];
+var currentEmailData = null;  // ★ 动态设置（首个 email 类型 section 的第一张卡片）
 var isAnimating      = false;
+var __allSections    = window.__sections;  // ★ 统一数据源
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -124,11 +167,12 @@ window.__favEmailClick = function() {
     var cd = currentEmailData;
     if (!cd) return;
     if (cd.comment && window.NoteModal) {
-        var idx = emailData.indexOf(cd);
+        var cards = getEmailCards();
+        var idx = cards.indexOf(cd);
         var cid = __registerCard(cd, {
-            sectionKey: 'contact',
+            sectionKey: 'emailData',
             emailIndex: idx,
-            uniqueKey:  'contact/email/' + idx
+            uniqueKey:  'emailData/email/' + idx
         });
         window.NoteModal.show(cid);
     } else if (cd.url) {
@@ -312,10 +356,11 @@ function generateStaticGrid(data, sectionKey, encrypted) {
 }
 
 function getVisibleCount(prefix, layout) {
-    if (prefix === 'video') {
+    // ★ 匹配新的 section key 格式
+    if (prefix === 'videoData') {
         return layout === 'mobile' ? 4 : layout === 'tablet' ? 6 : 8;
     }
-    if (prefix === 'ai') {
+    if (prefix === 'onlineAIData') {
         return layout === 'tablet' ? 3 : 4;
     }
     if (typeof prefix === 'string' && prefix.indexOf('custom_') === 0) {
@@ -362,22 +407,23 @@ function generateDynamicGrid(prefix, data, layout, encrypted) {
  * 【区块 7】联系方式 / 邮箱卡片
  * ════════════════════════════════════════════════════════════════════════════════ */
 
-function generateEmailCardHTML() {
+function generateEmailCardHTML(cards) {
+    cards = cards || [];
     var tabsHTML = '';
-    emailData.forEach(function(em, i) {
+    cards.forEach(function(em, i) {
         var cls = i === 0 ? ' active' : '';
         tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
     });
-    // 邮箱卡主区域改走 __favEmailClick，内部判断 currentEmailData.comment
-    var noteCls = __noteCls(emailData[0]);
+    var first = cards[0] || {};
+    var noteCls = __noteCls(first);
     return '<div class="card-container">' +
         '<div class="link-card email-card' + noteCls + '" id="email-card-root" onclick="__favEmailClick()">' +
         '<div class="email-main-content" id="email-main-content">' +
         '<div class="email-contact-header">' +
-        renderIcon(emailData[0], 'id="email-icon"') +
-        '<h3 class="link-title" id="email-title">' + emailData[0].title + '</h3>' +
+        renderIcon(first, 'id="email-icon"') +
+        '<h3 class="link-title" id="email-title">' + (first.title || '') + '</h3>' +
         '</div>' +
-        '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); if(currentEmailData.mailto) window.open(currentEmailData.mailto, \'_blank\')">' + emailData[0].address + '</p>' +
+        '<p class="email-contact-desc" id="email-address" onclick="event.stopPropagation(); if(currentEmailData.mailto) window.open(currentEmailData.mailto, \'_blank\')">' + (first.address || '') + '</p>' +
         '</div>' +
         '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
         '</div></div>';
@@ -516,9 +562,16 @@ function autoExpandSection(prefix) {
 /* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 9】邮箱切换
  * ════════════════════════════════════════════════════════════════════════════════ */
+// ★ 从 sections 中获取 email 数据
+function getEmailCards() {
+    var emailSec = __allSections.find(function(s) { return s.kind === 'email' && s.visible !== false; });
+    return (emailSec && emailSec.cards) ? emailSec.cards : [];
+}
+
 function switchEmail(index) {
-    if (isAnimating) return;
-    var currentIndex = emailData.indexOf(currentEmailData);
+    var emailCards = getEmailCards();
+    if (isAnimating || index >= emailCards.length) return;
+    var currentIndex = emailCards.indexOf(currentEmailData);
     if (currentIndex === index) return;
 
     isAnimating = true;
@@ -526,7 +579,7 @@ function switchEmail(index) {
     mainContent.classList.add('slide-out');
 
     setTimeout(function() {
-        currentEmailData = emailData[index];
+        currentEmailData = emailCards[index];
 
         var emailIconEl = document.getElementById('email-icon');
         if (currentEmailData.iconImg) {
@@ -581,71 +634,21 @@ function openEmail(url) { window.open(url, '_blank'); }
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 10】自定义大类 + 加密大类
+ * 【区块 10】对外 API（enc-rerender.js / note-modal.js 使用）
  * ════════════════════════════════════════════════════════════════════════════════ */
-
-function injectCustomSections(layout) {
-    if (typeof customSections === 'undefined' || !Array.isArray(customSections) || !customSections.length) return;
-
-    var contactTitle = document.getElementById('contact');
-    if (!contactTitle) return;
-    var contactSection = contactTitle.closest('.section');
-    if (!contactSection) return;
-
-    customSections.forEach(function(cs) {
-        if (!cs || !cs.key || typeof cs.key !== 'string') return;
-        if (document.getElementById(cs.key + '-content')) return;
-
-        var sectionEl = document.createElement('div');
-        sectionEl.className = 'section';
-        sectionEl.dataset.customKey = cs.key;
-
-        if (window.EncUnlock && EncUnlock.isLocked(cs)) {
-            sectionEl.classList.add('section-locked-pill');
-            sectionEl.innerHTML = '<div id="' + cs.key + '-content"></div>';
-        } else {
-            sectionEl.innerHTML =
-                '<h2 class="section-title" id="' + cs.key + '">' + (cs.label || cs.key) + '</h2>' +
-                '<div id="' + cs.key + '-content"></div>';
-        }
-        contactSection.parentNode.insertBefore(sectionEl, contactSection);
-
-        renderCustomSection(cs, layout);
-    });
-}
-
-function renderCustomSection(cs, layout) {
-    var contentEl = document.getElementById(cs.key + '-content');
-    if (!contentEl) return;
-
-    if (window.EncUnlock && EncUnlock.isLocked(cs)) {
-        contentEl.innerHTML = '';
-        contentEl.appendChild(EncUnlock.makeLockedPlaceholder(cs));
-        return;
-    }
-
-    var cards = Array.isArray(cs.cards) ? cs.cards : [];
-    if (!cards.length) {
-        contentEl.innerHTML = '';
-        return;
-    }
-    if (cs.dynamic) {
-        contentEl.innerHTML = generateDynamicGrid(cs.key, cards, layout, !!cs.encrypted);
-        if (layout === 'desktop') {
-            autoExpandSection(cs.key);
-        }
-    } else {
-        contentEl.innerHTML = generateStaticGrid(cards, cs.key, !!cs.encrypted);
-    }
-}
-
-/**
- * 暴露给 shared/enc-rerender.js + shared/note-modal.js 使用的 API。
- */
 window.__favPageAPI = {
     getLayout: function() { return currentLayout; },
-    renderSection: function(cs, layout) { renderCustomSection(cs, layout); },
-    // NoteModal 通过这个取卡片
+    // ★ 重渲染单个 section（供 enc-rerender 调用）
+    renderSection: function(sec, layout) {
+        var contentEl = document.getElementById(sec.key + '-content');
+        if (!contentEl) return;
+        if (window.EncUnlock && EncUnlock.isLocked(sec)) {
+            contentEl.innerHTML = '';
+            contentEl.appendChild(EncUnlock.makeLockedPlaceholder(sec));
+        } else {
+            renderOneSection(sec, layout || currentLayout);
+        }
+    },
     getCardById: function(id) { return __cardRegistry[id] || null; },
     clearExpandedState: function() {
         if (!currentExpanded) return;
@@ -685,8 +688,83 @@ function toggleStyleMenu(e) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 12】页面初始化
+ * 【区块 12】页面初始化 → 统一遍历 sections 动态渲染
  * ════════════════════════════════════════════════════════════════════════════════ */
+
+// ★ 渲染单个 section（根据 kind 分发）
+function renderOneSection(sec, layout) {
+    var contentEl = document.getElementById(sec.key + '-content');
+    if (!contentEl) return;
+
+    if (window.EncUnlock && EncUnlock.isLocked(sec)) {
+        contentEl.innerHTML = '';
+        contentEl.appendChild(EncUnlock.makeLockedPlaceholder(sec));
+        return;
+    }
+
+    var cards = Array.isArray(sec.cards) ? sec.cards : [];
+    if (!cards.length) {
+        contentEl.innerHTML = '';
+        return;
+    }
+
+    if (sec.kind === 'email') {
+        // ★ 邮箱 + 联系方式合并在一行（桌面端并排，小屏上下）
+        if (!currentEmailData) currentEmailData = cards[0];
+        var html = '<div class="links-grid contact-row">';
+        html += generateEmailCardHTML(cards);
+        // 找到 contactData section，把它的卡片也渲染进来
+        var contactSec = __allSections.find(function(s) { return s.key === 'contactData' && s.visible !== false; });
+        if (contactSec && Array.isArray(contactSec.cards)) {
+            contactSec.cards.forEach(function(card, idx) {
+                html += generateContactCardHTML(card, { sectionKey: 'contactData', cardIndex: idx });
+            });
+        }
+        html += '</div>';
+        contentEl.innerHTML = html;
+    } else if (sec.kind === 'contact') {
+        contentEl.innerHTML = '<div class="links-grid contact-row">' +
+            cards.map(function(card, idx) {
+                return generateContactCardHTML(card, { sectionKey: sec.key, cardIndex: idx });
+            }).join('') + '</div>';
+    } else {
+        // kind === 'card'
+        if (sec.dynamic) {
+            contentEl.innerHTML = generateDynamicGrid(sec.key, cards, layout, !!sec.encrypted);
+            if (layout === 'desktop') autoExpandSection(sec.key);
+        } else {
+            contentEl.innerHTML = generateStaticGrid(cards, sec.key, !!sec.encrypted);
+        }
+    }
+}
+
+// ★ 统一渲染所有可见 section 到 #sectionsRoot
+function renderAllSections(layout) {
+    var root = document.getElementById('sectionsRoot');
+    if (!root) return;
+    root.innerHTML = '';
+
+    __allSections.forEach(function(sec) {
+        if (sec.visible === false) return;
+        // ★ contactData 合并到 email section 中渲染，此处跳过
+        if (sec.key === 'contactData') return;
+        var sectionEl = document.createElement('div');
+        sectionEl.className = 'section';
+        if (sec.builtin === false) sectionEl.dataset.customKey = sec.key;
+
+        if (window.EncUnlock && EncUnlock.isLocked(sec)) {
+            sectionEl.classList.add('section-locked-pill');
+            sectionEl.innerHTML = '<div id="' + sec.key + '-content"></div>';
+        } else {
+            sectionEl.innerHTML =
+                '<h2 class="section-title" id="' + sec.key + '">' + (sec.label || sec.key) + '</h2>' +
+                '<div id="' + sec.key + '-content"></div>';
+        }
+        root.appendChild(sectionEl);
+        renderOneSection(sec, layout);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async function() {
 
     document.addEventListener('click', function(e) {
@@ -707,20 +785,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         try { await EncUnlock.bootstrap(); } catch (e) { console.warn('EncUnlock bootstrap error:', e); }
     }
 
-    // 传入 sectionKey 以便注释功能定位
-    document.getElementById('usb-drive-content').innerHTML = generateStaticGrid(usbDriveData, 'usb-drive');
-    document.getElementById('teaching-content').innerHTML  = generateStaticGrid(teachingData,  'teaching');
+    // ★ 初始化第一个 email section 的 currentEmailData
+    var emailSec = __allSections.find(function(s) { return s.kind === 'email' && s.visible !== false; });
+    if (emailSec && emailSec.cards && emailSec.cards.length) currentEmailData = emailSec.cards[0];
 
-    injectCustomSections(currentLayout);
-
-    document.getElementById('contact-content').innerHTML   = generateContactGrid();
-    document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai',    onlineAIData, currentLayout);
-    document.getElementById('video-content').innerHTML     = generateDynamicGrid('video', videoData,    currentLayout);
-
-    if (currentLayout === 'desktop') {
-        autoExpandSection('ai');
-        autoExpandSection('video');
-    }
+    renderAllSections(currentLayout);
 
     alignStyleSwitcher();
     var containerEl = document.querySelector('.container');
@@ -753,7 +822,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
- * 【区块 13】窗口 resize 响应
+ * 【区块 13】窗口 resize 响应 → 动态重渲染
  * ════════════════════════════════════════════════════════════════════════════════ */
 window.addEventListener('resize', function() {
     var newLayout = detectLayout();
@@ -762,22 +831,21 @@ window.addEventListener('resize', function() {
 
         if (currentExpanded) {
             currentExpanded = null;
-            document.getElementById('overlay').classList.remove('active');
+            var ol = document.getElementById('overlay');
+            if (ol) ol.classList.remove('active');
         }
 
-        document.getElementById('online-ai-content').innerHTML = generateDynamicGrid('ai',    onlineAIData, currentLayout);
-        document.getElementById('video-content').innerHTML     = generateDynamicGrid('video', videoData,    currentLayout);
-
-        if (currentLayout === 'desktop') {
-            autoExpandSection('ai');
-            autoExpandSection('video');
-        }
-
-        if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
-            customSections.forEach(function(cs) {
-                if (cs && cs.key) renderCustomSection(cs, currentLayout);
-            });
-        }
+        // ★ 只重渲染 dynamic sections（静态网格不受 layout 影响）
+        __allSections.forEach(function(sec) {
+            if (sec.visible === false) return;
+            if (sec.kind === 'card' && sec.dynamic) {
+                var contentEl = document.getElementById(sec.key + '-content');
+                if (contentEl) {
+                    contentEl.innerHTML = generateDynamicGrid(sec.key, sec.cards || [], currentLayout, !!sec.encrypted);
+                    if (currentLayout === 'desktop') autoExpandSection(sec.key);
+                }
+            }
+        });
     }
 
     requestAnimationFrame(alignStyleSwitcher);

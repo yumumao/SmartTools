@@ -1,13 +1,23 @@
-/* 🔐 EncUnlock 配套：自定义大类重渲染器（通用版，供 index1~5 复用）
+/* 🔐 EncUnlock 配套：加密大类重渲染器（通用版，供 index1~5 复用）
  *
- * 页面需挂载：window.__favPageAPI = {
- *     getLayout: function() { return currentLayout; },
- *     renderSection: function(cs, layout) { ... },   // 即页面里的 renderCustomSection
- *     clearExpandedState: function() { ... }         // 可选
- * };
+ * 页面需挂载：window.__favPageAPI = { getLayout, renderSection, clearExpandedState }
+ * ★ 适配新 sections 数组格式
  */
 (function() {
     'use strict';
+
+    // ★ 获取所有加密 section（兼容新旧格式）
+    function getEncryptedSections() {
+        var all = window.__sections || window.sections;
+        if (Array.isArray(all)) {
+            return all.filter(function(s) { return s && s.encrypted; });
+        }
+        // 老格式 fallback
+        if (typeof customSections !== 'undefined' && Array.isArray(customSections)) {
+            return customSections.filter(function(c) { return c && c.encrypted; });
+        }
+        return [];
+    }
 
     window.rerenderCustomSections = function() {
         var api = window.__favPageAPI;
@@ -15,7 +25,9 @@
             location.reload();
             return;
         }
-        if (typeof customSections === 'undefined' || !Array.isArray(customSections)) return;
+
+        var encSections = getEncryptedSections();
+        if (!encSections.length) return;
 
         if (typeof api.clearExpandedState === 'function') {
             try { api.clearExpandedState(); } catch (e) {}
@@ -23,7 +35,7 @@
 
         var layout = api.getLayout();
 
-        customSections.forEach(function(cs) {
+        encSections.forEach(function(cs) {
             if (!cs || !cs.key) return;
             var sectionEl = document.querySelector('.section[data-custom-key="' + cs.key + '"]');
             if (!sectionEl) return;
@@ -31,7 +43,6 @@
             var isLocked = window.EncUnlock && EncUnlock.isLocked(cs);
 
             if (isLocked) {
-                // ★ 锁定态：rerender 自己渲染药丸，不走页面的 renderCustomSection
                 sectionEl.classList.add('section-locked-pill');
                 sectionEl.innerHTML = '<div id="' + cs.key + '-content"></div>';
                 var contentEl = document.getElementById(cs.key + '-content');
@@ -39,7 +50,6 @@
                     contentEl.appendChild(EncUnlock.makeLockedPlaceholder(cs));
                 }
             } else {
-                // 正常态：交还页面自己渲染
                 sectionEl.classList.remove('section-locked-pill');
                 sectionEl.innerHTML =
                     '<h2 class="section-title" id="' + cs.key + '">' +
@@ -50,7 +60,6 @@
             }
         });
 
-        // 锁定后右下角 FAB 处理：没有已解锁的加密大类就移除
         var fab = document.getElementById('enc-lock-fab');
         if (window.EncUnlock && !EncUnlock.hasUnlockedEncrypted()) {
             if (fab) fab.remove();

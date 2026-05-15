@@ -558,7 +558,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <div id="sectionsModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:720px;">
         <h2 data-i18n="sectionsTitle">🗂 大类管理</h2>
-        <p class="muted" data-i18n-html="sectionsDesc">内置大类来自 <code>indexN.html</code>，无法修改、删除或排序；自定义大类可自由增删改排序。</p>
+        <p class="muted" data-i18n-html="sectionsDesc">内置大类，无法删除或排序；自定义大类可自由增删改排序。</p>
         <h3 style="margin-top:14px;" data-i18n="sectionsBuiltinH">🔒 内置大类</h3>
         <div id="builtinSectionsList"></div>
         <h3 style="margin-top:18px;"><span data-i18n="sectionsCustomH">⚙️ 自定义大类</span> <span style="font-size:12px; font-weight:400; color:#888;" data-i18n="sectionsCustomHint">（显示在「视频聚合」之后、「邮箱」之前）</span></h3>
@@ -800,7 +800,7 @@ const I18N = {
         stServerLoaded: '✓ 已从服务端加载', stServerLoadFail: '✗ 服务端加载失败',
         stServerSaved: '✓ 已保存到服务端（{time}）', stReadFail: '✗ 读取失败',
         secUsb: '☁️ 在线U盘', secTeaching: '📚 授课资料', secOnlineAI: '🖥️ 网络资源',
-        secVideo: '🎬 视频聚合', secEmail: '📧 邮箱数据', secContact: '📨 其他联系方式',
+        secVideo: '🎬 视频聚合', secEmail: '📨 联系方式', secContact: '📨 其他联系方式',
         secUnclassified: '📦 未分类', secManageTab: '🗂 大类管理',
         secCustomTag: '自定义', secCustomTitle: '自定义大类',
         btnAddCard: '➕ 新增卡片', titleItems: '（共 {n} 项）',
@@ -851,6 +851,13 @@ const I18N = {
         sectionsAddBtn: '➕ 新增大类',
         sectionsDeleteHint: '💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。',
         sectionsClose: '关闭', sectionsNoCustom: '暂无自定义大类。点击下方「➕ 新增大类」创建。',
+        /* ★ 内置大类管理 */
+        sectionEditBuiltinTitle: '✏️ 编辑内置大类',
+        sectionBuiltinHide: '隐藏（首页不显示此大类）',
+        sectionBuiltinShow: '取消隐藏（首页显示此大类）',
+        sectionBuiltinEdit: '重命名',
+        sectionBuiltinResetName: '恢复默认名（跟随中英文切换）',
+        sectionBadgeHidden: '🚫 已隐藏',
         sectionBadgeBuiltin: '🔒 内置', sectionBadgeCustom: '⚙️ 自定义',
         sectionBadgeDynamic: '展开/折叠', sectionBadgeEncrypted: '🔐 加密',
         sectionBadgeLocked: '🔒 已锁定',
@@ -1001,7 +1008,7 @@ const I18N = {
         stServerLoaded: '✓ Loaded from server', stServerLoadFail: '✗ Server load failed',
         stServerSaved: '✓ Saved to server ({time})', stReadFail: '✗ Read failed',
         secUsb: '☁️ Cloud Drive', secTeaching: '📚 Teaching', secOnlineAI: '🖥️ Web Resources',
-        secVideo: '🎬 Videos', secEmail: '📧 Emails', secContact: '📨 Contacts',
+        secVideo: '🎬 Videos', secEmail: '📨 Contacts', secContact: '📨 Contact Cards',
         secUnclassified: '📦 Unclassified', secManageTab: '🗂 Sections',
         secCustomTag: 'Custom', secCustomTitle: 'Custom section',
         btnAddCard: '➕ Add Card', titleItems: ' ({n} items)',
@@ -1052,6 +1059,13 @@ const I18N = {
         sectionsAddBtn: '➕ Add Section',
         sectionsDeleteHint: '💡 Deleting a custom section moves its cards to "📦 Unclassified" (not lost). "Unclassified" can also be deleted (permanent).',
         sectionsClose: 'Close', sectionsNoCustom: 'No custom sections. Click "➕ Add Section" below.',
+        /* ★ Built-in section management */
+        sectionEditBuiltinTitle: '✏️ Edit Built-in Section',
+        sectionBuiltinHide: 'Hide (do not show on home pages)',
+        sectionBuiltinShow: 'Show on home pages',
+        sectionBuiltinEdit: 'Rename',
+        sectionBuiltinResetName: 'Restore default name (follows language)',
+        sectionBadgeHidden: '🚫 Hidden',
         sectionBadgeBuiltin: '🔒 Built-in', sectionBadgeCustom: '⚙️ Custom',
         sectionBadgeDynamic: 'Expand/Collapse', sectionBadgeEncrypted: '🔐 Encrypted',
         sectionBadgeLocked: '🔒 Locked',
@@ -1229,14 +1243,38 @@ const BUILTIN_SECTIONS = [
 ];
 const UNCLASSIFIED_KEY = 'custom_unclassified';
 let customSectionsMeta = [];
+// ★ 内置大类元数据覆盖：{ [key]: { label?: string, visible?: boolean } }
+//   label 缺省 → 使用 i18n 默认（跟随中英文切换）；visible 缺省 → true
+let builtinSectionMeta = {};
+let editingBuiltinKey = null; // ★ 当前正在编辑的内置大类 key（null 表示在编辑自定义大类）
 
 function getSections() {
-    const cardB  = BUILTIN_SECTIONS.filter(s => s.kind === 'card').map(s => ({ key: s.key, label: t(s.labelKey), kind: s.kind, builtin: true }));
-    const otherB = BUILTIN_SECTIONS.filter(s => s.kind !== 'card').map(s => ({ key: s.key, label: t(s.labelKey), kind: s.kind, builtin: true }));
+    // ★ 内置大类：合并 builtinSectionMeta 中的 label / visible 覆盖
+    const cardB = BUILTIN_SECTIONS.filter(s => s.kind === 'card').map(s => {
+        const m = builtinSectionMeta[s.key] || {};
+        return {
+            key: s.key,
+            label: m.label || t(s.labelKey),
+            kind: s.kind, builtin: true,
+            visible: m.visible !== false,
+            customLabel: !!m.label
+        };
+    });
+    const otherB = BUILTIN_SECTIONS.filter(s => s.kind !== 'card').map(s => {
+        const m = builtinSectionMeta[s.key] || {};
+        return {
+            key: s.key,
+            label: m.label || t(s.labelKey),
+            kind: s.kind, builtin: true,
+            visible: m.visible !== false,
+            customLabel: !!m.label
+        };
+    });
     const customs = customSectionsMeta.map(c => ({
         key: c.key,
         label: (c.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : c.label,
         kind: 'card', builtin: false,
+        visible: true,
         dynamic: !!c.dynamic, encrypted: !!c.encrypted, locked: !!c.locked
     }));
     return [...cardB, ...customs, ...otherB];
@@ -2308,59 +2346,100 @@ async function parseAndLoad(text) {
         else if (preservedComments.header == null) preservedComments.header = DEFAULT_COMMENTS.header;
         Object.keys(c.sections).forEach(k => { preservedComments.sections[k] = c.sections[k]; });
 
-        const wrapper = new Function(
-            'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections;' +
-            text + ';' +
-            'return { usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections };'
-        );
-        const r = wrapper();
+        // ★ 检测新旧格式
+        const hasNewFormat = /\bvar\s+sections\s*=/.test(text);
 
-        BUILTIN_SECTIONS.forEach(s => { store[s.key] = Array.isArray(r[s.key]) ? r[s.key] : []; });
-        Object.keys(store).forEach(k => { if (!isBuiltinKey(k)) delete store[k]; });
-        customSectionsMeta = [];
-
-        if (Array.isArray(r.customSections)) {
-            const pwd = getEncPassword();
-            for (const c of r.customSections) {
-                if (!c || !c.key || typeof c.key !== 'string') continue;
-                if (isBuiltinKey(c.key)) continue;
-                if (customSectionsMeta.find(x => x.key === c.key)) continue;
-                const label = (c.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : (c.label || c.key);
-                const meta = { key: c.key, label, dynamic: !!c.dynamic, encrypted: false, locked: false, _enc: null };
-
-                if (c.encrypted && c.enc) {
-                    meta.encrypted = true;
-                    if (pwd) {
-                        try {
-                            const dec = await decryptJSON(pwd, c.enc);
-                            meta.locked = false;
-                            store[c.key] = Array.isArray(dec) ? dec : [];
-                        } catch (e) {
-                            meta.locked = true; meta._enc = c.enc; store[c.key] = [];
-                        }
-                    } else {
-                        meta.locked = true; meta._enc = c.enc; store[c.key] = [];
-                    }
-                } else {
-                    store[c.key] = Array.isArray(c.cards) ? c.cards : [];
-                }
-                customSectionsMeta.push(meta);
+        if (hasNewFormat) {
+            // 新格式：var sections = [...]
+            const wrapper = new Function('var sections;' + text + '; return sections;');
+            const rawSections = wrapper() || [];
+            await parseSectionsArray(rawSections);
+        } else {
+            // 老格式：var usbDriveData / teachingData / ... → 迁移为 sections 数组
+            const wrapper = new Function(
+                'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections;' +
+                text + ';' +
+                'return { usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections };'
+            );
+            const r = wrapper();
+            const s = [
+                { builtin:true, key:'usbDriveData',  kind:'card',    defaultLabel:'☁️ 在线U盘',    label:'☁️ 在线U盘',    visible:true, dynamic:false, cards: r.usbDriveData||[] },
+                { builtin:true, key:'teachingData',  kind:'card',    defaultLabel:'📚 授课资料',    label:'📚 授课资料',    visible:true, dynamic:false, cards: r.teachingData||[] },
+                { builtin:true, key:'onlineAIData',  kind:'card',    defaultLabel:'🖥️ 网络资源',    label:'🖥️ 网络资源',    visible:true, dynamic:true,  cards: r.onlineAIData||[] },
+                { builtin:true, key:'videoData',     kind:'card',    defaultLabel:'🎬 视频聚合',    label:'🎬 视频聚合',    visible:true, dynamic:true,  cards: r.videoData||[] },
+                { builtin:true, key:'emailData',     kind:'email',   defaultLabel:'📧 邮箱',       label:'📧 邮箱',       visible:true, dynamic:false, cards: r.emailData||[] },
+                { builtin:true, key:'contactData',   kind:'contact', defaultLabel:'📨 其他联系方式', label:'📨 其他联系方式', visible:true, dynamic:false, cards: r.contactData||[] }
+            ];
+            if (Array.isArray(r.customSections)) {
+                r.customSections.forEach(function(c) {
+                    if (!c || !c.key) return;
+                    s.push({ builtin:false, key:c.key, kind:'card', defaultLabel:c.label||c.key, label:c.label||c.key, visible:true, dynamic:!!c.dynamic, encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[] });
+                });
             }
+            await parseSectionsArray(s);
         }
 
         if (!getSections().find(s => s.key === currentSection)) currentSection = BUILTIN_SECTIONS[0].key;
 
-        // ★ 合并 index 页面上暂存的注释编辑（cardId -> comment）
         const mergedN = mergeCommentOverrides();
-        if (mergedN > 0) {
-            setTimeout(() => toast(t('toastOverridesMerged', { n: mergedN }), 3200), 300);
-        }
+        if (mergedN > 0) { setTimeout(() => toast(t('toastOverridesMerged', { n: mergedN }), 3200), 300); }
 
-        refreshPendingBanner();   // ★ 新增：刷新未持久化保存提示 banner
+        refreshPendingBanner();
         renderSectionTabs(); renderCurrentSection(); updateEncKeyStatus();
         return true;
     } catch (e) {
         console.error(e); alert(t('alertParseFail', { msg: e.message })); return false;
+    }
+}
+
+// ★ 解析 sections 数组 → store + customSectionsMeta（异步：需解密加密分类）
+async function parseSectionsArray(rawSections) {
+    BUILTIN_SECTIONS.forEach(s => { store[s.key] = []; });
+    Object.keys(store).forEach(k => { if (!isBuiltinKey(k)) delete store[k]; });
+    customSectionsMeta = [];
+    builtinSectionMeta = {}; // ★ 重置内置大类覆盖
+
+    for (const sec of rawSections) {
+        if (!sec || !sec.key) continue;
+        if (sec.builtin) {
+            store[sec.key] = Array.isArray(sec.cards) ? sec.cards : [];
+
+            // ★ 解析内置大类的 visible / 自定义 label
+            //   只有当 label 不等于 zh/en 默认值时，才视为用户自定义
+            const def = BUILTIN_SECTIONS.find(b => b.key === sec.key);
+            const meta = {};
+            if (def && typeof sec.label === 'string' && sec.label) {
+                const defZh = (I18N.zh && I18N.zh[def.labelKey]) || '';
+                const defEn = (I18N.en && I18N.en[def.labelKey]) || '';
+                if (sec.label !== defZh && sec.label !== defEn) meta.label = sec.label;
+            }
+            if (sec.visible === false) meta.visible = false;
+            if (Object.keys(meta).length) builtinSectionMeta[sec.key] = meta;
+        } else {
+            if (isBuiltinKey(sec.key)) continue;
+            if (customSectionsMeta.find(x => x.key === sec.key)) continue;
+            var label = (sec.key === UNCLASSIFIED_KEY) ? t('secUnclassified') : (sec.label || sec.key);
+            var meta = { key: sec.key, label: label, dynamic: !!sec.dynamic, encrypted: false, locked: false, _enc: null };
+
+            if (sec.encrypted && sec.enc) {
+                meta.encrypted = true;
+                var pwd = getEncPassword();
+                if (pwd) {
+                    try {
+                        var dec = await decryptJSON(pwd, sec.enc);
+                        meta.locked = false;
+                        store[sec.key] = Array.isArray(dec) ? dec : [];
+                    } catch (e) {
+                        meta.locked = true; meta._enc = sec.enc; store[sec.key] = [];
+                    }
+                } else {
+                    meta.locked = true; meta._enc = sec.enc; store[sec.key] = [];
+                }
+            } else {
+                store[sec.key] = Array.isArray(sec.cards) ? sec.cards : [];
+            }
+            customSectionsMeta.push(meta);
+        }
     }
 }
 
@@ -2373,32 +2452,45 @@ async function generateDataJs() {
     const header = (preservedComments.header && preservedComments.header.trim()) ? preservedComments.header : DEFAULT_COMMENTS.header;
     parts.push(header.replace(/\r/g, '')); parts.push('\n\n');
 
-    BUILTIN_SECTIONS.forEach((s) => {
-        const c = (preservedComments.sections[s.key] && preservedComments.sections[s.key].trim()) ? preservedComments.sections[s.key] : DEFAULT_COMMENTS.sections[s.key];
-        if (c) { parts.push(c.replace(/\r/g, '')); parts.push('\n'); }
-        parts.push('var ' + s.key + ' = ' + pretty(store[s.key]) + ';\n'); parts.push('\n');
-    });
+    // ★ 输出统一的 sections 数组
+    const outSections = [];
+    for (const s of getSections()) {
+        const secObj = { builtin: !!s.builtin, key: s.key, kind: s.kind };
+        if (s.builtin) {
+            // ★ 内置分类 dynamic 由 key 决定（硬编码，不依赖外部输入）
+            var BUILTIN_DYNAMIC = { onlineAIData: true, videoData: true };
+            secObj.kind = (BUILTIN_SECTIONS.find(bs => bs.key === s.key) || {}).kind || 'card';
+            secObj.dynamic = !!BUILTIN_DYNAMIC[s.key];
+        } else {
+            secObj.dynamic = !!s.dynamic;
+        }
+        secObj.label = s.label;
+        secObj.visible = s.visible !== false;
 
-    const customComment = (preservedComments.sections['customSections'] && preservedComments.sections['customSections'].trim())
-        ? preservedComments.sections['customSections'] : DEFAULT_COMMENTS.sections.customSections;
-    parts.push(customComment + '\n');
-
-    const csArr = [];
-    for (const c of customSectionsMeta) {
-        if (c.encrypted) {
-            if (c.locked) {
-                csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, encrypted: true, enc: c._enc, cards: [] });
-            } else {
-                const pwd = getEncPassword();
-                if (!pwd) throw new Error(t('toastEncNoSessionPwd'));
-                const enc = await encryptJSON(pwd, store[c.key] || []);
-                csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, encrypted: true, enc, cards: [] });
+        if (!s.builtin) {
+            const c = customSectionsMeta.find(x => x.key === s.key);
+            if (c) {
+                secObj.encrypted = !!c.encrypted;
+                if (c.encrypted) {
+                    if (c.locked) {
+                        secObj.enc = c._enc;
+                        secObj.cards = [];
+                    } else {
+                        const pwd = getEncPassword();
+                        if (!pwd) throw new Error(t('toastEncNoSessionPwd'));
+                        secObj.enc = await encryptJSON(pwd, store[s.key] || []);
+                        secObj.cards = [];
+                    }
+                } else {
+                    secObj.cards = store[s.key] || [];
+                }
             }
         } else {
-            csArr.push({ key: c.key, label: c.label, dynamic: !!c.dynamic, cards: store[c.key] || [] });
+            secObj.cards = store[s.key] || [];
         }
+        outSections.push(secObj);
     }
-    parts.push('var customSections = ' + pretty(csArr) + ';\n');
+    parts.push('var sections = ' + pretty(outSections) + ';\n');
     return parts.join('');
 }
 function pretty(val, indent = 0) {
@@ -2672,15 +2764,36 @@ function confirmPromoteSub() {
 ================================================================ */
 function openSectionsModal() { renderSectionsModalLists(); show('sectionsModal'); }
 function renderSectionsModalLists() {
+    // ★ 内置大类：每行加 显示/隐藏、重命名、恢复默认名 三个按钮
     const blt = $('builtinSectionsList'); blt.innerHTML = '';
     BUILTIN_SECTIONS.forEach(s => {
         const cnt = (store[s.key] || []).length;
+        const m = builtinSectionMeta[s.key] || {};
+        const displayLabel = m.label || t(s.labelKey);
+        const visible = m.visible !== false;
+        const hasCustomLabel = !!m.label;
+        const hiddenBadge = !visible
+            ? ` <span class="sec-badge badge-locked">${escapeHtml(t('sectionBadgeHidden'))}</span>` : '';
+        const visBtn = `<button class="btn btn-ghost btn-sm" data-bi-act="vis"
+            title="${escapeHtml(visible ? t('sectionBuiltinHide') : t('sectionBuiltinShow'))}">${visible ? '👁' : '🚫'}</button>`;
+        const editBtn = `<button class="btn btn-primary btn-sm" data-bi-act="edit"
+            title="${escapeHtml(t('sectionBuiltinEdit'))}">✏️</button>`;
+        const resetBtn = hasCustomLabel
+            ? `<button class="btn btn-warn btn-sm" data-bi-act="reset"
+                 title="${escapeHtml(t('sectionBuiltinResetName'))}">🔄</button>`
+            : '';
+
         const el = document.createElement('div'); el.className = 'sec-row builtin';
-        el.innerHTML = `<div class="sec-label">${escapeHtml(t(s.labelKey))}
+        el.innerHTML = `<div class="sec-label">${escapeHtml(displayLabel)}${hiddenBadge}
             <span class="sec-meta"> · ${escapeHtml(s.key)}${escapeHtml(t('sectionMetaSuffix', { kind: s.kind, cnt }))}</span></div>
-            <span class="sec-badge badge-builtin">${escapeHtml(t('sectionBadgeBuiltin'))}</span>`;
+            <span class="sec-badge badge-builtin">${escapeHtml(t('sectionBadgeBuiltin'))}</span>
+            <div style="display:flex; gap:4px;">${visBtn}${editBtn}${resetBtn}</div>`;
+        el.querySelectorAll('button[data-bi-act]').forEach(btn =>
+            btn.onclick = () => handleBuiltinSectionAction(btn.dataset.biAct, s.key));
         blt.appendChild(el);
     });
+
+    // ===== 自定义大类（保持原逻辑） =====
     const cst = $('customSectionsList'); cst.innerHTML = '';
     if (!customSectionsMeta.length) { cst.innerHTML = '<div class="empty-hint" style="padding:14px;">' + escapeHtml(t('sectionsNoCustom')) + '</div>'; return; }
     customSectionsMeta.forEach((c, idx) => {
@@ -2706,6 +2819,29 @@ function renderSectionsModalLists() {
         cst.appendChild(el);
     });
 }
+
+/* ★ 新增：内置大类按钮点击处理（显示/隐藏、编辑、恢复默认名） */
+function handleBuiltinSectionAction(act, key) {
+    if (act === 'vis') {
+        if (!builtinSectionMeta[key]) builtinSectionMeta[key] = {};
+        const cur = builtinSectionMeta[key].visible !== false;
+        if (cur) builtinSectionMeta[key].visible = false;
+        else delete builtinSectionMeta[key].visible;
+        if (!Object.keys(builtinSectionMeta[key]).length) delete builtinSectionMeta[key];
+        renderSectionsModalLists(); renderSectionTabs();
+        toast(t('toastUpdatedUnsaved'));
+    } else if (act === 'edit') {
+        openSectionEditModal({ type: 'builtin', key });
+    } else if (act === 'reset') {
+        if (builtinSectionMeta[key]) {
+            delete builtinSectionMeta[key].label;
+            if (!Object.keys(builtinSectionMeta[key]).length) delete builtinSectionMeta[key];
+        }
+        renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+        toast(t('toastUpdatedUnsaved'));
+    }
+}
+
 function handleCustomSectionAction(act, idx) {
     if (act === 'up' && idx > 0) { [customSectionsMeta[idx-1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx-1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedUp')); }
     else if (act === 'down' && idx < customSectionsMeta.length - 1) { [customSectionsMeta[idx+1], customSectionsMeta[idx]] = [customSectionsMeta[idx], customSectionsMeta[idx+1]]; renderSectionsModalLists(); renderSectionTabs(); toast(t('toastMovedDown')); }
@@ -2730,12 +2866,41 @@ function deleteCustomSection(idx) {
     renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
     toast(t('toastDeletedSectionUnsaved'));
 }
-function openSectionEditModal(idx) {
-    editingCustomSectionIdx = (idx === undefined || idx === null) ? -1 : idx;
-    const isNew = editingCustomSectionIdx < 0;
-    $('sectionEditTitle').textContent = isNew ? t('sectionEditNewTitle') : t('sectionEditEditTitle');
-    if (isNew) { $('se_label').value = ''; $('se_dynamic').checked = false; $('se_encrypted').checked = false; }
-    else {
+function openSectionEditModal(target) {
+    // ★ target 兼容三种入参：
+    //   number              → 编辑指定 idx 的自定义大类
+    //   null / undefined    → 新增自定义大类
+    //   { type:'builtin', key } → 编辑内置大类（仅可改 label）
+    if (target && typeof target === 'object' && target.type === 'builtin') {
+        editingCustomSectionIdx = -2;
+        editingBuiltinKey = target.key;
+    } else {
+        editingCustomSectionIdx = (target === undefined || target === null) ? -1 : target;
+        editingBuiltinKey = null;
+    }
+
+    const isBuiltin = !!editingBuiltinKey;
+    const isNew = !isBuiltin && editingCustomSectionIdx < 0;
+
+    $('sectionEditTitle').textContent = isBuiltin
+        ? t('sectionEditBuiltinTitle')
+        : (isNew ? t('sectionEditNewTitle') : t('sectionEditEditTitle'));
+
+    // 内置大类不显示 dynamic / encrypted 行
+    const dynRow = $('se_dynamic').closest('.form-row');
+    const encRow = $('se_encrypted').closest('.form-row');
+    if (isBuiltin) { hide(dynRow); hide(encRow); }
+    else { show(dynRow); show(encRow); }
+
+    if (isBuiltin) {
+        const m = builtinSectionMeta[editingBuiltinKey] || {};
+        const def = BUILTIN_SECTIONS.find(b => b.key === editingBuiltinKey);
+        $('se_label').value = m.label || (def ? t(def.labelKey) : '');
+    } else if (isNew) {
+        $('se_label').value = '';
+        $('se_dynamic').checked = false;
+        $('se_encrypted').checked = false;
+    } else {
         const c = customSectionsMeta[editingCustomSectionIdx];
         $('se_label').value = c.label;
         $('se_dynamic').checked = !!c.dynamic;
@@ -2743,10 +2908,31 @@ function openSectionEditModal(idx) {
     }
     show('sectionEditModal');
 }
+
 function saveSectionEdit() {
     const label = $('se_label').value.trim();
     if (!label) { toast(t('toastNeedSecLabel')); return; }
     if (label.length > 50) { toast(t('toastSecLabelTooLong')); return; }
+
+    // ★ 内置大类：只更新 label（与 i18n 默认值相等时视为清除自定义）
+    if (editingBuiltinKey) {
+        const def = BUILTIN_SECTIONS.find(b => b.key === editingBuiltinKey);
+        const defZh = (def && I18N.zh && I18N.zh[def.labelKey]) || '';
+        const defEn = (def && I18N.en && I18N.en[def.labelKey]) || '';
+        if (!builtinSectionMeta[editingBuiltinKey]) builtinSectionMeta[editingBuiltinKey] = {};
+        if (label === defZh || label === defEn) {
+            delete builtinSectionMeta[editingBuiltinKey].label;
+        } else {
+            builtinSectionMeta[editingBuiltinKey].label = label;
+        }
+        if (!Object.keys(builtinSectionMeta[editingBuiltinKey]).length) delete builtinSectionMeta[editingBuiltinKey];
+        hide('sectionEditModal');
+        renderSectionsModalLists(); renderSectionTabs(); renderCurrentSection();
+        toast(t('toastUpdatedUnsaved'));
+        editingBuiltinKey = null;
+        return;
+    }
+
     const dynamic = $('se_dynamic').checked;
     const encrypted = $('se_encrypted').checked;
 

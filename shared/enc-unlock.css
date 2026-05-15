@@ -174,3 +174,48 @@
         font-size: 12px;
     }
 }
+
+/* ============================================================
+   ★ 自动解密时的全屏过渡提示
+   ============================================================ */
+.enc-decrypt-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: encDecryptOverlayIn 0.18s ease-out;
+}
+.enc-decrypt-card {
+    background: rgba(255, 255, 255, 0.96);
+    padding: 14px 22px;
+    border-radius: 12px;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6a1b9a;
+    font-family: inherit;
+}
+.enc-decrypt-card .enc-spinner {
+    width: 18px;
+    height: 18px;
+    border-width: 2.5px;
+    margin: 0;
+}
+@keyframes encDecryptOverlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@media (max-width: 480px) {
+    .enc-decrypt-card {
+        padding: 12px 18px;
+        font-size: 13px;
+    }
+}

@@ -158,34 +158,40 @@
     }
 
     /* ───────────────────────── meta → /api/comment path ───────────────────────── */
+    // ★ 从 sections 数组中查找 section key 对应的下标
+    function findSectionIndex(sectionKey) {
+        // 优先用 fav-page.js 的 normalizeData 建立的索引映射
+        if (window.__sectionIndexMap && window.__sectionIndexMap[sectionKey] != null) {
+            return window.__sectionIndexMap[sectionKey];
+        }
+        // fallback：遍历 sections 数组
+        var s = window.__sections || window.sections;
+        if (Array.isArray(s)) {
+            for (var i = 0; i < s.length; i++) {
+                if (s[i] && s[i].key === sectionKey) return i;
+            }
+        }
+        return -1;
+    }
+
     function metaToJsonPath(meta) {
         if (!meta) return null;
         var sk = meta.sectionKey;
-        var path;
+        if (!sk) return null;
 
-        if (sk === 'usb-drive') path = ['usbDriveData'];
-        else if (sk === 'teaching') path = ['teachingData'];
-        else if (sk === 'ai') path = ['onlineAIData'];
-        else if (sk === 'video') path = ['videoData'];
-        else if (sk === 'contact') {
-            if (meta.emailIndex != null) {
-                return ['emailData', meta.emailIndex, 'comment'];
-            }
-            path = ['contactData'];
-        } else if (typeof sk === 'string' && sk) {
-            if (typeof global.customSections === 'undefined' ||
-                !Array.isArray(global.customSections)) return null;
-            var idx = -1;
-            for (var i = 0; i < global.customSections.length; i++) {
-                var cs = global.customSections[i];
-                if (cs && cs.key === sk) { idx = i; break; }
-            }
-            if (idx < 0) return null;
-            path = ['customSections', idx, 'cards'];
-        } else {
-            return null;
+        // ★ 新格式：path = ['sections', sectionIdx, 'cards', cardIdx, ..., 'comment']
+        var sectionIdx = findSectionIndex(sk);
+        if (sectionIdx < 0) return null;
+
+        var path;
+        if (meta.emailIndex != null) {
+            // 邮箱卡片：直接定位到 emailData section 中的第 emailIndex 个卡片
+            path = ['sections', sectionIdx, 'cards', meta.emailIndex];
+            path.push('comment');
+            return path;
         }
 
+        path = ['sections', sectionIdx, 'cards'];
         if (meta.cardIndex == null) return null;
         path.push(meta.cardIndex);
         if (meta.subIndex != null) path.push('subCards', meta.subIndex);
@@ -816,6 +822,35 @@
         render();
     }
 
+    /* ───────────────────────── 红点 DOM 同步辅助 ─────────────────────────
+     * 把"添加 .has-note 类 + append <span class='note-dot'>"封装在一起，
+     * 让红点改用真实 DOM 元素而非 ::after，避免与页面自有伪元素冲突
+     * （如 index5 的 .link-card::after hover 绿线）。
+     * ─────────────────────────────────────────────────────────── */
+    function setHasNote(el, hasNote) {
+        if (!el || !el.classList) return;
+        if (hasNote) {
+            el.classList.add('has-note');
+            var has = false;
+            for (var i = 0; i < el.children.length; i++) {
+                if (el.children[i].classList &&
+                    el.children[i].classList.contains('note-dot')) { has = true; break; }
+            }
+            if (!has) {
+                var dot = document.createElement('span');
+                dot.className = 'note-dot';
+                dot.setAttribute('aria-hidden', 'true');
+                el.appendChild(dot);
+            }
+        } else {
+            el.classList.remove('has-note');
+            for (var j = el.children.length - 1; j >= 0; j--) {
+                var c = el.children[j];
+                if (c.classList && c.classList.contains('note-dot')) el.removeChild(c);
+            }
+        }
+    }
+
     /* ───────────────────────── 更新卡片红点 ───────────────────────── */
     function updateCardHasNoteBadge(entry) {
         var nodes = document.querySelectorAll('[data-card-id]');
@@ -823,8 +858,7 @@
             var cid = el.getAttribute('data-card-id');
             var e = getEntry(cid);
             if (!e || e.card !== entry.card) return;
-            if (e.card.comment) el.classList.add('has-note');
-            else                el.classList.remove('has-note');
+            setHasNote(el, !!e.card.comment);
         });
     }
 
@@ -864,8 +898,7 @@
                 }
             }
 
-            if (entry.card.comment) el.classList.add('has-note');
-            else                    el.classList.remove('has-note');
+            setHasNote(el, !!entry.card.comment);
         });
     }
 
@@ -874,8 +907,7 @@
         nodes.forEach(function(el) {
             var entry = getEntry(el.getAttribute('data-card-id'));
             if (!entry || !entry.card) return;
-            if (entry.card.comment) el.classList.add('has-note');
-            else                    el.classList.remove('has-note');
+            setHasNote(el, !!entry.card.comment);
         });
     }
 

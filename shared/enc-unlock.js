@@ -7,6 +7,15 @@
     const SS_KEY = 'bm_cfg_enc_pwd';
     const SS_REVEAL = 'bm_cfg_enc_reveal';
 
+    // ★ 获取所有加密 section（兼容新旧数据格式）
+    function getEncSections() {
+        var all = global.__sections || global.sections;
+        if (Array.isArray(all)) return all.filter(function(s) { return s && s.encrypted; });
+        // 老格式 fallback
+        if (Array.isArray(global.customSections)) return global.customSections.filter(function(c) { return c && c.encrypted; });
+        return [];
+    }
+
     // -------- Base64 / AES-GCM / PBKDF2 --------
     function b64d(s) { const a = atob(s), u = new Uint8Array(a.length); for (let i = 0; i < a.length; i++) u[i] = a.charCodeAt(i); return u; }
     async function deriveKey(pwd, salt, iter) {
@@ -59,10 +68,11 @@
 
     // -------- 尝试解锁所有加密大类 --------
     async function unlockAll(pwd) {
-        if (!Array.isArray(global.customSections)) return { ok: true, n: 0, total: 0 };
+        var encSections = getEncSections();
+        if (!encSections.length) return { ok: true, n: 0, total: 0 };
         let unlocked = 0, total = 0, anyOk = false;
-        for (const c of global.customSections) {
-            if (!c || !c.encrypted || !c.enc) continue;
+        for (const c of encSections) {
+            if (!c || !c.enc) continue;
             total++;
             try {
                 const cards = await decryptEnc(pwd, c.enc);
@@ -79,21 +89,43 @@
         return { ok: anyOk || total === 0, n: unlocked, total };
     }
 
+    // -------- 全屏"解密中..."过渡提示 --------
+    function showDecryptingOverlay() {
+        if (document.getElementById('enc-decrypt-overlay')) return;
+        const ov = document.createElement('div');
+        ov.id = 'enc-decrypt-overlay';
+        ov.className = 'enc-decrypt-overlay';
+        ov.innerHTML = `
+            <div class="enc-decrypt-card">
+                <span class="enc-spinner"></span>
+                <span class="enc-decrypt-text">解密中...</span>
+            </div>`;
+        document.body.appendChild(ov);
+    }
+    function hideDecryptingOverlay() {
+        const ov = document.getElementById('enc-decrypt-overlay');
+        if (ov) ov.remove();
+    }
+
     // -------- 启动时自动尝试 --------
     async function bootstrap() {
-        if (!Array.isArray(global.customSections)) return { total: 0 };
-        for (const c of global.customSections) {
-            if (c && c.encrypted && c.enc) {
+        var encSections = getEncSections();
+        for (const c of encSections) {
+            if (c && c.enc) {
                 c.__unlocked = false;
                 c.cards = [];
             }
         }
         let pwd = null;
         try { pwd = sessionStorage.getItem(SS_KEY); } catch {}
-        if (pwd) await unlockAll(pwd);
+        if (pwd && encSections.some(c => c && c.enc)) {
+            showDecryptingOverlay();
+            try { await unlockAll(pwd); }
+            finally { hideDecryptingOverlay(); }
+        }
         return {
-            total: global.customSections.filter(c => c && c.encrypted).length,
-            lockedAfter: global.customSections.filter(c => c && c.encrypted && !c.__unlocked).length
+            total: encSections.length,
+            lockedAfter: encSections.filter(c => c && !c.__unlocked).length
         };
     }
 
@@ -155,8 +187,8 @@
 
         // 序号：在所有加密大类中的位置（仅在 >1 时显示）
         let ordinal = '';
-        if (Array.isArray(global.customSections)) {
-            const encList = global.customSections.filter(c => c && c.encrypted);
+        var encList = getEncSections();
+        if (encList.length) {
             if (encList.length > 1) {
                 const idx = encList.indexOf(section);
                 if (idx >= 0) ordinal = String(idx + 1);
@@ -197,21 +229,19 @@
 
     // 是否存在已解锁的加密大类（有密码在 session 中即可显示锁定按钮）
     function hasUnlockedEncrypted() {
-        if (!Array.isArray(global.customSections)) return false;
-        return global.customSections.some(c => c && c.encrypted && c.__unlocked);
+        var encSections = getEncSections();
+        return encSections.some(c => c && c.__unlocked);
     }
 
     function lockNow() {
         try { sessionStorage.removeItem(SS_KEY); } catch {}
         clearReveal();
-        if (Array.isArray(global.customSections)) {
-            global.customSections.forEach(c => {
-                if (c && c.encrypted) {
-                    c.cards = [];
-                    c.__unlocked = false;
-                }
-            });
-        }
+        getEncSections().forEach(c => {
+            if (c) {
+                c.cards = [];
+                c.__unlocked = false;
+            }
+        });
         triggerRerender();
         // 立即卸载自己：此时已经不存在已解锁的加密大类
         const fab = document.getElementById('enc-lock-fab');

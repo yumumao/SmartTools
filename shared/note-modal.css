@@ -13,22 +13,21 @@
  *     （例如 index5 的 .link-card::after 绿色竖条导致的红点消失问题）。
  * ================================================================================ */
 
-/* ─── 有注释的卡片：左上角小红点（与主题无关，不主题化） ─── */
+/* ─── 有注释的卡片：左上角小红点（与主题无关，不主题化） ───
+ * ★ 改为真实 DOM 元素 <span class="note-dot">，由 note-modal.js 在
+ *   添加 .has-note 时一起 append、移除时一起删除。
+ *   原因：之前用 ::after 会与页面自有的 .link-card::after（如 index5
+ *   的 hover 绿色竖线）冲突——同一元素的 ::after 只能存在一份，
+ *   特异性高的 .has-note::after 会独占伪元素，导致页面装饰被吃掉。
+ *   改成真实子元素后，伪元素让回给页面，互不干扰。
+ * ─────────────────────────────────────────────────────────── */
 .link-card.has-note,
 .sub-card.has-note { position: relative; }
 
-.link-card.has-note::after,
-.sub-card.has-note::after {
-    content: '';
+.note-dot {
     position: absolute;
     top: 7px;
     left: 7px;
-    /* ★ 显式重置：避免页面自有的 .link-card::after 带来
-       opacity/transform/bottom/right 等属性污染红点 */
-    right: auto;
-    bottom: auto;
-    opacity: 1;
-    transform: none;
     width: 5px;
     height: 5px;
     border-radius: 50%;
@@ -46,8 +45,8 @@
 }
 
 /* ★ hover 时红点变大、变艳 */
-.link-card.has-note:hover::after,
-.sub-card.has-note:hover::after {
+.link-card:hover > .note-dot,
+.sub-card:hover  > .note-dot {
     width: 8px;
     height: 8px;
     top: 6px;
@@ -55,18 +54,6 @@
     background: #ff6b6b;
     box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.7),
                 0 0 4px rgba(255, 107, 107, 0.5);
-}
-
-/* 带展开钮的主卡片：强制左上角（和默认一致，保留规则以防其它主题污染） */
-.link-card-with-expand.has-note::after {
-    right: auto;
-    left: 7px;
-    top: 7px;
-}
-.link-card-with-expand.has-note:hover::after {
-    right: auto;
-    left: 6px;
-    top: 6px;
 }
 
 /* ============================================================
