@@ -1719,6 +1719,40 @@
                 transform: none !important;
             }
         }
+
+        /* ★ contact-card-wrap：在外观上更接近邮箱卡片（右侧渐变 + 底边立体感），不影响功能 */
+        .contact-card-wrap {
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--fr-blue-border);
+        }
+        .contact-card-wrap::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 60%;
+            background: linear-gradient(
+                to left,
+                rgba(0, 153, 255, 0.18) 0%,
+                rgba(0, 153, 255, 0.06) 55%,
+                rgba(0, 153, 255, 0) 100%
+            );
+            pointer-events: none;
+            z-index: 0;
+            transition: background 0.25s ease;
+        }
+        .contact-card-wrap:hover::before {
+            background: linear-gradient(
+                to left,
+                rgba(0, 153, 255, 0.32) 0%,
+                rgba(0, 153, 255, 0.10) 55%,
+                rgba(0, 153, 255, 0) 100%
+            );
+        }
+        .contact-card-wrap > * {
+            position: relative;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>

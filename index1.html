@@ -1788,6 +1788,31 @@ a, button, [onclick], [role="option"],
         transform: none !important;
     }
 }
+
+/* ★ contact-card-wrap：在外观上更接近邮箱卡片（右侧渐变装饰），不影响功能 */
+.contact-card-wrap {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 3px solid rgba(102, 126, 234, 0.6);
+}
+.contact-card-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 45%;
+    background: linear-gradient(
+        to left,
+        rgba(102, 126, 234, 0.35) 0%,
+        rgba(102, 126, 234, 0.12) 55%,
+        rgba(102, 126, 234, 0) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+.contact-card-wrap > * {
+    position: relative;
+    z-index: 1;
+}
     </style>
 </head>
 <body>
