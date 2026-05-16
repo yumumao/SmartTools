@@ -345,6 +345,8 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <button class="btn btn-ghost btn-sm hidden" id="btnDataSource" data-i18n="btnDataSource">📡 数据源</button>
             <button class="btn btn-ghost btn-sm" id="btnImport" data-i18n="btnImport">📥 导入</button>
             <button class="btn btn-ghost btn-sm" id="btnExport" data-i18n="btnExport">👁 预览导出</button>
+            <button class="btn btn-ghost btn-sm" id="btnExportCsv" data-i18n="btnExportTable">📤 导出表格</button>
+            <button class="btn btn-ghost btn-sm" id="btnImportCsv" data-i18n="btnImportTable">📥 导入表格</button>
             <button class="btn btn-success btn-sm" id="btnSave" data-i18n="btnSave">💾 保存</button>
             <button class="btn btn-warn btn-sm hidden" id="btnChangePwd" data-i18n="btnChangePwd">🔑 密码</button>
             <button class="btn btn-ghost btn-sm" id="btnSwitchMode" data-i18n="btnSwitchMode">🔀 切换模式</button>
@@ -689,6 +691,96 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     </div>
 </div>
 
+<!-- 导出表格（CSV / XLSX） -->
+<div id="csvExportModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:500px;">
+        <h2 data-i18n="csvExportTitle">📤 导出表格</h2>
+        <p class="muted" data-i18n="csvExportDesc">把全部卡片导出为表格文件，可用 Excel / WPS / Numbers 打开编辑，再通过「📥 导入表格」导回。</p>
+
+        <div style="display:flex; flex-direction:column; gap:6px; margin:10px 0;">
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="csvExportFormat" value="xlsx" checked>
+                <span data-i18n="csvExportFormatXlsx">📊 XLSX（推荐，支持 emoji 与 Excel 直接编辑）</span>
+            </label>
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="csvExportFormat" value="csv">
+                <span data-i18n="csvExportFormatCsv">📝 CSV（纯文本，体积更小，含 emoji 时仅适合 UTF-8 编辑器）</span>
+            </label>
+        </div>
+
+        <div style="margin:14px 0; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="csvExportIncludeEnc" style="width:16px; height:16px;">
+            <label for="csvExportIncludeEnc" data-i18n="csvExportIncludeEnc" style="font-size:14px; cursor:pointer;">包含已解锁的加密大类</label>
+        </div>
+        <div class="enc-hint" style="font-size:12px;" data-i18n="csvExportEncHint">⚠️ 加密大类导出后为明文。文件请妥善保管，避免泄露。未解锁的加密大类会被自动跳过。</div>
+        <div class="enc-hint" id="csvEmojiWarnBox" style="font-size:12px; margin-top:6px;" data-i18n="csvEmojiWarn">📝 含 emoji 的字段（如 icon）请用 VS Code / Notepad++ 等 UTF-8 编辑器修改；Excel / WPS 用 GBK 保存 CSV 会导致 emoji 丢失。如需在表格软件中编辑，请改用 XLSX。</div>
+
+        <div style="margin-top:10px;">
+            <a href="#" id="btnCsvExportTemplate" style="font-size:13px;" data-i18n="csvTemplateDownload">📋 下载空模板（按当前选中格式）</a>
+        </div>
+
+        <details style="margin-top:10px; font-size:13px;">
+            <summary style="cursor:pointer; user-select:none;" data-i18n="csvFieldsHelp">📖 字段说明 / 行类型识别</summary>
+            <div class="csv-fields-help" id="csvExportFieldsHelp" style="margin-top:8px; max-height:280px; overflow:auto; font-size:12px; line-height:1.5;"></div>
+        </details>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnCsvExportCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-success" id="btnCsvExportConfirm" data-i18n="csvExportConfirm">⬇️ 下载</button>
+        </div>
+    </div>
+</div>
+
+<!-- 导入表格（CSV / XLSX） -->
+<div id="csvImportModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:640px;">
+        <h2 data-i18n="csvImportTitle">📥 导入表格</h2>
+        <p class="muted" data-i18n="csvImportDesc">支持 .xlsx 和 .csv 文件。导入仅写入编辑器，不会立刻保存。预览确认后请记得手动点「💾 保存」。</p>
+        <div class="enc-hint" id="csvImportEmojiWarnBox" style="font-size:12px; display:none;" data-i18n="csvEmojiWarn">📝 含 emoji 的字段（如 icon）请用 VS Code / Notepad++ 等 UTF-8 编辑器修改；Excel / WPS 用 GBK 保存 CSV 会导致 emoji 丢失。如需在表格软件中编辑，请改用 XLSX。</div>
+
+        <div style="margin-top:8px; font-size:13px;">
+            <span data-i18n="csvImportNoFileHint" style="color:#666;">没有现成的表格？</span>
+            <a href="#" id="btnCsvImportTplXlsx" data-i18n="csvImportTplXlsx">📊 下载 XLSX 模板</a>
+            <span style="color:#999; margin:0 4px;">/</span>
+            <a href="#" id="btnCsvImportTplCsv" data-i18n="csvImportTplCsv">📝 下载 CSV 模板</a>
+        </div>
+
+        <div style="margin:12px 0;">
+            <input type="file" id="csvImportFile" accept=".xlsx,.csv,.txt" style="margin-bottom:8px;">
+            <textarea id="csvImportText" style="min-height:140px; font-family: ui-monospace, Consolas, monospace; font-size:12px;" data-i18n-placeholder="csvImportPh" placeholder="或粘贴 CSV 内容（XLSX 必须用文件选择上传）..."></textarea>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin:10px 0;">
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="csvImportMode" value="append" checked>
+                <span data-i18n="csvImportModeAppend">追加：所有行视为新卡片，自动生成 id，附加到分类末尾</span>
+            </label>
+            <label style="font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="radio" name="csvImportMode" value="overwrite">
+                <span data-i18n="csvImportModeOverwrite">覆盖：按 card_id 匹配替换；找不到的新增；CSV 中没有的卡片保留</span>
+            </label>
+        </div>
+
+        <div style="margin:10px 0; display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="csvImportCreateMissing" style="width:16px; height:16px;">
+            <label for="csvImportCreateMissing" data-i18n="csvImportCreateMissing" style="font-size:13px; cursor:pointer;">允许创建 CSV 中出现的未知 customSection（内置分类总是已存在）</label>
+        </div>
+
+        <pre id="csvImportPreview" class="export-pre" style="max-height:260px; display:none;"></pre>
+
+        <details style="margin-top:10px; font-size:13px;">
+            <summary style="cursor:pointer; user-select:none;" data-i18n="csvFieldsHelp">📖 字段说明 / 行类型识别</summary>
+            <div class="csv-fields-help" id="csvImportFieldsHelp" style="margin-top:8px; max-height:280px; overflow:auto; font-size:12px; line-height:1.5;"></div>
+        </details>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnCsvImportCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnCsvImportPreview" data-i18n="csvImportPreviewBtn">🔍 预览</button>
+            <button class="btn btn-success hidden" id="btnCsvImportApply" data-i18n="csvImportApply">✓ 应用到编辑器</button>
+        </div>
+    </div>
+</div>
+
 <!-- ★ Emoji 选择器弹出层（共用） -->
 <div id="emojiPickerPopup" class="emoji-picker-popup hidden">
     <div class="emoji-picker-search">
@@ -700,6 +792,8 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 
 <!-- ★ 引入共享 emoji 数据 -->
 <script src="shared/emoji-data.js"></script>
+<script src="shared/csv-schema.js"></script>
+<script src="shared/xlsx-adapter.js"></script>
 
 <script>
 /* ================================================================
@@ -790,7 +884,57 @@ const I18N = {
         topHome: '← 主页', topHomeTitle: '返回主页', topTitle: '⭐️ 收藏夹配置',
         modeBadgeOnline: '☁️ 在线模式', modeBadgeLocal: '💻 本地模式',
         btnConnect: '📂 连接文件夹', btnReload: '🔄 重载 data.js', btnHistory: '🕐 历史备份',
-        btnDataSource: '📡 数据源', btnImport: '📥 导入', btnExport: '👁 预览导出',
+        btnDataSource: '📡 数据源', btnImport: '📥 导入 JS', btnExport: '👁 预览/导出 JS',
+        btnExportCsv: '📤 导出 CSV',
+        btnImportCsv: '📥 导入 CSV',
+        btnExportTable: '📤 导出表格',
+        btnImportTable: '📥 导入表格',
+        csvExportTitle: '📤 导出表格',
+        csvExportDesc: '把全部卡片导出为表格文件，可用 Excel / WPS / Numbers 打开编辑，再通过「📥 导入表格」导回。',
+        csvExportFormatXlsx: '📊 XLSX（推荐，支持 emoji 与 Excel 直接编辑）',
+        csvExportFormatCsv: '📝 CSV（纯文本，体积更小，含 emoji 时仅适合 UTF-8 编辑器）',
+        csvExportIncludeEnc: '包含已解锁的加密大类',
+        csvExportEncHint: '⚠️ 加密大类导出后为明文 CSV。文件请妥善保管，避免泄露。未解锁的加密大类会被自动跳过。',
+        csvExportConfirm: '⬇️ 下载',
+        csvEmojiWarn: '📝 含 emoji 的字段（如 icon）请用 VS Code / Notepad++ 等 UTF-8 编辑器修改；Excel / WPS 用 GBK 保存 CSV 会导致 emoji 丢失。如需在表格软件中编辑，请改用「📤 导出 XLSX」。',
+        toastCsvExportOk: 'CSV 已导出（{n} 行数据，{bytes} 字节）',
+        toastCsvExportEmpty: '没有可导出的卡片',
+        toastCsvExportEncLocked: '存在未解锁的加密大类，已跳过：{names}',
+        toastCsvExportFail: 'CSV 导出失败：{msg}',
+        toastXlsxLoading: '正在加载 XLSX 引擎…',
+        csvTemplateDownload: '📋 下载空模板（按当前选中格式）',
+        csvTemplateOk: '模板已下载',
+        csvTemplateFail: '模板下载失败：{msg}',
+        csvFieldsHelp: '📖 字段说明 / 行类型识别',
+        csvFieldsHelpRowKindsTitle: '行类型识别（按下列规则判断每一行）',
+        csvFieldsHelpRowKindMain: '<b>普通主卡</b>：parent_card_id 留空、type 为 simple / desc-clickable / expandable 之一',
+        csvFieldsHelpRowKindSub: '<b>子卡片</b>：parent_card_id 非空、sub_index 为 0 起的整数；type 列显示 <code>[sub]</code> 作为视觉标记（可留空，导入时忽略）',
+        csvFieldsHelpRowKindEmail: '<b>邮箱卡</b>（section_key = emailData）：type 留空、address 必填、mailto 可选',
+        csvFieldsHelpRowKindContact: '<b>联系方式卡</b>（section_key = contactData）：type 留空、title 必填、无 address/mailto',
+        csvFieldsHelpColsTitle: '字段总览（共 {n} 列）',
+        csvFieldsHelpColRequired: '必填',
+        csvFieldsHelpColOptional: '选填',
+        csvImportNoFileHint: '没有现成的表格？',
+        csvImportTplXlsx: '📊 下载 XLSX 模板',
+        csvImportTplCsv: '📝 下载 CSV 模板',
+        csvImportTitle: '📥 导入表格',
+        csvImportDesc: '支持 .xlsx 和 .csv 文件。导入仅写入编辑器，不会立刻保存。预览确认后请记得手动点「💾 保存」。',
+        csvImportPh: '或粘贴 CSV 内容（XLSX 必须用文件选择上传）...',
+        csvImportModeAppend: '追加：所有行视为新卡片，自动生成 id，附加到分类末尾',
+        csvImportModeOverwrite: '覆盖：按 card_id 匹配替换；找不到的新增；CSV 中没有的卡片保留',
+        csvImportCreateMissing: '允许创建 CSV 中出现的未知 customSection（内置分类总是已存在）',
+        csvImportPreviewBtn: '🔍 预览',
+        csvImportApply: '✓ 应用到编辑器',
+        csvImportPreviewEmpty: '请先选择文件或粘贴 CSV 内容',
+        csvImportPreviewHeader: '解析结果：共 {rows} 行，errors: {errs}，warnings: {warns}',
+        csvImportPreviewSection: '  - {label} ({key}): 新增 {add} / 覆盖 {upd}{extra}',
+        csvImportPreviewLockedSection: '  ❌ {label} ({key}): 加密大类未解锁，跳过 {n} 行',
+        csvImportPreviewUnknownSection: '  ❌ {key}: section 不存在（请勾选"允许创建未知 customSection"或先到管理中创建）',
+        csvImportPreviewBuiltinUnknown: '  ❌ {key}: section 不在 6 个内置 key 中且无 customSection，无法创建',
+        csvImportPreviewFixHint: '⚠️ 存在错误，请先修正 CSV 或勾选选项后再次预览',
+        csvImportApplyDone: '已应用到编辑器：新增 {add} / 覆盖 {upd}{newSec}。请记得点「💾 保存」。',
+        csvImportApplyNewSec: '，新建 {n} 个 customSection',
+        csvImportParseFail: 'CSV 解析失败：{msg}',
         btnSave: '💾 保存', btnChangePwd: '🔑 密码', btnSwitchMode: '🔀 切换模式', btnLogout: '🚪 退出',
         stSourceServer: '服务端：', stSourceFolder: '文件夹：', stNotConnected: '未连接',
         stDataJs: 'data.js：', stNotLoaded: '未加载', stDataSource: '首页数据源：',
@@ -1000,7 +1144,57 @@ const I18N = {
         topHome: '← Home', topHomeTitle: 'Back to home', topTitle: '⭐️ Bookmarks Config',
         modeBadgeOnline: '☁️ Online', modeBadgeLocal: '💻 Local',
         btnConnect: '📂 Connect Folder', btnReload: '🔄 Reload data.js', btnHistory: '🕐 Backups',
-        btnDataSource: '📡 Source', btnImport: '📥 Import', btnExport: '👁 Preview',
+        btnDataSource: '📡 Source', btnImport: '📥 Import JS', btnExport: '👁 Preview/Export JS',
+        btnExportCsv: '📤 Export CSV',
+        btnImportCsv: '📥 Import CSV',
+        btnExportTable: '📤 Export Table',
+        btnImportTable: '📥 Import Table',
+        csvExportTitle: '📤 Export Table',
+        csvExportDesc: 'Export all cards as a spreadsheet file. Open in Excel / WPS / Numbers, edit, then re-import via 「📥 Import Table」.',
+        csvExportFormatXlsx: '📊 XLSX (recommended; preserves emoji, edits safely in Excel)',
+        csvExportFormatCsv: '📝 CSV (plain text, smaller; safe only in UTF-8 editors when emoji present)',
+        csvExportIncludeEnc: 'Include unlocked encrypted sections',
+        csvExportEncHint: '⚠️ Encrypted sections will be exported as plaintext CSV. Keep the file safe. Still-locked encrypted sections are skipped automatically.',
+        csvExportConfirm: '⬇️ Download',
+        csvEmojiWarn: '📝 Fields containing emoji (like icon) should be edited in UTF-8 editors (VS Code / Notepad++). Excel / WPS save CSV as GBK and will lose emoji. For spreadsheet editing, use 「📤 Export XLSX」 instead.',
+        toastCsvExportOk: 'CSV exported ({n} rows, {bytes} bytes)',
+        toastCsvExportEmpty: 'No cards to export',
+        toastCsvExportEncLocked: 'Locked encrypted sections skipped: {names}',
+        toastCsvExportFail: 'CSV export failed: {msg}',
+        toastXlsxLoading: 'Loading XLSX engine…',
+        csvTemplateDownload: '📋 Download blank template (in selected format)',
+        csvTemplateOk: 'Template downloaded',
+        csvTemplateFail: 'Template download failed: {msg}',
+        csvFieldsHelp: '📖 Field reference / row-kind identification',
+        csvFieldsHelpRowKindsTitle: 'Row kinds (each row is identified by these rules)',
+        csvFieldsHelpRowKindMain: '<b>Main card</b>: parent_card_id empty; type is one of simple / desc-clickable / expandable',
+        csvFieldsHelpRowKindSub: '<b>Sub-card</b>: parent_card_id non-empty; sub_index is an integer ≥ 0; type column shows <code>[sub]</code> as visual marker (may be empty; ignored on import)',
+        csvFieldsHelpRowKindEmail: '<b>Email card</b> (section_key = emailData): type empty; address required; mailto optional',
+        csvFieldsHelpRowKindContact: '<b>Contact card</b> (section_key = contactData): type empty; title required; no address/mailto',
+        csvFieldsHelpColsTitle: 'Columns ({n} total)',
+        csvFieldsHelpColRequired: 'required',
+        csvFieldsHelpColOptional: 'optional',
+        csvImportNoFileHint: 'No spreadsheet at hand?',
+        csvImportTplXlsx: '📊 Download XLSX template',
+        csvImportTplCsv: '📝 Download CSV template',
+        csvImportTitle: '📥 Import Table',
+        csvImportDesc: 'Supports .xlsx and .csv files. Import only loads to editor; does not save immediately. After previewing, remember to click 「💾 Save」 manually.',
+        csvImportPh: 'Or paste CSV content (XLSX must be uploaded via file picker)...',
+        csvImportModeAppend: 'Append: treat every row as new card, auto-generate id, append to end of its section',
+        csvImportModeOverwrite: 'Overwrite: match by card_id and replace; unmatched rows are added; cards not in CSV are kept',
+        csvImportCreateMissing: 'Allow creating unknown customSection that appears in CSV (built-in sections always exist)',
+        csvImportPreviewBtn: '🔍 Preview',
+        csvImportApply: '✓ Apply to editor',
+        csvImportPreviewEmpty: 'Please pick a file or paste CSV content first',
+        csvImportPreviewHeader: 'Parsed: {rows} rows, errors: {errs}, warnings: {warns}',
+        csvImportPreviewSection: '  - {label} ({key}): add {add} / update {upd}{extra}',
+        csvImportPreviewLockedSection: '  ❌ {label} ({key}): encrypted section is locked; skipping {n} rows',
+        csvImportPreviewUnknownSection: '  ❌ {key}: section does not exist (tick "Allow creating unknown customSection" or create it in Manage first)',
+        csvImportPreviewBuiltinUnknown: '  ❌ {key}: not one of the 6 built-in keys and no customSection by this key; cannot create',
+        csvImportPreviewFixHint: '⚠️ Errors exist. Please fix the CSV or tick the option, then preview again.',
+        csvImportApplyDone: 'Applied to editor: add {add} / update {upd}{newSec}. Remember to click 「💾 Save」.',
+        csvImportApplyNewSec: ', created {n} customSection(s)',
+        csvImportParseFail: 'CSV parse failed: {msg}',
         btnSave: '💾 Save', btnChangePwd: '🔑 Password', btnSwitchMode: '🔀 Switch Mode', btnLogout: '🚪 Logout',
         stSourceServer: 'Server: ', stSourceFolder: 'Folder: ', stNotConnected: 'Not connected',
         stDataJs: 'data.js: ', stNotLoaded: 'Not loaded', stDataSource: 'Home source: ',
@@ -3467,6 +3661,568 @@ async function confirmImport() {
 }
 
 /* ================================================================
+   CSV 导出（B1）
+   - 复用 getSections() + store[key] 重建 sections 数组
+   - 调用 window.CsvSchema.sectionsToCSV
+   - 加密 section locked 状态下 store[key] 为空(明文未填充)，自动跳过
+   ================================================================ */
+function buildSectionsForCsv() {
+    // 用 config.html 的 getSections() 拿元数据，cards 从 store 取
+    return getSections().map(function(meta) {
+        var cards = Array.isArray(store[meta.key]) ? store[meta.key] : [];
+        return {
+            key:       meta.key,
+            kind:      meta.kind,
+            label:     meta.label,
+            builtin:   !!meta.builtin,
+            encrypted: !!meta.encrypted,
+            locked:    !!meta.locked,
+            visible:   meta.visible !== false,
+            cards:     cards
+        };
+    });
+}
+
+function openCsvExportModal() {
+    $('csvExportIncludeEnc').checked = false;
+    var radios = document.getElementsByName('csvExportFormat');
+    for (var i = 0; i < radios.length; i++) {
+        radios[i].checked = (radios[i].value === 'xlsx');
+        radios[i].onchange = updateCsvEmojiWarn;
+    }
+    updateCsvEmojiWarn();
+    renderCsvFieldsHelp($('csvExportFieldsHelp'));
+    show('csvExportModal');
+}
+
+// 渲染字段说明（导出/导入 modal 共用）
+function renderCsvFieldsHelp(container) {
+    if (!container || !window.CsvSchema || !window.CsvSchema.COLUMNS) return;
+    var cols = window.CsvSchema.COLUMNS;
+    var html = '';
+
+    // 行类型识别
+    html += '<p style="margin:4px 0;"><b>' + escapeHtml(t('csvFieldsHelpRowKindsTitle')) + '</b></p>';
+    html += '<ul style="margin:4px 0 10px 18px;">';
+    html += '<li>' + t('csvFieldsHelpRowKindMain') + '</li>';
+    html += '<li>' + t('csvFieldsHelpRowKindSub') + '</li>';
+    html += '<li>' + t('csvFieldsHelpRowKindEmail') + '</li>';
+    html += '<li>' + t('csvFieldsHelpRowKindContact') + '</li>';
+    html += '</ul>';
+
+    // 字段总览
+    html += '<p style="margin:6px 0 4px;"><b>' + escapeHtml(t('csvFieldsHelpColsTitle', { n: cols.length })) + '</b></p>';
+    html += '<table style="border-collapse:collapse; width:100%; font-size:12px;">';
+    html += '<thead><tr style="background:#f5f5f5;">'
+         +  '<th style="text-align:left; padding:4px 6px; border:1px solid #ddd;">#</th>'
+         +  '<th style="text-align:left; padding:4px 6px; border:1px solid #ddd;">col</th>'
+         +  '<th style="text-align:left; padding:4px 6px; border:1px solid #ddd;">req</th>'
+         +  '<th style="text-align:left; padding:4px 6px; border:1px solid #ddd;">desc</th>'
+         +  '</tr></thead><tbody>';
+    cols.forEach(function(c, i) {
+        var req = c.required
+            ? '<span style="color:#c62828;">' + escapeHtml(t('csvFieldsHelpColRequired')) + '</span>'
+            : '<span style="color:#999;">' + escapeHtml(t('csvFieldsHelpColOptional')) + '</span>';
+        html += '<tr>'
+             +  '<td style="padding:3px 6px; border:1px solid #eee;">' + (i + 1) + '</td>'
+             +  '<td style="padding:3px 6px; border:1px solid #eee;"><code>' + escapeHtml(c.col) + '</code></td>'
+             +  '<td style="padding:3px 6px; border:1px solid #eee;">' + req + '</td>'
+             +  '<td style="padding:3px 6px; border:1px solid #eee;">' + escapeHtml(c.desc || '') + '</td>'
+             +  '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function updateCsvEmojiWarn() {
+    var fmt = 'xlsx';
+    var radios = document.getElementsByName('csvExportFormat');
+    for (var i = 0; i < radios.length; i++) if (radios[i].checked) fmt = radios[i].value;
+    var box = $('csvEmojiWarnBox');
+    if (box) box.style.display = (fmt === 'csv') ? 'block' : 'none';
+}
+
+function getCsvExportFormat() {
+    var radios = document.getElementsByName('csvExportFormat');
+    for (var i = 0; i < radios.length; i++) if (radios[i].checked) return radios[i].value;
+    return 'xlsx';
+}
+
+function doCsvExport() {
+    if (!window.CsvSchema || typeof window.CsvSchema.sectionsToCSV !== 'function') {
+        toast(t('toastCsvExportFail', { msg: 'CsvSchema not loaded' }));
+        return;
+    }
+    var includeEnc = $('csvExportIncludeEnc').checked;
+    var format = getCsvExportFormat();
+    var allSections = buildSectionsForCsv();
+
+    var lockedNames = [];
+    if (includeEnc) {
+        allSections.forEach(function(s) {
+            if (s.encrypted && s.locked) lockedNames.push(s.label || s.key);
+        });
+    }
+
+    // 估算行数（不论 csv 还是 xlsx 都先用 csv 字符串估）
+    var csv;
+    try {
+        csv = window.CsvSchema.sectionsToCSV(allSections, { includeEncrypted: includeEnc });
+    } catch (e) {
+        toast(t('toastCsvExportFail', { msg: e.message || String(e) }));
+        return;
+    }
+    var bom = '﻿';
+    var withoutBOM = csv.charAt(0) === bom ? csv.slice(1) : csv;
+    var totalLines = withoutBOM.split(/\r\n|\n/).filter(function(l) { return l !== ''; }).length;
+    var dataRows = Math.max(0, totalLines - 1);
+    if (dataRows === 0) {
+        toast(t('toastCsvExportEmpty'));
+        return;
+    }
+
+    var ts = new Date();
+    var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+    var stamp = ts.getFullYear() + pad(ts.getMonth() + 1) + pad(ts.getDate())
+              + '_' + pad(ts.getHours()) + pad(ts.getMinutes()) + pad(ts.getSeconds());
+
+    if (format === 'csv') {
+        // 直接用 csv 文本
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        triggerDownload(blob, 'smarttools_' + stamp + '.csv');
+        hide('csvExportModal');
+        toast(t('toastCsvExportOk', { n: dataRows, bytes: blob.size }));
+        if (lockedNames.length) {
+            setTimeout(function() {
+                toast(t('toastCsvExportEncLocked', { names: lockedNames.join(', ') }), 3600);
+            }, 1500);
+        }
+        return;
+    }
+
+    // XLSX：走 adapter，懒加载 SheetJS
+    if (!window.XlsxAdapter) {
+        toast(t('toastCsvExportFail', { msg: 'XlsxAdapter not loaded' }));
+        return;
+    }
+    toast(t('toastXlsxLoading'), 1500);
+    window.XlsxAdapter.sectionsToXlsx(allSections, { includeEncrypted: includeEnc })
+        .then(function(blob) {
+            triggerDownload(blob, 'smarttools_' + stamp + '.xlsx');
+            hide('csvExportModal');
+            toast(t('toastCsvExportOk', { n: dataRows, bytes: blob.size }));
+            if (lockedNames.length) {
+                setTimeout(function() {
+                    toast(t('toastCsvExportEncLocked', { names: lockedNames.join(', ') }), 3600);
+                }, 1500);
+            }
+        })
+        .catch(function(e) {
+            toast(t('toastCsvExportFail', { msg: e.message || String(e) }));
+        });
+}
+
+function triggerDownload(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
+
+function downloadTemplateInFormat(fmt) {
+    if (fmt === 'xlsx') {
+        if (!window.XlsxAdapter || !window.XlsxAdapter.templateToXlsx) {
+            toast(t('csvTemplateFail', { msg: 'XlsxAdapter not loaded' }));
+            return;
+        }
+        toast(t('toastXlsxLoading'), 1500);
+        window.XlsxAdapter.templateToXlsx()
+            .then(function(blob) {
+                triggerDownload(blob, 'smarttools_template.xlsx');
+                toast(t('csvTemplateOk'));
+            })
+            .catch(function(e) {
+                toast(t('csvTemplateFail', { msg: e.message || String(e) }));
+            });
+        return;
+    }
+    // CSV
+    if (!window.CsvSchema || !window.CsvSchema.buildTemplateCSV) {
+        toast(t('csvTemplateFail', { msg: 'CsvSchema not loaded' }));
+        return;
+    }
+    try {
+        var content = window.CsvSchema.buildTemplateCSV();
+        var blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+        triggerDownload(blob, 'smarttools_template.csv');
+        toast(t('csvTemplateOk'));
+    } catch (e) {
+        toast(t('csvTemplateFail', { msg: e.message || String(e) }));
+    }
+}
+
+/* ================================================================
+   CSV 导入（B2）
+   - 仅写入编辑器（store + customSectionsMeta），不直接保存
+   - 模式：append(默认) / overwrite
+   - 加密 section locked → 报 error，相关行被丢弃
+   - 未知 section_key：默认报 error，勾选"允许创建"才创建空 customSection
+   ================================================================ */
+var __csvImportParsed = null;   // 缓存上次预览的结果
+var __csvImportPlan   = null;   // 缓存上次的应用计划
+var __csvImportXlsxBuf = null;  // 选了 xlsx 文件时，缓存 ArrayBuffer；选了文本/csv 文件则为 null
+
+function openCsvImportModal() {
+    $('csvImportFile').value = '';
+    $('csvImportText').value = '';
+    $('csvImportCreateMissing').checked = false;
+    var radios = document.getElementsByName('csvImportMode');
+    for (var i = 0; i < radios.length; i++) radios[i].checked = (radios[i].value === 'append');
+    $('csvImportPreview').style.display = 'none';
+    $('csvImportPreview').textContent = '';
+    hide('btnCsvImportApply');
+    var warn = $('csvImportEmojiWarnBox');
+    if (warn) warn.style.display = 'none';
+    __csvImportParsed = null;
+    __csvImportPlan = null;
+    __csvImportXlsxBuf = null;
+    renderCsvFieldsHelp($('csvImportFieldsHelp'));
+    show('csvImportModal');
+}
+
+function isXlsxFile(file) {
+    if (!file) return false;
+    var name = (file.name || '').toLowerCase();
+    if (name.endsWith('.xlsx') || name.endsWith('.xlsm') || name.endsWith('.xls')) return true;
+    var typ = file.type || '';
+    if (typ.indexOf('spreadsheetml') >= 0) return true;
+    if (typ.indexOf('ms-excel') >= 0) return true;
+    return false;
+}
+
+function handleCsvImportFile(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var warn = $('csvImportEmojiWarnBox');
+    __csvImportXlsxBuf = null;
+
+    if (isXlsxFile(f)) {
+        // XLSX 路径：缓存 ArrayBuffer，textarea 显示提示
+        if (warn) warn.style.display = 'none';
+        var r = new FileReader();
+        r.onload = function(ev) {
+            __csvImportXlsxBuf = ev.target.result;
+            $('csvImportText').value = '[XLSX] ' + f.name + ' (' + ev.target.result.byteLength + ' bytes) — 已加载，点「🔍 预览」继续';
+        };
+        r.readAsArrayBuffer(f);
+        return;
+    }
+
+    // CSV 路径：编码自适应（UTF-8 / GB18030）+ textarea 填充
+    if (warn) warn.style.display = 'block';
+    var r2 = new FileReader();
+    r2.onload = function(ev) {
+        var buf = ev.target.result;
+        var bytes = new Uint8Array(buf);
+        var text;
+        if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+            text = new TextDecoder('utf-8').decode(bytes);
+        } else {
+            try {
+                text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            } catch (err) {
+                try { text = new TextDecoder('gb18030').decode(bytes); }
+                catch (err2) {
+                    text = new TextDecoder('utf-8').decode(bytes);
+                }
+            }
+        }
+        $('csvImportText').value = text;
+    };
+    r2.readAsArrayBuffer(f);
+}
+
+// 把 CsvSchema.csvToSections 解析出的扁平 rows，按 section + parent 关系组装成
+// { sectionKey: { mainCards: [{cardObj, sub:[...]}], rows: [...rawRows] } }
+function groupCsvRows(rows) {
+    var byKey = {};
+    rows.forEach(function(r) {
+        var k = r.section_key;
+        if (!byKey[k]) byKey[k] = { mainCards: [], subRows: [], rows: [] };
+        byKey[k].rows.push(r);
+        if (r.parent_card_id) byKey[k].subRows.push(r);
+        else byKey[k].mainCards.push(r);
+    });
+    // 按 sub_index 排序子卡
+    Object.keys(byKey).forEach(function(k) {
+        byKey[k].subRows.sort(function(a, b) { return (a.sub_index || 0) - (b.sub_index || 0); });
+    });
+    return byKey;
+}
+
+// 把一条 main row 转成 card 对象
+function rowToCard(r) {
+    var card = {};
+    if (r.card_id)        card.id = r.card_id;
+    if (r.type)           card.type = r.type;
+    if (r.title)          card.title = r.title;
+    if (r.url)            card.url = r.url;
+    if (r.desc)           card.desc = r.desc;
+    if (r.descClickable)  card.descClickable = r.descClickable;
+    if (r.descUrl)        card.descUrl = r.descUrl;
+    if (r.icon)           card.icon = r.icon;
+    if (r.iconImg)        card.iconImg = r.iconImg;
+    if (r.isLocal === true) card.isLocal = true;
+    if (r.address)        card.address = r.address;
+    if (r.mailto)         card.mailto = r.mailto;
+    if (r.comment)        card.comment = r.comment;
+    return card;
+}
+function rowToSubCard(r) {
+    var sc = {};
+    if (r.title)   sc.title = r.title;
+    if (r.content) sc.content = r.content;
+    if (r.url)     sc.url = r.url;
+    if (r.desc)    sc.desc = r.desc;
+    if (r.icon)    sc.icon = r.icon;
+    if (r.iconImg) sc.iconImg = r.iconImg;
+    if (r.isLocal === true) sc.isLocal = true;
+    if (r.comment) sc.comment = r.comment;
+    if (r.note)    sc.note = r.note;
+    return sc;
+}
+
+function doCsvImportPreview() {
+    if (!window.CsvSchema || typeof window.CsvSchema.csvToSections !== 'function') {
+        toast(t('csvImportParseFail', { msg: 'CsvSchema not loaded' }));
+        return;
+    }
+
+    // 选了 xlsx 文件 → 走 XlsxAdapter
+    if (__csvImportXlsxBuf) {
+        if (!window.XlsxAdapter) {
+            toast(t('csvImportParseFail', { msg: 'XlsxAdapter not loaded' }));
+            return;
+        }
+        toast(t('toastXlsxLoading'), 1500);
+        window.XlsxAdapter.xlsxToRows(__csvImportXlsxBuf, {})
+            .then(function(parsed) { finalizePreview(parsed); })
+            .catch(function(e) {
+                toast(t('csvImportParseFail', { msg: e.message || String(e) }));
+            });
+        return;
+    }
+
+    // CSV / 粘贴文本
+    var text = $('csvImportText').value;
+    if (!text || !text.trim()) {
+        $('csvImportPreview').style.display = 'block';
+        $('csvImportPreview').textContent = t('csvImportPreviewEmpty');
+        hide('btnCsvImportApply');
+        return;
+    }
+    var parsed;
+    try { parsed = window.CsvSchema.csvToSections(text, {}); }
+    catch (e) {
+        toast(t('csvImportParseFail', { msg: e.message || String(e) }));
+        return;
+    }
+    finalizePreview(parsed);
+}
+
+function finalizePreview(parsed) {
+    var mode = 'append';
+    var radios = document.getElementsByName('csvImportMode');
+    for (var i = 0; i < radios.length; i++) if (radios[i].checked) mode = radios[i].value;
+    var allowCreate = $('csvImportCreateMissing').checked;
+
+    var grouped = groupCsvRows(parsed.rows);
+    var existingSecs = getSections();
+    var existingMap = {};
+    existingSecs.forEach(function(s) { existingMap[s.key] = s; });
+
+    var plan = {
+        mode: mode,
+        allowCreate: allowCreate,
+        sections: {},
+        toCreate: [],
+        lockedSkipped: [],
+        unknownSections: [],
+        builtinUnknown: [],
+        errors: parsed.errors.slice(),
+        warnings: parsed.warnings.slice()
+    };
+
+    Object.keys(grouped).forEach(function(secKey) {
+        var rowCount = grouped[secKey].rows.length;
+        var meta = existingMap[secKey];
+
+        if (meta && meta.encrypted && meta.locked) {
+            plan.lockedSkipped.push({ key: secKey, label: meta.label, n: rowCount });
+            return;
+        }
+
+        if (!meta) {
+            if (!/^custom_/.test(secKey)) {
+                plan.builtinUnknown.push({ key: secKey });
+                return;
+            }
+            if (!allowCreate) {
+                plan.unknownSections.push({ key: secKey });
+                return;
+            }
+            plan.toCreate.push(secKey);
+        }
+
+        var existingCards = (store[secKey] || []);
+        var existingIdMap = {};
+        existingCards.forEach(function(c, i) { if (c && c.id) existingIdMap[c.id] = i; });
+
+        var addCount = 0, updCount = 0;
+        var mergeOps = [];
+
+        grouped[secKey].mainCards.forEach(function(r) {
+            var card = rowToCard(r);
+            var subs = grouped[secKey].subRows.filter(function(s) { return s.parent_card_id === r.card_id; });
+            if (card.type === 'expandable' || subs.length) {
+                if (subs.length) card.subCards = subs.map(rowToSubCard);
+                else if (card.type === 'expandable') card.subCards = [];
+            }
+            if (mode === 'overwrite' && card.id && existingIdMap[card.id] !== undefined) {
+                mergeOps.push({ op: 'replace', index: existingIdMap[card.id], card: card });
+                updCount++;
+            } else {
+                if (!card.id || mode === 'append') {
+                    card.id = generateUniqueCardId(existingCards.concat(mergeOps.map(function(m) { return m.card; })));
+                }
+                mergeOps.push({ op: 'append', card: card });
+                addCount++;
+            }
+        });
+
+        plan.sections[secKey] = {
+            addCount: addCount,
+            updCount: updCount,
+            mergeOps: mergeOps,
+            label: meta ? meta.label : secKey
+        };
+    });
+
+    var lines = [];
+    lines.push(t('csvImportPreviewHeader', {
+        rows: parsed.rows.length,
+        errs: parsed.errors.length + plan.lockedSkipped.length + plan.unknownSections.length + plan.builtinUnknown.length,
+        warns: parsed.warnings.length
+    }));
+    Object.keys(plan.sections).forEach(function(key) {
+        var s = plan.sections[key];
+        var extra = '';
+        if (plan.toCreate.indexOf(key) >= 0) extra = '  [+新建]';
+        lines.push(t('csvImportPreviewSection', {
+            label: s.label, key: key, add: s.addCount, upd: s.updCount, extra: extra
+        }));
+    });
+    plan.lockedSkipped.forEach(function(s) {
+        lines.push(t('csvImportPreviewLockedSection', { label: s.label, key: s.key, n: s.n }));
+    });
+    plan.unknownSections.forEach(function(s) {
+        lines.push(t('csvImportPreviewUnknownSection', { key: s.key }));
+    });
+    plan.builtinUnknown.forEach(function(s) {
+        lines.push(t('csvImportPreviewBuiltinUnknown', { key: s.key }));
+    });
+    if (parsed.errors.length) {
+        lines.push('');
+        lines.push('--- errors ---');
+        parsed.errors.slice(0, 20).forEach(function(e) {
+            lines.push('  line ' + e.line + ' [' + e.col + ']: ' + e.msg);
+        });
+        if (parsed.errors.length > 20) lines.push('  ... and ' + (parsed.errors.length - 20) + ' more');
+    }
+    if (parsed.warnings.length) {
+        lines.push('');
+        lines.push('--- warnings ---');
+        parsed.warnings.slice(0, 10).forEach(function(w) {
+            lines.push('  line ' + w.line + ' [' + w.col + ']: ' + w.msg);
+        });
+        if (parsed.warnings.length > 10) lines.push('  ... and ' + (parsed.warnings.length - 10) + ' more');
+    }
+
+    var hasBlockingError = parsed.errors.length > 0
+        || plan.lockedSkipped.length > 0
+        || plan.unknownSections.length > 0
+        || plan.builtinUnknown.length > 0;
+    if (hasBlockingError) lines.push('\n' + t('csvImportPreviewFixHint'));
+
+    $('csvImportPreview').style.display = 'block';
+    $('csvImportPreview').textContent = lines.join('\n');
+
+    __csvImportParsed = parsed;
+    __csvImportPlan = plan;
+
+    var anyOps = false;
+    Object.keys(plan.sections).forEach(function(k) {
+        if (plan.sections[k].mergeOps.length > 0) anyOps = true;
+    });
+    if (!hasBlockingError && anyOps) show('btnCsvImportApply');
+    else hide('btnCsvImportApply');
+}
+
+function doCsvImportApply() {
+    var plan = __csvImportPlan;
+    if (!plan) return;
+
+    var totalAdd = 0, totalUpd = 0;
+    var newSecCount = 0;
+
+    // 先创建缺失的 customSection
+    plan.toCreate.forEach(function(secKey) {
+        if (!customSectionsMeta.find(function(c) { return c.key === secKey; })) {
+            customSectionsMeta.push({
+                key: secKey,
+                label: secKey,        // 名字用 key 暂代；用户可以到"管理"里改
+                dynamic: false,
+                encrypted: false,
+                locked: false
+            });
+            if (!Array.isArray(store[secKey])) store[secKey] = [];
+            newSecCount++;
+        }
+    });
+
+    // 应用合并
+    Object.keys(plan.sections).forEach(function(secKey) {
+        if (!Array.isArray(store[secKey])) store[secKey] = [];
+        var arr = store[secKey];
+        var s = plan.sections[secKey];
+        s.mergeOps.forEach(function(op) {
+            if (op.op === 'replace') {
+                arr[op.index] = op.card;
+                totalUpd++;
+            } else {
+                arr.push(op.card);
+                totalAdd++;
+            }
+        });
+    });
+
+    // 刷新视图
+    try { renderSectionTabs(); } catch (e) {}
+    try { renderCurrentSection(); } catch (e) {}
+
+    hide('csvImportModal');
+    var extra = newSecCount > 0 ? t('csvImportApplyNewSec', { n: newSecCount }) : '';
+    toast(t('csvImportApplyDone', { add: totalAdd, upd: totalUpd, newSec: extra }), 3600);
+
+    __csvImportParsed = null;
+    __csvImportPlan = null;
+}
+
+/* ================================================================
    Password change (local)
 ================================================================ */
 async function savePassword() {
@@ -3528,6 +4284,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
     $('btnImport').onclick = openImportModal;
     $('btnExport').onclick = openExportModal;
+    $('btnExportCsv').onclick = openCsvExportModal;
+    $('btnCsvExportCancel').onclick = () => hide('csvExportModal');
+    $('btnCsvExportConfirm').onclick = doCsvExport;
+    $('btnCsvExportTemplate').onclick = (e) => {
+        e.preventDefault();
+        downloadTemplateInFormat(getCsvExportFormat());
+    };
+    $('btnCsvImportTplXlsx').onclick = (e) => { e.preventDefault(); downloadTemplateInFormat('xlsx'); };
+    $('btnCsvImportTplCsv').onclick  = (e) => { e.preventDefault(); downloadTemplateInFormat('csv'); };
+    $('btnImportCsv').onclick = openCsvImportModal;
+    $('btnCsvImportCancel').onclick = () => hide('csvImportModal');
+    $('btnCsvImportPreview').onclick = doCsvImportPreview;
+    $('btnCsvImportApply').onclick = doCsvImportApply;
+    $('csvImportFile').addEventListener('change', handleCsvImportFile);
     $('btnIoCancel').onclick = () => hide('ioModal');
     $('btnIoImportConfirm').onclick = confirmImport;
     $('ioFile').addEventListener('change', handleImportFile);

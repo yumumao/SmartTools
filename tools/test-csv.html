@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>CSV Schema 自检 · SmartTools (B0)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            margin: 0; padding: 20px; max-width: 1100px; margin: 0 auto;
+            color: #111; background: #fafafa;
+        }
+        h1 { font-size: 20px; margin: 0 0 6px; }
+        .sub { color: #666; font-size: 13px; margin-bottom: 16px; }
+        .panel {
+            background: #fff; border: 1px solid #ddd; border-radius: 8px;
+            padding: 14px 16px; margin-bottom: 16px;
+        }
+        .panel h2 { font-size: 14px; margin: 0 0 10px; color: #555; font-weight: 600; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        button {
+            background: #2563eb; color: #fff; border: none; border-radius: 6px;
+            padding: 8px 14px; font-size: 13px; cursor: pointer;
+            transition: background .15s ease;
+        }
+        button:hover { background: #1d4ed8; }
+        button.sec { background: #6b7280; }
+        button.sec:hover { background: #4b5563; }
+        textarea {
+            width: 100%; min-height: 220px; padding: 10px; font-family: ui-monospace, Consolas, monospace;
+            font-size: 12px; border: 1px solid #ccc; border-radius: 6px; resize: vertical;
+            background: #fbfbfb;
+        }
+        pre {
+            background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 10px; font-size: 12px; max-height: 320px; overflow: auto;
+            white-space: pre-wrap; word-break: break-all;
+        }
+        .status { font-size: 13px; padding: 8px 10px; border-radius: 6px; margin-top: 8px; }
+        .status.ok   { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .status.warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .status.err  { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .small { font-size: 12px; color: #6b7280; }
+        code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <h1>CSV Schema 自检 · B0</h1>
+    <div class="sub">
+        阶段 B0 验收页。不引入 fav-page.js / note-modal.js 等。
+        仅加载 <code>../data.js</code> + <code>../shared/csv-schema.js</code>。
+        规则参考 <code>.claude/下一阶段计划.md §3 B0 v2 实施版</code>。
+    </div>
+
+    <!-- 1. 加载当前数据 -->
+    <div class="panel">
+        <h2>1. 加载当前 data.js 并导出 CSV</h2>
+        <div class="btn-row">
+            <button id="btnLoad">加载并导出</button>
+            <button id="btnLoadEnc" class="sec">包含已解锁的加密分类</button>
+            <span class="small" id="loadInfo"></span>
+        </div>
+        <textarea id="csvOut" placeholder="点击上方按钮后，导出的 CSV 文本会出现在这里…"></textarea>
+        <div id="loadStatus"></div>
+    </div>
+
+    <!-- 2. 解析 -->
+    <div class="panel">
+        <h2>2. 解析 CSV（上方文本框或粘贴）</h2>
+        <div class="btn-row">
+            <button id="btnParse">解析</button>
+            <button id="btnParseLoose" class="sec">宽松模式（strictRequired=false）</button>
+        </div>
+        <pre id="parseOut">[结果会出现在这里]</pre>
+    </div>
+
+    <!-- 3. round-trip 自检 -->
+    <div class="panel">
+        <h2>3. round-trip 自检</h2>
+        <div class="btn-row">
+            <button id="btnRoundTrip">运行</button>
+        </div>
+        <div class="small">
+            流程：<code>sectionsToCSV(window.sections)</code> → <code>csvToSections</code> → 重建 sections → 再 <code>sectionsToCSV</code> → 比较两次 CSV 字符串。
+        </div>
+        <pre id="rtOut">[结果会出现在这里]</pre>
+        <div id="rtStatus"></div>
+    </div>
+
+    <!-- 4. 下载模板 -->
+    <div class="panel">
+        <h2>4. 下载模板</h2>
+        <div class="btn-row">
+            <button id="btnTpl">下载 smarttools_template.csv</button>
+            <span class="small">含表头 + 4 行示例（simple / expandable + 2 张子卡）</span>
+        </div>
+    </div>
+
+    <!-- 关键依赖：先 data.js（提供全局 sections 或 usbDriveData 等），再 csv-schema.js -->
+    <script src="../data.js"></script>
+    <script src="../shared/csv-schema.js"></script>
+
+    <script>
+        // ───────────── 工具函数 ─────────────
+        function $(id) { return document.getElementById(id); }
+        function setStatus(el, type, msg) {
+            el.className = 'status ' + type;
+            el.textContent = msg;
+        }
+        function clearStatus(el) { el.className = ''; el.textContent = ''; }
+
+        // 兼容 data.js 的新/老格式：返回扁平的 sections 数组
+        function getSections() {
+            if (Array.isArray(window.sections)) return window.sections;
+            // 老格式：把 var usbDriveData / teachingData / ... 包装成 sections
+            var s = [];
+            var defs = [
+                { key:'usbDriveData',  kind:'card',    label:'☁️ 在线U盘' },
+                { key:'teachingData',  kind:'card',    label:'📚 授课资料' },
+                { key:'onlineAIData',  kind:'card',    label:'🖥️ 网络资源' },
+                { key:'videoData',     kind:'card',    label:'🎬 视频聚合' },
+                { key:'emailData',     kind:'email',   label:'📨 联系方式' },
+                { key:'contactData',   kind:'contact', label:'📨 其他联系方式' }
+            ];
+            defs.forEach(function(d) {
+                if (Array.isArray(window[d.key])) {
+                    s.push({ builtin:true, key:d.key, kind:d.kind, label:d.label, visible:true, cards:window[d.key] });
+                }
+            });
+            if (Array.isArray(window.customSections)) {
+                window.customSections.forEach(function(c) {
+                    s.push({ builtin:false, key:c.key, kind:'card', label:c.label, visible:true,
+                            encrypted:!!c.encrypted, enc:c.enc||null, cards:c.cards||[] });
+                });
+            }
+            return s;
+        }
+
+        // ───────────── 1. 加载 & 导出 ─────────────
+        function doLoad(includeEncrypted) {
+            var status = $('loadStatus');
+            try {
+                var sections = getSections();
+                if (!sections.length) {
+                    setStatus(status, 'err', 'data.js 中未找到 sections 或老格式变量');
+                    return;
+                }
+                var csv = CsvSchema.sectionsToCSV(sections, { includeEncrypted: includeEncrypted });
+                $('csvOut').value = csv;
+                var bytes = new Blob([csv]).size;
+                var lines = csv.split(/\r\n|\n/).filter(function(l) { return l !== ''; }).length;
+                $('loadInfo').textContent = '已导出：' + (lines - 1) + ' 行数据，' + bytes + ' 字节';
+                setStatus(status, 'ok', '导出成功');
+            } catch (e) {
+                setStatus(status, 'err', '导出失败：' + e.message);
+            }
+        }
+        $('btnLoad').addEventListener('click', function() { doLoad(false); });
+        $('btnLoadEnc').addEventListener('click', function() { doLoad(true); });
+
+        // ───────────── 2. 解析 ─────────────
+        function doParse(strict) {
+            var text = $('csvOut').value;
+            try {
+                var result = CsvSchema.csvToSections(text, { strictRequired: strict });
+                $('parseOut').textContent = JSON.stringify({
+                    rows_count:    result.rows.length,
+                    errors_count:  result.errors.length,
+                    warnings_count: result.warnings.length,
+                    rows:     result.rows.slice(0, 5),     // 只显示前 5 行避免过长
+                    errors:   result.errors,
+                    warnings: result.warnings
+                }, null, 2);
+            } catch (e) {
+                $('parseOut').textContent = 'EXCEPTION: ' + e.message;
+            }
+        }
+        $('btnParse').addEventListener('click', function() { doParse(true); });
+        $('btnParseLoose').addEventListener('click', function() { doParse(false); });
+
+        // ───────────── 3. round-trip 自检 ─────────────
+        // 把 csvToSections 的扁平 rows 重建成 sections 数组（与原始结构对齐）
+        function rowsToSections(rows) {
+            var bucket = {}; // section_key → { sec, mainsById, mainsOrder }
+            var order  = [];
+
+            rows.forEach(function(r) {
+                if (!bucket[r.section_key]) {
+                    bucket[r.section_key] = { key: r.section_key, cards: [], _ids: {} };
+                    order.push(r.section_key);
+                }
+            });
+
+            // 先放主卡
+            rows.forEach(function(r) {
+                if (r.parent_card_id) return;
+                var b = bucket[r.section_key];
+                var card = {
+                    id:    r.card_id || undefined
+                };
+                if (r.type)           card.type = r.type;
+                if (r.title)          card.title = r.title;
+                if (r.url)            card.url = r.url;
+                if (r.desc)           card.desc = r.desc;
+                if (r.descClickable)  card.descClickable = r.descClickable;
+                if (r.descUrl)        card.descUrl = r.descUrl;
+                if (r.icon)           card.icon = r.icon;
+                if (r.iconImg)        card.iconImg = r.iconImg;
+                if (r.isLocal === true) card.isLocal = true;
+                if (r.address)        card.address = r.address;
+                if (r.mailto)         card.mailto = r.mailto;
+                if (r.comment)        card.comment = r.comment;
+                if (card.type === 'expandable') card.subCards = [];
+                b.cards.push(card);
+                if (card.id) b._ids[card.id] = card;
+            });
+
+            // 再放子卡（按 sub_index 排序）
+            var subs = rows.filter(function(r) { return r.parent_card_id; });
+            subs.sort(function(a, b) { return (a.sub_index || 0) - (b.sub_index || 0); });
+            subs.forEach(function(r) {
+                var b = bucket[r.section_key];
+                var parent = b && b._ids[r.parent_card_id];
+                if (!parent) return;
+                if (!Array.isArray(parent.subCards)) parent.subCards = [];
+                var sc = {};
+                if (r.title)   sc.title = r.title;
+                if (r.content) sc.content = r.content;
+                if (r.url)     sc.url = r.url;
+                if (r.desc)    sc.desc = r.desc;
+                if (r.icon)    sc.icon = r.icon;
+                if (r.iconImg) sc.iconImg = r.iconImg;
+                if (r.isLocal === true) sc.isLocal = true;
+                if (r.comment) sc.comment = r.comment;
+                if (r.note)    sc.note = r.note;
+                parent.subCards.push(sc);
+            });
+
+            // 输出有序 sections
+            return order.map(function(k) { return { key: k, cards: bucket[k].cards }; });
+        }
+
+        $('btnRoundTrip').addEventListener('click', function() {
+            var status = $('rtStatus');
+            try {
+                var sections = getSections();
+                if (!sections.length) {
+                    setStatus(status, 'err', 'data.js 中未找到 sections');
+                    return;
+                }
+                var csv1 = CsvSchema.sectionsToCSV(sections, {});
+                var parse1 = CsvSchema.csvToSections(csv1, {});
+                var rebuilt = rowsToSections(parse1.rows);
+                var csv2 = CsvSchema.sectionsToCSV(rebuilt, {});
+                var equal = (csv1 === csv2);
+
+                $('rtOut').textContent = JSON.stringify({
+                    csv1_bytes: new Blob([csv1]).size,
+                    csv2_bytes: new Blob([csv2]).size,
+                    parse1_rows: parse1.rows.length,
+                    parse1_errors: parse1.errors.length,
+                    parse1_warnings: parse1.warnings.length,
+                    equal_strict: equal,
+                    diff_hint: equal ? null : firstDiff(csv1, csv2)
+                }, null, 2);
+
+                if (equal && parse1.errors.length === 0) {
+                    setStatus(status, 'ok', 'round-trip 自检通过 ✓（两次 CSV 完全一致，无错误）');
+                } else if (equal) {
+                    setStatus(status, 'warn', 'CSV 一致，但有 ' + parse1.errors.length + ' 个解析错误，请检查');
+                } else {
+                    setStatus(status, 'warn', 'round-trip 后 CSV 不完全一致（可能因为老数据某些字段顺序/默认值差异）');
+                }
+            } catch (e) {
+                setStatus(status, 'err', '自检失败：' + e.message);
+                $('rtOut').textContent = 'EXCEPTION: ' + (e.stack || e.message);
+            }
+        });
+
+        function firstDiff(a, b) {
+            var minLen = Math.min(a.length, b.length);
+            for (var i = 0; i < minLen; i++) {
+                if (a.charAt(i) !== b.charAt(i)) {
+                    return {
+                        pos: i,
+                        a_around: a.substr(Math.max(0, i - 20), 60),
+                        b_around: b.substr(Math.max(0, i - 20), 60)
+                    };
+                }
+            }
+            return { pos: minLen, note: 'common prefix equal; length differs', a_len: a.length, b_len: b.length };
+        }
+
+        // ───────────── 4. 模板下载 ─────────────
+        $('btnTpl').addEventListener('click', function() {
+            try { CsvSchema.downloadTemplate(); }
+            catch (e) { alert('下载失败：' + e.message); }
+        });
+    </script>
+</body>
+</html>
