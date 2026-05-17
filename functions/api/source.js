@@ -1,32 +1,62 @@
-// GET  /api/source        → 查询当前首页数据源（无需登录，方便首页或外部检查）
-// POST /api/source { source: 'kv' | 'static' } → 切换数据源（必须登录）
+// GET  /api/source        → 查询当前身份的数据源（无需登录;未登录默认 admin namespace）
+// POST /api/source        → 切换当前身份的数据源（必须登录）
+//   body: { source: 'kv' | 'static' }
+//
+// A0 v2 改造（2026-05-17）：按身份选 namespace
+//   未登录 / admin → admin:data_source（迁移期回退老 data_source）
+//   user           → user:<uid>:data_source
+// 注意:本端点不限制 user 设置 'static'(D1=Z 由 UI 层决定 user 是否暴露此选项);
+// 后端忠实读写,接受 'kv' / 'static' 两值。
 
-import { requireAuth, jsonResponse } from '../_shared/auth.js';
+import { requireAuth, jsonResponse, getPayload } from '../_shared/auth.js';
 
-const SOURCE_KEY = 'data_source';
+const OLD_SOURCE_KEY   = 'data_source';
+const ADMIN_SOURCE_KEY = 'admin:data_source';
+function userSourceKey(uid) { return 'user:' + uid + ':data_source'; }
 
-// 查询：返回当前 KV 中存的 data_source 值
+async function pickSourceKey(request, env) {
+    const payload = await getPayload(request, env);
+    if (!payload) {
+        return { key: ADMIN_SOURCE_KEY, ns: 'admin', isLoggedIn: false };
+    }
+    const role = payload.role || 'user';
+    const uid  = payload.uid != null ? payload.uid : payload.u;
+    if (role === 'admin') {
+        return { key: ADMIN_SOURCE_KEY, ns: 'admin', isLoggedIn: true };
+    }
+    return { key: userSourceKey(uid), ns: 'user:' + uid, isLoggedIn: true };
+}
+
+// 查询当前 namespace 的 data_source
 export async function onRequestGet({ request, env }) {
     if (!env.FAV_KV) {
         return jsonResponse({
             ok: true,
             source: 'static',
             configured: false,
+            namespace: 'admin',
             note: '未绑定 KV，默认使用 static'
         });
     }
 
-    const saved = await env.FAV_KV.get(SOURCE_KEY);
-    // 兼容默认值：未设置时按 data.js 逻辑（默认 static）保持一致
+    const { key, ns } = await pickSourceKey(request, env);
+    let saved = await env.FAV_KV.get(key);
+
+    // ★ 迁移期兼容（仅 admin namespace）：admin:data_source 未设置时回退老 data_source
+    if (saved == null && ns === 'admin') {
+        saved = await env.FAV_KV.get(OLD_SOURCE_KEY);
+    }
+
     const valid = (saved === 'kv' || saved === 'static');
     return jsonResponse({
         ok: true,
         source: valid ? saved : 'static',
-        configured: valid   // true 表示 KV 中显式设置过
+        configured: valid,
+        namespace: ns
     });
 }
 
-// 切换：写入新值
+// 切换当前 namespace 的 data_source
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
     if (fail) return fail;
@@ -36,17 +66,15 @@ export async function onRequestPost({ request, env }) {
     }
 
     let body;
-    try {
-        body = await request.json();
-    } catch {
-        return jsonResponse({ ok: false, error: '请求格式错误（需 JSON）' }, 400);
-    }
+    try { body = await request.json(); }
+    catch { return jsonResponse({ ok: false, error: '请求格式错误（需 JSON）' }, 400); }
 
     const { source } = body || {};
     if (source !== 'kv' && source !== 'static') {
         return jsonResponse({ ok: false, error: 'source 必须是 "kv" 或 "static"' }, 400);
     }
 
-    await env.FAV_KV.put(SOURCE_KEY, source);
-    return jsonResponse({ ok: true, source });
+    const { key, ns } = await pickSourceKey(request, env);
+    await env.FAV_KV.put(key, source);
+    return jsonResponse({ ok: true, source, namespace: ns });
 }

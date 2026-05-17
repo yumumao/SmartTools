@@ -349,6 +349,8 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <button class="btn btn-ghost btn-sm" id="btnImportCsv" data-i18n="btnImportTable">📥 导入表格</button>
             <button class="btn btn-success btn-sm" id="btnSave" data-i18n="btnSave">💾 保存</button>
             <button class="btn btn-warn btn-sm hidden" id="btnChangePwd" data-i18n="btnChangePwd">🔑 密码</button>
+            <button class="btn btn-ghost btn-sm hidden" id="btnUsers" data-i18n="btnUsers">👥 用户</button>
+            <button class="btn btn-warn btn-sm hidden" id="btnMigrate" data-i18n="btnMigrate">🗄️ 数据迁移</button>
             <button class="btn btn-ghost btn-sm" id="btnSwitchMode" data-i18n="btnSwitchMode">🔀 切换模式</button>
             <button class="btn btn-danger btn-sm" id="btnLogout" data-i18n="btnLogout">🚪 退出</button>
         </div>
@@ -691,6 +693,173 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     </div>
 </div>
 
+<!-- A1-c: 用户管理(admin only) -->
+<div id="usersModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:760px;">
+        <h2 data-i18n="usersTitle">👥 用户管理</h2>
+        <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" id="btnUserNew" data-i18n="userNew">➕ 新建用户</button>
+            <button class="btn btn-ghost btn-sm" id="btnUserRefresh" data-i18n="userRefresh">🔄 刷新</button>
+            <button class="btn btn-ghost btn-sm" id="btnArchives" data-i18n="btnArchives">📦 归档管理</button>
+        </div>
+        <div id="usersListWrap" style="max-height:50vh; overflow:auto; border:1px solid #eee; border-radius:8px;">
+            <table id="usersTable" style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead style="background:#f7f7f8; position:sticky; top:0;">
+                    <tr>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="userColName">用户名</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="userColRole">角色</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="userColStatus">状态</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="userColData">数据</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="userColAlgo">算法</th>
+                        <th style="text-align:right; padding:8px 10px;" data-i18n="userColOps">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTbody"></tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnUsersClose" data-i18n="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- A1-c: 新建用户 / 重置密码(共用) -->
+<div id="userEditModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:420px;">
+        <h2 id="userEditTitle" data-i18n="userNewTitle">➕ 新建用户</h2>
+        <div class="form-row">
+            <label data-i18n="userFieldName">用户名</label>
+            <input type="text" id="userEditName" autocomplete="off" maxlength="32">
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="userNameHint">字母/数字/下划线/连字符/点，1-32 字符</div>
+        </div>
+        <div class="form-row">
+            <label data-i18n="userFieldPwd">密码</label>
+            <input type="password" id="userEditPwd" autocomplete="new-password">
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="userPwdHint">至少 4 位</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnUserEditCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnUserEditSave" data-i18n="userEditConfirm">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- A1-c2: 强制删除用户(hasData=true,归档后删除) -->
+<!-- 2 阶段流程:阶段 1 归档+下载 → 阶段 2 清理用户数据 -->
+<div id="forceDeleteModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:520px;">
+        <h2 data-i18n="forceDelTitle">⚠️ 强制删除用户(归档)</h2>
+        <p class="muted" data-i18n="forceDelDesc">此用户已存数据。流程:① 归档全部数据到 archive 命名空间(永久保留) ② 下载完整备份到本地(必经) ③ 清理用户 KV 与 users 表条目。中途任何失败,归档不丢,可重做。</p>
+        <p style="margin:10px 0 6px;"><span data-i18n="forceDelUserLabel">目标用户:</span><b id="forceDelUser" style="font-family:monospace;"></b></p>
+
+        <!-- 阶段 1:确认输入 + 归档下载 -->
+        <div id="forceDelStage1" class="form-row">
+            <label data-i18n="forceDelConfirmLabel">请输入下方字符串以确认</label>
+            <div class="muted" style="font-family:monospace; margin:4px 0 6px;"><code id="forceDelExpected"></code></div>
+            <input type="text" id="forceDelConfirm" autocomplete="off">
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="forceDelHint">大小写敏感,必须完全一致</div>
+        </div>
+
+        <!-- 阶段 2:归档完成后才显示 -->
+        <div id="forceDelStage2" class="hidden" style="padding:10px; background:#e6ffed; border-radius:8px; margin:10px 0;">
+            <p style="margin:0 0 6px;"><b data-i18n="forceDelArchivedOk">✓ 归档已创建,请下载完整备份</b></p>
+            <p class="muted" style="margin:0 0 8px; font-size:12px;"><span data-i18n="forceDelArchiveKeyLabel">归档 key:</span><code id="forceDelArchiveKey" style="font-family:monospace; font-size:11px;"></code></p>
+            <p style="margin:0 0 8px;"><a id="forceDelDownloadLink" href="#" download="" class="btn btn-primary btn-sm" style="text-decoration:none;" data-i18n="forceDelDownloadBtn">📦 下载备份 ZIP(必经)</a></p>
+            <p class="muted" id="forceDelDownloaded" class="hidden" style="margin:0 0 4px; font-size:12px; color:#055d20; display:none;" data-i18n="forceDelDownloadedHint">✓ 已下载,可继续删除</p>
+            <p class="muted" style="margin:0; font-size:12px;" data-i18n="forceDelStage2Hint">下载完成后,点「确认删除用户」清理 KV 数据与用户条目。归档已永久保留,可在「归档管理」里重新下载或删除。</p>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnForceDelCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-warn" id="btnForceDelArchive" data-i18n="forceDelArchiveBtn" disabled>📥 归档并下载</button>
+            <button class="btn btn-danger hidden" id="btnForceDelCleanup" data-i18n="forceDelCleanupBtn">🗑️ 确认删除用户</button>
+        </div>
+    </div>
+</div>
+
+<!-- A1-c2: 归档管理(admin only) -->
+<div id="archivesModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:820px;">
+        <h2 data-i18n="archivesTitle">📦 归档管理</h2>
+        <p class="muted" data-i18n="archivesDesc">所有强制删除用户时归档的数据(D3=B 永久保留)。可重新下载完整备份 ZIP,或手动删除归档(不可撤销)。</p>
+        <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="btnArchivesRefresh" data-i18n="archivesRefresh">🔄 刷新</button>
+            <span id="archivesCount" class="muted" style="font-size:13px; align-self:center;"></span>
+        </div>
+        <div id="archivesListWrap" style="max-height:55vh; overflow:auto; border:1px solid #eee; border-radius:8px;">
+            <table id="archivesTable" style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead style="background:#f7f7f8; position:sticky; top:0;">
+                    <tr>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="archivesColUser">用户名</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="archivesColTs">归档时间</th>
+                        <th style="text-align:right; padding:8px 10px;" data-i18n="archivesColSize">数据大小</th>
+                        <th style="text-align:right; padding:8px 10px;" data-i18n="archivesColBackups">备份数</th>
+                        <th style="text-align:left; padding:8px 10px;" data-i18n="archivesColBy">归档人</th>
+                        <th style="text-align:right; padding:8px 10px;" data-i18n="archivesColOps">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="archivesTbody"></tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnArchivesClose" data-i18n="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- A1-c2: 删除归档确认 modal -->
+<div id="deleteArchiveModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <h2 data-i18n="delArchiveTitle">⚠️ 删除归档(不可撤销)</h2>
+        <p class="muted" data-i18n="delArchiveDesc">删除归档将永久清除该用户的备份数据(meta + data + source + 全部历史 backups),无法恢复。建议先「下载备份 ZIP」保留副本。</p>
+        <p style="margin:10px 0 6px;"><span data-i18n="delArchiveKeyLabel">归档 key:</span><code id="delArchiveKey" style="font-family:monospace; font-size:12px;"></code></p>
+        <div class="form-row">
+            <label data-i18n="delArchiveConfirmLabel">请输入下方字符串以确认</label>
+            <div class="muted" style="font-family:monospace; margin:4px 0 6px;"><code id="delArchiveExpected"></code></div>
+            <input type="text" id="delArchiveConfirm" autocomplete="off">
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="forceDelHint">大小写敏感,必须完全一致</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnDelArchiveCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-danger" id="btnDelArchiveSubmit" data-i18n="delArchiveSubmit" disabled>永久删除归档</button>
+        </div>
+    </div>
+</div>
+
+<!-- A1-d: 数据迁移(admin only,migrationNeeded 触发) -->
+<div id="migrateModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:640px;">
+        <h2 data-i18n="migrateTitle">🗄️ 数据迁移到 admin:* 命名空间</h2>
+        <p class="muted" data-i18n="migrateDesc">检测到旧版 KV 数据（无 <code>admin:</code> 前缀）。迁移会把 <code>data_js</code>、<code>data_source</code>、所有 <code>backup:*</code> 复制到 <code>admin:*</code> 前缀；老 key 保留作为 30 天回滚窗口，不会自动删除。建议先点"预览计划"看清楚再开始迁移。</p>
+
+        <div style="display:flex; gap:8px; margin:12px 0; flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="btnMigrateDryRun" data-i18n="migrateBtnDryRun">👁 预览迁移计划</button>
+            <button class="btn btn-warn btn-sm" id="btnMigrateRun" data-i18n="migrateBtnRun" disabled>🚀 开始迁移</button>
+        </div>
+
+        <div id="migratePlanArea" class="hidden" style="border:1px solid #eee; border-radius:8px; padding:10px; max-height:38vh; overflow:auto; font-size:13px;">
+            <div id="migratePlanSummary" style="font-weight:600; margin-bottom:8px;"></div>
+            <table id="migratePlanTable" style="width:100%; border-collapse:collapse; font-size:12px;">
+                <thead style="background:#f7f7f8; position:sticky; top:0;">
+                    <tr>
+                        <th style="text-align:left; padding:6px 8px;" data-i18n="migrateColOld">老 key</th>
+                        <th style="text-align:left; padding:6px 8px;" data-i18n="migrateColNew">新 key</th>
+                        <th style="text-align:left; padding:6px 8px;" data-i18n="migrateColAction">操作</th>
+                        <th style="text-align:left; padding:6px 8px;" data-i18n="migrateColReason">原因</th>
+                    </tr>
+                </thead>
+                <tbody id="migratePlanTbody"></tbody>
+            </table>
+        </div>
+
+        <div id="migrateResultArea" class="hidden" style="margin-top:12px; padding:10px; border-radius:8px; font-size:13px;"></div>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnMigrateClose" data-i18n="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
 <!-- 导出表格（CSV / XLSX） -->
 <div id="csvExportModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:500px;">
@@ -794,6 +963,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <script src="shared/emoji-data.js"></script>
 <script src="shared/csv-schema.js"></script>
 <script src="shared/xlsx-adapter.js"></script>
+<script src="shared/zip-adapter.js"></script>
 
 <script>
 /* ================================================================
@@ -936,6 +1106,80 @@ const I18N = {
         csvImportApplyNewSec: '，新建 {n} 个 customSection',
         csvImportParseFail: 'CSV 解析失败：{msg}',
         btnSave: '💾 保存', btnChangePwd: '🔑 密码', btnSwitchMode: '🔀 切换模式', btnLogout: '🚪 退出',
+        btnUsers: '👥 用户',
+        usersTitle: '👥 用户管理', userNew: '➕ 新建用户', userRefresh: '🔄 刷新',
+        userColName: '用户名', userColRole: '角色', userColStatus: '状态', userColData: '数据', userColAlgo: '算法', userColOps: '操作',
+        userOpReset: '重置密码', userOpDelete: '删除', userTagSelf: '(自己)', userHasData: '有', userNoData: '—',
+        userNewTitle: '➕ 新建用户', userResetTitle: '🔑 重置密码',
+        userFieldName: '用户名', userFieldPwd: '密码',
+        userNameHint: '字母/数字/下划线/连字符/点，1-32 字符', userPwdHint: '至少 4 位',
+        userEditConfirm: '确定',
+        toastUserNameBad: '用户名不合法（只允许字母/数字/_-.，1-32 字符）',
+        toastUserPwdShort: '密码至少 4 位',
+        toastUserCreated: '用户已创建', toastUserPwdReset: '密码已重置', toastUserDeleted: '用户已删除',
+        toastUserHasData: '该用户已存数据，需通过强制删除流程归档（功能开发中）',
+        toastUserLoadFail: '加载用户列表失败',
+        toastUserOpFail: '操作失败',
+        confirmDeleteUser: '确认删除用户「{u}」？此操作不可撤销。',
+        btnMigrate: '🗄️ 数据迁移',
+        migrateTitle: '🗄️ 数据迁移到 admin:* 命名空间',
+        migrateBtnDryRun: '👁 预览迁移计划',
+        migrateBtnRun: '🚀 开始迁移',
+        migrateColOld: '老 key',
+        migrateColNew: '新 key',
+        migrateColAction: '操作',
+        migrateColReason: '原因',
+        migrateActionCopy: '复制',
+        migrateActionSkip: '跳过',
+        migratePlanSummary: '计划：共 {n} 项需要复制（data_js / data_source / backup:* 合计）',
+        migratePlanEmpty: '没有需要迁移的项（说明 admin:* 已存在或老 key 为空）',
+        migrateConfirmRun: '即将开始迁移。老 key 会保留作为回滚，但请仍然先确认预览计划无误。继续？',
+        migrateResultOk: '✅ 迁移完成（{copied} 已复制 / {skipped} 跳过）',
+        migrateResultPartial: '⚠️ 部分项失败（{copied} 已复制 / {failed} 失败），未写迁移完成标记，可再次点击重试',
+        migrateNoneToRun: '当前没有可执行的迁移项，请先点「预览计划」',
+        toastMigrateLoadFail: '加载迁移计划失败',
+        toastMigrateRunFail: '迁移失败：{e}',
+        forceDelTitle: '⚠️ 强制删除用户(归档)',
+        forceDelDesc: '此用户已存数据。流程:① 归档全部数据到 archive 命名空间(永久保留) ② 下载完整备份到本地(必经) ③ 清理用户 KV 与 users 表条目。中途任何失败,归档不丢,可重做。',
+        forceDelUserLabel: '目标用户：',
+        forceDelConfirmLabel: '请输入下方字符串以确认',
+        forceDelHint: '大小写敏感,必须完全一致',
+        forceDelArchiveBtn: '📥 归档并下载',
+        forceDelArchivedOk: '✓ 归档已创建,请下载完整备份',
+        forceDelArchiveKeyLabel: '归档 key:',
+        forceDelDownloadBtn: '📦 下载备份 ZIP(必经)',
+        forceDelDownloadedHint: '✓ 已下载,可继续删除',
+        forceDelStage2Hint: '下载完成后,点「确认删除用户」清理 KV 数据与用户条目。归档已永久保留,可在「归档管理」里重新下载或删除。',
+        forceDelCleanupBtn: '🗑️ 确认删除用户',
+        toastForceDelArchiveFail: '归档失败:{e}',
+        toastForceDelDownloadFail: '下载失败:{e}(归档已存在,可关闭后在归档管理里下载)',
+        toastForceDelCleanupFail: '清理失败:{e}(归档仍保留,可重试)',
+        toastForceDelArchivedDownloaded: '✓ 已归档并下载,请点「确认删除用户」清理',
+        toastForceDelOk: '已删除用户:{u}(归档 key: {k})',
+        toastForceDelFail: '强制删除失败:{e}',
+        btnArchives: '📦 归档管理',
+        archivesTitle: '📦 归档管理',
+        archivesDesc: '所有强制删除用户时归档的数据(D3=B 永久保留)。可重新下载完整备份 ZIP,或手动删除归档(不可撤销)。',
+        archivesRefresh: '🔄 刷新',
+        archivesCountText: '共 {n} 条归档',
+        archivesEmpty: '暂无归档',
+        archivesColUser: '用户名',
+        archivesColTs: '归档时间',
+        archivesColSize: '数据大小',
+        archivesColBackups: '备份数',
+        archivesColBy: '归档人',
+        archivesColOps: '操作',
+        archivesOpDownload: '📦 下载',
+        archivesOpDelete: '🗑️ 删除',
+        delArchiveTitle: '⚠️ 删除归档(不可撤销)',
+        delArchiveDesc: '删除归档将永久清除该用户的备份数据(meta + data + source + 全部历史 backups),无法恢复。建议先「下载备份 ZIP」保留副本。',
+        delArchiveKeyLabel: '归档 key:',
+        delArchiveConfirmLabel: '请输入下方字符串以确认',
+        delArchiveSubmit: '永久删除归档',
+        toastArchivesLoadFail: '加载归档列表失败:{e}',
+        toastArchiveDownloadFail: '归档下载失败:{e}',
+        toastArchiveDeleted: '归档已删除:{k}',
+        toastArchiveDeleteFail: '归档删除失败:{e}',
         stSourceServer: '服务端：', stSourceFolder: '文件夹：', stNotConnected: '未连接',
         stDataJs: 'data.js：', stNotLoaded: '未加载', stDataSource: '首页数据源：',
         stBackups: '备份：', stEncKey: '🔐 密钥：',
@@ -973,7 +1217,7 @@ const I18N = {
         commentPh: '支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用',
         fldSubCards: '子卡片（subCards）', btnAddSub: '➕ 添加子卡片',
         subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。<b>🆙</b> 按钮可把子卡片升级为一个独立的主卡片。',
-        btnCancel: '取消', btnOk: '确定',
+        btnCancel: '取消', btnOk: '确定', btnClose: '关闭',
         subModalEditTitle: '编辑子卡片', subModalNewTitle: '新增子卡片',
         fldSubStyle: '样式', subStyleTwo: '两行式（icon + title + desc）',
         subStyleCompact: '紧凑式（icon + content）',
@@ -1040,7 +1284,7 @@ const I18N = {
         ioImportDesc: '粘贴 data.js 内容或选择文件导入。', ioImportPh: '粘贴 data.js 内容...',
         ioExportDesc: '此为将写入 data.js 的内容预览。', ioPreviewTitle: '👁 预览：{name}',
         ioDownload: '⬇️ 下载', ioLoadToEditor: '载入到编辑器',
-        pwdTitle: '🔑 修改本地密码', pwdOld: '当前密码', pwdNew: '新密码', pwdNew2: '确认新密码',
+        pwdTitle: '🔑 修改本地密码', pwdTitleOnline: '🔑 修改登录密码', pwdOld: '当前密码', pwdNew: '新密码', pwdNew2: '确认新密码',
         pwdSave: '保存',
         pwdChangeEncHint: '⚠️ 如果你有加密大类，修改密码后请立即点击「💾 保存」，让系统用新密码重新加密数据。否则原加密内容将无法再解锁！',
         lockedPanelTitle: '🔒 此大类已加密',
@@ -1196,6 +1440,80 @@ const I18N = {
         csvImportApplyNewSec: ', created {n} customSection(s)',
         csvImportParseFail: 'CSV parse failed: {msg}',
         btnSave: '💾 Save', btnChangePwd: '🔑 Password', btnSwitchMode: '🔀 Switch Mode', btnLogout: '🚪 Logout',
+        btnUsers: '👥 Users',
+        usersTitle: '👥 User Management', userNew: '➕ New User', userRefresh: '🔄 Refresh',
+        userColName: 'Username', userColRole: 'Role', userColStatus: 'Status', userColData: 'Data', userColAlgo: 'Algo', userColOps: 'Actions',
+        userOpReset: 'Reset', userOpDelete: 'Delete', userTagSelf: '(you)', userHasData: 'Yes', userNoData: '—',
+        userNewTitle: '➕ New User', userResetTitle: '🔑 Reset Password',
+        userFieldName: 'Username', userFieldPwd: 'Password',
+        userNameHint: 'Letters / digits / _ - . , length 1-32', userPwdHint: 'At least 4 chars',
+        userEditConfirm: 'OK',
+        toastUserNameBad: 'Invalid username (allowed: letters/digits/_-., 1-32)',
+        toastUserPwdShort: 'Password must be at least 4 chars',
+        toastUserCreated: 'User created', toastUserPwdReset: 'Password reset', toastUserDeleted: 'User deleted',
+        toastUserHasData: 'This user has data; archive-and-delete flow (in development) is required',
+        toastUserLoadFail: 'Failed to load user list',
+        toastUserOpFail: 'Operation failed',
+        confirmDeleteUser: 'Delete user "{u}"? This cannot be undone.',
+        btnMigrate: '🗄️ Migrate',
+        migrateTitle: '🗄️ Migrate Data to admin:* namespace',
+        migrateBtnDryRun: '👁 Preview Plan',
+        migrateBtnRun: '🚀 Run Migration',
+        migrateColOld: 'Old key',
+        migrateColNew: 'New key',
+        migrateColAction: 'Action',
+        migrateColReason: 'Reason',
+        migrateActionCopy: 'copy',
+        migrateActionSkip: 'skip',
+        migratePlanSummary: 'Plan: {n} item(s) to copy (data_js / data_source / backup:* combined)',
+        migratePlanEmpty: 'Nothing to migrate (admin:* already exists or no legacy keys)',
+        migrateConfirmRun: 'Migration is about to start. Old keys will be preserved as rollback. Continue?',
+        migrateResultOk: '✅ Migration done ({copied} copied / {skipped} skipped)',
+        migrateResultPartial: '⚠️ Partial failure ({copied} copied / {failed} failed). Done-marker not written; retry safely.',
+        migrateNoneToRun: 'Nothing to migrate yet — click "Preview Plan" first',
+        toastMigrateLoadFail: 'Failed to load migration plan',
+        toastMigrateRunFail: 'Migration failed: {e}',
+        forceDelTitle: '⚠️ Force Delete User (Archive)',
+        forceDelDesc: 'This user has data. Flow: ① archive all data to the archive namespace (kept permanently) ② download a full backup to local (mandatory) ③ clean up the user\'s KV + users entry. Any mid-step failure preserves the archive; you can retry.',
+        forceDelUserLabel: 'Target user: ',
+        forceDelConfirmLabel: 'Type the string below to confirm',
+        forceDelHint: 'Case sensitive, must match exactly',
+        forceDelArchiveBtn: '📥 Archive & Download',
+        forceDelArchivedOk: '✓ Archived — please download the backup',
+        forceDelArchiveKeyLabel: 'Archive key: ',
+        forceDelDownloadBtn: '📦 Download Backup ZIP (required)',
+        forceDelDownloadedHint: '✓ Downloaded, you may continue',
+        forceDelStage2Hint: 'After downloading, click "Confirm Delete" to clean up KV data and the users entry. The archive is kept permanently and can be re-downloaded or deleted from "Archives".',
+        forceDelCleanupBtn: '🗑️ Confirm Delete',
+        toastForceDelArchiveFail: 'Archive failed: {e}',
+        toastForceDelDownloadFail: 'Download failed: {e} (archive exists; close and try again from Archives)',
+        toastForceDelCleanupFail: 'Cleanup failed: {e} (archive preserved; you can retry)',
+        toastForceDelArchivedDownloaded: '✓ Archived & downloaded — click "Confirm Delete" to clean up',
+        toastForceDelOk: 'User deleted: {u} (archive key: {k})',
+        toastForceDelFail: 'Force delete failed: {e}',
+        btnArchives: '📦 Archives',
+        archivesTitle: '📦 Archives',
+        archivesDesc: 'All user data archived via force-delete (D3=B kept permanently). You can re-download the full backup ZIP, or permanently delete an archive (not reversible).',
+        archivesRefresh: '🔄 Refresh',
+        archivesCountText: '{n} archive(s)',
+        archivesEmpty: 'No archives',
+        archivesColUser: 'User',
+        archivesColTs: 'Archived at',
+        archivesColSize: 'Data size',
+        archivesColBackups: 'Backups',
+        archivesColBy: 'Archived by',
+        archivesColOps: 'Ops',
+        archivesOpDownload: '📦 Download',
+        archivesOpDelete: '🗑️ Delete',
+        delArchiveTitle: '⚠️ Delete Archive (Irreversible)',
+        delArchiveDesc: 'Deleting will permanently erase the user\'s archived data (meta + data + source + all historical backups). It cannot be recovered. Consider downloading the ZIP first.',
+        delArchiveKeyLabel: 'Archive key: ',
+        delArchiveConfirmLabel: 'Type the string below to confirm',
+        delArchiveSubmit: 'Permanently Delete',
+        toastArchivesLoadFail: 'Failed to load archives: {e}',
+        toastArchiveDownloadFail: 'Archive download failed: {e}',
+        toastArchiveDeleted: 'Archive deleted: {k}',
+        toastArchiveDeleteFail: 'Archive delete failed: {e}',
         stSourceServer: 'Server: ', stSourceFolder: 'Folder: ', stNotConnected: 'Not connected',
         stDataJs: 'data.js: ', stNotLoaded: 'Not loaded', stDataSource: 'Home source: ',
         stBackups: 'Backups: ', stEncKey: '🔐 Key: ',
@@ -1233,7 +1551,7 @@ const I18N = {
         commentPh: 'Markdown: # heading | **bold** *italic* | `code` | [text](url) | - list | > quote',
         fldSubCards: 'Sub-cards', btnAddSub: '➕ Add Sub-card',
         subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade. The <b>🆙</b> button promotes a sub-card to a standalone top-level card.',
-        btnCancel: 'Cancel', btnOk: 'OK',
+        btnCancel: 'Cancel', btnOk: 'OK', btnClose: 'Close',
         subModalEditTitle: 'Edit Sub-card', subModalNewTitle: 'New Sub-card',
         fldSubStyle: 'Style', subStyleTwo: 'Two-line (icon + title + desc)',
         subStyleCompact: 'Compact (icon + content)',
@@ -1300,7 +1618,7 @@ const I18N = {
         ioImportDesc: 'Paste or pick a file.', ioImportPh: 'Paste data.js content...',
         ioExportDesc: 'Preview of content to write.', ioPreviewTitle: '👁 Preview: {name}',
         ioDownload: '⬇️ Download', ioLoadToEditor: 'Load to Editor',
-        pwdTitle: '🔑 Change Local Password', pwdOld: 'Current', pwdNew: 'New', pwdNew2: 'Confirm',
+        pwdTitle: '🔑 Change Local Password', pwdTitleOnline: '🔑 Change Login Password', pwdOld: 'Current', pwdNew: 'New', pwdNew2: 'Confirm',
         pwdSave: 'Save',
         pwdChangeEncHint: '⚠️ If you have encrypted sections, save immediately after changing password so they are re-encrypted with the new one. Otherwise old encrypted data becomes unrecoverable!',
         lockedPanelTitle: '🔒 This section is encrypted',
@@ -1434,6 +1752,10 @@ function toggleLang() {
 const MODE_ONLINE = 'online', MODE_LOCAL = 'local';
 let currentMode = null;
 let onlineAvailable = false;
+// A1-a: 当前在线用户（仅 MODE_ONLINE 下有意义）；boot/login/logout 都要维护
+let currentUser = { username: null, uid: null, role: null };
+// A1-d: 是否需要迁移（admin 视角，本地 KV 无 legacy 数据时永远 false）
+let currentMigrationNeeded = false;
 const LS_MODE = 'bm_cfg_mode';
 
 const BUILTIN_SECTIONS = [
@@ -2046,7 +2368,23 @@ async function checkOnlineAvailable() {
         const r = await fetch('/api/check', { credentials: 'same-origin' });
         if (!r.ok) return { available: false };
         const j = await r.json();
-        return { available: !!(j && j.ok), loggedIn: !!(j && j.loggedIn) };
+        if (!j || !j.ok) return { available: false };
+        // A1-a: 同时回填 currentUser（loggedIn 才填，否则清空）
+        if (j.loggedIn) {
+            currentUser = { username: j.username || null, uid: j.uid || null, role: j.role || null };
+        } else {
+            currentUser = { username: null, uid: null, role: null };
+        }
+        // A1-d: 迁移需求标志（仅 admin 后续会消费；非 admin 写了也没用）
+        currentMigrationNeeded = !!j.migrationNeeded;
+        return {
+            available: true,
+            loggedIn: !!j.loggedIn,
+            username: j.username || null,
+            uid: j.uid || null,
+            role: j.role || null,
+            migrationNeeded: !!j.migrationNeeded
+        };
     } catch (e) { return { available: false }; }
 }
 
@@ -2125,6 +2463,12 @@ async function handleAuth() {
         const r = await api('/api/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
         $('authBtn').disabled = false;
         if (r.ok && r.data && r.data.ok) {
+            // A1-c: 登录响应已含 username/role,uid 与 username 同(A0 v2 设计);未来若分离要从 /api/check 取
+            currentUser = {
+                username: r.data.username || u,
+                uid: r.data.username || u,
+                role: r.data.role || 'user'
+            };
             setEncPassword(p);
             toast(t('toastLoginSuccess')); await enterMain();
         } else toast((r.data && r.data.error) || t('toastLoginFail'));
@@ -2157,8 +2501,14 @@ function refreshMainPageModeTexts() {
 }
 async function enterMain() {
     hide('modePage'); hide('authPage'); show('mainPage');
-    if (currentMode === MODE_ONLINE) { hide('btnConnect'); hide('btnChangePwd'); show('btnDataSource'); show('dataSourceBar'); }
+    if (currentMode === MODE_ONLINE) { hide('btnConnect'); show('btnChangePwd'); show('btnDataSource'); show('dataSourceBar'); }
     else { show('btnConnect'); show('btnChangePwd'); hide('btnDataSource'); hide('dataSourceBar'); }
+    // A1-c: 用户管理按钮仅 admin 可见(online 模式 + currentUser.role === 'admin')
+    if (currentMode === MODE_ONLINE && currentUser.role === 'admin') show('btnUsers');
+    else hide('btnUsers');
+    // A1-d: 数据迁移按钮 admin + online + migrationNeeded 三 AND
+    if (currentMode === MODE_ONLINE && currentUser.role === 'admin' && currentMigrationNeeded) show('btnMigrate');
+    else hide('btnMigrate');
     refreshMainPageModeTexts();
     renderSectionTabs(); renderCurrentSection();
     if (currentMode === MODE_ONLINE) {
@@ -2496,6 +2846,10 @@ async function doSave() { if (currentMode === MODE_ONLINE) await saveDataJs_onli
 async function doHistory() { if (currentMode === MODE_ONLINE) await openHistoryModal_online(); else await openHistoryModal_local(); }
 async function doLogout() {
     clearEncPassword();
+    // A1-c: 清空 currentUser 防 stale
+    currentUser = { username: null, uid: null, role: null };
+    // A1-d: 清迁移标志
+    currentMigrationNeeded = false;
     if (currentMode === MODE_ONLINE) { await logout_online(); }
     else { safeLS('del', LS_SESS); boot(); }
 }
@@ -4230,6 +4584,21 @@ async function savePassword() {
     if (!oldP || !newP) { toast(t('toastPwdNeed')); return; }
     if (newP !== newP2) { toast(t('toastPwdMismatch')); return; }
     if (newP.length < 4) { toast(t('toastPwdTooShort')); return; }
+    // A1-b: online 模式走 /api/change-password
+    if (currentMode === MODE_ONLINE) {
+        const r = await api('/api/change-password', { method: 'POST', body: JSON.stringify({ oldPassword: oldP, newPassword: newP }) });
+        if (!r.ok) {
+            const msg = r.data && r.data.error || '';
+            // 后端 401 = 旧密码错;其它统一回退 toastPwdOldWrong
+            if (msg.includes('旧密码') || r.status === 401) toast(t('toastPwdOldWrong'));
+            else toast(msg || t('toastPwdOldWrong'));
+            return;
+        }
+        hide('pwdModal');
+        toast(t('toastPwdUpdated'));
+        return;
+    }
+    // local 模式保持原逻辑
     if (await sha256(oldP) !== safeLS('get', LS_PASS)) { toast(t('toastPwdOldWrong')); return; }
     safeLS('set', LS_PASS, await sha256(newP));
     setEncPassword(newP);
@@ -4237,6 +4606,637 @@ async function savePassword() {
     updateEncKeyStatus();
     toast(t('toastPwdUpdated'));
 }
+
+/* ================================================================
+   A1-c 用户管理(admin only)
+================================================================ */
+// userEditModal 的两种模式: 'new' / 'reset'
+let __userEditMode = 'new';
+// 重置密码时锁定的用户名
+let __userEditLockedName = null;
+
+async function openUsersModal() {
+    if (currentUser.role !== 'admin') return;
+    show('usersModal');
+    await refreshUsersList();
+}
+
+async function refreshUsersList() {
+    const tbody = $('usersTbody');
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:12px; text-align:center;" class="muted">…</td></tr>`;
+    let r;
+    try {
+        r = await api('/api/users', { method: 'GET' });
+    } catch {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:12px; text-align:center; color:#c00;">${escapeHtml(t('toastUserLoadFail'))}</td></tr>`;
+        return;
+    }
+    if (!r.ok || !r.data || !r.data.ok) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:12px; text-align:center; color:#c00;">${escapeHtml(r.data && r.data.error || t('toastUserLoadFail'))}</td></tr>`;
+        return;
+    }
+    const users = r.data.users || [];
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:12px; text-align:center;" class="muted">—</td></tr>`;
+        return;
+    }
+    const me = currentUser.username;
+    tbody.innerHTML = users.map(u => {
+        const isSelf = u.username === me;
+        const opsHtml = isSelf
+            ? `<span class="muted">${escapeHtml(t('userTagSelf'))}</span>`
+            : `<button class="btn btn-ghost btn-sm" data-user-op="reset" data-user-name="${escapeHtml(u.username)}">${escapeHtml(t('userOpReset'))}</button>
+               <button class="btn btn-danger btn-sm" data-user-op="delete" data-user-name="${escapeHtml(u.username)}" data-user-hasdata="${u.hasData ? '1' : '0'}">${escapeHtml(t('userOpDelete'))}</button>`;
+        return `<tr style="border-top:1px solid #eee;">
+            <td style="padding:8px 10px;">${escapeHtml(u.username)}</td>
+            <td style="padding:8px 10px;">${escapeHtml(u.role || 'user')}</td>
+            <td style="padding:8px 10px;">${escapeHtml(u.status || 'active')}</td>
+            <td style="padding:8px 10px;">${u.hasData ? escapeHtml(t('userHasData')) : escapeHtml(t('userNoData'))}</td>
+            <td style="padding:8px 10px;">${escapeHtml(u.algo || '')}</td>
+            <td style="padding:8px 10px; text-align:right; white-space:nowrap;">${opsHtml}</td>
+        </tr>`;
+    }).join('');
+
+    // 委托事件
+    tbody.querySelectorAll('[data-user-op]').forEach(btn => {
+        btn.onclick = (ev) => {
+            const op = btn.getAttribute('data-user-op');
+            const name = btn.getAttribute('data-user-name');
+            if (op === 'reset') openUserEdit('reset', name);
+            else if (op === 'delete') {
+                const hasData = btn.getAttribute('data-user-hasdata') === '1';
+                deleteUserHandler(name, hasData);
+            }
+        };
+    });
+}
+
+function openUserEdit(mode, lockedName) {
+    __userEditMode = mode;
+    __userEditLockedName = lockedName || null;
+    const titleEl = $('userEditTitle');
+    const nameEl = $('userEditName');
+    const pwdEl = $('userEditPwd');
+    nameEl.value = lockedName || '';
+    nameEl.readOnly = mode === 'reset';
+    pwdEl.value = '';
+    titleEl.textContent = mode === 'reset' ? t('userResetTitle') : t('userNewTitle');
+    show('userEditModal');
+    setTimeout(() => (mode === 'reset' ? pwdEl : nameEl).focus(), 50);
+}
+
+async function submitUserEdit() {
+    const username = $('userEditName').value.trim();
+    const password = $('userEditPwd').value;
+    // 用户名校验:与后端 isValidUsername 同规则
+    if (!/^[A-Za-z0-9_\-\.]{1,32}$/.test(username)) { toast(t('toastUserNameBad')); return; }
+    if (!password || password.length < 4) { toast(t('toastUserPwdShort')); return; }
+    const r = await api('/api/users', { method: 'POST', body: JSON.stringify({ username, password }) });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast((r.data && r.data.error) || t('toastUserOpFail'));
+        return;
+    }
+    hide('userEditModal');
+    toast(r.data.created ? t('toastUserCreated') : t('toastUserPwdReset'));
+    refreshUsersList();
+}
+
+async function deleteUserHandler(name, hasData) {
+    // A1-c2: hasData=true 走强制删除归档流程,弹 modal 二次确认
+    if (hasData) { openForceDeleteModal(name); return; }
+    const msg = t('confirmDeleteUser').replace('{u}', name);
+    if (!confirm(msg)) return;
+    const r = await api('/api/users?u=' + encodeURIComponent(name), { method: 'DELETE' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        // 409 + requiresForce 兜底(理论上前端已拦截)
+        if (r.status === 409 && r.data && r.data.requiresForce) { openForceDeleteModal(name); return; }
+        toast((r.data && r.data.error) || t('toastUserOpFail'));
+        return;
+    }
+    toast(t('toastUserDeleted'));
+    refreshUsersList();
+}
+
+
+/* ================================================================
+   A1-c2: 强制删除用户 modal(2 阶段流程,ZIP 单链接下载)
+   阶段 1: confirm 输入正确 → 调 DELETE ?action=archive-only → archives GET full
+         → 构造 full.json + cards.csv → JSZip 打包 → 准备 zip 下载链接
+   阶段 2: admin 必须点下载链接(浏览器原生下载,不被静默拦截);点完启用红色"确认删除用户"
+         → 调 POST ?action=cleanup-after-archive 清理
+   中途失败不丢数据:归档已 D3=B 永久保留,admin 可关 modal 后在归档管理里重做下载/清理
+================================================================ */
+
+// 独立解析归档 data_js 文本 → sections 数组,**不写入 store**(避免污染 admin 当前编辑器)。
+// 借鉴 parseAndLoad 的策略但只返回结构,不调用 parseSectionsArray。
+function __parseDataJsForCsv(dataText) {
+    if (!dataText || typeof dataText !== 'string') return [];
+    try {
+        if (/\bvar\s+sections\s*=/.test(dataText)) {
+            var wrapper = new Function('var sections;' + dataText + '; return sections;');
+            var arr = wrapper() || [];
+            return Array.isArray(arr) ? arr : [];
+        }
+        // 老格式:逐个 var
+        var wrapper2 = new Function(
+            'var usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections;' +
+            dataText + ';' +
+            'return { usbDriveData, teachingData, onlineAIData, videoData, emailData, contactData, customSections };'
+        );
+        var r = wrapper2();
+        return [
+            { builtin:true, key:'usbDriveData',  kind:'card',    label:'☁️ 在线U盘',    visible:true, cards: r.usbDriveData||[] },
+            { builtin:true, key:'teachingData',  kind:'card',    label:'📚 授课资料',    visible:true, cards: r.teachingData||[] },
+            { builtin:true, key:'onlineAIData',  kind:'card',    label:'🖥️ 网络资源',    visible:true, cards: r.onlineAIData||[] },
+            { builtin:true, key:'videoData',     kind:'card',    label:'🎬 视频聚合',    visible:true, cards: r.videoData||[] },
+            { builtin:true, key:'emailData',     kind:'email',   label:'📧 邮箱',       visible:true, cards: r.emailData||[] },
+            { builtin:true, key:'contactData',   kind:'contact', label:'📨 其他联系方式', visible:true, cards: r.contactData||[] }
+        ].concat((r.customSections||[]).map(function(s){
+            return Object.assign({ builtin:false, kind:'card', visible:true }, s);
+        }));
+    } catch (e) {
+        return [];
+    }
+}
+
+let __forceDelTarget = null;
+let __forceDelArchiveKey = null;
+let __forceDelBlobUrl = null;       // 阶段 1 准备好的下载 blob URL,关 modal 时 revoke
+
+function openForceDeleteModal(name) {
+    __forceDelTarget = name;
+    __forceDelArchiveKey = null;
+    revokeForceDelBlob();
+    const expected = 'DELETE-' + name;
+    $('forceDelUser').textContent = name;
+    $('forceDelExpected').textContent = expected;
+    $('forceDelConfirm').value = '';
+    $('forceDelConfirm').disabled = false;
+    // 复位到阶段 1
+    show('forceDelStage1');
+    hide('forceDelStage2');
+    $('btnForceDelArchive').disabled = true;
+    $('btnForceDelArchive').classList.remove('hidden');
+    $('btnForceDelCleanup').classList.add('hidden');
+    $('btnForceDelCleanup').disabled = true;
+    // 复位下载状态
+    const dl = $('forceDelDownloadLink');
+    if (dl) { dl.removeAttribute('href'); dl.removeAttribute('download'); }
+    const dlOk = $('forceDelDownloaded');
+    if (dlOk) dlOk.style.display = 'none';
+    show('forceDeleteModal');
+    setTimeout(() => { try { $('forceDelConfirm').focus(); } catch(_) {} }, 50);
+}
+
+function revokeForceDelBlob() {
+    if (__forceDelBlobUrl) {
+        try { URL.revokeObjectURL(__forceDelBlobUrl); } catch(_) {}
+        __forceDelBlobUrl = null;
+    }
+}
+
+// 阶段 1:归档 + 准备下载链接(不自动 click,admin 必须手动点)
+async function submitForceDelArchive() {
+    if (!__forceDelTarget) return;
+    const expected = 'DELETE-' + __forceDelTarget;
+    const got = ($('forceDelConfirm').value || '').trim();
+    if (got !== expected) return;
+
+    $('btnForceDelArchive').disabled = true;
+    const archUrl = '/api/users?u=' + encodeURIComponent(__forceDelTarget)
+                  + '&force=1&confirm=' + encodeURIComponent(expected)
+                  + '&action=archive-only';
+    const r1 = await api(archUrl, { method: 'DELETE' });
+    if (!r1.ok || !r1.data || !r1.data.ok) {
+        toast(t('toastForceDelArchiveFail').replace('{e}', (r1.data && r1.data.error) || ('HTTP ' + r1.status)));
+        $('btnForceDelArchive').disabled = false;
+        return;
+    }
+    __forceDelArchiveKey = r1.data.archiveKey;
+
+    const fullUrl = '/api/archives?key=' + encodeURIComponent(__forceDelArchiveKey) + '&include=full';
+    const r2 = await api(fullUrl, { method: 'GET' });
+    if (!r2.ok || !r2.data || !r2.data.ok) {
+        toast(t('toastForceDelDownloadFail').replace('{e}', (r2.data && r2.data.error) || ('HTTP ' + r2.status)));
+        return;
+    }
+
+    // 准备 ZIP 下载链接(不自动 click)
+    try {
+        await prepareZipDownload(__forceDelTarget, r2.data);
+    } catch (e) {
+        toast(t('toastForceDelDownloadFail').replace('{e}', e.message || String(e)));
+        return;
+    }
+
+    // 切换到阶段 2,红删按钮 disabled,等下载点击解锁
+    $('forceDelConfirm').disabled = true;
+    hide('forceDelStage1');
+    show('forceDelStage2');
+    $('forceDelArchiveKey').textContent = __forceDelArchiveKey;
+    $('btnForceDelArchive').classList.add('hidden');
+    $('btnForceDelCleanup').classList.remove('hidden');
+    $('btnForceDelCleanup').disabled = true;
+}
+
+// 阶段 2:清理 user:* + users 表(必须先点过下载链接才能调用)
+async function submitForceDelCleanup() {
+    if (!__forceDelTarget || !__forceDelArchiveKey) return;
+    if ($('btnForceDelCleanup').disabled) return;  // 兜底
+    const url = '/api/users?action=cleanup-after-archive'
+              + '&u=' + encodeURIComponent(__forceDelTarget)
+              + '&archiveKey=' + encodeURIComponent(__forceDelArchiveKey);
+    const r = await api(url, { method: 'POST' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast(t('toastForceDelCleanupFail').replace('{e}', (r.data && r.data.error) || ('HTTP ' + r.status)));
+        return;
+    }
+    toast(t('toastForceDelOk').replace('{u}', __forceDelTarget).replace('{k}', __forceDelArchiveKey));
+    hide('forceDeleteModal');
+    revokeForceDelBlob();
+    __forceDelTarget = null;
+    __forceDelArchiveKey = null;
+    refreshUsersList();
+}
+
+// 构造 ZIP 并把下载链接绑到阶段 2 的 <a>
+// 文件结构(便于人工阅读 / 重新导入):
+//   archive_<u>_<ts>/
+//     meta.json           归档元数据(纯结构化,体积小)
+//     data.js             用户主数据(原始 JS 文本,可直接看)
+//     data_source.txt     "kv"/"static"(若有)
+//     cards.csv           非加密分类卡片表(可用「导入表格」回流)
+//     backups/<bts>.js    历史备份(每个独立文件,可逐条对比)
+async function prepareZipDownload(username, fullData) {
+    revokeForceDelBlob();
+    if (!window.ZipAdapter) throw new Error('ZipAdapter 未加载');
+
+    var ts = (fullData.meta && fullData.meta.archivedAtLocal) ||
+             (fullData.archiveKey ? fullData.archiveKey.split(':').pop() : '');
+    var stem = 'archive_' + username + '_' + ts;
+    var files = [];
+
+    // ── meta.json:纯结构化元数据 ──
+    var metaObj = {
+        username: username,
+        uid: (fullData.meta && fullData.meta.uid) || username,
+        exportedAt: new Date().toISOString(),
+        archiveKey: fullData.archiveKey,
+        meta: fullData.meta,
+        hasData: fullData.hasData,
+        hasSource: fullData.hasSource,
+        backups: fullData.backups || []   // 仅文件名列表;内容在 backups/<bts>.js
+    };
+    files.push({ name: stem + '/meta.json', content: JSON.stringify(metaObj, null, 2) });
+
+    // ── data.js:原始 JS 文本 ──
+    if (fullData.data != null) {
+        files.push({ name: stem + '/data.js', content: fullData.data });
+    }
+
+    // ── data_source.txt(可选) ──
+    if (fullData.source != null) {
+        files.push({ name: stem + '/data_source.txt', content: String(fullData.source) });
+    }
+
+    // ── cards.csv:非加密分类卡片表 ──
+    try {
+        var sections = __parseDataJsForCsv(fullData.data || '');
+        if (sections.length > 0 && window.CsvSchema && typeof window.CsvSchema.sectionsToCSV === 'function') {
+            var csvText = window.CsvSchema.sectionsToCSV(sections, { includeEncrypted: false });
+            if (csvText) files.push({ name: stem + '/cards.csv', content: csvText });
+        }
+    } catch (e) {
+        files.push({ name: stem + '/cards.csv.note.txt', content: 'CSV 生成失败: ' + (e.message || String(e)) });
+    }
+
+    // ── backups/<bts>.js:每条独立 ──
+    var bcMap = fullData.backupsContent || {};
+    Object.keys(bcMap).forEach(function(bts) {
+        files.push({ name: stem + '/backups/' + bts + '.js', content: bcMap[bts] });
+    });
+
+    var zipBlob = await window.ZipAdapter.zipFiles(files);
+    __forceDelBlobUrl = URL.createObjectURL(zipBlob);
+
+    var a = $('forceDelDownloadLink');
+    a.href = __forceDelBlobUrl;
+    a.setAttribute('download', stem + '.zip');
+}
+
+
+/* ================================================================
+   A1-c2: 归档管理(admin only)
+   - openArchivesModal:打开 modal,自动刷新列表
+   - refreshArchivesList:GET /api/archives → 渲染表格,委托事件 [下载]/[删除]
+   - downloadArchiveHandler:GET /api/archives?key=...&include=full → 调 prepareZipDownload 同款 ZIP 路径 → 自动点击触发下载
+   - openDeleteArchiveModal:打开删除确认 modal(同 forceDeleteModal 风格)
+   - submitDeleteArchive:DELETE /api/archives?key=...&confirm=DELETE-ARCHIVE-<ts>
+================================================================ */
+let __delArchiveTarget = null;       // 当前要删的 archiveKey
+let __archiveDlBlobUrl = null;       // 当前下载用的 blob URL(归档管理路径)
+
+function __revokeArchiveDlBlob() {
+    if (__archiveDlBlobUrl) {
+        try { URL.revokeObjectURL(__archiveDlBlobUrl); } catch(_) {}
+        __archiveDlBlobUrl = null;
+    }
+}
+
+async function openArchivesModal() {
+    hide('usersModal');   // 从用户管理子入口进入,关掉父 modal
+    show('archivesModal');
+    await refreshArchivesList();
+}
+
+async function refreshArchivesList() {
+    const tbody = $('archivesTbody');
+    const count = $('archivesCount');
+    tbody.innerHTML = '';
+    count.textContent = '';
+
+    const r = await api('/api/archives', { method: 'GET' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        const err = (r.data && r.data.error) || ('HTTP ' + r.status);
+        toast(t('toastArchivesLoadFail').replace('{e}', err));
+        return;
+    }
+    const list = Array.isArray(r.data.archives) ? r.data.archives : [];
+    count.textContent = t('archivesCountText').replace('{n}', String(list.length));
+
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:12px; text-align:center; color:#888;">' +
+                          escapeHtml(t('archivesEmpty')) + '</td></tr>';
+        return;
+    }
+
+    const dlLabel  = escapeHtml(t('archivesOpDownload'));
+    const delLabel = escapeHtml(t('archivesOpDelete'));
+    tbody.innerHTML = list.map(function(a) {
+        const u = escapeHtml(a.username || '?');
+        const ts = escapeHtml(a.archivedAtLocal || a.archivedAt || '?');
+        const sz = formatBytes(a.dataSize || 0);
+        const bc = String(a.backupCount || 0);
+        const by = escapeHtml(a.archivedBy || '?');
+        const k  = escapeHtml(a.archiveKey || '');
+        return '<tr data-archive-key="' + k + '" data-username="' + u + '">' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0;"><code>' + u + '</code></td>' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0; font-family:monospace; font-size:12px;">' + ts + '</td>' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0; text-align:right;">' + sz + '</td>' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0; text-align:right;">' + bc + '</td>' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0;">' + by + '</td>' +
+               '<td style="padding:8px 10px; border-top:1px solid #f0f0f0; text-align:right; white-space:nowrap;">' +
+                  '<button class="btn btn-ghost btn-sm js-archive-dl" data-key="' + k + '" data-user="' + u + '">' + dlLabel + '</button> ' +
+                  '<button class="btn btn-danger btn-sm js-archive-del" data-key="' + k + '">' + delLabel + '</button>' +
+               '</td></tr>';
+    }).join('');
+
+    // 事件委托
+    tbody.querySelectorAll('.js-archive-dl').forEach(function(btn) {
+        btn.onclick = function() {
+            const key = btn.getAttribute('data-key');
+            const user = btn.getAttribute('data-user');
+            downloadArchiveHandler(key, user, btn);
+        };
+    });
+    tbody.querySelectorAll('.js-archive-del').forEach(function(btn) {
+        btn.onclick = function() {
+            const key = btn.getAttribute('data-key');
+            openDeleteArchiveModal(key);
+        };
+    });
+}
+
+function formatBytes(n) {
+    if (!n || n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+async function downloadArchiveHandler(archiveKey, username, btn) {
+    if (btn) btn.disabled = true;
+    try {
+        const fullUrl = '/api/archives?key=' + encodeURIComponent(archiveKey) + '&include=full';
+        const r = await api(fullUrl, { method: 'GET' });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast(t('toastArchiveDownloadFail').replace('{e}', (r.data && r.data.error) || ('HTTP ' + r.status)));
+            return;
+        }
+        // 复用 prepareZipDownload 同款 ZIP 拼装,但下载入口是单击按钮 → 这里允许程序化 click
+        // 自己构造一份 blob 并主动 click(归档管理路径,admin 主动触发,不会被拦截)
+        await __triggerArchiveZipDownload(username, r.data);
+    } catch (e) {
+        toast(t('toastArchiveDownloadFail').replace('{e}', e.message || String(e)));
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+// 类似 prepareZipDownload 但直接触发下载(归档管理里的单条下载)
+async function __triggerArchiveZipDownload(username, fullData) {
+    if (!window.ZipAdapter) throw new Error('ZipAdapter 未加载');
+    var ts = (fullData.meta && fullData.meta.archivedAtLocal) ||
+             (fullData.archiveKey ? fullData.archiveKey.split(':').pop() : '');
+    var stem = 'archive_' + username + '_' + ts;
+    var files = [];
+
+    var metaObj = {
+        username: username,
+        uid: (fullData.meta && fullData.meta.uid) || username,
+        exportedAt: new Date().toISOString(),
+        archiveKey: fullData.archiveKey,
+        meta: fullData.meta,
+        hasData: fullData.hasData,
+        hasSource: fullData.hasSource,
+        backups: fullData.backups || []
+    };
+    files.push({ name: stem + '/meta.json', content: JSON.stringify(metaObj, null, 2) });
+    if (fullData.data != null) files.push({ name: stem + '/data.js', content: fullData.data });
+    if (fullData.source != null) files.push({ name: stem + '/data_source.txt', content: String(fullData.source) });
+    try {
+        var sections = __parseDataJsForCsv(fullData.data || '');
+        if (sections.length > 0 && window.CsvSchema && typeof window.CsvSchema.sectionsToCSV === 'function') {
+            var csvText = window.CsvSchema.sectionsToCSV(sections, { includeEncrypted: false });
+            if (csvText) files.push({ name: stem + '/cards.csv', content: csvText });
+        }
+    } catch (e) {
+        files.push({ name: stem + '/cards.csv.note.txt', content: 'CSV 生成失败: ' + (e.message || String(e)) });
+    }
+    var bcMap = fullData.backupsContent || {};
+    Object.keys(bcMap).forEach(function(bts) {
+        files.push({ name: stem + '/backups/' + bts + '.js', content: bcMap[bts] });
+    });
+
+    var zipBlob = await window.ZipAdapter.zipFiles(files);
+    __revokeArchiveDlBlob();
+    __archiveDlBlobUrl = URL.createObjectURL(zipBlob);
+
+    var a = document.createElement('a');
+    a.href = __archiveDlBlobUrl;
+    a.download = stem + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(__revokeArchiveDlBlob, 2000);
+}
+
+// 提取 archive:<uid>:<ts> 的 ts 部分(用于 confirm 字符串)
+function __extractArchiveTs(archiveKey) {
+    if (!archiveKey) return '';
+    var parts = archiveKey.split(':');
+    return parts[parts.length - 1] || '';
+}
+
+function openDeleteArchiveModal(archiveKey) {
+    __delArchiveTarget = archiveKey;
+    const ts = __extractArchiveTs(archiveKey);
+    const expected = 'DELETE-ARCHIVE-' + ts;
+    $('delArchiveKey').textContent = archiveKey;
+    $('delArchiveExpected').textContent = expected;
+    $('delArchiveConfirm').value = '';
+    $('btnDelArchiveSubmit').disabled = true;
+    show('deleteArchiveModal');
+    setTimeout(() => { try { $('delArchiveConfirm').focus(); } catch(_) {} }, 50);
+}
+
+async function submitDeleteArchive() {
+    if (!__delArchiveTarget) return;
+    const ts = __extractArchiveTs(__delArchiveTarget);
+    const expected = 'DELETE-ARCHIVE-' + ts;
+    const got = ($('delArchiveConfirm').value || '').trim();
+    if (got !== expected) return;
+    const url = '/api/archives?key=' + encodeURIComponent(__delArchiveTarget)
+              + '&confirm=' + encodeURIComponent(expected);
+    const r = await api(url, { method: 'DELETE' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast(t('toastArchiveDeleteFail').replace('{e}', (r.data && r.data.error) || ('HTTP ' + r.status)));
+        return;
+    }
+    toast(t('toastArchiveDeleted').replace('{k}', __delArchiveTarget));
+    hide('deleteArchiveModal');
+    __delArchiveTarget = null;
+    refreshArchivesList();
+}
+
+
+/* ================================================================
+   A1-d: 数据迁移(admin only,migrationNeeded 触发显隐)
+   - openMigrateModal:打开 modal,清空计划/结果区,禁用"开始迁移"
+   - runMigrateDryRun:POST /api/migrate-v2 {dryRun:true},渲染计划表
+   - runMigrateReal:二次 confirm 后真跑,渲染结果
+================================================================ */
+let __migrateWouldCopy = 0;   // dryRun 之后记录"能复制几项",真跑前据此决定是否启用按钮
+
+function migrateRenderPlan(plan, wouldCopy) {
+    __migrateWouldCopy = wouldCopy || 0;
+    const planArea = $('migratePlanArea');
+    const summary = $('migratePlanSummary');
+    const tbody = $('migratePlanTbody');
+    const btnRun = $('btnMigrateRun');
+    show('migratePlanArea');
+    hide('migrateResultArea');
+
+    if (!plan) { summary.textContent = t('migratePlanEmpty'); tbody.innerHTML = ''; btnRun.disabled = true; return; }
+
+    const rows = [];
+    // data_js / data_source 各算一行
+    if (plan.dataJs)     rows.push(plan.dataJs);
+    if (plan.dataSource) rows.push(plan.dataSource);
+    // backups[]
+    if (Array.isArray(plan.backups)) rows.push(...plan.backups);
+
+    if (wouldCopy === 0) {
+        summary.textContent = t('migratePlanEmpty');
+    } else {
+        summary.textContent = t('migratePlanSummary').replace('{n}', String(wouldCopy));
+    }
+
+    const actLabel = a => a === 'copy' ? t('migrateActionCopy') : t('migrateActionSkip');
+    tbody.innerHTML = rows.map(r => {
+        const oldK = escapeHtml(r.old || '');
+        const newK = escapeHtml(r.new || '');
+        const act  = escapeHtml(actLabel(r.action));
+        const reason = escapeHtml(r.reason || '');
+        const cls = r.action === 'copy' ? 'st-ok' : 'muted';
+        return '<tr>' +
+               '<td style="padding:6px 8px; border-top:1px solid #f0f0f0;"><code>' + oldK + '</code></td>' +
+               '<td style="padding:6px 8px; border-top:1px solid #f0f0f0;"><code>' + newK + '</code></td>' +
+               '<td style="padding:6px 8px; border-top:1px solid #f0f0f0;" class="' + cls + '">' + act + '</td>' +
+               '<td style="padding:6px 8px; border-top:1px solid #f0f0f0;" class="muted">' + reason + '</td>' +
+               '</tr>';
+    }).join('');
+
+    btnRun.disabled = wouldCopy === 0;
+}
+
+async function openMigrateModal() {
+    __migrateWouldCopy = 0;
+    hide('migratePlanArea');
+    hide('migrateResultArea');
+    $('btnMigrateRun').disabled = true;
+    show('migrateModal');
+}
+
+async function runMigrateDryRun() {
+    const r = await api('/api/migrate-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: true })
+    });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast((r.data && r.data.error) || t('toastMigrateLoadFail'));
+        return;
+    }
+    migrateRenderPlan(r.data.plan, r.data.wouldCopy || 0);
+}
+
+async function runMigrateReal() {
+    if (__migrateWouldCopy === 0) { toast(t('migrateNoneToRun')); return; }
+    if (!confirm(t('migrateConfirmRun'))) return;
+
+    const r = await api('/api/migrate-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: false })
+    });
+    const area = $('migrateResultArea');
+    show('migrateResultArea');
+
+    if (!r.ok || !r.data) {
+        area.className = '';
+        area.style.background = '#fee';
+        area.textContent = t('toastMigrateRunFail').replace('{e}', String(r.status || 'network'));
+        return;
+    }
+    const d = r.data;
+    const copied  = (d.result && d.result.backups && d.result.backups.copied)  || 0;
+    const skipped = (d.result && d.result.backups && d.result.backups.skipped) || 0;
+    const failed  = (d.result && d.result.backups && d.result.backups.failed)  || 0;
+    // data_js / data_source 也算 copy 或 skip
+    const extraCopy = ['dataJs','dataSource'].filter(k => d.result && d.result[k] === 'copied').length;
+    const extraSkip = ['dataJs','dataSource'].filter(k => d.result && d.result[k] === 'skip').length;
+    const totalCopied  = copied + extraCopy;
+    const totalSkipped = skipped + extraSkip;
+
+    if (d.ok) {
+        area.style.background = '#e6ffed';
+        area.style.color = '#055d20';
+        area.textContent = t('migrateResultOk')
+            .replace('{copied}', String(totalCopied))
+            .replace('{skipped}', String(totalSkipped));
+        // 真跑成功后,migrationNeeded 应该已经变 false → 刷新 check
+        currentMigrationNeeded = false;
+        hide('btnMigrate');
+    } else {
+        area.style.background = '#fff8e6';
+        area.style.color = '#7a4d00';
+        area.textContent = t('migrateResultPartial')
+            .replace('{copied}', String(totalCopied))
+            .replace('{failed}', String(failed));
+    }
+}
+
 
 /* ================================================================
    Events
@@ -4267,9 +5267,74 @@ window.addEventListener('DOMContentLoaded', () => {
 
     $('btnLogout').onclick = doLogout;
     $('btnSwitchMode').onclick = doSwitchMode;
-    $('btnChangePwd').onclick = () => { $('pwdOld').value = $('pwdNew').value = $('pwdNew2').value = ''; show('pwdModal'); };
+    $('btnChangePwd').onclick = () => {
+        $('pwdOld').value = $('pwdNew').value = $('pwdNew2').value = '';
+        // A1-b: online 模式改服务端密码,local 模式改本地密码
+        const titleEl = document.querySelector('#pwdModal h2');
+        if (titleEl) titleEl.textContent = currentMode === MODE_ONLINE ? t('pwdTitleOnline') : t('pwdTitle');
+        // 加密提示只在 local 模式有意义(online 模式数据走 KV 不本地加密)
+        const encHintEl = document.querySelector('#pwdModal .enc-hint');
+        if (encHintEl) encHintEl.style.display = currentMode === MODE_ONLINE ? 'none' : '';
+        show('pwdModal');
+    };
     $('btnPwdCancel').onclick = () => hide('pwdModal');
     $('btnPwdSave').onclick = savePassword;
+
+    // A1-c: 用户管理事件
+    $('btnUsers').onclick = openUsersModal;
+    $('btnUsersClose').onclick = () => hide('usersModal');
+    $('btnUserRefresh').onclick = refreshUsersList;
+    $('btnUserNew').onclick = () => openUserEdit('new', null);
+    $('btnUserEditCancel').onclick = () => hide('userEditModal');
+    $('btnUserEditSave').onclick = submitUserEdit;
+    $('userEditPwd').addEventListener('keydown', e => { if (e.key === 'Enter') submitUserEdit(); });
+
+    // A1-c2: 强制删除事件(2 阶段)
+    $('btnForceDelCancel').onclick = () => {
+        hide('forceDeleteModal');
+        revokeForceDelBlob();
+        __forceDelTarget = null;
+        __forceDelArchiveKey = null;
+    };
+    $('btnForceDelArchive').onclick = submitForceDelArchive;
+    $('btnForceDelCleanup').onclick = submitForceDelCleanup;
+    $('forceDelConfirm').addEventListener('input', e => {
+        const expected = 'DELETE-' + (__forceDelTarget || '');
+        $('btnForceDelArchive').disabled = (e.target.value || '').trim() !== expected;
+    });
+    $('forceDelConfirm').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !$('btnForceDelArchive').disabled) submitForceDelArchive();
+    });
+    // 必须点过下载链接才能启用红色"确认删除用户"按钮
+    $('forceDelDownloadLink').addEventListener('click', () => {
+        $('btnForceDelCleanup').disabled = false;
+        const dlOk = $('forceDelDownloaded');
+        if (dlOk) dlOk.style.display = '';
+    });
+
+    // A1-c2: 归档管理事件
+    $('btnArchives').onclick = openArchivesModal;
+    $('btnArchivesClose').onclick = () => hide('archivesModal');
+    $('btnArchivesRefresh').onclick = refreshArchivesList;
+    $('btnDelArchiveCancel').onclick = () => {
+        hide('deleteArchiveModal');
+        __delArchiveTarget = null;
+    };
+    $('btnDelArchiveSubmit').onclick = submitDeleteArchive;
+    $('delArchiveConfirm').addEventListener('input', e => {
+        const ts = __extractArchiveTs(__delArchiveTarget || '');
+        const expected = 'DELETE-ARCHIVE-' + ts;
+        $('btnDelArchiveSubmit').disabled = (e.target.value || '').trim() !== expected;
+    });
+    $('delArchiveConfirm').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !$('btnDelArchiveSubmit').disabled) submitDeleteArchive();
+    });
+
+    // A1-d: 数据迁移事件
+    $('btnMigrate').onclick = openMigrateModal;
+    $('btnMigrateClose').onclick = () => hide('migrateModal');
+    $('btnMigrateDryRun').onclick = runMigrateDryRun;
+    $('btnMigrateRun').onclick = runMigrateReal;
 
     $('btnConnect').onclick = pickFolder;
     $('btnReload').onclick = doReload;

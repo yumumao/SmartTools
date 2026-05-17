@@ -163,8 +163,13 @@ window.__favLinkClick = function(cardId, event) {
 
 /**
  * 邮箱卡片点击（currentEmailData 会变，所以每次点击时动态注册）
+ *
+ * Step 4 改造:外层主卡现在是 <a target=_blank>,左键 onclick 必须 preventDefault 阻止默认跳转,
+ * 才能走"有 comment 弹注释"分支;无 comment 时 fallback 仍然 window.open(等价于让 <a> 跳)。
+ * 中键不触发 onclick → 走 <a> 原生 → 后台 ✅。
  */
-window.__favEmailClick = function() {
+window.__favEmailClick = function(event) {
+    if (event && event.preventDefault) event.preventDefault();
     var cd = currentEmailData;
     if (!cd) return;
     if (cd.comment && window.NoteModal) {
@@ -240,10 +245,12 @@ document.addEventListener('click', function(e) {
     if (!e.target || !e.target.closest) return;
 
     // ① 描述行独立跳转
+    //    preventDefault 阻止外层 <a class="link-card"> 的默认跳转(desc-clickable 主卡现在是 <a> 包裹的)
     var descEl = e.target.closest('[data-desc-url]');
     if (descEl) {
         var url = descEl.getAttribute('data-desc-url');
         if (url && url !== '#') {
+            e.preventDefault();
             e.stopPropagation();
             window.open(url, '_blank', 'noopener,noreferrer');
         }
@@ -257,6 +264,56 @@ document.addEventListener('click', function(e) {
         if (key && typeof toggleSection === 'function') toggleSection(key);
     }
 });
+
+/**
+ * 全局事件委托:鼠标中键 → 在后台(新标签)打开卡片 url。
+ * 与左键语义并行,**不影响**左键的注释弹窗/分区点击/展开等现有行为。
+ *
+ * 实现细节:用 `mousedown` + `e.button===1` + `preventDefault()`。
+ *   - 不用 auxclick:Chrome/Edge 在 <div> 上按中键会进入"自动滚动模式"
+ *     (光标变 ⊕),会吞掉后续的 auxclick;<a> 元素是浏览器原生路径不受影响。
+ *   - mousedown + preventDefault 能阻止自动滚动模式启动,统一覆盖所有 DOM 类型。
+ *
+ * 规则:
+ *   - desc-clickable / contact 描述行(data-desc-url) → 打开 descUrl
+ *   - .expand-zone / .expand-btn / .expand-section-btn → 中键忽略(展开是左键专用)
+ *   - <a> 卡片(simple 有 url) → 让浏览器原生处理,自身不拦截
+ *   - 其它带 data-card-id 的卡片 → 跳过 comment 直接打开 card.url(__safeUrl 校验)
+ *   - card.url 不存在/为 # → 不响应(加密未解锁、纯 comment 卡、email 卡等)
+ * 安全:同样走 __safeUrl + noopener,noreferrer。
+ */
+document.addEventListener('mousedown', function(e) {
+    if (e.button !== 1) return;          // 仅鼠标中键
+    if (!e.target || !e.target.closest) return;
+
+    // ① 描述行 → 打开 descUrl
+    var descEl = e.target.closest('[data-desc-url]');
+    if (descEl) {
+        var dUrl = descEl.getAttribute('data-desc-url');
+        if (dUrl && dUrl !== '#') {
+            e.preventDefault();
+            window.open(dUrl, '_blank', 'noopener,noreferrer');
+        }
+        return;
+    }
+
+    // ② 大类折叠按钮 → 中键忽略(大类不该被中键打开任何东西)
+    //    ※ .expand-zone / .expand-btn 不再短路 — 它们现在位于 <a class="link-card-with-expand"> 内层,
+    //    中键应该让 <a> 原生路径生效(整张卡后台打开)。下方 ③ 已用 cardEl.tagName==='A' 跳过 JS 路径。
+    if (e.target.closest('.expand-section-btn')) return;
+
+    // ③ 卡片本体 → 跳过 comment 打开 url
+    var cardEl = e.target.closest('[data-card-id]');
+    if (!cardEl) return;
+    // <a> 卡片让浏览器原生中键处理,避免和 target=_blank 冲突
+    if (cardEl.tagName === 'A') return;
+    var entry = __cardRegistry[cardEl.getAttribute('data-card-id')];
+    if (!entry || !entry.card) return;
+    var cUrl = __safeUrl(entry.card.url);
+    if (!cUrl || cUrl === '#') return;
+    e.preventDefault();
+    window.open(cUrl, '_blank', 'noopener,noreferrer');
+}, true);  // capture 阶段,确保优先于其它潜在 mousedown 处理器
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
@@ -336,6 +393,15 @@ function generateCardHTML(card, meta) {
     if (card.type === 'desc-clickable') {
         // descUrl 放 data-* 属性，由全局事件委托接管，避免 onclick 字符串拼接的 XSS
         var descUrlAttr = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
+        // 中键后台打开:有 card.url 时改 <a> 包裹,左键复用 __favLinkClick(有 comment 拦截弹注释,无 comment 浏览器原生跳)
+        if (card.url) {
+            return '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" class="link-card' + noteCls + '" ' +
+                   'data-card-id="' + cid + '" ' +
+                   'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+                renderIcon(card) +
+                '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
+                '<p class="link-desc-clickable"' + descUrlAttr + '>' + __txt(card.descClickable) + '</p></a>';
+        }
         return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
             renderIcon(card) +
@@ -363,16 +429,31 @@ function generateCardHTML(card, meta) {
             });
         });
 
+        // 中键全区域后台打开:有 card.url 时主卡用 <a> 包裹,左键分区点击靠 handleCardClick + preventDefault
+        var subcardsId = __attr(card.id) + '-subcards';
+        var expandZone = '<div class="expand-zone" onclick="event.stopPropagation(); event.preventDefault(); handleExpandZone(\'' + subcardsId + '\', this)"></div>' +
+                         '<button class="expand-btn" title="展开更多"></button>';
+        if (card.url) {
+            return '<div class="card-container">' +
+                '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" ' +
+                   'class="link-card link-card-with-expand' + noteCls + '" ' +
+                   'data-card-id="' + cid + '" ' +
+                   'onclick="handleCardClick(event, \'' + cid + '\', \'' + subcardsId + '\')">' +
+                renderIcon(card) +
+                '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
+                descHTML +
+                expandZone + '</a>' +
+                '<div class="sub-cards" id="' + subcardsId + '">' + subHTML + '</div></div>';
+        }
         return '<div class="card-container">' +
             '<div class="link-card link-card-with-expand' + noteCls + '" ' +
                  'data-card-id="' + cid + '" ' +
-                 'onclick="handleCardClick(event, \'' + cid + '\', \'' + __attr(card.id) + '-subcards\')">' +
+                 'onclick="handleCardClick(event, \'' + cid + '\', \'' + subcardsId + '\')">' +
             renderIcon(card) +
             '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
             descHTML +
-            '<div class="expand-zone" onclick="event.stopPropagation(); handleExpandZone(\'' + __attr(card.id) + '-subcards\', this)"></div>' +
-            '<button class="expand-btn" title="展开更多"></button></div>' +
-            '<div class="sub-cards" id="' + __attr(card.id) + '-subcards">' + subHTML + '</div></div>';
+            expandZone + '</div>' +
+            '<div class="sub-cards" id="' + subcardsId + '">' + subHTML + '</div></div>';
     }
     return '';
 }
@@ -380,19 +461,44 @@ function generateCardHTML(card, meta) {
 /**
  * 生成子卡片。注意：compact-card 里的 sc.note 是"额外小字说明"，
  * 新注释功能使用 sc.comment 字段，二者互不冲突。
+ *
+ * 中键后台打开:有 sc.url 时改用 <a target=_blank> 包裹,让浏览器原生中键
+ * 路径生效(走 __favLinkClick 复用 simple-a 同一拦截:有 comment 弹注释,
+ * 无 comment 浏览器原生跳转,中键则后台新标签)。
+ * 无 sc.url 时仍用 <div>(没东西可开,保持现状)。
  */
 function generateSubCardHTML(sc, meta) {
     var cid      = __registerCard(sc, meta || {});
     var iconHTML = renderIcon(sc);
     var noteCls  = __noteCls(sc);
+    var hasUrl   = !!__safeUrl(sc.url);
 
     if (sc.content !== undefined) {
+        // compact-card:有 url 用 <a>,否则用 <div>
+        if (hasUrl) {
+            return '<a href="' + __attr(__safeUrl(sc.url)) + '" target="_blank" rel="noopener noreferrer" ' +
+                   'class="sub-card compact-card' + noteCls + '" data-card-id="' + cid + '" ' +
+                   'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+                iconHTML +
+                '<div class="link-content"><span class="link-url">' + __txt(sc.content) + '</span>' +
+                (sc.note ? '<span class="link-note">' + __txt(sc.note) + '</span>' : '') +
+                '</div></a>';
+        }
         return '<div class="sub-card compact-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
             iconHTML +
             '<div class="link-content"><span class="link-url">' + __txt(sc.content) + '</span>' +
             (sc.note ? '<span class="link-note">' + __txt(sc.note) + '</span>' : '') +
             '</div></div>';
+    }
+    // two-line-card:有 url 用 <a>,否则用 <div>
+    if (hasUrl) {
+        return '<a href="' + __attr(__safeUrl(sc.url)) + '" target="_blank" rel="noopener noreferrer" ' +
+               'class="sub-card two-line-card' + noteCls + '" data-card-id="' + cid + '" ' +
+               'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+            '<div class="card-header">' + iconHTML +
+            '<h3 class="link-title">' + __txt(sc.title) + '</h3></div>' +
+            '<p class="link-url">' + __txt(sc.desc || '') + '</p></a>';
     }
     return '<div class="sub-card two-line-card' + noteCls + '" data-card-id="' + cid + '" ' +
            'onclick="__favCardOpen(\'' + cid + '\')">' +
@@ -475,12 +581,18 @@ function generateEmailCardHTML(cards) {
     var tabsHTML = '';
     cards.forEach(function(em, i) {
         var cls = i === 0 ? ' active' : '';
-        tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
+        // tab 内联 onclick 加 preventDefault,防止触发外层 <a> 的默认跳转
+        tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); event.preventDefault(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
     });
     var first = cards[0] || {};
     var noteCls = __noteCls(first);
+    // 中键后台:外层用 <a> 包裹,href=当前邮箱卡(cards[0])的 url;切 tab 时由 switchEmail 同步更新 href。
+    // 若 first.url 缺失则 href="#",中键不响应(浏览器对 # 不开新标签)。
+    var firstUrl = __safeUrl(first.url) || '#';
     return '<div class="card-container">' +
-        '<div class="link-card email-card' + noteCls + '" id="email-card-root" onclick="__favEmailClick()">' +
+        '<a href="' + __attr(firstUrl) + '" target="_blank" rel="noopener noreferrer" ' +
+           'class="link-card email-card' + noteCls + '" id="email-card-root" ' +
+           'onclick="return __favEmailClick(event)">' +
         '<div class="email-main-content" id="email-main-content">' +
         '<div class="email-contact-header">' +
         renderIcon(first, 'id="email-icon"') +
@@ -489,13 +601,22 @@ function generateEmailCardHTML(cards) {
         '<p class="email-contact-desc" id="email-address">' + __txt(first.address || '') + '</p>' +
         '</div>' +
         '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
-        '</div></div>';
+        '</a></div>';
 }
 
 function generateContactCardHTML(card, meta) {
     var cid = __registerCard(card, meta || {});
     var noteCls = __noteCls(card);
     var descUrlAttr = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
+    // 中键后台:有 card.url 时主卡用 <a> 包裹,左键复用 __favLinkClick(同 desc-clickable 路径)
+    if (card.url) {
+        return '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" ' +
+               'class="link-card contact-card-wrap' + noteCls + '" data-card-id="' + cid + '" ' +
+               'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+            '<div class="contact-header">' + renderIcon(card) +
+            '<h3 class="link-title">' + __txt(card.title) + '</h3></div>' +
+            '<p class="contact-desc"' + descUrlAttr + '>' + __txt(card.desc) + '</p></a>';
+    }
     return '<div class="link-card contact-card-wrap' + noteCls + '" data-card-id="' + cid + '" ' +
            'onclick="__favCardOpen(\'' + cid + '\')">' +
         '<div class="contact-header">' + renderIcon(card) +
@@ -526,6 +647,9 @@ function generateContactGrid() {
  *   - 左 60% → __favCardOpen（有 comment 弹注释，否则打开 url）
  */
 function handleCardClick(event, cardId, subcardId) {
+    // expandable 主卡现在是 <a target=_blank> 包裹,左键必须阻止默认跳转才能走分区点击逻辑;
+    // 中键不触发 onclick(浏览器中键直接走 <a> 原生路径 → 后台打开),所以这里不影响中键。
+    if (event && event.preventDefault) event.preventDefault();
     var cardEl = event.currentTarget;
     var rect   = cardEl.getBoundingClientRect();
     var clickX = event.clientX - rect.left;
@@ -640,6 +764,13 @@ function switchEmail(index) {
     setTimeout(function() {
         currentEmailData = emailCards[index];
 
+        // 中键后台:外层 <a> 的 href 同步到新邮箱卡的 url(若空则 # 表示中键不响应)
+        var emailRootA = document.getElementById('email-card-root');
+        if (emailRootA && emailRootA.tagName === 'A') {
+            var newUrl = __safeUrl(currentEmailData.url) || '#';
+            emailRootA.setAttribute('href', newUrl);
+        }
+
         var emailIconEl = document.getElementById('email-icon');
         if (currentEmailData.iconImg) {
             var safeMailImg = __safeImgUrl(currentEmailData.iconImg);
@@ -662,6 +793,7 @@ function switchEmail(index) {
         var addressEl = document.getElementById('email-address');
         addressEl.onclick = function(event) {
             event.stopPropagation();
+            event.preventDefault();  // 外层 <a> 已经接管整张卡;address 行有 mailto 时单独走 window.open
             if (currentEmailData.mailto) {
                 var u = __safeUrl(currentEmailData.mailto);
                 if (u && u !== '#') window.open(u, '_blank', 'noopener,noreferrer');

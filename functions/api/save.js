@@ -1,23 +1,40 @@
-import { requireAuth, jsonResponse } from '../_shared/auth.js';
+import { requireAuth, jsonResponse, getPayload } from '../_shared/auth.js';
 
-const DATA_KEY = 'data_js';
-const SOURCE_KEY = 'data_source';
-const BACKUP_PREFIX = 'backup:';
+// A0 v2 改造（2026-05-17）：按身份选 namespace
+//   admin → admin:data_js / admin:data_source / admin:backup:*
+//   user  → user:<uid>:data_js / user:<uid>:data_source / user:<uid>:backup:*
+//          + 写完后 users[uid].hasData = true（best-effort，失败不阻断保存）
+
 const MAX_BACKUPS = 100;
-const PRUNE_PROBABILITY = 0.2;  // 偶发触发 prune,降低每次保存的 KV list 开销
+const PRUNE_PROBABILITY = 0.2;
+const USERS_KEY = 'users';
+
+function nsKeys(ns) {
+    return {
+        data:    `${ns}:data_js`,
+        source:  `${ns}:data_source`,
+        backupP: `${ns}:backup:`
+    };
+}
 
 /**
- * 模块作用域 flag：本 isolate 内已确认 SOURCE_KEY 是 'kv'。
- * Cloudflare Workers 同 isolate 多次请求间复用此变量,新 isolate 启动会重置。
- * 这意味着 SOURCE_KEY 检查/写入从"每次保存"降为"每个 isolate 首次保存"。
- * 不影响最终一致性:新 isolate 仍会重做一次检查。
+ * 模块作用域 flag：按 namespace 维护。同一 isolate 内每个 namespace 首次保存时
+ * 检查/写入 SOURCE_KEY；之后跳过。新 isolate 启动会重置。
  */
-let _sourceConfirmedKv = false;
+const _sourceConfirmedKv = new Set();
 
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
     if (fail) return fail;
     if (!env.FAV_KV) return jsonResponse({ ok: false, error: '未绑定 KV(FAV_KV)' }, 500);
+
+    // 选 namespace
+    const payload = await getPayload(request, env);
+    const role = (payload && payload.role) || 'user';
+    const uid  = payload && (payload.uid != null ? payload.uid : payload.u);
+    const ns   = role === 'admin' ? 'admin' : `user:${uid}`;
+    const isUser = role !== 'admin';
+    const KEYS = nsKeys(ns);
 
     let body;
     try { body = await request.json(); }
@@ -28,47 +45,59 @@ export async function onRequestPost({ request, env }) {
         return jsonResponse({ ok: false, error: '内容为空' }, 400);
     }
 
-    // 读取旧版本用于对比
-    const old = await env.FAV_KV.get(DATA_KEY);
-
-    // ★ 内容对比：完全相同则跳过备份
+    // 读旧版本用于对比
+    const old = await env.FAV_KV.get(KEYS.data);
     const contentChanged = old !== content;
 
     let backupName = null;
     if (old && old.trim() && contentChanged) {
-        backupName = BACKUP_PREFIX + timestamp();
+        backupName = KEYS.backupP + timestamp();
         await env.FAV_KV.put(backupName, old);
-        // 偶发触发：平均 5 次新备份才扫一次,统计学上 backup 数会在 MAX 附近小幅波动
         if (Math.random() < PRUNE_PROBABILITY) {
-            try { await pruneBackups(env.FAV_KV); } catch {}
+            try { await pruneBackups(env.FAV_KV, KEYS.backupP); } catch {}
         }
     }
 
-    // ★ 主数据写入 + SOURCE_KEY 自动激活 → 并行执行
+    // 主数据写入 + SOURCE_KEY 自动激活 → 并行
     const writes = [];
     if (contentChanged) {
-        writes.push(env.FAV_KV.put(DATA_KEY, content));
+        writes.push(env.FAV_KV.put(KEYS.data, content));
     }
-    if (!_sourceConfirmedKv) {
-        // 本 isolate 首次保存:check + 必要时切到 'kv'
-        const currentSource = await env.FAV_KV.get(SOURCE_KEY);
+    if (!_sourceConfirmedKv.has(ns)) {
+        const currentSource = await env.FAV_KV.get(KEYS.source);
         if (currentSource !== 'kv') {
-            writes.push(env.FAV_KV.put(SOURCE_KEY, 'kv'));
+            writes.push(env.FAV_KV.put(KEYS.source, 'kv'));
         }
-        _sourceConfirmedKv = true;
+        _sourceConfirmedKv.add(ns);
     }
     if (writes.length) await Promise.all(writes);
 
+    // user 路径：标记 hasData=true（best-effort）
+    //   - 已经是 true 时跳过写,省 KV 操作
+    //   - 失败时不阻断保存（用户感知"保存成功"是首要的）
+    if (isUser && uid) {
+        try {
+            const raw = await env.FAV_KV.get(USERS_KEY);
+            const users = raw ? JSON.parse(raw) : {};
+            if (users[uid] && !users[uid].hasData) {
+                users[uid].hasData = true;
+                await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+            }
+        } catch (e) {
+            console.warn('hasData update failed for', uid, e && e.message);
+        }
+    }
+
     return jsonResponse({
         ok: true,
-        backup: backupName,           // 无变化时为 null
-        unchanged: !contentChanged    // ★ 告诉前端是否真的有变化
+        backup: backupName,
+        unchanged: !contentChanged,
+        namespace: ns
     });
 }
 
-// 修复时区:生成北京时间(UTC+8)的时间戳
+// 北京时间时间戳
 function timestamp() {
-    // Cloudflare Workers 默认是 UTC,手动加 8 小时偏移得到北京时间
     const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
     const p = n => String(n).padStart(2, '0');
     return d.getUTCFullYear() +
@@ -79,8 +108,8 @@ function timestamp() {
            p(d.getUTCSeconds());
 }
 
-async function pruneBackups(kv) {
-    const list = await kv.list({ prefix: BACKUP_PREFIX });
+async function pruneBackups(kv, prefix) {
+    const list = await kv.list({ prefix });
     if (list.keys.length <= MAX_BACKUPS) return;
     const sorted = list.keys.sort((a, b) => a.name.localeCompare(b.name));
     const toDelete = sorted.slice(0, sorted.length - MAX_BACKUPS);

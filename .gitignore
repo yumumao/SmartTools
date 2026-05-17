@@ -3,5 +3,7 @@ node_modules/
 *.log
 .env
 .env.local
+.dev.vars
+.wrangler/
 databak/*.js
 !databak/.gitkeep

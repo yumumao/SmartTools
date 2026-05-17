@@ -958,6 +958,12 @@
             transform: translateY(0);
         }
 
+        /* 子卡片 <a> 包裹后的样式重置(支持中键后台打开,见 fav-page.js generateSubCardHTML) */
+        a.sub-card { display: block; text-decoration: none; color: inherit; }
+        a.sub-card:hover { text-decoration: none; }
+        /* expandable 主卡 <a> 在 .card-container 内(非 grid 容器),需要显式 block 防 inline 塌陷 */
+        .card-container > a.link-card { display: block; }
+
         .sub-card {
             background: var(--fr-surface-3);
             border: 1px solid var(--fr-border);

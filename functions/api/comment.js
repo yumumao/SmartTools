@@ -1,44 +1,51 @@
-import { requireAuth, jsonResponse } from '../_shared/auth.js';
+import { requireAuth, jsonResponse, getPayload } from '../_shared/auth.js';
 
 /* ================================================================================
  * /api/comment —— 单条卡片 comment 字段的精准 patch
  * ─────────────────────────────────────────────────────────────────────────────
- * 用途：index1-5 页面在"已解锁管理员"状态下直接修改/删除/新增某张卡片的 comment
- *      而不需要上传整个 data.js。后端做源码级别的字符串 patch，保留原有格式。
+ * A0 v2 改造（2026-05-17）：按身份选 namespace
+ *   admin → admin:data_js / admin:data_source / admin:backup:*
+ *   user  → user:<uid>:data_js / user:<uid>:data_source / user:<uid>:backup:*
+ *          + 写完后 users[uid].hasData = true（best-effort）
  *
- * 请求体：
+ * patchCommentInSource 与源码扫描器完全不变，schema 不动。
+ *
+ * 请求体（不变）：
  *   {
- *     path:    ['usbDriveData', 3, 'comment']
- *          或  ['customSections', 2, 'cards', 5, 'subCards', 1, 'comment']
- *          或  ['emailData', 0, 'comment']
+ *     path:    ['usbDriveData', 3, 'comment'] 或 [...customSections, 'cards', n, ...]
  *     comment: '新内容'        // 空串表示删除该字段
  *   }
- *
- * 设计要点：
- *   - path 第 1 段必须是顶级变量名（usbDriveData / teachingData / onlineAIData /
- *     videoData / contactData / emailData / customSections）
- *   - path 最后一段必须是 'comment'
- *   - 源码扫描器能跳过字符串（单/双/模板）和注释（// 和 /* *\/)
- *   - 匹配失败直接 400，不会破坏数据文件
- *   - 成功时自动把旧版 data.js 备份到 backup:YYYYMMDD_HHmmss
  * ================================================================================ */
 
-const DATA_KEY = 'data_js';
-const SOURCE_KEY = 'data_source';
-const BACKUP_PREFIX = 'backup:';
 const MAX_BACKUPS = 100;
-const PRUNE_PROBABILITY = 0.2;  // 偶发触发 prune,降低每次 patch 的 KV list 开销
+const PRUNE_PROBABILITY = 0.2;
+const USERS_KEY = 'users';
+
+function nsKeys(ns) {
+    return {
+        data:    `${ns}:data_js`,
+        source:  `${ns}:data_source`,
+        backupP: `${ns}:backup:`
+    };
+}
 
 /**
- * 模块作用域 flag：与 save.js 同样的语义,但两个模块各自维护一份。
- * 本 isolate 内确认过 SOURCE_KEY 已是 'kv' 后,后续 patch 跳过 check/write。
+ * 模块作用域 flag：按 namespace 维护。语义同 save.js。
  */
-let _sourceConfirmedKv = false;
+const _sourceConfirmedKv = new Set();
 
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
     if (fail) return fail;
     if (!env.FAV_KV) return jsonResponse({ ok: false, error: '未绑定 KV(FAV_KV)' }, 500);
+
+    // 选 namespace
+    const payload = await getPayload(request, env);
+    const role = (payload && payload.role) || 'user';
+    const uid  = payload && (payload.uid != null ? payload.uid : payload.u);
+    const ns   = role === 'admin' ? 'admin' : `user:${uid}`;
+    const isUser = role !== 'admin';
+    const KEYS = nsKeys(ns);
 
     let body;
     try { body = await request.json(); }
@@ -55,7 +62,7 @@ export async function onRequestPost({ request, env }) {
         return jsonResponse({ ok: false, error: 'path 必须以 comment 结尾' }, 400);
     }
 
-    const old = await env.FAV_KV.get(DATA_KEY);
+    const old = await env.FAV_KV.get(KEYS.data);
     if (!old) return jsonResponse({ ok: false, error: '数据文件不存在于 KV' }, 404);
 
     let patched;
@@ -66,31 +73,45 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (patched === old) {
-        return jsonResponse({ ok: true, unchanged: true, backup: null });
+        return jsonResponse({ ok: true, unchanged: true, backup: null, namespace: ns });
     }
 
     // 备份旧版本
     let backupName = null;
     if (old.trim()) {
-        backupName = BACKUP_PREFIX + timestamp();
+        backupName = KEYS.backupP + timestamp();
         await env.FAV_KV.put(backupName, old);
         if (Math.random() < PRUNE_PROBABILITY) {
-            try { await pruneBackups(env.FAV_KV); } catch {}
+            try { await pruneBackups(env.FAV_KV, KEYS.backupP); } catch {}
         }
     }
 
-    // ★ 主数据写入 + SOURCE_KEY 自动激活 → 并行
-    const writes = [env.FAV_KV.put(DATA_KEY, patched)];
-    if (!_sourceConfirmedKv) {
-        const currentSource = await env.FAV_KV.get(SOURCE_KEY);
+    // 主数据写入 + SOURCE_KEY 自动激活 → 并行
+    const writes = [env.FAV_KV.put(KEYS.data, patched)];
+    if (!_sourceConfirmedKv.has(ns)) {
+        const currentSource = await env.FAV_KV.get(KEYS.source);
         if (currentSource !== 'kv') {
-            writes.push(env.FAV_KV.put(SOURCE_KEY, 'kv'));
+            writes.push(env.FAV_KV.put(KEYS.source, 'kv'));
         }
-        _sourceConfirmedKv = true;
+        _sourceConfirmedKv.add(ns);
     }
     await Promise.all(writes);
 
-    return jsonResponse({ ok: true, backup: backupName });
+    // user 路径：标记 hasData=true（best-effort）
+    if (isUser && uid) {
+        try {
+            const raw = await env.FAV_KV.get(USERS_KEY);
+            const users = raw ? JSON.parse(raw) : {};
+            if (users[uid] && !users[uid].hasData) {
+                users[uid].hasData = true;
+                await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+            }
+        } catch (e) {
+            console.warn('hasData update failed for', uid, e && e.message);
+        }
+    }
+
+    return jsonResponse({ ok: true, backup: backupName, namespace: ns });
 }
 
 // 北京时间时间戳（与 save.js 一致）
@@ -105,8 +126,8 @@ function timestamp() {
            p(d.getUTCSeconds());
 }
 
-async function pruneBackups(kv) {
-    const list = await kv.list({ prefix: BACKUP_PREFIX });
+async function pruneBackups(kv, prefix) {
+    const list = await kv.list({ prefix });
     if (list.keys.length <= MAX_BACKUPS) return;
     const sorted = list.keys.sort((a, b) => a.name.localeCompare(b.name));
     const toDelete = sorted.slice(0, sorted.length - MAX_BACKUPS);

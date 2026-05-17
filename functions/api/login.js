@@ -1,9 +1,13 @@
-import { createToken, jsonResponse, getSecret } from '../_shared/auth.js';
+import {
+    createToken,
+    jsonResponse,
+    getSecret,
+    pbkdf2Hex,
+    randomSaltB64
+} from '../_shared/auth.js';
 
 /**
  * 时序安全的字符串比较，避免通过响应时间差推测密码。
- * 注意：长度不同会立即返回 false，这本身也算一种泄漏，
- * 但对登录场景来说风险可忽略。
  */
 function timingSafeEqual(a, b) {
     if (typeof a !== 'string' || typeof b !== 'string') return false;
@@ -15,18 +19,21 @@ function timingSafeEqual(a, b) {
     return diff === 0;
 }
 
+// 兼容老 users 条目的 sha256 校验（A0 v2 兼容路径）
+async function sha256Hex(str) {
+    const data = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /* ════════════════════════════════════════════════════════════════════════════
- * 登录速率限制（P2-1）
- * ─────────────────────────────────────────────────────────────────────────
- * 策略：按客户端 IP 在 KV 里累计失败次数，达到阈值后窗口内全部 429。
- *   - 窗口大小 WINDOW_SECONDS，从首次失败开始计算，期间失败不重置。
- *   - 成功登录立即清空该 IP 的失败计数。
- *   - 未绑定 KV / KV 异常时静默降级：不阻断主流程，只是没有限速。
- *   - IP 取自 CF-Connecting-IP（Cloudflare 注入），回退到 X-Forwarded-For 首项。
- * ════════════════════════════════════════════════════════════════════════ */
+ * 登录速率限制（P2-1）— 保持原状
+ * ════════════════════════════════════════════════════════════════════════════ */
 const LOCKOUT_PREFIX  = 'lockout:';
 const MAX_ATTEMPTS    = 5;
-const WINDOW_SECONDS  = 600;  // 10 分钟
+const WINDOW_SECONDS  = 600;
+const USERS_KEY       = 'users';
+const PBKDF2_ITER     = 250000;
 
 function getClientIP(request) {
     const cf = request.headers.get('CF-Connecting-IP');
@@ -57,7 +64,6 @@ async function recordFailure(env, ip) {
     try {
         const cur = await readLockout(env, ip);
         const nowSec = Math.floor(Date.now() / 1000);
-        // 首次失败时设置 expireAt；后续失败保持原 expireAt（窗口的固定上限）
         const expireAt = (cur && cur.expireAt && cur.expireAt > nowSec)
             ? cur.expireAt
             : nowSec + WINDOW_SECONDS;
@@ -75,8 +81,11 @@ async function clearFailure(env, ip) {
     try { await env.FAV_KV.delete(LOCKOUT_PREFIX + ip); } catch {}
 }
 
+/* ════════════════════════════════════════════════════════════════════════════
+ * 主入口
+ * ════════════════════════════════════════════════════════════════════════════ */
 export async function onRequestPost({ request, env }) {
-    // ★ 速率限制最早判断：如果已锁定，直接 429 不消耗后续 CPU/KV
+    // ★ 速率限制最早判断
     const ip = getClientIP(request);
     const lock = await readLockout(env, ip);
     if (lock && lock.count >= MAX_ATTEMPTS) {
@@ -109,7 +118,6 @@ export async function onRequestPost({ request, env }) {
         }, 500);
     }
 
-    // 统一从 auth.js 读取密钥，未配置则直接 500(不再使用默认弱密钥)
     const secret = getSecret(env);
     if (!secret) {
         return jsonResponse({
@@ -118,21 +126,125 @@ export async function onRequestPost({ request, env }) {
         }, 500);
     }
 
-    // 时序安全比较，防止定时攻击
+    // ──────────────────────────────────────────────────────────────────────────
+    // 决策树:
+    //   1. 读 KV users 表
+    //   2. 若 users[username] 存在 且 status=active 且 密码匹配 → 签 KV 用户 token
+    //   3. 否则 若 username === ADMIN_USER 且 password === ADMIN_PASS(env) → env-admin 路径 (兜底)
+    //      - 顺便 bootstrap users[ADMIN_USER] (若缺)
+    //   4. 都不匹配 → 401
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // 读 users 表
+    let users = {};
+    if (env.FAV_KV) {
+        try {
+            const raw = await env.FAV_KV.get(USERS_KEY);
+            if (raw) users = JSON.parse(raw);
+        } catch (e) {
+            // KV 读失败不算致命，继续走 env-admin 兜底
+            users = {};
+        }
+    }
+    const kvUser = users[username];
+
+    // 路径 1: KV user 存在且 active
+    let kvAuthOk = false;
+    let kvUserUpgradedFromLegacy = false;
+    if (kvUser && kvUser.status !== 'disabled') {
+        const isLegacy = !kvUser.salt;
+        try {
+            let computed;
+            if (isLegacy) {
+                computed = await sha256Hex(password);
+            } else {
+                computed = await pbkdf2Hex(password, kvUser.salt, kvUser.iter || PBKDF2_ITER);
+            }
+            kvAuthOk = timingSafeEqual(computed, kvUser.passHash || '');
+            kvUserUpgradedFromLegacy = kvAuthOk && isLegacy;
+        } catch {
+            kvAuthOk = false;
+        }
+    }
+
+    if (kvAuthOk) {
+        // ★ 顺手升级老 sha256 用户（best-effort：失败不阻断登录）
+        if (kvUserUpgradedFromLegacy && env.FAV_KV) {
+            try {
+                const newSalt = randomSaltB64(16);
+                const newHash = await pbkdf2Hex(password, newSalt, PBKDF2_ITER);
+                users[username] = {
+                    ...kvUser,
+                    passHash: newHash,
+                    salt: newSalt,
+                    iter: PBKDF2_ITER
+                };
+                await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+            } catch (e) {
+                console.warn('pbkdf2 upgrade failed for', username, e && e.message);
+                // 不阻断登录；下次登录再试
+            }
+        }
+
+        await clearFailure(env, ip);
+        const role = kvUser.role === 'admin' ? 'admin' : 'user';
+        const token = await createToken({ u: username, uid: username, role }, secret);
+        return jsonResponse({ ok: true, username, role }, 200, {
+            'Set-Cookie': `auth=${token}; Path=/; Max-Age=${7 * 86400}; HttpOnly; Secure; SameSite=Strict`
+        });
+    }
+
+    // 路径 2: env-admin 兜底
+    //   适用场景:
+    //     (a) users 表里没 ADMIN_USER (首次部署 / 全新 KV)
+    //     (b) users 表里 ADMIN_USER 被 disabled (防自锁)
+    //     (c) users 表里 ADMIN_USER 的 KV passHash 校验失败 (KV 被改坏)
+    //   都用 env 凭据校验,通过就 bootstrap/更新 users 表
     const userOk = timingSafeEqual(username, adminUser);
     const passOk = timingSafeEqual(password, adminPass);
+
     if (!userOk || !passOk) {
-        // ★ 失败计数（不阻断本次响应，主流程仍返回 401）
         await recordFailure(env, ip);
+        // 区分 4 种失败,但对外统一返回 401(不泄漏哪个字段错)
+        // 1. KV user 不存在 + username !== ADMIN_USER → "用户名或密码错误"
+        // 2. KV user 存在 + 密码错 → 同上
+        // 3. KV user 存在 + status=disabled + 不是 ADMIN_USER → 同上(避免泄漏账号已停用这个信息)
+        // 4. username === ADMIN_USER 但 env password 错 → 同上
         return jsonResponse({ ok: false, error: '用户名或密码错误' }, 401);
     }
 
-    // ★ 成功登录：清空该 IP 失败计数
+    // env-admin 通过：bootstrap users[ADMIN_USER] (若缺) 或 同步 (若存在但密码漂移)
+    if (env.FAV_KV) {
+        const needBootstrap = !kvUser
+            || !kvUser.salt
+            || !kvAuthOk;   // 后者覆盖 "kvUser 存在但 KV passHash 不匹配 env"
+        if (needBootstrap) {
+            try {
+                const newSalt = randomSaltB64(16);
+                const newHash = await pbkdf2Hex(password, newSalt, PBKDF2_ITER);
+                const nowIso = new Date().toISOString();
+                users[username] = {
+                    ...(kvUser || {}),
+                    passHash: newHash,
+                    salt: newSalt,
+                    iter: PBKDF2_ITER,
+                    role: 'admin',
+                    status: 'active',
+                    createdAt: (kvUser && kvUser.createdAt) || nowIso,
+                    createdBy: (kvUser && kvUser.createdBy) || '__bootstrap__',
+                    hasData: (kvUser && kvUser.hasData) || false
+                };
+                await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+            } catch (e) {
+                console.warn('admin bootstrap failed:', e && e.message);
+                // 不阻断登录,env 路径仍然有效
+            }
+        }
+    }
+
     await clearFailure(env, ip);
-
-    const token = await createToken(username, secret);
-
-    return jsonResponse({ ok: true, username }, 200, {
+    const token = await createToken({ u: username, uid: username, role: 'admin' }, secret);
+    return jsonResponse({ ok: true, username, role: 'admin' }, 200, {
         'Set-Cookie': `auth=${token}; Path=/; Max-Age=${7 * 86400}; HttpOnly; Secure; SameSite=Strict`
     });
 }
