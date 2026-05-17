@@ -15,7 +15,7 @@ import {
 } from '../_shared/auth.js';
 
 const USERS_KEY = 'users';
-const PBKDF2_ITER = 250000;
+const PBKDF2_ITER = 100000;
 
 function timingSafeEqual(a, b) {
     if (typeof a !== 'string' || typeof b !== 'string') return false;

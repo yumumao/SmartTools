@@ -29,7 +29,7 @@ import {
 } from '../_shared/auth.js';
 
 const USERS_KEY = 'users';
-const PBKDF2_ITER = 250000;
+const PBKDF2_ITER = 100000;
 
 // 北京时间时间戳（与 save.js / comment.js / backups.js / migrate-v2.js 保持一致）
 function archiveTimestamp() {
@@ -146,42 +146,56 @@ export async function onRequestPost({ request, env }) {
     const users = raw ? JSON.parse(raw) : {};
 
     const isNew = !users[username];
-    const salt = randomSaltB64(16);
-    const passHash = await pbkdf2Hex(password, salt, PBKDF2_ITER);
-    const nowIso = new Date().toISOString();
 
-    if (isNew) {
-        users[username] = {
-            passHash,
-            salt,
-            iter: PBKDF2_ITER,
-            role: 'user',
-            status: 'active',
-            createdAt: nowIso,
-            createdBy: currentUser || '__unknown__',
-            hasData: false
-        };
-    } else {
-        // 重置密码：保留 role / status / createdAt / hasData，只换密码字段
-        const old = users[username];
-        users[username] = {
-            ...old,
-            passHash,
-            salt,
-            iter: PBKDF2_ITER,
-            role: old.role || 'user',
-            status: old.status || 'active'
-        };
+    try {
+        const salt = randomSaltB64(16);
+        const passHash = await pbkdf2Hex(password, salt, PBKDF2_ITER);
+        const nowIso = new Date().toISOString();
+
+        if (isNew) {
+            users[username] = {
+                passHash,
+                salt,
+                iter: PBKDF2_ITER,
+                role: 'user',
+                status: 'active',
+                createdAt: nowIso,
+                createdBy: currentUser || '__unknown__',
+                hasData: false
+            };
+        } else {
+            // 重置密码：保留 role / status / createdAt / hasData，只换密码字段
+            const old = users[username];
+            users[username] = {
+                ...old,
+                passHash,
+                salt,
+                iter: PBKDF2_ITER,
+                role: old.role || 'user',
+                status: old.status || 'active'
+            };
+        }
+
+        await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+        return jsonResponse({
+            ok: true,
+            created: isNew,
+            username,
+            algo: 'pbkdf2',
+            note: isNew ? '用户已创建' : '密码已重置'
+        });
+    } catch (e) {
+        // 捕获 PBKDF2 / KV put / 其他运行时异常,避免 Cloudflare 返回 1101 HTML 错误页
+        // 失败时把异常信息原样回前端,方便排错(异常 message 不含敏感数据)
+        const msg = (e && (e.message || e.name)) || String(e);
+        console.warn('users.POST failed:', msg, e && e.stack);
+        return jsonResponse({
+            ok: false,
+            error: '创建用户/重置密码失败: ' + msg,
+            where: 'users.POST',
+            isNew
+        }, 500);
     }
-
-    await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
-    return jsonResponse({
-        ok: true,
-        created: isNew,
-        username,
-        algo: 'pbkdf2',
-        note: isNew ? '用户已创建' : '密码已重置'
-    });
 }
 
 // 删除用户

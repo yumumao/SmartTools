@@ -33,7 +33,7 @@ const LOCKOUT_PREFIX  = 'lockout:';
 const MAX_ATTEMPTS    = 5;
 const WINDOW_SECONDS  = 600;
 const USERS_KEY       = 'users';
-const PBKDF2_ITER     = 250000;
+const PBKDF2_ITER     = 100000;
 
 function getClientIP(request) {
     const cf = request.headers.get('CF-Connecting-IP');
