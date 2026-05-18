@@ -16,6 +16,39 @@
     <!-- ⚡ 预加载数据：浏览器在解析 HTML 早期就并行请求 /api/data -->
     <link rel="preload" as="script" href="/api/data">
 
+    <!-- ★ A1.5 公开访问 slug:早期标记 + 隐藏导航按钮 -->
+    <script>
+    (function () {
+        try {
+            var u = '';
+            // 形式 1:/u/<slug> 短链接(catch-all 路由进入,path 形式)
+            var pathMatch = (location.pathname || '').match(/^\/u\/([a-z0-9][a-z0-9_\-]{0,31})/i);
+            if (pathMatch) u = pathMatch[1].toLowerCase();
+            // 形式 2:?u=<slug>(兼容老链接,只在 path 未匹配时 fallback)
+            if (!u) {
+                var qMatch = (location.search || '').match(/[?&]u=([a-z0-9][a-z0-9_\-]{0,31})(?:&|$)/i);
+                if (qMatch) u = qMatch[1].toLowerCase();
+            }
+            if (u) {
+                document.documentElement.setAttribute('data-public-mode', u);
+                document.addEventListener('DOMContentLoaded', function () {
+                    // 始终把 URL 中的 ?u= 透传到主题切换链接,保留访客的 URL 状态
+                    // (无论 slug 是否命中,都让访客切主题后能看到一致的 URL)
+                    document.querySelectorAll('.style-opt[href]').forEach(function (a) {
+                        var href = a.getAttribute('href');
+                        if (!href || /[?&]u=/.test(href)) return;
+                        var sep = href.indexOf('?') >= 0 ? '&' : '?';
+                        a.setAttribute('href', href + sep + 'u=' + encodeURIComponent(u));
+                    });
+                });
+            }
+        } catch (e) {}
+    })();
+    </script>
+    <style id="public-mode-hide-css">
+        html[data-public-mode] .back-link { display: none !important; }
+    </style>
+
     <style>
         * {
             margin: 0;
@@ -1852,7 +1885,7 @@
 <body>
     <div class="stripe-bar"></div>
     <div class="overlay" id="overlay"></div>
-    <button id="backHomeBtn" onclick="window.location.href='toolsindex.html'">← 主页</button>
+    <button id="backHomeBtn" onclick="window.location.href='config.html'">⚙️ 设置</button>
 
     <!-- 右上角悬浮风格切换 -->
     <div class="style-switcher" id="styleSwitcher">
@@ -1901,7 +1934,30 @@ if (location.protocol === 'file:') {
     document.write('<script src="data.js"><\/' + 'script>');
 }
 </script>
-<script src="/api/data"></script>
+<!-- ★ A1.5 公开访问 slug:根据 data-public-mode 同步拼 ?u= 加载数据 -->
+<script>
+(function () {
+    var u = document.documentElement.getAttribute('data-public-mode') || '';
+    if (u) {
+        document.write('<script src="/api/data?u=' + encodeURIComponent(u) + '"><\/script>');
+    } else {
+        document.write('<script src="/api/data"><\/script>');
+    }
+})();
+</script>
+<script>
+// A1.5 增强 A:必须独立 <script> 块!
+// 同一 inline <script> 内,document.write 注入的外部 src 要等本块结束后才会被解析加载,
+// 所以这段判断必须放下一个 script 块,确保执行时 window.__publicSlugInfo 已就绪。
+// 防御:除非明确 hit:true,否则一律撤销 data-public-mode(让 UI 回归正常 admin 视图)
+// 覆盖场景:slug 失败 / 限速 429 / 网络异常 / __publicSlugInfo 未注入
+(function () {
+    var info = window.__publicSlugInfo;
+    if (!info || info.hit !== true) {
+        document.documentElement.removeAttribute('data-public-mode');
+    }
+})();
+</script>
 <script>
 if (typeof usbDriveData === 'undefined' && typeof sections === 'undefined' && location.protocol !== 'file:') {
     document.write('<script src="data.js"><\/' + 'script>');

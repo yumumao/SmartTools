@@ -205,7 +205,8 @@
     /* ③ 兜底 */
     if (!target) target = DEFAULT_PAGE;
 
-    window.location.replace(target + hash);
+    /* ★ A1.5 透传 ?u=<slug> 等公开访问参数到 indexN.html */
+    window.location.replace(target + (window.location.search || '') + hash);
 })();
 </script>
 </head>

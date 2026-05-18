@@ -21,7 +21,7 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
 .btn:active { transform: translateY(0); }
 .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.btn-primary { background: #667eea; color: #fff; } .btn-success { background: #4caf50; color: #fff; } .btn-danger { background: #e74c3c; color: #fff; } .btn-warn { background: #ff9800; color: #fff; } .btn-ghost { background: #eee; color: #333; } .btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-primary { background: #667eea; color: #fff; } .btn-success { background: #4caf50; color: #fff; } .btn-danger { background: #e74c3c; color: #fff; } .btn-warn { background: #ff9800; color: #fff; } .btn-info { background: #3b82f6; color: #fff; } .btn-ghost { background: #eee; color: #333; } .btn-sm { padding: 5px 10px; font-size: 12px; }
 .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 16px 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,.1); flex-wrap: wrap; gap: 10px; }
 .topbar h1 { margin: 0; display: flex; align-items: center; gap: 10px; }
 .topbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -343,13 +343,12 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <button class="btn btn-ghost btn-sm" id="btnReload" data-i18n="btnReload">🔄 重载 data.js</button>
             <button class="btn btn-ghost btn-sm" id="btnHistory" data-i18n="btnHistory">🕐 历史备份</button>
             <button class="btn btn-ghost btn-sm hidden" id="btnDataSource" data-i18n="btnDataSource">📡 数据源</button>
-            <button class="btn btn-ghost btn-sm" id="btnImport" data-i18n="btnImport">📥 导入</button>
-            <button class="btn btn-ghost btn-sm" id="btnExport" data-i18n="btnExport">👁 预览导出</button>
-            <button class="btn btn-ghost btn-sm" id="btnExportCsv" data-i18n="btnExportTable">📤 导出表格</button>
-            <button class="btn btn-ghost btn-sm" id="btnImportCsv" data-i18n="btnImportTable">📥 导入表格</button>
+            <button class="btn btn-ghost btn-sm" id="btnIoHub" data-i18n="btnIoHub">📦 导入/导出</button>
             <button class="btn btn-success btn-sm" id="btnSave" data-i18n="btnSave">💾 保存</button>
             <button class="btn btn-warn btn-sm hidden" id="btnChangePwd" data-i18n="btnChangePwd">🔑 密码</button>
             <button class="btn btn-ghost btn-sm hidden" id="btnUsers" data-i18n="btnUsers">👥 用户</button>
+            <button class="btn btn-info btn-sm hidden" id="btnMySlug" data-i18n="btnMySlug">🔗 公开链接</button>
+            <button class="btn btn-success btn-sm hidden" id="btnPush" data-i18n="btnPush">📤 推送</button>
             <button class="btn btn-warn btn-sm hidden" id="btnMigrate" data-i18n="btnMigrate">🗄️ 数据迁移</button>
             <button class="btn btn-ghost btn-sm" id="btnSwitchMode" data-i18n="btnSwitchMode">🔀 切换模式</button>
             <button class="btn btn-danger btn-sm" id="btnLogout" data-i18n="btnLogout">🚪 退出</button>
@@ -744,7 +743,105 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     </div>
 </div>
 
-<!-- A1-c2: 强制删除用户(hasData=true,归档后删除) -->
+<!-- A1.5: 公开访问 slug 管理 -->
+<div id="slugModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:560px;">
+        <h2 id="slugModalTitle" data-i18n="slugTitle">🔗 公开访问链接</h2>
+        <div class="form-row">
+            <label data-i18n="slugFieldUser">用户</label>
+            <input type="text" id="slugModalUsername" readonly style="background:#f5f5f7;">
+        </div>
+        <div class="form-row">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="slugModalEnabled" style="width:auto;">
+                <span data-i18n="slugFieldEnabled">启用公开访问</span>
+            </label>
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="slugEnabledHint">关闭后,匿名访客通过链接将看到默认数据(管理员视图),无法访问该用户的收藏夹</div>
+        </div>
+        <div class="form-row">
+            <label data-i18n="slugFieldSlug">slug(链接路径标识)</label>
+            <input type="text" id="slugModalInput" autocomplete="off" maxlength="32" placeholder="my-favs">
+            <div id="slugModalRuleHint" class="muted" style="font-size:12px; margin-top:4px;" data-i18n="slugRuleHintUser">3-32 字符,首字符字母或数字,允许 a-z 0-9 _ -;推荐 ≥8 字符防扫描</div>
+            <div id="slugModalError" style="color:#c00; font-size:12px; min-height:18px; margin-top:4px;"></div>
+        </div>
+        <div class="form-row">
+            <label data-i18n="slugFieldUrl">完整链接</label>
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlShortLabel">短链接</span>
+                <input type="text" id="slugModalFullUrl" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
+                <button class="btn btn-ghost btn-sm" id="btnSlugCopy" data-i18n="btnSlugCopy">📋 复制</button>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlQueryLabel">老格式</span>
+                <input type="text" id="slugModalFullUrl2" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
+                <button class="btn btn-ghost btn-sm" id="btnSlugCopy2" data-i18n="btnSlugCopy">📋 复制</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger btn-sm" id="btnSlugDisable" data-i18n="btnSlugDisable">禁用并清除</button>
+            <button class="btn btn-ghost" id="btnSlugCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnSlugSave" data-i18n="btnSlugSave">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- A2: 推送卡片(admin only) -->
+<div id="pushModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:760px;">
+        <h2 data-i18n="pushTitle">📤 推送卡片给用户</h2>
+
+        <div class="form-row">
+            <label data-i18n="pushTargetUsers">目标用户(可多选)</label>
+            <div id="pushUsersList" style="max-height:140px;overflow:auto;border:1px solid #eee;border-radius:6px;padding:8px;"></div>
+        </div>
+
+        <div class="form-row">
+            <label data-i18n="pushTargetSection">目标分类</label>
+            <select id="pushSectionSelect" style="width:100%;padding:6px;">
+                <option value="usbDriveData">☁️ 在线U盘 (usbDriveData)</option>
+                <option value="teachingData">📚 授课资料 (teachingData)</option>
+                <option value="onlineAIData">🌐 网络资源 (onlineAIData)</option>
+                <option value="videoData" selected>🎬 视频聚合 (videoData)</option>
+                <option value="emailData">📧 邮箱 (emailData)</option>
+                <option value="contactData">📱 联系方式 (contactData)</option>
+                <option value="">📥 未分类(custom_unclassified)</option>
+            </select>
+            <div class="muted" style="font-size:12px;margin-top:4px;" data-i18n="pushSectionHint">加密分类会自动跳过</div>
+        </div>
+
+        <div class="form-row">
+            <label data-i18n="pushCards">要推送的卡片</label>
+            <div id="pushCardsContainer"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnPushAddCard" style="margin-top:6px;" data-i18n="pushAddCard">➕ 添加一张卡</button>
+            <button type="button" class="btn btn-info btn-sm" id="btnPushPickFromMine" style="margin-top:6px;margin-left:6px;" data-i18n="pushPickFromMine">📂 从我的卡片选</button>
+        </div>
+
+        <div id="pushResultArea" style="display:none;margin-top:12px;font-size:13px;"></div>
+
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnPushCancel" data-i18n="btnClose">关闭</button>
+            <button class="btn btn-primary" id="btnPushSubmit" data-i18n="pushSubmit">🚀 推送</button>
+        </div>
+    </div>
+</div>
+
+<!-- A2 后续增强 2:从我的卡片中选 -->
+<div id="pickCardModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:680px;">
+        <h2 data-i18n="pickCardTitle">📂 从我的卡片中选</h2>
+        <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+            <input type="text" id="pickCardSearch" placeholder="搜索标题 / URL / 描述" style="flex:1; min-width:200px; padding:5px 8px;">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnPickCardSelectAll" data-i18n="pickCardSelectAll">全选</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnPickCardClear" data-i18n="pickCardClear">全不选</button>
+        </div>
+        <div class="muted" style="font-size:12px; margin-bottom:6px;" data-i18n="pickCardHint">仅显示非加密分类的卡片;子卡(subCards)不展示但父卡会带 subCards 复制过去</div>
+        <div id="pickCardList" style="max-height:48vh; overflow:auto; border:1px solid #eee; border-radius:6px; padding:8px;"></div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnPickCardCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnPickCardConfirm" data-i18n="pickCardConfirm">添加选中</button>
+        </div>
+    </div>
+</div>
 <!-- 2 阶段流程:阶段 1 归档+下载 → 阶段 2 清理用户数据 -->
 <div id="forceDeleteModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:520px;">
@@ -856,6 +953,35 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnMigrateClose" data-i18n="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- A2 后续:整合的导入/导出入口(2026-05-19) -->
+<div id="ioHubModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:560px;">
+        <h2 data-i18n="ioHubTitle">📦 数据导入 / 导出</h2>
+        <p class="muted" style="font-size:13px; margin-bottom:12px;" data-i18n="ioHubDesc">选择下面一种方式:JS 文本是完整原始格式,适合备份;表格(CSV/XLSX)适合在 Excel/WPS 中批量编辑</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button type="button" class="btn btn-ghost ioHubItem" id="btnIoHubExportJs" style="text-align:left; padding:12px; height:auto; line-height:1.4;">
+                <div style="font-size:14px; font-weight:600;" data-i18n="ioHubExportJs">👁 预览 / 导出 JS</div>
+                <div class="muted" style="font-size:11px; margin-top:4px;" data-i18n="ioHubExportJsDesc">查看当前 data.js 完整文本,可复制保存</div>
+            </button>
+            <button type="button" class="btn btn-ghost ioHubItem" id="btnIoHubImportJs" style="text-align:left; padding:12px; height:auto; line-height:1.4;">
+                <div style="font-size:14px; font-weight:600;" data-i18n="ioHubImportJs">📥 导入 JS</div>
+                <div class="muted" style="font-size:11px; margin-top:4px;" data-i18n="ioHubImportJsDesc">粘贴 data.js 完整文本导入</div>
+            </button>
+            <button type="button" class="btn btn-ghost ioHubItem" id="btnIoHubExportTable" style="text-align:left; padding:12px; height:auto; line-height:1.4;">
+                <div style="font-size:14px; font-weight:600;" data-i18n="ioHubExportTable">📤 导出表格</div>
+                <div class="muted" style="font-size:11px; margin-top:4px;" data-i18n="ioHubExportTableDesc">导出为 CSV / XLSX,Excel/WPS 可编辑</div>
+            </button>
+            <button type="button" class="btn btn-ghost ioHubItem" id="btnIoHubImportTable" style="text-align:left; padding:12px; height:auto; line-height:1.4;">
+                <div style="font-size:14px; font-weight:600;" data-i18n="ioHubImportTable">📥 导入表格</div>
+                <div class="muted" style="font-size:11px; margin-top:4px;" data-i18n="ioHubImportTableDesc">从 CSV / XLSX 文件导入卡片</div>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnIoHubClose" data-i18n="btnClose">关闭</button>
         </div>
     </div>
 </div>
@@ -1059,6 +1185,17 @@ const I18N = {
         btnImportCsv: '📥 导入 CSV',
         btnExportTable: '📤 导出表格',
         btnImportTable: '📥 导入表格',
+        btnIoHub: '📦 导入/导出',
+        ioHubTitle: '📦 数据导入 / 导出',
+        ioHubDesc: '选择下面一种方式:JS 文本是完整原始格式,适合备份;表格(CSV/XLSX)适合在 Excel/WPS 中批量编辑',
+        ioHubExportJs: '👁 预览 / 导出 JS',
+        ioHubExportJsDesc: '查看当前 data.js 完整文本,可复制保存',
+        ioHubImportJs: '📥 导入 JS',
+        ioHubImportJsDesc: '粘贴 data.js 完整文本导入',
+        ioHubExportTable: '📤 导出表格',
+        ioHubExportTableDesc: '导出为 CSV / XLSX,Excel/WPS 可编辑',
+        ioHubImportTable: '📥 导入表格',
+        ioHubImportTableDesc: '从 CSV / XLSX 文件导入卡片',
         csvExportTitle: '📤 导出表格',
         csvExportDesc: '把全部卡片导出为表格文件，可用 Excel / WPS / Numbers 打开编辑，再通过「📥 导入表格」导回。',
         csvExportFormatXlsx: '📊 XLSX（推荐，支持 emoji 与 Excel 直接编辑）',
@@ -1121,6 +1258,69 @@ const I18N = {
         toastUserLoadFail: '加载用户列表失败',
         toastUserOpFail: '操作失败',
         confirmDeleteUser: '确认删除用户「{u}」？此操作不可撤销。',
+        // A1.5 公开访问 slug
+        btnMySlug: '🔗 公开链接',
+        btnPush: '📤 推送',
+        pushTitle: '📤 推送卡片给用户',
+        pushTargetUsers: '目标用户(可多选)',
+        pushTargetSection: '目标分类',
+        pushSectionHint: '加密分类会自动跳过;选未分类则推到该用户的 custom_unclassified',
+        pushCards: '要推送的卡片',
+        pushAddCard: '➕ 添加一张卡',
+        pushCardN: '卡 {n}',
+        pushCardDelete: '删除',
+        pushCardTypeLabel: '类型',
+        pushCardTitleHint: '标题(必填)',
+        pushCardUrlHint: 'URL(可选,以 http:// 或 https:// 开头)',
+        pushCardDescHint: '描述(可选)',
+        pushCardIconHint: '图标 emoji(可选,如 🚀)',
+        pushSubmit: '🚀 推送',
+        pushSubmitting: '推送中...',
+        pushNoUsers: '没有活跃的普通用户',
+        pushResultOk: '成功 {n} 个',
+        pushResultSkipped: '跳过 {n} 个',
+        pushResultFailed: '失败 {n} 个',
+        toastPushNoTargets: '请至少选择一个目标用户',
+        toastPushNoCards: '请至少填写一张有标题的卡',
+        toastPushFail: '推送请求失败',
+        toastPushDone: '推送完成:成功 {s},未送达 {f}',
+        pushPickFromMine: '📂 从我的卡片选',
+        pickCardTitle: '📂 从我的卡片中选',
+        pickCardSelectAll: '全选',
+        pickCardClear: '全不选',
+        pickCardConfirm: '添加选中',
+        pickCardHint: '仅显示非加密分类的卡片;父卡的 subCards 会一并复制',
+        pickCardLoading: '加载中...',
+        pickCardLoadFail: '加载我的数据失败',
+        pickCardEmpty: '我的数据为空',
+        pickCardNoMatch: '无匹配结果',
+        toastPickCardNone: '请至少勾选一张卡',
+        toastPickCardAdded: '已添加 {n} 张卡到推送列表',
+        userOpSlug: '🔗 公开',
+        userColPublic: '公开',
+        slugTitle: '🔗 公开访问链接',
+        slugTitleMine: '🔗 我的公开访问链接',
+        slugFieldUser: '用户',
+        slugFieldEnabled: '启用公开访问',
+        slugEnabledHint: '关闭后,匿名访客通过链接将看到默认数据(管理员视图),无法访问该用户的收藏夹',
+        slugFieldSlug: 'slug(链接路径标识)',
+        slugRuleHintAdmin: '1-32 字符,首字符字母或数字,允许 a-z 0-9 _ -;推荐 ≥8 字符防扫描',
+        slugRuleHintUser: '3-32 字符,首字符字母或数字,允许 a-z 0-9 _ -;推荐 ≥8 字符防扫描',
+        slugFieldUrl: '完整链接',
+        btnSlugCopy: '📋 复制',
+        slugUrlShortLabel: '短链接',
+        slugUrlQueryLabel: '老格式',
+        btnSlugDisable: '禁用并清除',
+        btnSlugSave: '保存',
+        slugDisableConfirm: '确认禁用「{u}」的公开访问?当前 slug 会被释放,匿名链接立即失效。',
+        toastSlugSaved: '公开链接已保存',
+        toastSlugDisabled: '公开访问已禁用',
+        toastSlugCopied: '链接已复制',
+        toastSlugFormatBad: 'slug 不合法(首字符必须字母/数字,允许 a-z 0-9 _ -,长度 4-32)',
+        toastSlugReserved: '该 slug 是保留词,请换一个',
+        toastSlugConflict: '该 slug 已被占用,请换一个',
+        toastSlugLoadFail: '加载公开链接信息失败',
+        toastSlugSaveFail: '保存失败',
         btnMigrate: '🗄️ 数据迁移',
         migrateTitle: '🗄️ 数据迁移到 admin:* 命名空间',
         migrateBtnDryRun: '👁 预览迁移计划',
@@ -1393,6 +1593,17 @@ const I18N = {
         btnImportCsv: '📥 Import CSV',
         btnExportTable: '📤 Export Table',
         btnImportTable: '📥 Import Table',
+        btnIoHub: '📦 Import/Export',
+        ioHubTitle: '📦 Data Import / Export',
+        ioHubDesc: 'Pick one option below. JS is the raw, complete format (good for backup). CSV/XLSX is good for bulk edits in Excel/WPS.',
+        ioHubExportJs: '👁 Preview / Export JS',
+        ioHubExportJsDesc: 'View the current full data.js text; copy to save',
+        ioHubImportJs: '📥 Import JS',
+        ioHubImportJsDesc: 'Paste a full data.js text to import',
+        ioHubExportTable: '📤 Export Table',
+        ioHubExportTableDesc: 'Export to CSV / XLSX, editable in Excel/WPS',
+        ioHubImportTable: '📥 Import Table',
+        ioHubImportTableDesc: 'Import cards from a CSV / XLSX file',
         csvExportTitle: '📤 Export Table',
         csvExportDesc: 'Export all cards as a spreadsheet file. Open in Excel / WPS / Numbers, edit, then re-import via 「📥 Import Table」.',
         csvExportFormatXlsx: '📊 XLSX (recommended; preserves emoji, edits safely in Excel)',
@@ -1455,6 +1666,69 @@ const I18N = {
         toastUserLoadFail: 'Failed to load user list',
         toastUserOpFail: 'Operation failed',
         confirmDeleteUser: 'Delete user "{u}"? This cannot be undone.',
+        // A1.5 public access slug
+        btnMySlug: '🔗 Public Link',
+        btnPush: '📤 Push',
+        pushTitle: '📤 Push Cards to Users',
+        pushTargetUsers: 'Target users (multi-select)',
+        pushTargetSection: 'Target section',
+        pushSectionHint: 'Encrypted sections are skipped automatically; choosing "Uncategorized" pushes to the user\'s custom_unclassified',
+        pushCards: 'Cards to push',
+        pushAddCard: '➕ Add a card',
+        pushCardN: 'Card {n}',
+        pushCardDelete: 'Delete',
+        pushCardTypeLabel: 'Type',
+        pushCardTitleHint: 'Title (required)',
+        pushCardUrlHint: 'URL (optional, http:// or https://)',
+        pushCardDescHint: 'Description (optional)',
+        pushCardIconHint: 'Icon emoji (optional, e.g. 🚀)',
+        pushSubmit: '🚀 Push',
+        pushSubmitting: 'Pushing...',
+        pushNoUsers: 'No active regular users',
+        pushResultOk: '{n} succeeded',
+        pushResultSkipped: '{n} skipped',
+        pushResultFailed: '{n} failed',
+        toastPushNoTargets: 'Please pick at least one target user',
+        toastPushNoCards: 'Please add at least one card with a title',
+        toastPushFail: 'Push request failed',
+        toastPushDone: 'Push done: {s} succeeded, {f} not delivered',
+        pushPickFromMine: '📂 Pick from my cards',
+        pickCardTitle: '📂 Pick from my cards',
+        pickCardSelectAll: 'Select all',
+        pickCardClear: 'Clear all',
+        pickCardConfirm: 'Add selected',
+        pickCardHint: 'Only shows cards in non-encrypted sections; parent cards bring their subCards along',
+        pickCardLoading: 'Loading...',
+        pickCardLoadFail: 'Failed to load my data',
+        pickCardEmpty: 'My data is empty',
+        pickCardNoMatch: 'No match',
+        toastPickCardNone: 'Please select at least one card',
+        toastPickCardAdded: 'Added {n} card(s) to push list',
+        userOpSlug: '🔗 Public',
+        userColPublic: 'Public',
+        slugTitle: '🔗 Public Access Link',
+        slugTitleMine: '🔗 My Public Access Link',
+        slugFieldUser: 'User',
+        slugFieldEnabled: 'Enable public access',
+        slugEnabledHint: 'When disabled, anonymous visitors via the link will see default data (admin view) instead of this user\'s favorites',
+        slugFieldSlug: 'slug (link path identifier)',
+        slugRuleHintAdmin: '1-32 chars, first char must be letter/digit, allow a-z 0-9 _ -; recommended ≥8 chars to deter enumeration',
+        slugRuleHintUser: '3-32 chars, first char must be letter/digit, allow a-z 0-9 _ -; recommended ≥8 chars to deter enumeration',
+        slugFieldUrl: 'Full URL',
+        btnSlugCopy: '📋 Copy',
+        slugUrlShortLabel: 'Short',
+        slugUrlQueryLabel: 'Query',
+        btnSlugDisable: 'Disable & Clear',
+        btnSlugSave: 'Save',
+        slugDisableConfirm: 'Disable public access for "{u}"? The current slug will be released and the anonymous link will stop working.',
+        toastSlugSaved: 'Public link saved',
+        toastSlugDisabled: 'Public access disabled',
+        toastSlugCopied: 'Link copied',
+        toastSlugFormatBad: 'Invalid slug (first char letter/digit, allowed a-z 0-9 _ -, length 4-32)',
+        toastSlugReserved: 'This slug is a reserved word, please choose another',
+        toastSlugConflict: 'This slug is already taken, please choose another',
+        toastSlugLoadFail: 'Failed to load public link info',
+        toastSlugSaveFail: 'Save failed',
         btnMigrate: '🗄️ Migrate',
         migrateTitle: '🗄️ Migrate Data to admin:* namespace',
         migrateBtnDryRun: '👁 Preview Plan',
@@ -2509,6 +2783,12 @@ async function enterMain() {
     // A1-d: 数据迁移按钮 admin + online + migrationNeeded 三 AND
     if (currentMode === MODE_ONLINE && currentUser.role === 'admin' && currentMigrationNeeded) show('btnMigrate');
     else hide('btnMigrate');
+    // A1.5: 我的公开链接按钮 online 模式 + 已登录(admin / user 都显示,管理自己的)
+    if (currentMode === MODE_ONLINE && currentUser.username) show('btnMySlug');
+    else hide('btnMySlug');
+    // A2: 推送按钮仅 admin 可见
+    if (currentMode === MODE_ONLINE && currentUser.role === 'admin') show('btnPush');
+    else hide('btnPush');
     refreshMainPageModeTexts();
     renderSectionTabs(); renderCurrentSection();
     if (currentMode === MODE_ONLINE) {
@@ -4011,7 +4291,7 @@ function handleImportFile(e) { const f = e.target.files[0]; if (!f) return; cons
 async function confirmImport() {
     const txt = $('ioText').value;
     if (!txt.trim()) { toast(t('toastImportHint')); return; }
-    if (await parseAndLoad(txt)) { hide('ioModal'); toast(t('toastLoadedToEditor')); autoPromptUnlockIfNeeded(); }
+    if (await parseAndLoad(txt)) { __ioHubReturning = false; hide('ioModal'); toast(t('toastLoadedToEditor')); autoPromptUnlockIfNeeded(); }
 }
 
 /* ================================================================
@@ -4144,6 +4424,7 @@ function doCsvExport() {
         // 直接用 csv 文本
         var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
         triggerDownload(blob, 'smarttools_' + stamp + '.csv');
+        __ioHubReturning = false;
         hide('csvExportModal');
         toast(t('toastCsvExportOk', { n: dataRows, bytes: blob.size }));
         if (lockedNames.length) {
@@ -4163,6 +4444,7 @@ function doCsvExport() {
     window.XlsxAdapter.sectionsToXlsx(allSections, { includeEncrypted: includeEnc })
         .then(function(blob) {
             triggerDownload(blob, 'smarttools_' + stamp + '.xlsx');
+            __ioHubReturning = false;
             hide('csvExportModal');
             toast(t('toastCsvExportOk', { n: dataRows, bytes: blob.size }));
             if (lockedNames.length) {
@@ -4568,6 +4850,7 @@ function doCsvImportApply() {
     try { renderSectionTabs(); } catch (e) {}
     try { renderCurrentSection(); } catch (e) {}
 
+    __ioHubReturning = false;
     hide('csvImportModal');
     var extra = newSecCount > 0 ? t('csvImportApplyNewSec', { n: newSecCount }) : '';
     toast(t('csvImportApplyDone', { add: totalAdd, upd: totalUpd, newSec: extra }), 3600);
@@ -4644,9 +4927,14 @@ async function refreshUsersList() {
     const me = currentUser.username;
     tbody.innerHTML = users.map(u => {
         const isSelf = u.username === me;
+        const slugBtn = `<button class="btn btn-info btn-sm" data-user-op="slug" data-user-name="${escapeHtml(u.username)}">${escapeHtml(t('userOpSlug'))}</button>`;
+        const slugBadge = (u.publicEnabled && u.publicSlug)
+            ? `<span title="${escapeHtml(u.publicSlug)}" style="color:#16a34a; font-size:11px; margin-right:6px;">● ${escapeHtml(u.publicSlug)}</span>`
+            : '';
         const opsHtml = isSelf
-            ? `<span class="muted">${escapeHtml(t('userTagSelf'))}</span>`
-            : `<button class="btn btn-ghost btn-sm" data-user-op="reset" data-user-name="${escapeHtml(u.username)}">${escapeHtml(t('userOpReset'))}</button>
+            ? `${slugBadge}${slugBtn} <span class="muted">${escapeHtml(t('userTagSelf'))}</span>`
+            : `${slugBadge}${slugBtn}
+               <button class="btn btn-ghost btn-sm" data-user-op="reset" data-user-name="${escapeHtml(u.username)}">${escapeHtml(t('userOpReset'))}</button>
                <button class="btn btn-danger btn-sm" data-user-op="delete" data-user-name="${escapeHtml(u.username)}" data-user-hasdata="${u.hasData ? '1' : '0'}">${escapeHtml(t('userOpDelete'))}</button>`;
         return `<tr style="border-top:1px solid #eee;">
             <td style="padding:8px 10px;">${escapeHtml(u.username)}</td>
@@ -4668,6 +4956,7 @@ async function refreshUsersList() {
                 const hasData = btn.getAttribute('data-user-hasdata') === '1';
                 deleteUserHandler(name, hasData);
             }
+            else if (op === 'slug') openSlugModal(name);   // A1.5
         };
     });
 }
@@ -4716,6 +5005,424 @@ async function deleteUserHandler(name, hasData) {
     }
     toast(t('toastUserDeleted'));
     refreshUsersList();
+}
+
+
+/* ================================================================
+ * A1.5: 公开访问 slug 管理(顶栏入口 + usersModal 子入口共用)
+ * ================================================================ */
+
+// slugModal 当前操作的目标用户:null = 自己(顶栏入口);非空 = admin 管理别人(usersModal 子入口)
+let __slugModalTarget = null;
+
+const SLUG_RE_ADMIN = /^[a-z0-9][a-z0-9_\-]{0,31}$/;
+const SLUG_RE_USER  = /^[a-z0-9][a-z0-9_\-]{2,31}$/;
+// 根据当前登录角色选 slug 校验规则:admin 宽松(1-32)/ user 严格(3-32)
+function getSlugRe() {
+    return currentUser.role === 'admin' ? SLUG_RE_ADMIN : SLUG_RE_USER;
+}
+
+async function openSlugModal(targetUsername) {
+    if (currentMode !== MODE_ONLINE) return;
+    const target = targetUsername || currentUser.username;
+    if (!target) return;
+    // 权限:管理别人必须 admin
+    if (targetUsername && targetUsername !== currentUser.username && currentUser.role !== 'admin') return;
+
+    __slugModalTarget = targetUsername || null;
+    const titleEl = $('slugModalTitle');
+    if (titleEl) titleEl.textContent = (__slugModalTarget ? t('slugTitle') : t('slugTitleMine'));
+    // A1.5 增强 B:根据当前登录角色显示对应的 slug 规则提示
+    const hintEl = $('slugModalRuleHint');
+    if (hintEl) hintEl.textContent = (currentUser.role === 'admin') ? t('slugRuleHintAdmin') : t('slugRuleHintUser');
+
+    $('slugModalUsername').value = target;
+    // 先用空状态显示;异步拉真实数据后填充
+    $('slugModalEnabled').checked = false;
+    $('slugModalInput').value = '';
+    $('slugModalError').textContent = '';
+    updateSlugPreview('');
+    show('slugModal');
+
+    const r = await api('/api/public-slug?u=' + encodeURIComponent(target), { method: 'GET' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast((r.data && r.data.error) || t('toastSlugLoadFail'));
+        return;
+    }
+    $('slugModalEnabled').checked = r.data.enabled === true;
+    $('slugModalInput').value = r.data.slug || '';
+    updateSlugPreview(r.data.slug || '');
+    setTimeout(() => $('slugModalInput').focus(), 50);
+}
+
+function updateSlugPreview(slug) {
+    const out1 = $('slugModalFullUrl');
+    const out2 = $('slugModalFullUrl2');
+    if (!slug) {
+        if (out1) out1.value = '';
+        if (out2) out2.value = '';
+        return;
+    }
+    // A2 后续增强 1:两种链接同时显示
+    if (out1) out1.value = location.origin + '/u/' + encodeURIComponent(slug);            // 短形式(推荐)
+    if (out2) out2.value = location.origin + '/?u=' + encodeURIComponent(slug);            // 老形式(query 参数)
+}
+
+function copyTextToClipboard(text, successToast) {
+    if (!text) return;
+    const done = () => toast(successToast || t('toastSlugCopied'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, () => {
+            const ta = document.createElement('textarea');
+            ta.value = text; document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch {}
+            ta.remove();
+        });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch {}
+        ta.remove();
+    }
+}
+
+async function saveSlug() {
+    const username = $('slugModalUsername').value;
+    const slug = $('slugModalInput').value.trim().toLowerCase();
+    const enabled = $('slugModalEnabled').checked;
+    const errEl = $('slugModalError');
+
+    if (enabled) {
+        if (!getSlugRe().test(slug)) {
+            errEl.textContent = t('toastSlugFormatBad');
+            return;
+        }
+    }
+    errEl.textContent = '';
+
+    const r = await api('/api/public-slug', {
+        method: 'POST',
+        body: JSON.stringify({ username, slug, enabled })
+    });
+    if (!r.ok || !r.data || !r.data.ok) {
+        if (r.status === 409 && r.data && r.data.conflict) {
+            errEl.textContent = t('toastSlugConflict');
+            return;
+        }
+        // 后端"该 slug 是保留词" 错误
+        if (r.data && r.data.error && /保留|reserved/i.test(r.data.error)) {
+            errEl.textContent = t('toastSlugReserved');
+            return;
+        }
+        toast((r.data && r.data.error) || t('toastSlugSaveFail'));
+        return;
+    }
+    hide('slugModal');
+    toast(t('toastSlugSaved'));
+    // 如果是 admin 在用户列表里改的,刷新列表;否则不影响
+    if (__slugModalTarget && $('usersModal') && !$('usersModal').classList.contains('hidden')) {
+        refreshUsersList();
+    }
+}
+
+async function disableAndClearSlug() {
+    const username = $('slugModalUsername').value;
+    if (!username) return;
+    const msg = t('slugDisableConfirm').replace('{u}', username);
+    if (!confirm(msg)) return;
+    const r = await api('/api/public-slug?u=' + encodeURIComponent(username), { method: 'DELETE' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        toast((r.data && r.data.error) || t('toastSlugSaveFail'));
+        return;
+    }
+    hide('slugModal');
+    toast(t('toastSlugDisabled'));
+    if (__slugModalTarget && $('usersModal') && !$('usersModal').classList.contains('hidden')) {
+        refreshUsersList();
+    }
+}
+
+function copySlugLink() {
+    copyTextToClipboard($('slugModalFullUrl').value, t('toastSlugCopied'));
+}
+function copySlugLink2() {
+    copyTextToClipboard($('slugModalFullUrl2').value, t('toastSlugCopied'));
+}
+
+
+/* ================================================================
+ * A2: 推送卡片(admin → 选定用户,只 append,加密 section 自动跳过)
+ * ================================================================ */
+
+let __pushCardIdx = 0;
+
+async function openPushModal() {
+    if (currentUser.role !== 'admin') return;
+    $('pushCardsContainer').innerHTML = '';
+    $('pushResultArea').style.display = 'none';
+    $('pushResultArea').innerHTML = '';
+    __pushCardIdx = 0;
+    addPushCardRow();   // 默认 1 张空卡
+    show('pushModal');
+    await refreshPushUserList();
+}
+
+async function refreshPushUserList() {
+    const wrap = $('pushUsersList');
+    wrap.innerHTML = `<span class="muted">…</span>`;
+    let r;
+    try { r = await api('/api/users', { method: 'GET' }); }
+    catch { wrap.innerHTML = `<span style="color:#c00;">${escapeHtml(t('toastUserLoadFail'))}</span>`; return; }
+    if (!r.ok || !r.data || !r.data.ok) {
+        wrap.innerHTML = `<span style="color:#c00;">${escapeHtml(r.data && r.data.error || t('toastUserLoadFail'))}</span>`;
+        return;
+    }
+    const users = (r.data.users || []).filter(u => u.role !== 'admin' && u.status === 'active');
+    if (users.length === 0) {
+        wrap.innerHTML = `<span class="muted">${escapeHtml(t('pushNoUsers'))}</span>`;
+        return;
+    }
+    wrap.innerHTML = users.map(u => `<label style="display:inline-block;margin:2px 10px 2px 0;cursor:pointer;font-size:13px;">
+        <input type="checkbox" class="push-user-cb" value="${escapeHtml(u.username)}"> ${escapeHtml(u.username)}${u.hasData ? '' : ' <span class="muted" style="font-size:11px;">(无数据)</span>'}
+    </label>`).join('');
+}
+
+function addPushCardRow(prefillCard) {
+    const idx = __pushCardIdx++;
+    const row = document.createElement('div');
+    row.className = 'push-card-row';
+    row.dataset.cardIdx = idx;
+    row.style.cssText = 'border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:6px;background:#fafafa;';
+    row.innerHTML = `
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+            <strong style="min-width:50px;">${escapeHtml(t('pushCardN').replace('{n}', idx + 1))}</strong>
+            <label style="font-size:12px;">
+                ${escapeHtml(t('pushCardTypeLabel'))}:
+                <select class="push-card-type" style="padding:2px 6px;font-size:12px;">
+                    <option value="simple">simple</option>
+                    <option value="desc-clickable">desc-clickable</option>
+                    <option value="expandable">expandable</option>
+                </select>
+            </label>
+            <button type="button" class="btn btn-danger btn-sm push-card-del" style="margin-left:auto;">${escapeHtml(t('pushCardDelete'))}</button>
+        </div>
+        <input type="text" class="push-card-title" placeholder="${escapeHtml(t('pushCardTitleHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
+        <input type="text" class="push-card-url" placeholder="${escapeHtml(t('pushCardUrlHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
+        <input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
+        <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;padding:4px 6px;">
+    `;
+    row.querySelector('.push-card-del').onclick = () => row.remove();
+
+    // A2 后续增强 2:预填来自"从我的卡片选"的卡片字段
+    if (prefillCard && typeof prefillCard === 'object') {
+        const c = prefillCard;
+        const allowedTypes = ['simple', 'desc-clickable', 'expandable'];
+        row.querySelector('.push-card-type').value = allowedTypes.includes(c.type) ? c.type : 'simple';
+        row.querySelector('.push-card-title').value = c.title || c.content || c.address || '';
+        row.querySelector('.push-card-url').value = c.url || '';
+        row.querySelector('.push-card-desc').value = c.desc || c.descClickable || '';
+        row.querySelector('.push-card-icon').value = c.icon || '';
+        // 富字段(subCards / iconImg / descUrl / address / mailto 等)挂在 row 上,collectPushCards 会一并发送
+        row.__prefillExtra = {};
+        ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal', 'comment']
+            .forEach(k => { if (c[k] != null) row.__prefillExtra[k] = c[k]; });
+    }
+    $('pushCardsContainer').appendChild(row);
+}
+
+/* ================================================================
+ * A2 后续增强 2:从我的卡片中选(pickCardModal)
+ * ================================================================ */
+
+let __pickedCards = [];   // 扁平化的可选卡列表
+
+// A2 后续:整合入口 hub 返回控制
+// true:用户从 ioHubModal 进入子 modal,子 modal 取消时应回 hub
+// false:子 modal 是直接打开(或刚完成操作)— 关闭后回 mainPage
+let __ioHubReturning = false;
+function closeChildOrReturnHub(modalId) {
+    hide(modalId);
+    if (__ioHubReturning) {
+        __ioHubReturning = false;
+        show('ioHubModal');
+    }
+}
+
+async function openPickCardFromMineModal() {
+    if (currentUser.role !== 'admin') return;
+    show('pickCardModal');
+    $('pickCardSearch').value = '';
+    $('pickCardList').innerHTML = `<div class="muted" style="padding:12px;text-align:center;">${escapeHtml(t('pickCardLoading'))}</div>`;
+
+    let r;
+    try { r = await api('/api/data?format=json', { method: 'GET' }); }
+    catch {
+        $('pickCardList').innerHTML = `<div style="color:#c00;padding:12px;">${escapeHtml(t('pickCardLoadFail'))}</div>`;
+        return;
+    }
+    if (!r.ok || !r.data || !r.data.ok || !r.data.content) {
+        $('pickCardList').innerHTML = `<div style="color:#c00;padding:12px;">${escapeHtml(t('pickCardLoadFail'))}</div>`;
+        return;
+    }
+    let secList = [];
+    try { secList = __parseDataJsForCsv(r.data.content) || []; }
+    catch { secList = []; }
+
+    __pickedCards = [];
+    secList.forEach(sec => {
+        if (sec && sec.encrypted) return;   // 跳过加密 section
+        const cards = Array.isArray(sec.cards) ? sec.cards : [];
+        cards.forEach((card, idx) => {
+            __pickedCards.push({
+                sectionKey: sec.key,
+                sectionLabel: sec.label || sec.key,
+                idx,
+                card
+            });
+        });
+    });
+
+    renderPickCardList('');
+    setTimeout(() => $('pickCardSearch').focus(), 50);
+}
+
+function renderPickCardList(query) {
+    const wrap = $('pickCardList');
+    if (!__pickedCards.length) {
+        wrap.innerHTML = `<div class="muted" style="padding:12px;text-align:center;">${escapeHtml(t('pickCardEmpty'))}</div>`;
+        return;
+    }
+    const q = (query || '').toLowerCase().trim();
+    const groups = {};
+    __pickedCards.forEach(item => {
+        const card = item.card;
+        if (q) {
+            const hay = ((card.title || '') + ' ' + (card.url || '') + ' ' + (card.desc || '') +
+                ' ' + (card.content || '') + ' ' + (card.address || '')).toLowerCase();
+            if (hay.indexOf(q) < 0) return;
+        }
+        if (!groups[item.sectionKey]) groups[item.sectionKey] = { label: item.sectionLabel, items: [] };
+        groups[item.sectionKey].items.push(item);
+    });
+    const keys = Object.keys(groups);
+    if (keys.length === 0) {
+        wrap.innerHTML = `<div class="muted" style="padding:12px;text-align:center;">${escapeHtml(t('pickCardNoMatch'))}</div>`;
+        return;
+    }
+    wrap.innerHTML = keys.map(k => {
+        const g = groups[k];
+        return `<div style="margin-bottom:10px;">
+            <div style="font-weight:600;font-size:13px;color:#444;margin-bottom:4px;">${escapeHtml(g.label)} <span class="muted" style="font-weight:normal;font-size:11px;">(${g.items.length})</span></div>
+            ${g.items.map(item => {
+                const card = item.card;
+                const id = item.sectionKey + ':' + item.idx;
+                const iconText = (card.icon && card.icon.length < 8) ? card.icon : (card.iconImg ? '🖼' : '·');
+                const sub = card.url || card.address || card.desc || card.content || '';
+                const title = card.title || card.content || card.address || '(无标题)';
+                return `<label style="display:flex;align-items:center;gap:6px;padding:3px 6px;cursor:pointer;font-size:12px;border-radius:3px;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+                    <input type="checkbox" class="pick-card-cb" data-pick-id="${escapeHtml(id)}">
+                    <span style="font-size:14px;width:18px;text-align:center;">${escapeHtml(iconText)}</span>
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><strong>${escapeHtml(title)}</strong> <span class="muted">${escapeHtml(sub.slice(0, 70))}</span></span>
+                </label>`;
+            }).join('')}
+        </div>`;
+    }).join('');
+}
+
+function applyPickedCards() {
+    const checked = Array.from($('pickCardList').querySelectorAll('.pick-card-cb:checked'));
+    if (checked.length === 0) {
+        toast(t('toastPickCardNone'));
+        return;
+    }
+    let added = 0;
+    checked.forEach(cb => {
+        const id = cb.getAttribute('data-pick-id');
+        const item = __pickedCards.find(x => (x.sectionKey + ':' + x.idx) === id);
+        if (!item) return;
+        addPushCardRow(item.card);
+        added++;
+    });
+    hide('pickCardModal');
+    toast(t('toastPickCardAdded').replace('{n}', added));
+}
+
+function collectPushCards() {
+    const cards = [];
+    $('pushCardsContainer').querySelectorAll('.push-card-row').forEach(row => {
+        const type = row.querySelector('.push-card-type').value;
+        const title = row.querySelector('.push-card-title').value.trim();
+        if (!title) return;     // title 必填,空跳过
+        const url = row.querySelector('.push-card-url').value.trim();
+        const desc = row.querySelector('.push-card-desc').value.trim();
+        const icon = row.querySelector('.push-card-icon').value.trim();
+        const c = { type, title };
+        if (url) c.url = url;
+        if (desc) c.desc = desc;
+        if (icon) c.icon = icon;
+        // A2 后续增强 2:合并来自"从我的卡片选"预填时挂在 row 上的额外字段
+        if (row.__prefillExtra) {
+            for (const k of Object.keys(row.__prefillExtra)) {
+                if (c[k] == null) c[k] = row.__prefillExtra[k];
+            }
+        }
+        cards.push(c);
+    });
+    return cards;
+}
+
+async function submitPush() {
+    const target_users = Array.from($('pushUsersList').querySelectorAll('.push-user-cb:checked')).map(cb => cb.value);
+    if (target_users.length === 0) { toast(t('toastPushNoTargets')); return; }
+    const sectionVal = $('pushSectionSelect').value;
+    const section_key = sectionVal === '' ? null : sectionVal;
+    const cards = collectPushCards();
+    if (cards.length === 0) { toast(t('toastPushNoCards')); return; }
+
+    const btn = $('btnPushSubmit');
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = t('pushSubmitting');
+    try {
+        const r = await api('/api/push', {
+            method: 'POST',
+            body: JSON.stringify({ target_users, section_key, cards, mode: 'append' })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastPushFail'));
+            return;
+        }
+        renderPushResult(r.data);
+        const sCount = r.data.successes.length;
+        const fCount = r.data.failures.length + r.data.skipped.length;
+        toast(t('toastPushDone').replace('{s}', sCount).replace('{f}', fCount));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+    }
+}
+
+function renderPushResult(data) {
+    let html = '';
+    if (data.successes && data.successes.length > 0) {
+        html += `<div style="color:#16a34a;margin-bottom:6px;">✅ ${escapeHtml(t('pushResultOk').replace('{n}', data.successes.length))}: `
+            + data.successes.map(s => `${escapeHtml(s.user)} (${s.cardsInserted}${s.firstWrite ? ', 首次写入' : ''})`).join(', ')
+            + '</div>';
+    }
+    if (data.skipped && data.skipped.length > 0) {
+        html += `<div style="color:#f59e0b;margin-bottom:6px;">⚠️ ${escapeHtml(t('pushResultSkipped').replace('{n}', data.skipped.length))}: `
+            + data.skipped.map(s => `${escapeHtml(s.user)} (${escapeHtml(s.reason)})`).join(', ')
+            + '</div>';
+    }
+    if (data.failures && data.failures.length > 0) {
+        html += `<div style="color:#c00;">❌ ${escapeHtml(t('pushResultFailed').replace('{n}', data.failures.length))}: `
+            + data.failures.map(f => `${escapeHtml(f.user)} (${escapeHtml(f.reason)})`).join(', ')
+            + '</div>';
+    }
+    $('pushResultArea').innerHTML = html;
+    $('pushResultArea').style.display = 'block';
 }
 
 
@@ -5289,6 +5996,37 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnUserEditSave').onclick = submitUserEdit;
     $('userEditPwd').addEventListener('keydown', e => { if (e.key === 'Enter') submitUserEdit(); });
 
+    // A1.5: 公开访问 slug 事件
+    $('btnMySlug').onclick = () => openSlugModal(null);   // 顶栏 → 管理自己
+    $('btnSlugCancel').onclick = () => hide('slugModal');
+    $('btnSlugSave').onclick = saveSlug;
+    $('btnSlugDisable').onclick = disableAndClearSlug;
+    $('btnSlugCopy').onclick = copySlugLink;
+    $('btnSlugCopy2').onclick = copySlugLink2;
+    $('slugModalInput').addEventListener('input', () => {
+        updateSlugPreview($('slugModalInput').value.trim().toLowerCase());
+        $('slugModalError').textContent = '';
+    });
+    $('slugModalInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveSlug(); });
+
+    // A2: 推送事件
+    $('btnPush').onclick = openPushModal;
+    $('btnPushCancel').onclick = () => hide('pushModal');
+    $('btnPushAddCard').onclick = addPushCardRow;
+    $('btnPushSubmit').onclick = submitPush;
+
+    // A2 后续增强 2:从我的卡片选 事件
+    $('btnPushPickFromMine').onclick = openPickCardFromMineModal;
+    $('btnPickCardCancel').onclick = () => hide('pickCardModal');
+    $('btnPickCardConfirm').onclick = applyPickedCards;
+    $('pickCardSearch').addEventListener('input', () => renderPickCardList($('pickCardSearch').value));
+    $('btnPickCardSelectAll').onclick = () => {
+        $('pickCardList').querySelectorAll('.pick-card-cb').forEach(cb => cb.checked = true);
+    };
+    $('btnPickCardClear').onclick = () => {
+        $('pickCardList').querySelectorAll('.pick-card-cb').forEach(cb => cb.checked = false);
+    };
+
     // A1-c2: 强制删除事件(2 阶段)
     $('btnForceDelCancel').onclick = () => {
         hide('forceDeleteModal');
@@ -5347,10 +6085,11 @@ window.addEventListener('DOMContentLoaded', () => {
     $('srcKvCard').onclick = () => setDataSource_online('kv');
     $('srcStaticCard').onclick = () => setDataSource_online('static');
 
-    $('btnImport').onclick = openImportModal;
-    $('btnExport').onclick = openExportModal;
-    $('btnExportCsv').onclick = openCsvExportModal;
-    $('btnCsvExportCancel').onclick = () => hide('csvExportModal');
+    // 顶栏按钮已整合到 ioHubModal,这些 id 不存在;保留 onclick 兼容逻辑(用可选链防护)
+    $('btnImport') && ($('btnImport').onclick = openImportModal);
+    $('btnExport') && ($('btnExport').onclick = openExportModal);
+    $('btnExportCsv') && ($('btnExportCsv').onclick = openCsvExportModal);
+    $('btnCsvExportCancel').onclick = () => closeChildOrReturnHub('csvExportModal');
     $('btnCsvExportConfirm').onclick = doCsvExport;
     $('btnCsvExportTemplate').onclick = (e) => {
         e.preventDefault();
@@ -5358,12 +6097,22 @@ window.addEventListener('DOMContentLoaded', () => {
     };
     $('btnCsvImportTplXlsx').onclick = (e) => { e.preventDefault(); downloadTemplateInFormat('xlsx'); };
     $('btnCsvImportTplCsv').onclick  = (e) => { e.preventDefault(); downloadTemplateInFormat('csv'); };
-    $('btnImportCsv').onclick = openCsvImportModal;
-    $('btnCsvImportCancel').onclick = () => hide('csvImportModal');
+    $('btnImportCsv') && ($('btnImportCsv').onclick = openCsvImportModal);
+    $('btnCsvImportCancel').onclick = () => closeChildOrReturnHub('csvImportModal');
     $('btnCsvImportPreview').onclick = doCsvImportPreview;
     $('btnCsvImportApply').onclick = doCsvImportApply;
     $('csvImportFile').addEventListener('change', handleCsvImportFile);
-    $('btnIoCancel').onclick = () => hide('ioModal');
+
+    // 整合的导入/导出 Hub 入口(2026-05-19)
+    // __ioHubReturning:用户从 hub 进入子 modal 时设 true;子 modal 取消时 hide + 回 hub;
+    //                  子 modal 完成时 hide + 清 flag(已完成,不回 hub,退到 mainPage 看结果)
+    $('btnIoHub').onclick = () => show('ioHubModal');
+    $('btnIoHubClose').onclick = () => { __ioHubReturning = false; hide('ioHubModal'); };
+    $('btnIoHubExportJs').onclick    = () => { __ioHubReturning = true; hide('ioHubModal'); openExportModal(); };
+    $('btnIoHubImportJs').onclick    = () => { __ioHubReturning = true; hide('ioHubModal'); openImportModal(); };
+    $('btnIoHubExportTable').onclick = () => { __ioHubReturning = true; hide('ioHubModal'); openCsvExportModal(); };
+    $('btnIoHubImportTable').onclick = () => { __ioHubReturning = true; hide('ioHubModal'); openCsvImportModal(); };
+    $('btnIoCancel').onclick = () => closeChildOrReturnHub('ioModal');
     $('btnIoImportConfirm').onclick = confirmImport;
     $('ioFile').addEventListener('change', handleImportFile);
 

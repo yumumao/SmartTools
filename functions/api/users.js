@@ -27,6 +27,7 @@ import {
     pbkdf2Hex,
     randomSaltB64
 } from '../_shared/auth.js';
+import { deleteSlugIndex, genUniqueSlug, writeSlugIndex } from '../_shared/slug.js';
 
 const USERS_KEY = 'users';
 const PBKDF2_ITER = 100000;
@@ -58,7 +59,9 @@ export async function onRequestGet({ request, env }) {
         status: info.status || 'active',
         hasData: !!info.hasData,
         algo: info.salt ? 'pbkdf2' : 'sha256',   // 帮助前端识别哪些用户尚未升级
-        createdAt: info.createdAt || null
+        createdAt: info.createdAt || null,
+        publicSlug: info.publicSlug || '',
+        publicEnabled: info.publicEnabled === true
     }));
     return jsonResponse({ ok: true, users: list });
 }
@@ -112,10 +115,18 @@ export async function onRequestPost({ request, env }) {
         // 清理 users[target]
         const rawU = await env.FAV_KV.get(USERS_KEY);
         const usersTab = rawU ? JSON.parse(rawU) : {};
+        let slugToRelease = '';
         if (usersTab[target]) {
+            slugToRelease = usersTab[target].publicSlug || '';
             delete usersTab[target];
             try { await env.FAV_KV.put(USERS_KEY, JSON.stringify(usersTab)); }
             catch (e) { cleanupErrors.push({ step: 'users table', error: e.message || String(e) }); }
+        }
+
+        // 释放 slug 反向索引(A1.5)
+        if (slugToRelease) {
+            try { await deleteSlugIndex(env, slugToRelease); }
+            catch (e) { cleanupErrors.push({ step: 'slug index', error: e.message || String(e) }); }
         }
 
         return jsonResponse({
@@ -153,6 +164,19 @@ export async function onRequestPost({ request, env }) {
         const nowIso = new Date().toISOString();
 
         if (isNew) {
+            // A1.5 增强 B:自动生成默认 slug 并开启公开访问
+            // 失败不阻塞用户创建,仅 console.warn(用户可后续手动设置)
+            let autoSlug = '';
+            try {
+                autoSlug = await genUniqueSlug(env, username, 'admin');
+                if (autoSlug) {
+                    await writeSlugIndex(env, autoSlug, username);
+                }
+            } catch (slugErr) {
+                console.warn('auto slug gen failed for', username, slugErr && slugErr.message);
+                autoSlug = '';
+            }
+
             users[username] = {
                 passHash,
                 salt,
@@ -161,7 +185,9 @@ export async function onRequestPost({ request, env }) {
                 status: 'active',
                 createdAt: nowIso,
                 createdBy: currentUser || '__unknown__',
-                hasData: false
+                hasData: false,
+                publicSlug: autoSlug,
+                publicEnabled: !!autoSlug
             };
         } else {
             // 重置密码：保留 role / status / createdAt / hasData，只换密码字段
@@ -233,8 +259,10 @@ export async function onRequestDelete({ request, env }) {
 
     // 没数据 → 直接硬删(同 A0 路径)
     if (!users[target].hasData) {
+        const slugToRelease = users[target].publicSlug || '';
         delete users[target];
         await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+        if (slugToRelease) await deleteSlugIndex(env, slugToRelease);
         return jsonResponse({ ok: true, deleted: target });
     }
 
@@ -335,7 +363,9 @@ export async function onRequestDelete({ request, env }) {
                 dataSize,
                 backupCount,
                 originalCreatedAt: users[target].createdAt || null,
-                originalCreatedBy: users[target].createdBy || null
+                originalCreatedBy: users[target].createdBy || null,
+                publicSlug: users[target].publicSlug || null,
+                publicEnabled: users[target].publicEnabled === true
             };
             await env.FAV_KV.put(archPrefix + 'meta', JSON.stringify(meta));
             archivedKeys.push(archPrefix + 'meta');
@@ -381,11 +411,18 @@ export async function onRequestDelete({ request, env }) {
     }
 
     // 7. 删 users[target] 条目
+    const slugToRelease = users[target].publicSlug || '';
     delete users[target];
     try {
         await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
     } catch (e) {
         cleanupErrors.push({ step: 'users table', error: e.message || String(e) });
+    }
+
+    // 8. 释放 slug 反向索引(A1.5)
+    if (slugToRelease) {
+        try { await deleteSlugIndex(env, slugToRelease); }
+        catch (e) { cleanupErrors.push({ step: 'slug index', error: e.message || String(e) }); }
     }
 
     return jsonResponse({
