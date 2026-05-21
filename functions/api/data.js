@@ -101,6 +101,7 @@ export async function onRequestGet({ request, env }) {
     // ───── A1.5 公开访问 slug 解析(优先于 cookie)─────
     let publicSlug = null;   // 命中的 slug
     let publicUid  = null;   // 命中的 uid
+    let publicRole = null;   // 命中用户的角色(admin/user)— 决定 namespace
     let slugIp     = null;
 
     if (slugParam) {
@@ -111,6 +112,7 @@ export async function onRequestGet({ request, env }) {
             if (found) {
                 publicSlug = slugParam;
                 publicUid  = found.uid;
+                publicRole = found.role || 'user';
                 await clearSlugFailure(env, slugIp);
             }
         }
@@ -136,11 +138,13 @@ export async function onRequestGet({ request, env }) {
     let isPublicSlugMode = false;
 
     if (publicSlug) {
-        // 公开 slug 模式 — 忽略 cookie,直接走 user namespace
-        ns = 'user';
+        // 公开 slug 模式 — 忽略 cookie,按目标用户的 role 分流 namespace
+        // admin 的 slug → 走 admin namespace(读 admin:data_js,与 admin 登录后看到的一致)
+        // user  的 slug → 走 user namespace(读 user:<uid>:data_js)
         uid = publicUid;
         isLoggedIn = false;
-        role = null;
+        role = publicRole;
+        ns = (publicRole === 'admin') ? 'admin' : 'user';
         isPublicSlugMode = true;
     } else {
         // 原 cookie 路径(slug 失败时静默回退至此)

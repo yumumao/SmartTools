@@ -767,12 +767,12 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="form-row">
             <label data-i18n="slugFieldUrl">完整链接</label>
             <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
-                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlShortLabel">短链接</span>
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlShortLabel">链接1</span>
                 <input type="text" id="slugModalFullUrl" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
                 <button class="btn btn-ghost btn-sm" id="btnSlugCopy" data-i18n="btnSlugCopy">📋 复制</button>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlQueryLabel">老格式</span>
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlQueryLabel">链接2</span>
                 <input type="text" id="slugModalFullUrl2" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
                 <button class="btn btn-ghost btn-sm" id="btnSlugCopy2" data-i18n="btnSlugCopy">📋 复制</button>
             </div>
@@ -1308,8 +1308,8 @@ const I18N = {
         slugRuleHintUser: '3-32 字符,首字符字母或数字,允许 a-z 0-9 _ -;推荐 ≥8 字符防扫描',
         slugFieldUrl: '完整链接',
         btnSlugCopy: '📋 复制',
-        slugUrlShortLabel: '短链接',
-        slugUrlQueryLabel: '老格式',
+        slugUrlShortLabel: '链接1',
+        slugUrlQueryLabel: '链接2',
         btnSlugDisable: '禁用并清除',
         btnSlugSave: '保存',
         slugDisableConfirm: '确认禁用「{u}」的公开访问?当前 slug 会被释放,匿名链接立即失效。',
@@ -1716,8 +1716,8 @@ const I18N = {
         slugRuleHintUser: '3-32 chars, first char must be letter/digit, allow a-z 0-9 _ -; recommended ≥8 chars to deter enumeration',
         slugFieldUrl: 'Full URL',
         btnSlugCopy: '📋 Copy',
-        slugUrlShortLabel: 'Short',
-        slugUrlQueryLabel: 'Query',
+        slugUrlShortLabel: 'Link 1',
+        slugUrlQueryLabel: 'Link 2',
         btnSlugDisable: 'Disable & Clear',
         btnSlugSave: 'Save',
         slugDisableConfirm: 'Disable public access for "{u}"? The current slug will be released and the anonymous link will stop working.',
@@ -5038,7 +5038,8 @@ async function openSlugModal(targetUsername) {
 
     $('slugModalUsername').value = target;
     // 先用空状态显示;异步拉真实数据后填充
-    $('slugModalEnabled').checked = false;
+    // 默认勾选公开访问(新建场景);已有设置会被下方 r.data.enabled 覆盖
+    $('slugModalEnabled').checked = true;
     $('slugModalInput').value = '';
     $('slugModalError').textContent = '';
     updateSlugPreview('');

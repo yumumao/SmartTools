@@ -120,7 +120,7 @@ export async function getUserBySlug(env, slug) {
         if (user.publicEnabled !== true) return null;
         // 双向一致性:users[uid].publicSlug 必须与当前请求的 slug 一致(防止反向索引滞后)
         if (user.publicSlug !== slug) return null;
-        return { uid, user, enabled: true };
+        return { uid, user, enabled: true, role: user.role || 'user' };
     } catch {
         return null;
     }
