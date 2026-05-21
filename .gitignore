@@ -1,9 +1,36 @@
 node_modules/
 .DS_Store
+Thumbs.db
 *.log
+
+# 密钥 / 环境变量(绝对不能上 git)
 .env
 .env.local
+.env.*.local
 .dev.vars
+
+# Cloudflare 本地缓存
 .wrangler/
+
+# 数据备份(本地导出的归档,可能含真实卡片数据)
 databak/*.js
+databak/*.zip
 !databak/.gitkeep
+
+# AI 助手内部文档(规划/会话日志/本地权限/草稿)
+# 内部决策、KV 键名、调试密码等不公开
+.claude/
+
+# 临时备份与归档
+*.bak
+*.bak.*
+*.tmp
+*-backup-*
+archive_*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

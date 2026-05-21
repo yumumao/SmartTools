@@ -20,8 +20,8 @@
     (function () {
         try {
             var u = '';
-            // 形式 1:/u/<slug> 短链接(catch-all 路由进入,path 形式)
-            var pathMatch = (location.pathname || '').match(/^\/u\/([a-z0-9][a-z0-9_\-]{0,31})/i);
+            // 形式 1:/@<slug>(主推,2026-05-22)或 /u/<slug>(永久兼容)— 路径形式
+            var pathMatch = (location.pathname || '').match(/^\/(?:@|u\/)([a-z0-9][a-z0-9_\-]{0,31})/i);
             if (pathMatch) u = pathMatch[1].toLowerCase();
             // 形式 2:?u=<slug>(兼容老链接,只在 path 未匹配时 fallback)
             if (!u) {
@@ -31,13 +31,14 @@
             if (u) {
                 document.documentElement.setAttribute('data-public-mode', u);
                 document.addEventListener('DOMContentLoaded', function () {
-                    // 始终把 URL 中的 ?u= 透传到主题切换链接,保留访客的 URL 状态
-                    // (无论 slug 是否命中,都让访客切主题后能看到一致的 URL)
+                    // 2026-05-22:主题切换链接统一重写为 /@<slug>?theme=<key>(主推形式)
+                    // 之前是 indexN.html?u=<slug>(query 形式),现在直接走 @ catch-all
+                    var THEME_MAP = { 'index1.html':'nebula','index2.html':'notion','index3.html':'stripe','index4.html':'dark','index5.html':'mint' };
                     document.querySelectorAll('.style-opt[href]').forEach(function (a) {
-                        var href = a.getAttribute('href');
-                        if (!href || /[?&]u=/.test(href)) return;
-                        var sep = href.indexOf('?') >= 0 ? '&' : '?';
-                        a.setAttribute('href', href + sep + 'u=' + encodeURIComponent(u));
+                        var href = a.getAttribute('href') || '';
+                        var key = THEME_MAP[href];
+                        if (!key) return;
+                        a.setAttribute('href', '/@' + encodeURIComponent(u) + '?theme=' + key);
                     });
                 });
             }

@@ -3,3 +3,8 @@
 /tool /toolsindex.html 200
 /tools /toolsindex.html 200
 /c /config.html 200
+
+# 备选方案(2026-05-22):若 Cloudflare Pages 不识别 functions/@[[slug]].js 路由,
+# 取消下行注释把 /@<slug> 通过 200 rewrite 转给 /u/<slug>(URL 不变,服务端走老路由)。
+# 启用时需删除 functions/@[[slug]].js 避免冲突。
+# /@:slug /u/:slug 200

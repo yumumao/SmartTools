@@ -13,12 +13,23 @@
 //   admin 设置 / 系统生成:1-32 字符,首字符字母/数字
 //   user 自助设置:3-32 字符,首字符字母/数字
 // 查询路径用 admin 规则(宽松)以兼容历史短 slug。
+//
+// ★ 设计意图(2026-05-22):字符集严格限定 ASCII [a-z0-9_-],拒绝任何 Unicode 字符。
+// 这是同形字攻击(homograph)的天然防御 —— 西里尔 а(U+0430)、希腊 α(U+03B1) 等
+// 视觉上与 ASCII a 几乎一致,但 codepoint 不同,会被正则直接拒绝。
+// 大小写策略:服务端统一 toLowerCase,@Z 与 @z 等价(URL 不做 301 跳转,内部 lowercase)。
+// 未来若有人想放宽字符集(国际化用户名),必须同步加 Unicode 规范化 + 同形字检测,
+// 否则 @admin vs @аdmin 假冒账号风险立刻成立。
 const ADMIN_SLUG_RE = /^[a-z0-9][a-z0-9_\-]{0,31}$/;
 const USER_SLUG_RE  = /^[a-z0-9][a-z0-9_\-]{2,31}$/;
+// 纯数字 slug 禁用(防扫描爆破 + 给未来"用户 ID 路径"留余地)
+const ALL_DIGITS_RE = /^[0-9]+$/;
 
-// 保留词:避免 slug 撞 Pages 静态路由或常见路径。
+// 保留词:避免 slug 撞 Pages 静态路由、域名前缀、系统路径或品牌词。
 // 注意 slug 必须以 [a-z0-9] 开头,所以以 _ 起的(_shared 等)天然过滤,不必列入。
+// 2026-05-22 扩充:子域名常用前缀 / 系统路径 / 内容站常用 / JS 关键字 / HTTP 状态码 / 自指概念词。
 const RESERVED_SLUGS = new Set([
+    // 项目内已有路径
     'tools', 'toolsindex',
     'databak', 'shared', 'scripts',
     'config', 'admin', 'login', 'logout',
@@ -28,12 +39,38 @@ const RESERVED_SLUGS = new Set([
     'api', 'auth', 'user', 'users', 'archive', 'archives',
     'save', 'comment', 'backup', 'backups',
     'check', 'change', 'migrate',
-    'favicon', 'robots', 'sitemap'
+    'favicon', 'robots', 'sitemap',
+    // 子域名常用前缀
+    'www', 'mail', 'ftp', 'ns', 'ns1', 'ns2',
+    'cdn', 'img', 'images', 'media', 'files', 'download', 'downloads',
+    // 系统/账户路径
+    'settings', 'setting', 'preferences', 'profile', 'me',
+    'signup', 'signin', 'register', 'reset', 'forgot',
+    'password', 'passwd', 'security', 'verify',
+    // 内容站常用
+    'search', 'tag', 'tags', 'category', 'categories',
+    'feed', 'rss', 'atom',
+    'blog', 'post', 'posts', 'news',
+    'contact', 'support', 'feedback', 'terms', 'privacy', 'legal',
+    'docs', 'doc', 'documentation', 'wiki', 'manual',
+    'status', 'health', 'ping', 'test',
+    'app', 'apps', 'web', 'm', 'mobile',
+    'cgi', 'bin',
+    // JS 关键字 / HTTP 状态(防误用)
+    'null', 'undefined', 'true', 'false',
+    'errors', 'error', '404', '500',
+    // 自指/概念词
+    'u',   // 防止 /@u 与 /u/<slug> 路径概念混淆
+    'at',  // 防止 /@at 与 @ 符号概念混淆
+    // 品牌词
+    'smarttools', 'mrr'
 ]);
 
 // 校验 slug 格式。role='user' 严格(≥3),其它(admin/未传)宽松(≥1)。
+// 纯数字 slug 一律拒绝(无论角色)。
 export function isValidSlug(s, role) {
     if (typeof s !== 'string') return false;
+    if (ALL_DIGITS_RE.test(s)) return false;
     const re = (role === 'user') ? USER_SLUG_RE : ADMIN_SLUG_RE;
     return re.test(s);
 }
