@@ -1275,8 +1275,7 @@ const I18N = {
         pushCardDescHint: '描述(可选)',
         pushCardIconHint: '图标 emoji(可选,如 🚀)',
         pushCardCommentLabel: '备注(支持 Markdown,可加图片)',
-        pushCardCommentHint: '可选。支持 Markdown:**粗** *斜* [链接](https://...) ![图](https://...)。从我的卡片选时会自动带原备注。',
-        pushCardCommentImgHint: '加图片?推荐使用 https 图床(右键复制直链):',
+        mdImgHostHintText: '💡 加图片?推荐 https 图床(右键复制直链):',
         pushSubmit: '🚀 推送',
         pushSubmitting: '推送中...',
         pushNoUsers: '没有活跃的普通用户',
@@ -1689,8 +1688,7 @@ const I18N = {
         pushCardDescHint: 'Description (optional)',
         pushCardIconHint: 'Icon emoji (optional, e.g. 🚀)',
         pushCardCommentLabel: 'Comment (Markdown supported, images allowed)',
-        pushCardCommentHint: 'Optional. Markdown: **bold** *italic* [link](https://...) ![img](https://...). Picking from your cards auto-fills the original comment.',
-        pushCardCommentImgHint: 'Need an image? Recommended https image hosts (right-click → copy direct link):',
+        mdImgHostHintText: '💡 Adding an image? Recommended https image hosts:',
         pushSubmit: '🚀 Push',
         pushSubmitting: 'Pushing...',
         pushNoUsers: 'No active regular users',
@@ -2254,6 +2252,20 @@ function mdTbImage(ta) {
     const urlStart = s + alt.length + 4;
     ta.setSelectionRange(urlStart, urlStart + url.length);
     ta.dispatchEvent(new Event('input', { bubbles: true }));
+    // 2026-05-23:首次插入图片标记时弹一次图床提示(per-session,避免每次都打扰)
+    __mdShowImgHostHintOnce();
+}
+
+// 图床提示 — 每个 session 弹一次(用 sessionStorage 控制)。
+// 卡片注释、子卡注释、推送备注 共用同一套工具栏 → 共用此提示。
+function __mdShowImgHostHintOnce() {
+    try {
+        if (sessionStorage.getItem('__mdImgHostHintShown') === '1') return;
+        sessionStorage.setItem('__mdImgHostHintShown', '1');
+    } catch {}
+    if (typeof toast === 'function') {
+        toast(t('mdImgHostHintText') + '  imgchr.com  ·  s.ee', 6000);
+    }
 }
 function mdTbHr(ta) {
     const s = ta.selectionStart, v = ta.value;
@@ -5240,6 +5252,7 @@ async function refreshPushUserList() {
 
 function addPushCardRow(prefillCard) {
     const idx = __pushCardIdx++;
+    const cmtId = 'push_card_cmt_' + idx;
     const row = document.createElement('div');
     row.className = 'push-card-row';
     row.dataset.cardIdx = idx;
@@ -5263,13 +5276,9 @@ function addPushCardRow(prefillCard) {
         <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <details class="push-card-comment-wrap" style="margin-top:4px;">
             <summary style="cursor:pointer;font-size:12px;color:#666;user-select:none;">📝 ${escapeHtml(t('pushCardCommentLabel'))}</summary>
-            <textarea class="push-card-comment" rows="3" placeholder="${escapeHtml(t('pushCardCommentHint'))}"
-                style="width:100%;margin-top:4px;padding:4px 6px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
-            <div class="muted" style="font-size:11px;margin-top:2px;line-height:1.5;">
-                💡 ${escapeHtml(t('pushCardCommentImgHint'))}
-                <a href="https://imgchr.com/" target="_blank" rel="noopener noreferrer">imgchr.com</a> /
-                <a href="https://s.ee/" target="_blank" rel="noopener noreferrer">s.ee</a>
-            </div>
+            <textarea id="${cmtId}" class="push-card-comment" data-i18n-placeholder="commentPh"
+                placeholder="${escapeHtml(t('commentPh'))}"
+                style="width:100%;min-height:100px;margin-top:4px;padding:4px 6px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
         </details>
     `;
     row.querySelector('.push-card-del').onclick = () => { row.remove(); renumberPushCardRows(); };
@@ -5283,22 +5292,22 @@ function addPushCardRow(prefillCard) {
         row.querySelector('.push-card-url').value = c.url || '';
         row.querySelector('.push-card-desc').value = c.desc || c.descClickable || '';
         row.querySelector('.push-card-icon').value = c.icon || '';
-        // 2026-05-23:comment 从 __prefillExtra 提到独立可见 textarea,管理员可编辑后再推
+        // 2026-05-23 v2:comment 从 __prefillExtra 提到独立可见 textarea(走与卡片编辑器同一套 attachMdToolbar)
         if (c.comment) {
             row.querySelector('.push-card-comment').value = c.comment;
-            // 已有备注 → 默认展开 details,让用户看到
             const det = row.querySelector('.push-card-comment-wrap');
-            if (det) det.open = true;
+            if (det) det.open = true;  // 已有备注 → 默认展开
         }
-        // 富字段(subCards / iconImg / descUrl / address / mailto 等)挂在 row 上,collectPushCards 会一并发送
-        // 注意:comment 已被独立 textarea 接管,不再放进 __prefillExtra(否则会覆盖用户编辑)
+        // 富字段:comment 已被独立 textarea 接管,不再放进 __prefillExtra
         row.__prefillExtra = {};
         ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal']
             .forEach(k => { if (c[k] != null) row.__prefillExtra[k] = c[k]; });
     }
     $('pushCardsContainer').appendChild(row);
-    // 2026-05-22:任何添加(手动 ➕ / 选已有卡 / 预填)后都立刻重排编号,
-    // 让显示的"卡 N"始终等于其在容器里的实际序号,不再被单调计数器 __pushCardIdx 污染。
+    // 2026-05-23 v2:与 f_comment / sf_comment 共用同一个 Markdown 工具栏(H1-3 / B / I / 链接 / 🖼图片 / 等)
+    // attachMdToolbar 接受元素 id,会在 textarea 前插入工具栏 DOM 并绑定 Ctrl+B/I/K 快捷键
+    attachMdToolbar(cmtId);
+    // 2026-05-22:任何添加(手动 ➕ / 选已有卡 / 预填)后都立刻重排编号
     renumberPushCardRows();
 }
 
