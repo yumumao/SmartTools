@@ -5218,7 +5218,7 @@ function addPushCardRow(prefillCard) {
         <input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;padding:4px 6px;">
     `;
-    row.querySelector('.push-card-del').onclick = () => row.remove();
+    row.querySelector('.push-card-del').onclick = () => { row.remove(); renumberPushCardRows(); };
 
     // A2 后续增强 2:预填来自"从我的卡片选"的卡片字段
     if (prefillCard && typeof prefillCard === 'object') {
@@ -5235,6 +5235,9 @@ function addPushCardRow(prefillCard) {
             .forEach(k => { if (c[k] != null) row.__prefillExtra[k] = c[k]; });
     }
     $('pushCardsContainer').appendChild(row);
+    // 2026-05-22:任何添加(手动 ➕ / 选已有卡 / 预填)后都立刻重排编号,
+    // 让显示的"卡 N"始终等于其在容器里的实际序号,不再被单调计数器 __pushCardIdx 污染。
+    renumberPushCardRows();
 }
 
 /* ================================================================
