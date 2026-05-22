@@ -223,3 +223,50 @@ export async function deleteOldSlugRedirect(env, oldSlug) {
         await env.FAV_KV.delete('slug-old:' + oldSlug);
     } catch {}
 }
+
+// ─────────────────────────────────────────────────────────────
+// A1.5 增强 D 后续(2026-05-23):普通用户改名约束 —— 必须包含 username 70%+ 连续字符。
+// 设计意图:防止 alice 把自己的公开链接改成 /@admin-secret 之类与本人无关的诱导性串,
+// 既能让用户改个性化短链,又能让访客通过链接看出归属。admin 不受此约束。
+//
+// 算法:
+//   required = ceil(usernameNorm.length × ratio)
+//   对 usernameNorm 的所有长度为 required 的连续子串,检查是否作为子串出现在 slug 中
+//   命中任一即通过。username 先经 genSlugFromUsername 归一化(去非 slug 字符 + lowercase)。
+//
+// 边界:
+//   - username 归一化后为空 → 视为通过(异常用户名场景,降级宽松)
+//   - required > usernameNorm.length(理论上不会,ratio≤1)→ false
+//   - required > slug.length → false
+// ─────────────────────────────────────────────────────────────
+export function slugContainsUsernameSubstring(slug, username, ratio) {
+    if (typeof ratio !== 'number' || ratio <= 0 || ratio > 1) ratio = 0.7;
+    if (!slug || typeof slug !== 'string') return false;
+    const s = slug.toLowerCase();
+    const u = genSlugFromUsername(username || '');
+    if (!u) return true; // 用户名归一化后为空 → 不强加限制
+    const required = Math.ceil(u.length * ratio);
+    if (required <= 0) return true;
+    if (required > u.length) return false;
+    if (required > s.length) return false;
+    // 收集所有候选子串,跳过纯数字串(与 isValidSlug 的 ALL_DIGITS 规则保持一致 —
+    // 否则 bob1234567 的 "1234567" 子串会绕过"不准纯数字"约束)
+    let hasNonDigitCandidate = false;
+    for (let i = 0; i + required <= u.length; i++) {
+        const sub = u.substring(i, i + required);
+        if (ALL_DIGITS_RE.test(sub)) continue;
+        hasNonDigitCandidate = true;
+        if (s.indexOf(sub) !== -1) return true;
+    }
+    // 所有候选都是纯数字串(极端场景:username 归一化后只剩数字)→ 降级宽松,允许通过
+    if (!hasNonDigitCandidate) return true;
+    return false;
+}
+
+// 计算要求的最小连续子串长度(供错误消息提示)
+export function requiredUsernameSubstringLen(username, ratio) {
+    if (typeof ratio !== 'number' || ratio <= 0 || ratio > 1) ratio = 0.7;
+    const u = genSlugFromUsername(username || '');
+    if (!u) return 0;
+    return Math.ceil(u.length * ratio);
+}

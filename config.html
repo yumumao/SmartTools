@@ -1274,6 +1274,9 @@ const I18N = {
         pushCardUrlHint: 'URL(可选,以 http:// 或 https:// 开头)',
         pushCardDescHint: '描述(可选)',
         pushCardIconHint: '图标 emoji(可选,如 🚀)',
+        pushCardCommentLabel: '备注(支持 Markdown,可加图片)',
+        pushCardCommentHint: '可选。支持 Markdown:**粗** *斜* [链接](https://...) ![图](https://...)。从我的卡片选时会自动带原备注。',
+        pushCardCommentImgHint: '加图片?推荐使用 https 图床(右键复制直链):',
         pushSubmit: '🚀 推送',
         pushSubmitting: '推送中...',
         pushNoUsers: '没有活跃的普通用户',
@@ -1685,6 +1688,9 @@ const I18N = {
         pushCardUrlHint: 'URL (optional, http:// or https://)',
         pushCardDescHint: 'Description (optional)',
         pushCardIconHint: 'Icon emoji (optional, e.g. 🚀)',
+        pushCardCommentLabel: 'Comment (Markdown supported, images allowed)',
+        pushCardCommentHint: 'Optional. Markdown: **bold** *italic* [link](https://...) ![img](https://...). Picking from your cards auto-fills the original comment.',
+        pushCardCommentImgHint: 'Need an image? Recommended https image hosts (right-click → copy direct link):',
         pushSubmit: '🚀 Push',
         pushSubmitting: 'Pushing...',
         pushNoUsers: 'No active regular users',
@@ -5096,6 +5102,34 @@ function copyTextToClipboard(text, successToast) {
     }
 }
 
+// 2026-05-23:与 functions/_shared/slug.js 的 genSlugFromUsername / slugContainsUsernameSubstring 镜像。
+// 前端预校验用,后端是权威(两边规则必须一致)。
+function __normUsername(u) {
+    let s = String(u || '').toLowerCase().replace(/[^a-z0-9_\-]/g, '');
+    s = s.replace(/^[^a-z0-9]+/, '');
+    return s;
+}
+function __slugContainsUsernameSubstring(slug, username, ratio) {
+    if (typeof ratio !== 'number' || ratio <= 0 || ratio > 1) ratio = 0.7;
+    const s = String(slug || '').toLowerCase();
+    const u = __normUsername(username);
+    if (!u) return true;
+    const required = Math.ceil(u.length * ratio);
+    if (required <= 0) return true;
+    if (required > u.length) return false;
+    if (required > s.length) return false;
+    const ALL_DIGITS = /^[0-9]+$/;
+    let hasNonDigitCandidate = false;
+    for (let i = 0; i + required <= u.length; i++) {
+        const sub = u.substring(i, i + required);
+        if (ALL_DIGITS.test(sub)) continue;
+        hasNonDigitCandidate = true;
+        if (s.indexOf(sub) !== -1) return true;
+    }
+    if (!hasNonDigitCandidate) return true;
+    return false;
+}
+
 async function saveSlug() {
     const username = $('slugModalUsername').value;
     const slug = $('slugModalInput').value.trim().toLowerCase();
@@ -5105,6 +5139,16 @@ async function saveSlug() {
     if (enabled) {
         if (!getSlugRe().test(slug)) {
             errEl.textContent = t('toastSlugFormatBad');
+            return;
+        }
+    }
+    // 2026-05-23:普通用户(非 admin)改名时,slug 必须包含 username 70%+ 连续字符。
+    // admin 自身或 admin 改他人均不受限。currentUser 由 checkOnlineAvailable 维护。
+    const callerIsAdmin = currentUser && currentUser.role === 'admin';
+    if (!callerIsAdmin && slug) {
+        if (!__slugContainsUsernameSubstring(slug, username, 0.7)) {
+            const reqLen = Math.ceil(__normUsername(username).length * 0.7);
+            errEl.textContent = 'slug 必须包含用户名 "' + username + '" 中连续的 ' + reqLen + ' 个字符(且不能是纯数字片段)';
             return;
         }
     }
@@ -5216,7 +5260,17 @@ function addPushCardRow(prefillCard) {
         <input type="text" class="push-card-title" placeholder="${escapeHtml(t('pushCardTitleHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <input type="text" class="push-card-url" placeholder="${escapeHtml(t('pushCardUrlHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
-        <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;padding:4px 6px;">
+        <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
+        <details class="push-card-comment-wrap" style="margin-top:4px;">
+            <summary style="cursor:pointer;font-size:12px;color:#666;user-select:none;">📝 ${escapeHtml(t('pushCardCommentLabel'))}</summary>
+            <textarea class="push-card-comment" rows="3" placeholder="${escapeHtml(t('pushCardCommentHint'))}"
+                style="width:100%;margin-top:4px;padding:4px 6px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+            <div class="muted" style="font-size:11px;margin-top:2px;line-height:1.5;">
+                💡 ${escapeHtml(t('pushCardCommentImgHint'))}
+                <a href="https://imgchr.com/" target="_blank" rel="noopener noreferrer">imgchr.com</a> /
+                <a href="https://s.ee/" target="_blank" rel="noopener noreferrer">s.ee</a>
+            </div>
+        </details>
     `;
     row.querySelector('.push-card-del').onclick = () => { row.remove(); renumberPushCardRows(); };
 
@@ -5229,9 +5283,17 @@ function addPushCardRow(prefillCard) {
         row.querySelector('.push-card-url').value = c.url || '';
         row.querySelector('.push-card-desc').value = c.desc || c.descClickable || '';
         row.querySelector('.push-card-icon').value = c.icon || '';
+        // 2026-05-23:comment 从 __prefillExtra 提到独立可见 textarea,管理员可编辑后再推
+        if (c.comment) {
+            row.querySelector('.push-card-comment').value = c.comment;
+            // 已有备注 → 默认展开 details,让用户看到
+            const det = row.querySelector('.push-card-comment-wrap');
+            if (det) det.open = true;
+        }
         // 富字段(subCards / iconImg / descUrl / address / mailto 等)挂在 row 上,collectPushCards 会一并发送
+        // 注意:comment 已被独立 textarea 接管,不再放进 __prefillExtra(否则会覆盖用户编辑)
         row.__prefillExtra = {};
-        ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal', 'comment']
+        ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal']
             .forEach(k => { if (c[k] != null) row.__prefillExtra[k] = c[k]; });
     }
     $('pushCardsContainer').appendChild(row);
@@ -5415,14 +5477,15 @@ function renumberPushCardRows() {
     });
 }
 
-// 判断一个 push-card-row 是否完全空(无标题/URL/描述/图标 + 无富字段预填)
+// 判断一个 push-card-row 是否完全空(无标题/URL/描述/图标/备注 + 无富字段预填)
 function isPushCardRowEmpty(row) {
     if (!row) return false;
     const titleV = (row.querySelector('.push-card-title') || {}).value || '';
     const urlV   = (row.querySelector('.push-card-url')   || {}).value || '';
     const descV  = (row.querySelector('.push-card-desc')  || {}).value || '';
     const iconV  = (row.querySelector('.push-card-icon')  || {}).value || '';
-    if (titleV.trim() || urlV.trim() || descV.trim() || iconV.trim()) return false;
+    const cmtV   = (row.querySelector('.push-card-comment') || {}).value || '';
+    if (titleV.trim() || urlV.trim() || descV.trim() || iconV.trim() || cmtV.trim()) return false;
     // 之前的预填富字段也算"非空"(避免替换掉 subCards 等)
     if (row.__prefillExtra && Object.keys(row.__prefillExtra).length > 0) return false;
     return true;
@@ -5437,8 +5500,15 @@ function replacePushCardRow(row, card) {
     row.querySelector('.push-card-url').value = card.url || '';
     row.querySelector('.push-card-desc').value = card.desc || card.descClickable || '';
     row.querySelector('.push-card-icon').value = card.icon || '';
+    // 2026-05-23:comment 走独立 textarea(可见可编辑)
+    const cmtEl = row.querySelector('.push-card-comment');
+    if (cmtEl) {
+        cmtEl.value = card.comment || '';
+        const det = row.querySelector('.push-card-comment-wrap');
+        if (det) det.open = !!card.comment;
+    }
     row.__prefillExtra = {};
-    ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal', 'comment']
+    ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal']
         .forEach(k => { if (card[k] != null) row.__prefillExtra[k] = card[k]; });
 }
 
@@ -5451,10 +5521,13 @@ function collectPushCards() {
         const url = row.querySelector('.push-card-url').value.trim();
         const desc = row.querySelector('.push-card-desc').value.trim();
         const icon = row.querySelector('.push-card-icon').value.trim();
+        const cmtEl = row.querySelector('.push-card-comment');
+        const comment = cmtEl ? cmtEl.value.trim() : '';
         const c = { type, title };
         if (url) c.url = url;
         if (desc) c.desc = desc;
         if (icon) c.icon = icon;
+        if (comment) c.comment = comment;     // 2026-05-23:备注作为 comment 字段透传(后端白名单已含)
         // A2 后续增强 2:合并来自"从我的卡片选"预填时挂在 row 上的额外字段
         if (row.__prefillExtra) {
             for (const k of Object.keys(row.__prefillExtra)) {

@@ -34,7 +34,9 @@ import {
     writeSlugIndex,
     deleteSlugIndex,
     writeOldSlugRedirect,
-    deleteOldSlugRedirect
+    deleteOldSlugRedirect,
+    slugContainsUsernameSubstring,
+    requiredUsernameSubstringLen
 } from '../_shared/slug.js';
 
 const USERS_KEY = 'users';
@@ -128,6 +130,21 @@ export async function onRequestPost({ request, env }) {
             ok: false,
             error: 'slug 不合法(即使禁用也需通过格式校验或清空)'
         }, 400);
+    }
+
+    // 普通用户改名约束(2026-05-23):slug 必须包含 username 70%+ 连续字符
+    // 触发:!isAdmin && newSlug 非空(enabled=false 也校验,避免先存禁用、后启用绕过)
+    // admin 不受此约束;系统自动生成(genUniqueSlug)走 users.js,不经此路径
+    if (!auth.isAdmin && newSlug) {
+        if (!slugContainsUsernameSubstring(newSlug, target, 0.7)) {
+            const reqLen = requiredUsernameSubstringLen(target, 0.7);
+            return jsonResponse({
+                ok: false,
+                error: 'slug 必须包含用户名 "' + target + '" 中连续的 ' + reqLen + ' 个字符(且不能是纯数字片段)',
+                code: 'USERNAME_SUBSTRING_REQUIRED',
+                requiredLen: reqLen
+            }, 400);
+        }
     }
 
     const [users, user] = await readUserEntry(env, target);

@@ -339,7 +339,11 @@
         html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function(_, alt, src) {
             var safe = safeMdImgUrl(src);
             if (!safe) return alt;  // 不合法的图片协议 → 退化为纯文本(alt 已 esc)
-            return '<img alt="' + alt + '" src="' + safe + '">';
+            // 2026-05-23:图片显示尺寸约束(防超大图破坏布局)— max-height 400px,保持宽高比
+            return '<img alt="' + alt + '" src="' + safe + '"' +
+                   ' style="max-width:100%;max-height:400px;object-fit:contain;display:block;margin:8px auto;border-radius:4px;"' +
+                   ' loading="lazy"' +
+                   ' onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:\'🖼 图片加载失败: \'+this.src,style:\'color:#999;font-size:12px;display:inline-block;padding:4px 8px;background:#f5f5f5;border-radius:4px;\'}))">';
         });
         html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(_, text, url) {
             var safe = safeMdUrl(url);
