@@ -4,7 +4,7 @@
 /tools /toolsindex.html 200
 /c /config.html 200
 
-# 备选方案(2026-05-22):若 Cloudflare Pages 不识别 functions/@[[slug]].js 路由,
-# 取消下行注释把 /@<slug> 通过 200 rewrite 转给 /u/<slug>(URL 不变,服务端走老路由)。
-# 启用时需删除 functions/@[[slug]].js 避免冲突。
-# /@:slug /u/:slug 200
+# 2026-05-22 启用:Cloudflare Pages 不识别 functions/@[[slug]].js(部署后整个 functions bundle 挂掉,
+# 表现为 1101 + /api/* 全部失联),已删除该文件,改走 200 rewrite 把 /@<slug> 内部转给 /u/<slug>。
+# URL 栏保持 /@<slug> 不变,服务端复用 functions/u/[[slug]].js。
+/@:slug /u/:slug 200
