@@ -349,6 +349,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <button class="btn btn-ghost btn-sm hidden" id="btnUsers" data-i18n="btnUsers">👥 用户</button>
             <button class="btn btn-info btn-sm hidden" id="btnMySlug" data-i18n="btnMySlug">🔗 公开链接</button>
             <button class="btn btn-success btn-sm hidden" id="btnPush" data-i18n="btnPush">📤 推送</button>
+            <button class="btn btn-info btn-sm hidden" id="btnInbox" data-i18n="btnInbox" style="position:relative;">📥 收件箱<span id="inboxBadge" class="hidden" style="position:absolute;top:-4px;right:-4px;background:#dc3545;color:#fff;border-radius:9px;font-size:10px;padding:1px 5px;line-height:1.3;font-weight:700;min-width:14px;text-align:center;">0</span></button>
             <button class="btn btn-warn btn-sm hidden" id="btnMigrate" data-i18n="btnMigrate">🗄️ 数据迁移</button>
             <button class="btn btn-ghost btn-sm" id="btnSwitchMode" data-i18n="btnSwitchMode">🔀 切换模式</button>
             <button class="btn btn-danger btn-sm" id="btnLogout" data-i18n="btnLogout">🚪 退出</button>
@@ -383,6 +384,16 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <div id="cardModal" class="modal-mask hidden">
     <div class="modal-box">
         <h2 id="cardModalTitle" data-i18n="cardModalEditTitle">编辑卡片</h2>
+        <!-- §13 强制推送标注信息行(2026-05-23):pushedBy 存在时显示 + 移除按钮 -->
+        <div class="form-row hidden" id="cardModalPushedByRow"
+             style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:#78350f;">
+                📌 <strong data-i18n="cardPushedByLabel">管理员放置:</strong>
+                <span id="cardModalPushedByText" style="font-weight:600;"></span>
+            </span>
+            <button type="button" class="btn btn-danger btn-sm" id="btnCardModalRemovePushedBy"
+                    style="margin-left:auto;" data-i18n="cardPushedByRemoveBtn">🗑 移除标注</button>
+        </div>
         <div class="form-row">
             <label data-i18n="fldId">ID（唯一标识，可留空自动生成）</label>
             <input type="text" id="f_id" data-i18n-placeholder="idAutoPh" placeholder="留空将自动生成，如 card_xxx">
@@ -790,6 +801,17 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     <div class="modal-box" style="max-width:760px;">
         <h2 data-i18n="pushTitle">📤 推送卡片给用户</h2>
 
+        <!-- §13 强制推送开关(2026-05-23) -->
+        <div class="form-row" style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">
+                <input type="checkbox" id="pushForceCheckbox" style="width:auto;">
+                <span data-i18n="pushForceLabel"><strong>⚡ 强制推送</strong>(绕过收件箱,直接写入对方数据)</span>
+            </label>
+            <div class="muted" style="font-size:11px;margin-top:4px;line-height:1.5;" data-i18n="pushForceHint">
+                ⚠️ 强制推送一次只能 1 张卡;加密大类拒绝;接收方无审核机会
+            </div>
+        </div>
+
         <div class="form-row">
             <label data-i18n="pushTargetUsers">目标用户(可多选)</label>
             <div id="pushUsersList" style="max-height:140px;overflow:auto;border:1px solid #eee;border-radius:6px;padding:8px;"></div>
@@ -826,6 +848,51 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 </div>
 
 <!-- A2 后续增强 2:从我的卡片中选 -->
+<!-- §12 inbox 收件箱 modal(2026-05-23) -->
+<div id="inboxModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:760px;">
+        <h2 data-i18n="inboxModalTitle">📥 收件箱</h2>
+        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center; flex-wrap:wrap;">
+            <label style="font-size:12px;">
+                <input type="radio" name="inboxFilter" value="pending" checked> <span data-i18n="inboxFilterPending">待审</span>
+            </label>
+            <label style="font-size:12px;">
+                <input type="radio" name="inboxFilter" value="accepted"> <span data-i18n="inboxFilterAccepted">已接受</span>
+            </label>
+            <label style="font-size:12px;">
+                <input type="radio" name="inboxFilter" value="rejected"> <span data-i18n="inboxFilterRejected">已拒绝</span>
+            </label>
+            <label style="font-size:12px;">
+                <input type="radio" name="inboxFilter" value=""> <span data-i18n="inboxFilterAll">全部</span>
+            </label>
+            <button class="btn btn-ghost btn-sm" id="btnInboxRefresh" style="margin-left:auto;" data-i18n="btnRefresh">🔄 刷新</button>
+        </div>
+        <div id="inboxListArea" style="max-height:60vh; overflow-y:auto; border:1px solid #eee; border-radius:6px; padding:8px;">
+            <div class="muted" style="text-align:center; padding:20px;" data-i18n="inboxEmpty">没有待审消息</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnInboxClose" data-i18n="btnClose">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- §12 接受到加密大类 — 选大类子 modal(2026-05-23) -->
+<div id="inboxAcceptEncModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:480px;">
+        <h2 data-i18n="inboxAcceptEncTitle">🔒 接受到加密大类</h2>
+        <div class="form-row">
+            <label data-i18n="inboxAcceptEncSelectLabel">选择已解锁的加密大类</label>
+            <select id="inboxAcceptEncSelect" style="width:100%; padding:6px;"></select>
+            <div class="muted" style="font-size:12px; margin-top:4px;" data-i18n="inboxAcceptEncHint">需先在主页面解锁目标加密大类</div>
+        </div>
+        <div id="inboxAcceptEncError" style="color:#c62828; font-size:13px; min-height:18px;"></div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnInboxAcceptEncCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnInboxAcceptEncConfirm" data-i18n="btnConfirm">确定</button>
+        </div>
+    </div>
+</div>
+
 <div id="pickCardModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:680px;">
         <h2 data-i18n="pickCardTitle">📂 从我的卡片中选</h2>
@@ -1261,7 +1328,46 @@ const I18N = {
         // A1.5 公开访问 slug
         btnMySlug: '🔗 公开链接',
         btnPush: '📤 推送',
-        pushTitle: '📤 推送卡片给用户',
+        btnInbox: '📥 收件箱',
+        btnRefresh: '🔄 刷新',
+        btnConfirm: '确定',
+        inboxModalTitle: '📥 收件箱',
+        inboxEmpty: '没有消息',
+        inboxFilterPending: '待审',
+        inboxFilterAccepted: '已接受',
+        inboxFilterRejected: '已拒绝',
+        inboxFilterAll: '全部',
+        inboxFromLabel: '来自',
+        inboxAtLabel: '时间',
+        inboxToSectionLabel: '推荐到',
+        inboxCardsLabel: '卡片',
+        inboxMessageLabel: '留言',
+        inboxAcceptPublic: '✅ 接受到公开',
+        inboxAcceptEncrypted: '🔒 接受到加密',
+        inboxAcceptDiscard: '🗑️ 已读但丢弃',
+        inboxReject: '❌ 拒绝',
+        inboxAcceptEncTitle: '🔒 接受到加密大类',
+        inboxAcceptEncSelectLabel: '选择已解锁的加密大类',
+        inboxAcceptEncHint: '需先在主页面解锁目标加密大类。若下拉为空,请先回到收藏夹页解锁。',
+        inboxAcceptEncNone: '没有已解锁的加密大类',
+        inboxStatusPending: '⏳ 待审',
+        inboxStatusAccepted: '✅ 已接受',
+        inboxStatusRejected: '❌ 已拒绝',
+        toastInboxAccepted: '已接受到 {section}',
+        toastInboxRejected: '已拒绝',
+        toastInboxDiscarded: '已标记为已读(卡片已丢弃)',
+        toastInboxFail: '操作失败',
+        toastInboxLoading: '加载中...',
+        toastInboxNewArrival: '📥 收到 {n} 条新推送(共 {total} 条待审)— 点收件箱查看',
+        toastInboxInitialUnread: '📥 您有 {n} 条待审推送 — 点收件箱查看',
+        pushForceLabel: '<strong>⚡ 强制推送</strong>(绕过收件箱,直接写入对方数据)',
+        pushForceHint: '⚠️ 强制推送一次只能 1 张卡;加密大类拒绝;接收方无审核机会',
+        pushForceSingleCardTip: '强制模式下只能推 1 张卡',
+        toastPushForceSingleCard: '⚠️ 强制推送一次只能 1 张卡,请删除多余卡片',
+        confirmPushForce: '⚡ 确认强制推送?\n该卡片会直接写入对方数据,接收方看不到审核步骤。\n确定继续吗?',
+        confirmInboxReject: '确定拒绝这条消息吗?',
+        confirmInboxDiscard: '确定接受但不导入卡片吗?(等于已读 + 删卡)',
+        pushTitle: '📤 推送卡片给用户(进入对方待审收件箱)',
         pushTargetUsers: '目标用户(可多选)',
         pushTargetSection: '目标分类',
         pushSectionHint: '加密分类会自动跳过;选未分类则推到该用户的 custom_unclassified',
@@ -1513,6 +1619,10 @@ const I18N = {
         toastSwitchSame: '当前已是「{mode}」', toastSwitchedTo: '已切换为：{mode}',
         toastSwitchFail: '切换失败', toastBkLoadFail: '加载备份失败',
         toastUpdatedUnsaved: '已更新（未保存）',
+        cardPushedByLabel: '管理员放置:',
+        cardPushedByRemoveBtn: '🗑 移除标注',
+        confirmRemovePushedBy: '确定移除该卡片上的"管理员推送"标注吗?\n该卡片本身会保留,只是不再显示 📌 徽章。',
+        toastPushedByRemoved: '✅ 已移除标注,记得点 💾 保存让改动生效',
         toastAddedSectionUnsaved: '已新增大类（未保存）',
         toastDeletedSectionUnsaved: '已删除大类（未保存）',
         toastMovedUp: '已上移', toastMovedDown: '已下移',
@@ -1674,7 +1784,46 @@ const I18N = {
         // A1.5 public access slug
         btnMySlug: '🔗 Public Link',
         btnPush: '📤 Push',
-        pushTitle: '📤 Push Cards to Users',
+        btnInbox: '📥 Inbox',
+        btnRefresh: '🔄 Refresh',
+        btnConfirm: 'Confirm',
+        inboxModalTitle: '📥 Inbox',
+        inboxEmpty: 'No messages',
+        inboxFilterPending: 'Pending',
+        inboxFilterAccepted: 'Accepted',
+        inboxFilterRejected: 'Rejected',
+        inboxFilterAll: 'All',
+        inboxFromLabel: 'From',
+        inboxAtLabel: 'At',
+        inboxToSectionLabel: 'Suggested',
+        inboxCardsLabel: 'Cards',
+        inboxMessageLabel: 'Message',
+        inboxAcceptPublic: '✅ Accept (Public)',
+        inboxAcceptEncrypted: '🔒 Accept (Encrypted)',
+        inboxAcceptDiscard: '🗑️ Mark Read (Discard)',
+        inboxReject: '❌ Reject',
+        inboxAcceptEncTitle: '🔒 Accept to Encrypted Section',
+        inboxAcceptEncSelectLabel: 'Select an unlocked encrypted section',
+        inboxAcceptEncHint: 'You must first unlock the target encrypted section on the main page.',
+        inboxAcceptEncNone: 'No unlocked encrypted sections',
+        inboxStatusPending: '⏳ Pending',
+        inboxStatusAccepted: '✅ Accepted',
+        inboxStatusRejected: '❌ Rejected',
+        toastInboxAccepted: 'Accepted into {section}',
+        toastInboxRejected: 'Rejected',
+        toastInboxDiscarded: 'Marked as read (cards discarded)',
+        toastInboxFail: 'Operation failed',
+        toastInboxLoading: 'Loading...',
+        toastInboxNewArrival: '📥 {n} new push(es) received ({total} pending) — open inbox to review',
+        toastInboxInitialUnread: '📥 You have {n} pending push(es) — open inbox to review',
+        pushForceLabel: '<strong>⚡ Force Push</strong> (bypass inbox, write directly to recipient data)',
+        pushForceHint: '⚠️ Force push limited to 1 card per call; encrypted sections rejected; recipient cannot review',
+        pushForceSingleCardTip: 'Force mode allows only 1 card',
+        toastPushForceSingleCard: '⚠️ Force push allows only 1 card — please remove extras',
+        confirmPushForce: '⚡ Confirm force push?\nThis card will be written directly to the recipient data without their review.\nProceed?',
+        confirmInboxReject: 'Reject this message?',
+        confirmInboxDiscard: 'Mark as read but discard the cards?',
+        pushTitle: '📤 Push Cards to Users (Enters Recipient Inbox)',
         pushTargetUsers: 'Target users (multi-select)',
         pushTargetSection: 'Target section',
         pushSectionHint: 'Encrypted sections are skipped automatically; choosing "Uncategorized" pushes to the user\'s custom_unclassified',
@@ -1926,6 +2075,10 @@ const I18N = {
         toastSwitchSame: 'Already in "{mode}"', toastSwitchedTo: 'Switched to: {mode}',
         toastSwitchFail: 'Switch failed', toastBkLoadFail: 'Failed to load backups',
         toastUpdatedUnsaved: 'Updated (unsaved)',
+        cardPushedByLabel: 'Pushed by admin:',
+        cardPushedByRemoveBtn: '🗑 Remove tag',
+        confirmRemovePushedBy: 'Remove the "admin push" tag from this card?\nThe card itself stays; only the 📌 badge will disappear.',
+        toastPushedByRemoved: '✅ Tag removed — click 💾 Save to persist',
         toastAddedSectionUnsaved: 'Section added (unsaved)',
         toastDeletedSectionUnsaved: 'Section deleted (unsaved)',
         toastMovedUp: 'Moved up', toastMovedDown: 'Moved down',
@@ -2256,15 +2409,14 @@ function mdTbImage(ta) {
     __mdInsertImgHostHintBar(ta);
 }
 
-// 在 textarea 上方插入常驻图床提示条。重复点 🖼 不会重复插入。
-// 用户点 ✕ 关闭后,本 textarea 加 dataset.imgHostHintClosed,后续也不重新弹(除非刷新页面)。
+// 在 textarea 上方插入常驻图床提示条。重复点 🖼 不会重复插入,
+// 但若用户已经 ✕ 关闭,**下次点 🖼 仍会重新显示**(关闭 = 这次不看,而非永久屏蔽)。
 function __mdInsertImgHostHintBar(ta) {
     if (!ta) return;
-    if (ta.dataset && ta.dataset.imgHostHintClosed === '1') return;
     // 找到 .md-editor-wrap(attachMdToolbar 创建的包装)
     const wrap = ta.closest('.md-editor-wrap') || ta.parentNode;
     if (!wrap) return;
-    if (wrap.querySelector('.md-img-host-hint')) return; // 已存在不重复
+    if (wrap.querySelector('.md-img-host-hint')) return; // 当前已有,不重复插入
 
     const bar = document.createElement('div');
     bar.className = 'md-img-host-hint';
@@ -2314,7 +2466,7 @@ function __mdInsertImgHostHintBar(ta) {
     close.style.cssText = 'margin-left:auto;background:transparent;color:#7a5200;border:0;' +
         'cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;';
     close.onclick = function () {
-        if (ta.dataset) ta.dataset.imgHostHintClosed = '1';
+        // 不再设 dataset.imgHostHintClosed:用户 ✕ 只是"这次不看",下次点 🖼 仍弹回
         if (bar.parentNode) bar.parentNode.removeChild(bar);
     };
     bar.appendChild(close);
@@ -2518,18 +2670,20 @@ function initEmojiPicker() {
     renderEmojiCategories();
     renderEmojiGrid(0);
 
-    document.querySelectorAll('.emoji-picker-trigger').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const target = btn.dataset.target;
-            const popup = $('emojiPickerPopup');
-            if (!popup.classList.contains('hidden') && currentEmojiTarget === target) {
-                closeEmojiPicker();
-            } else {
-                openEmojiPicker(target, btn);
-            }
-        });
+    // 2026-05-23:用文档级事件委托替代静态 forEach,让动态加入的 .emoji-picker-trigger
+    // (如推送 modal 里 addPushCardRow 创建的图标输入)也能触发 picker
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.emoji-picker-trigger');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const target = btn.dataset.target;
+        const popup = $('emojiPickerPopup');
+        if (!popup.classList.contains('hidden') && currentEmojiTarget === target) {
+            closeEmojiPicker();
+        } else {
+            openEmojiPicker(target, btn);
+        }
     });
 
     $('emojiPickerSearch').addEventListener('input', handleEmojiSearch);
@@ -2888,6 +3042,15 @@ async function enterMain() {
     // A2: 推送按钮仅 admin 可见
     if (currentMode === MODE_ONLINE && currentUser.role === 'admin') show('btnPush');
     else hide('btnPush');
+    // §12 inbox 收件箱按钮:online 模式 + 已登录(admin / user 都看到自己的收件箱)
+    if (currentMode === MODE_ONLINE && currentUser.username) {
+        show('btnInbox');
+        // 启动 60s 轮询(立即拉一次 + 后续定时)
+        startInboxPolling();
+    } else {
+        hide('btnInbox');
+        stopInboxPolling();
+    }
     refreshMainPageModeTexts();
     renderSectionTabs(); renderCurrentSection();
     if (currentMode === MODE_ONLINE) {
@@ -3229,6 +3392,8 @@ async function doLogout() {
     currentUser = { username: null, uid: null, role: null };
     // A1-d: 清迁移标志
     currentMigrationNeeded = false;
+    // §12: 停 inbox 轮询(避免 logout 后还在拉 inbox 报 401)
+    stopInboxPolling();
     if (currentMode === MODE_ONLINE) { await logout_online(); }
     else { safeLS('del', LS_SESS); boot(); }
 }
@@ -3669,7 +3834,22 @@ function renderCurrentSection() {
             if (item.type === 'expandable' && item.subCards) metaParts.push('📁 ' + escapeHtml(t('subCardCount', { n: item.subCards.length })));
         }
         if (item.comment) metaParts.push('📝');
-        info.innerHTML = '<div class="card-title">' + escapeHtml(title) + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
+        // §13 标注(2026-05-23):卡片列表行显示 📌 by + 标题 + 删除按钮
+        let pushedByHtml = '';
+        if (item.pushedBy) {
+            const byTxt = escapeHtml(String(item.pushedBy));
+            const atTxt = item.pushedAt ? ' · ' + escapeHtml(String(item.pushedAt)) : '';
+            pushedByHtml = '<span class="card-pushed-tag" title="' + escapeHtml('强制推送标注') + '"' +
+                ' style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;' +
+                'background:#fef3c7;border:1px solid #f59e0b;color:#78350f;' +
+                'border-radius:10px;padding:1px 8px;font-size:11px;line-height:1.5;">' +
+                '📌 ' + byTxt + atTxt +
+                ' <button type="button" class="card-pushed-del" data-act="pushed-del"' +
+                ' title="' + escapeHtml('移除标注') + '"' +
+                ' style="background:transparent;border:0;color:#78350f;cursor:pointer;padding:0 0 0 4px;font-size:12px;line-height:1;">×</button>' +
+                '</span>';
+        }
+        info.innerHTML = '<div class="card-title">' + escapeHtml(title) + pushedByHtml + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
         const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move">📦</button>' : '';
@@ -3680,6 +3860,11 @@ function renderCurrentSection() {
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleCardAction(b.dataset.act, idx));
         el.appendChild(act); list.appendChild(el);
+        // §13:列表行内的 📌 删除按钮(在 info 里,不在 act 容器,需单独绑)
+        const pushedDel = info.querySelector('.card-pushed-del');
+        if (pushedDel) {
+            pushedDel.onclick = (e) => { e.stopPropagation(); handlePushedByDelete(idx); };
+        }
     });
 }
 function handleCardAction(act, idx) {
@@ -3689,6 +3874,20 @@ function handleCardAction(act, idx) {
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
     else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); markConfigDirty(); toast(t('toastDeletedUnsaved')); } }
+}
+
+// §13:移除 pushedBy/pushedAt 标注(2026-05-23)— 仅本地 store 清字段,等用户点 💾 保存才写回
+// 这与 config 的整体编辑流一致:用户改 store + 保存按钮统一推送
+function handlePushedByDelete(idx) {
+    const arr = store[currentSection];
+    const item = arr && arr[idx];
+    if (!item || !item.pushedBy) return;
+    if (!confirm(t('confirmRemovePushedBy') || '移除"由 ' + item.pushedBy + ' 推送"的标注?')) return;
+    delete item.pushedBy;
+    delete item.pushedAt;
+    renderCurrentSection();
+    markConfigDirty();
+    toast(t('toastPushedByRemoved') || '已移除标注,记得点 💾 保存');
 }
 
 /* ================================================================
@@ -4146,6 +4345,16 @@ function openCardModal(idx) {
     if (isEmail || isContact) hide('typeRow'); else { show('typeRow'); $('f_type').value = item.type || 'simple'; }
     if (isEmail) { $('f_desc').value = item.address || ''; $('f_descLabel').textContent = t('fldAddress'); } else $('f_descLabel').textContent = t('fldDesc');
     $('f_id').parentElement.style.display = (isEmail || isContact) ? 'none' : 'block';
+    // §13 强制推送标注(2026-05-23):pushedBy 存在 → 显示行 + 移除按钮
+    if (item.pushedBy) {
+        $('cardModalPushedByRow').classList.remove('hidden');
+        $('cardModalPushedByRow').style.display = '';
+        const at = item.pushedAt ? ' · ' + item.pushedAt : '';
+        $('cardModalPushedByText').textContent = item.pushedBy + at;
+    } else {
+        $('cardModalPushedByRow').classList.add('hidden');
+        $('cardModalPushedByRow').style.display = 'none';
+    }
     syncTypeFields(); show('cardModal');
 }
 function syncTypeFields() {
@@ -4229,6 +4438,13 @@ function saveCardFromModal() {
     }
 
     if (cmt && cmt.trim()) obj.comment = cmt;
+
+    // §13 标注(2026-05-23):保留 pushedBy/pushedAt(未通过 modal 内按钮移除时),
+    // editingCardDraft 是打开 modal 时 deepClone 的副本,删除/保留状态都在它身上
+    if (editingCardDraft && editingCardDraft.pushedBy) {
+        obj.pushedBy = editingCardDraft.pushedBy;
+        if (editingCardDraft.pushedAt) obj.pushedAt = editingCardDraft.pushedAt;
+    }
 
     const arr = store[currentSection];
     if (editingCardIndex >= 0) arr[editingCardIndex] = obj; else arr.push(obj);
@@ -5300,6 +5516,12 @@ async function openPushModal() {
     $('pushResultArea').style.display = 'none';
     $('pushResultArea').innerHTML = '';
     __pushCardIdx = 0;
+    // §13:每次打开重置 force checkbox 到关闭状态(避免上次勾选残留)
+    if ($('pushForceCheckbox')) {
+        $('pushForceCheckbox').checked = false;
+        const addBtn = $('btnPushAddCard');
+        if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.title = ''; }
+    }
     addPushCardRow();   // 默认 1 张空卡
     show('pushModal');
     await refreshPushUserList();
@@ -5328,6 +5550,7 @@ async function refreshPushUserList() {
 function addPushCardRow(prefillCard) {
     const idx = __pushCardIdx++;
     const cmtId = 'push_card_cmt_' + idx;
+    const iconId = 'push_card_icon_' + idx;
     const row = document.createElement('div');
     row.className = 'push-card-row';
     row.dataset.cardIdx = idx;
@@ -5348,7 +5571,10 @@ function addPushCardRow(prefillCard) {
         <input type="text" class="push-card-title" placeholder="${escapeHtml(t('pushCardTitleHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <input type="text" class="push-card-url" placeholder="${escapeHtml(t('pushCardUrlHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
         <input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
-        <input type="text" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
+        <div class="emoji-input-wrap" style="margin-bottom:4px;">
+            <input type="text" id="${iconId}" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;padding:4px 6px;">
+            <button type="button" class="emoji-picker-trigger" data-target="${iconId}" title="选择 emoji">😀</button>
+        </div>
         <details class="push-card-comment-wrap" style="margin-top:4px;">
             <summary style="cursor:pointer;font-size:12px;color:#666;user-select:none;">📝 ${escapeHtml(t('pushCardCommentLabel'))}</summary>
             <textarea id="${cmtId}" class="push-card-comment" data-i18n-placeholder="commentPh"
@@ -5631,6 +5857,17 @@ async function submitPush() {
     const cards = collectPushCards();
     if (cards.length === 0) { toast(t('toastPushNoCards')); return; }
 
+    // §13 强制推送(2026-05-23):勾选 → mode='force',加 confirm 二次确认 + 单卡校验
+    const isForce = !!($('pushForceCheckbox') && $('pushForceCheckbox').checked);
+    if (isForce) {
+        if (cards.length > 1) {
+            toast(t('toastPushForceSingleCard'));
+            return;
+        }
+        if (!confirm(t('confirmPushForce'))) return;
+    }
+    const mode = isForce ? 'force' : 'append';
+
     const btn = $('btnPushSubmit');
     const origText = btn.textContent;
     btn.disabled = true;
@@ -5638,7 +5875,7 @@ async function submitPush() {
     try {
         const r = await api('/api/push', {
             method: 'POST',
-            body: JSON.stringify({ target_users, section_key, cards, mode: 'append' })
+            body: JSON.stringify({ target_users, section_key, cards, mode })
         });
         if (!r.ok || !r.data || !r.data.ok) {
             toast((r.data && r.data.error) || t('toastPushFail'));
@@ -5673,6 +5910,228 @@ function renderPushResult(data) {
     }
     $('pushResultArea').innerHTML = html;
     $('pushResultArea').style.display = 'block';
+}
+
+/* ================================================================
+ * §12 收件箱(2026-05-23)
+ * ================================================================ */
+let __inboxMessages = [];
+let __inboxLastUnread = 0;
+let __inboxPollTimer = null;
+// 首次轮询完成 flag — 首次拉取时若 n>0 弹"登录提醒",之后才比 delta 弹"新到达"
+let __inboxFirstPollDone = false;
+
+async function refreshInboxBadge() {
+    if (currentMode !== MODE_ONLINE || !currentUser.username) return;
+    try {
+        const r = await api('/api/inbox?status=pending', { method: 'GET' });
+        if (r.ok && r.data && r.data.ok) {
+            const n = r.data.unreadCount || 0;
+            const badge = $('inboxBadge');
+            if (badge) {
+                if (n > 0) {
+                    badge.textContent = n > 99 ? '99+' : String(n);
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            // 2026-05-23 v2 修订:
+            // 首次拉取 + n > 0 → 弹"登录提醒"(用户登录后立即知道有几条待审)
+            // 后续拉取 + n 增加 → 弹"新到达"
+            // 这样既不漏新消息,也不重复骚扰
+            if (!__inboxFirstPollDone) {
+                if (n > 0) {
+                    // 首次拉取告知当前待审数
+                    showInboxArrivalToast(n, n, /*firstHint=*/true);
+                }
+            } else if (n > __inboxLastUnread) {
+                const delta = n - __inboxLastUnread;
+                showInboxArrivalToast(delta, n, /*firstHint=*/false);
+            }
+            __inboxLastUnread = n;
+            __inboxFirstPollDone = true;
+        }
+    } catch {}
+}
+
+// 首次提醒 vs 新到达,文案略不同
+function showInboxArrivalToast(delta, total, isFirstHint) {
+    if (typeof toast !== 'function') return;
+    let msg;
+    if (isFirstHint) {
+        msg = t('toastInboxInitialUnread').replace('{n}', String(total));
+    } else {
+        msg = t('toastInboxNewArrival').replace('{n}', String(delta)).replace('{total}', String(total));
+    }
+    toast(msg, 5000);
+    const btn = $('btnInbox');
+    if (btn) {
+        btn.style.transition = 'box-shadow 0.3s';
+        btn.style.boxShadow = '0 0 0 3px rgba(220,53,69,0.5)';
+        setTimeout(() => { btn.style.boxShadow = ''; }, 2200);
+    }
+}
+
+function startInboxPolling() {
+    if (__inboxPollTimer) return;
+    if (currentMode !== MODE_ONLINE || !currentUser.username) return;
+    refreshInboxBadge().catch(() => {});
+    // 2026-05-23 v2:60s → 20s,admin 推完用户更快看到
+    __inboxPollTimer = setInterval(() => {
+        refreshInboxBadge().catch(() => {});
+    }, 20000);
+}
+
+function stopInboxPolling() {
+    if (__inboxPollTimer) {
+        clearInterval(__inboxPollTimer);
+        __inboxPollTimer = null;
+    }
+    __inboxLastUnread = 0;
+    __inboxFirstPollDone = false;
+}
+
+async function openInboxModal() {
+    show('inboxModal');
+    await loadInbox();
+}
+
+async function loadInbox() {
+    const filter = document.querySelector('input[name="inboxFilter"]:checked');
+    const statusVal = filter ? filter.value : 'pending';
+    const area = $('inboxListArea');
+    area.innerHTML = `<div class="muted" style="text-align:center; padding:20px;">${escapeHtml(t('toastInboxLoading'))}</div>`;
+
+    const url = '/api/inbox' + (statusVal ? '?status=' + encodeURIComponent(statusVal) : '');
+    const r = await api(url, { method: 'GET' });
+    if (!r.ok || !r.data || !r.data.ok) {
+        area.innerHTML = `<div style="color:#c00; padding:12px;">${escapeHtml((r.data && r.data.error) || t('toastInboxFail'))}</div>`;
+        return;
+    }
+    __inboxMessages = r.data.messages || [];
+    renderInboxList();
+    // 顺手刷新 badge
+    refreshInboxBadge().catch(() => {});
+}
+
+function renderInboxList() {
+    const area = $('inboxListArea');
+    if (!__inboxMessages.length) {
+        area.innerHTML = `<div class="muted" style="text-align:center; padding:20px;">${escapeHtml(t('inboxEmpty'))}</div>`;
+        return;
+    }
+    const parts = __inboxMessages.map(m => renderInboxItem(m)).join('');
+    area.innerHTML = parts;
+    // 事件委托
+    area.querySelectorAll('[data-act]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const act = btn.dataset.act;
+            const msgId = btn.dataset.msgid;
+            handleInboxAction(act, msgId);
+        });
+    });
+    // Markdown 渲染留言(用现有 NoteModal.renderMarkdown)
+    area.querySelectorAll('.inbox-msg-md').forEach(el => {
+        const raw = el.dataset.md || '';
+        if (raw && window.NoteModal && typeof window.NoteModal.renderMarkdown === 'function') {
+            el.innerHTML = window.NoteModal.renderMarkdown(raw);
+        }
+    });
+}
+
+function renderInboxItem(msg) {
+    const statusBadge = msg.status === 'pending' ? t('inboxStatusPending')
+                      : msg.status === 'accepted' ? t('inboxStatusAccepted')
+                      : t('inboxStatusRejected');
+    const cardCount = (msg.cards || []).length;
+    const cardTitles = (msg.cards || []).map(c => c.title || '(无标题)').join('、');
+    const showActions = msg.status === 'pending';
+    const fromBadge = msg.fromRole === 'admin' ? '👑 admin' : '👤';
+    const sectionLabelMap = {
+        usbDriveData: '☁️ 在线U盘',
+        teachingData: '📚 授课资料',
+        onlineAIData: '🌐 网络资源',
+        videoData: '🎬 视频聚合',
+        emailData: '📧 邮箱',
+        contactData: '📱 联系方式',
+        custom_unclassified: '📥 未分类'
+    };
+    const sectionLabel = sectionLabelMap[msg.section_key] || msg.section_key || '(未指定)';
+
+    let html = '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px;background:#fff;">';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">`;
+    html += `<span style="font-size:13px;color:#666;">${fromBadge} <strong>${escapeHtml(msg.fromUsername || '?')}</strong> · ${escapeHtml(msg.sentAt || '')}</span>`;
+    html += `<span style="font-size:11px;padding:2px 8px;background:#f5f5f5;border-radius:10px;">${escapeHtml(statusBadge)}</span>`;
+    html += `</div>`;
+    html += `<div style="font-size:12px;color:#666;margin-bottom:4px;">${escapeHtml(t('inboxToSectionLabel'))}: <strong>${escapeHtml(sectionLabel)}</strong> · ${escapeHtml(t('inboxCardsLabel'))}: ${cardCount} 张 (${escapeHtml(cardTitles)})</div>`;
+    if (msg.message) {
+        html += `<div style="font-size:13px;color:#333;background:#fafafa;border-left:3px solid #ddd;padding:6px 10px;margin:6px 0;line-height:1.6;" class="inbox-msg-md" data-md="${escapeHtml(msg.message)}"></div>`;
+    }
+    if (msg.acceptedSection) {
+        html += `<div style="font-size:11px;color:#16a34a;">→ ${escapeHtml(t('inboxStatusAccepted'))}: ${escapeHtml(msg.acceptedSection)}</div>`;
+    }
+    if (msg.rejectReason) {
+        html += `<div style="font-size:11px;color:#c00;">→ ${escapeHtml(msg.rejectReason)}</div>`;
+    }
+    if (showActions) {
+        html += `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">`;
+        html += `<button type="button" class="btn btn-success btn-sm" data-act="accept-public" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptPublic'))}</button>`;
+        html += `<button type="button" class="btn btn-info btn-sm" data-act="accept-encrypted" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptEncrypted'))}</button>`;
+        html += `<button type="button" class="btn btn-ghost btn-sm" data-act="accept-discard" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptDiscard'))}</button>`;
+        html += `<button type="button" class="btn btn-danger btn-sm" data-act="reject" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxReject'))}</button>`;
+        html += `</div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
+async function handleInboxAction(act, msgId) {
+    if (act === 'accept-public') {
+        const msg = __inboxMessages.find(m => m.msgId === msgId);
+        const targetKey = (msg && msg.section_key) || 'custom_unclassified';
+        const r = await api('/api/inbox?action=accept-public', {
+            method: 'POST',
+            body: JSON.stringify({ msgId, target_section_key: targetKey })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxAccepted').replace('{section}', targetKey));
+        await loadInbox();
+        // 刷新主数据(因为 inbox 后端改了 user data.js)
+        if (typeof loadData_online === 'function') {
+            try { await loadData_online(); } catch {}
+        }
+    } else if (act === 'accept-encrypted') {
+        toast('⚠️ 接受到加密大类:暂未实现完整流程,请用"接受到公开"或下版本');
+        // TODO 步骤 4.5:接受到加密大类的完整链路
+    } else if (act === 'accept-discard') {
+        if (!confirm(t('confirmInboxDiscard'))) return;
+        const r = await api('/api/inbox?action=accept-discard', {
+            method: 'POST',
+            body: JSON.stringify({ msgId })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxDiscarded'));
+        await loadInbox();
+    } else if (act === 'reject') {
+        if (!confirm(t('confirmInboxReject'))) return;
+        const r = await api('/api/inbox?action=reject', {
+            method: 'POST',
+            body: JSON.stringify({ msgId })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxRejected'));
+        await loadInbox();
+    }
 }
 
 
@@ -6265,6 +6724,32 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnPushCancel').onclick = () => hide('pushModal');
     $('btnPushAddCard').onclick = addPushCardRow;
     $('btnPushSubmit').onclick = submitPush;
+    // §13 强制推送 checkbox 联动:勾选 → 禁用 ➕ 添加(单卡限制)
+    if ($('pushForceCheckbox')) {
+        $('pushForceCheckbox').addEventListener('change', () => {
+            const force = $('pushForceCheckbox').checked;
+            const addBtn = $('btnPushAddCard');
+            if (addBtn) {
+                addBtn.disabled = force;
+                addBtn.style.opacity = force ? '0.5' : '';
+                addBtn.title = force ? t('pushForceSingleCardTip') : '';
+            }
+            if (force) {
+                // 进入 force 模式 → 若已有多卡,toast 提示
+                const cnt = $('pushCardsContainer').querySelectorAll('.push-card-row').length;
+                if (cnt > 1) toast(t('toastPushForceSingleCard'));
+            }
+        });
+    }
+
+    // §12 收件箱事件
+    $('btnInbox').onclick = openInboxModal;
+    $('btnInboxClose').onclick = () => hide('inboxModal');
+    $('btnInboxRefresh').onclick = loadInbox;
+    document.querySelectorAll('input[name="inboxFilter"]').forEach(r => {
+        r.addEventListener('change', loadInbox);
+    });
+    $('btnInboxAcceptEncCancel').onclick = () => hide('inboxAcceptEncModal');
 
     // A2 后续增强 2:从我的卡片选 事件
     $('btnPushPickFromMine').onclick = openPickCardFromMineModal;
@@ -6371,6 +6856,16 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnCardCancel').onclick = () => hide('cardModal');
     $('btnCardSave').onclick = saveCardFromModal;
     $('f_type').onchange = syncTypeFields;
+    // §13:cardModal 内移除标注按钮(2026-05-23)
+    $('btnCardModalRemovePushedBy').onclick = () => {
+        if (!editingCardDraft || !editingCardDraft.pushedBy) return;
+        if (!confirm(t('confirmRemovePushedBy') || '移除"由 ' + editingCardDraft.pushedBy + ' 推送"的标注?')) return;
+        delete editingCardDraft.pushedBy;
+        delete editingCardDraft.pushedAt;
+        $('cardModalPushedByRow').classList.add('hidden');
+        $('cardModalPushedByRow').style.display = 'none';
+        toast(t('toastPushedByRemoved') || '已移除标注,记得点 💾 保存');
+    };
 
     document.querySelectorAll('#cardModal .icon-kind-tabs .k').forEach(ta => {
         ta.onclick = () => {

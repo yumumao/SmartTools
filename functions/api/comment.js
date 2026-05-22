@@ -58,8 +58,14 @@ export async function onRequestPost({ request, env }) {
     if (typeof comment !== 'string') {
         return jsonResponse({ ok: false, error: 'comment 必须是字符串' }, 400);
     }
-    if (path[path.length - 1] !== 'comment') {
-        return jsonResponse({ ok: false, error: 'path 必须以 comment 结尾' }, 400);
+    // 2026-05-23:允许 path 末尾是 'comment' 或 'pushedBy'(§13 标注删除)
+    const targetField = path[path.length - 1];
+    if (targetField !== 'comment' && targetField !== 'pushedBy') {
+        return jsonResponse({ ok: false, error: 'path 必须以 comment 或 pushedBy 结尾' }, 400);
+    }
+    // pushedBy 字段只允许"置空 = 删除",不能用此端点写入(防越权写)
+    if (targetField === 'pushedBy' && comment !== '') {
+        return jsonResponse({ ok: false, error: 'pushedBy 字段只允许置空(删除)' }, 400);
     }
 
     const old = await env.FAV_KV.get(KEYS.data);
@@ -191,7 +197,9 @@ function patchCommentInSource(src, path, comment) {
     }
 
     if (src[pos] !== '{') throw new Error('目标卡片对象起始不是 {');
-    return updateCommentInObject(src, pos, comment);
+    // path 末尾字段名(comment / pushedBy)透传给字段级 patcher
+    const fieldName = path[path.length - 1];
+    return updateCommentInObject(src, pos, comment, fieldName);
 }
 
 function isWs(c) { return c === ' ' || c === '\t' || c === '\n' || c === '\r'; }
@@ -362,8 +370,9 @@ function enterObjectKey(src, pos, key) {
     throw new Error('对象解析失败');
 }
 
-// 在 objStart 指向的对象里：替换/删除/插入 comment 字段
-function updateCommentInObject(src, objStart, newComment) {
+// 在 objStart 指向的对象里:替换/删除/插入指定字段(默认 'comment',2026-05-23 加 fieldName 参数支持 'pushedBy')
+function updateCommentInObject(src, objStart, newComment, fieldName) {
+    if (!fieldName) fieldName = 'comment';
     if (src[objStart] !== '{') throw new Error('期望 {');
     const n = src.length;
     let pos = objStart + 1;
@@ -382,7 +391,7 @@ function updateCommentInObject(src, objStart, newComment) {
         const valStart = pos;
         pos = skipValue(src, pos);
         const valEnd = pos;
-        if (keyInfo.name === 'comment') {
+        if (keyInfo.name === fieldName) {
             fieldStart = entryStart;
             fieldValStart = valStart;
             fieldValEnd = valEnd;
@@ -395,13 +404,12 @@ function updateCommentInObject(src, objStart, newComment) {
 
     if (fieldStart >= 0) {
         if (newComment === '') {
-            // 删除整个 comment 字段（含前后多余逗号）
+            // 删除整个字段(含前后多余逗号)
             let delEnd = fieldValEnd;
             const after = skipWs(src, delEnd);
             if (src[after] === ',') {
                 delEnd = after + 1;
             } else if (src[after] === '}') {
-                // 末尾字段：把前面的逗号一起删掉
                 let before = fieldStart - 1;
                 while (before >= 0 && isWs(src[before])) before--;
                 if (before >= 0 && src[before] === ',') {
@@ -409,28 +417,75 @@ function updateCommentInObject(src, objStart, newComment) {
                 }
                 delEnd = after;
             }
-            return src.substring(0, fieldStart) + src.substring(delEnd);
+            // 删 pushedBy 时,同步删紧邻的 pushedAt(若存在)— 配对清理,避免孤儿
+            let cleaned = src.substring(0, fieldStart) + src.substring(delEnd);
+            if (fieldName === 'pushedBy') {
+                // 重新定位被改后的对象起点(objStart 还有效,因为我们在它之后才编辑)
+                cleaned = removeFieldFromObject(cleaned, objStart, 'pushedAt');
+            }
+            return cleaned;
         }
         // 替换值
         return src.substring(0, fieldValStart) + JSON.stringify(newComment) + src.substring(fieldValEnd);
     }
 
-    // 对象中无 comment 字段
+    // 对象中无该字段
     if (newComment === '') return src;
-    const objEnd = skipBalanced(src, objStart, '{', '}'); // 指向 } 之后
+    const objEnd = skipBalanced(src, objStart, '{', '}');
     const braceIdx = objEnd - 1;
     const firstInside = skipWs(src, objStart + 1);
     let insertion;
     if (firstInside === braceIdx) {
-        insertion = ' comment: ' + JSON.stringify(newComment) + ' ';
+        insertion = ' ' + fieldName + ': ' + JSON.stringify(newComment) + ' ';
     } else {
         let beforeBrace = braceIdx - 1;
         while (beforeBrace > objStart && isWs(src[beforeBrace])) beforeBrace--;
         if (src[beforeBrace] === ',') {
-            insertion = ' comment: ' + JSON.stringify(newComment);
+            insertion = ' ' + fieldName + ': ' + JSON.stringify(newComment);
         } else {
-            insertion = ', comment: ' + JSON.stringify(newComment);
+            insertion = ', ' + fieldName + ': ' + JSON.stringify(newComment);
         }
     }
     return src.substring(0, braceIdx) + insertion + src.substring(braceIdx);
+}
+
+// 简化版:从对象里删除某字段(2026-05-23 用于配对清理 pushedAt)
+// 不会插入,字段不存在则原样返回
+function removeFieldFromObject(src, objStart, fieldName) {
+    if (src[objStart] !== '{') return src;
+    const n = src.length;
+    let pos = objStart + 1;
+    while (pos < n) {
+        pos = skipWs(src, pos);
+        if (src[pos] === '}') return src;
+        const entryStart = pos;
+        let keyInfo;
+        try { keyInfo = readKey(src, pos); } catch { return src; }
+        pos = keyInfo.end;
+        pos = skipWs(src, pos);
+        if (src[pos] !== ':') return src;
+        pos++;
+        pos = skipWs(src, pos);
+        pos = skipValue(src, pos);
+        const valEnd = pos;
+        if (keyInfo.name === fieldName) {
+            let delEnd = valEnd;
+            const after = skipWs(src, delEnd);
+            if (src[after] === ',') {
+                delEnd = after + 1;
+            } else if (src[after] === '}') {
+                let before = entryStart - 1;
+                while (before >= 0 && isWs(src[before])) before--;
+                if (before >= 0 && src[before] === ',') {
+                    return src.substring(0, before) + src.substring(after);
+                }
+                delEnd = after;
+            }
+            return src.substring(0, entryStart) + src.substring(delEnd);
+        }
+        pos = skipWs(src, pos);
+        if (src[pos] === ',') { pos++; continue; }
+        if (src[pos] === '}') break;
+    }
+    return src;
 }

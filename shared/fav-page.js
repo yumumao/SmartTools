@@ -190,6 +190,75 @@ window.__favEmailClick = function(event) {
 /** 有注释的卡片类名（用于右上角小红点） */
 function __noteCls(card) { return card && card.comment ? ' has-note' : ''; }
 
+/* §13 强制推送标注徽章(2026-05-23)
+ * card.pushedBy 存在 → 渲染右上角 📌 徽章,hover 显示推送人/时间,点击 → 调 /api/comment 删字段
+ * cid 用作 data-cid,onclick 走 __favPushedByDismiss
+ */
+/* §13 强制推送标注徽章(2026-05-23,v3 修订)
+ * 前端只显示 📌 图标,hover 显示完整推送人/时间;不响应点击(删除入口仅在 config 后台)
+ * 尺寸兼顾小屏:18×18,emoji 10px;title 用 \n 强制换行避免长字符串小屏被截
+ */
+function __renderPushedByBadge(card, cid) {
+    if (!card || !card.pushedBy) return '';
+    var by = String(card.pushedBy);
+    var at = card.pushedAt ? String(card.pushedAt) : '';
+    // 多行 tooltip:浏览器原生支持 title 中的 \n 换行,小屏不被裁
+    var title = '管理员推送 · ' + by + (at ? '\n' + at : '') + '\n(如需移除请到 Config 后台)';
+    // 内联样式:紧凑圆形,跨主题统一
+    var style = 'position:absolute;top:5px;right:5px;z-index:5;' +
+                'background:linear-gradient(135deg,#fef3c7,#fde68a);' +
+                'color:#78350f;border:1px solid #f59e0b;border-radius:50%;' +
+                'width:18px;height:18px;display:flex;align-items:center;justify-content:center;' +
+                'font-size:10px;line-height:1;' +
+                'pointer-events:auto;cursor:help;' +
+                'box-shadow:0 1px 2px rgba(0,0,0,0.1);';
+    return '<span class="fav-pushed-badge"' +
+           ' data-cid="' + cid + '"' +
+           ' style="' + style + '"' +
+           ' title="' + __attr(title) + '"' +
+           ' aria-label="' + __attr(title) + '"' +
+           ' onclick="event.stopPropagation();event.preventDefault();return false;"' +
+           '>📌</span>';
+}
+
+// 构建当前卡片在 data.js 中的 path(与 note-modal.metaToJsonPath 同算法)
+function __favBuildCardPath(entry) {
+    if (!entry || !entry.meta) return null;
+    var meta = entry.meta;
+    var sk = meta.sectionKey;
+    if (!sk) return null;
+    // 找 sections 数组里对应 key 的下标
+    var sectionIdx = -1;
+    if (typeof window.sections !== 'undefined' && Array.isArray(window.sections)) {
+        for (var i = 0; i < window.sections.length; i++) {
+            if (window.sections[i] && window.sections[i].key === sk) {
+                sectionIdx = i;
+                break;
+            }
+        }
+    }
+    if (sectionIdx < 0) {
+        // 老格式回退:builtin section key 是顶级变量
+        var builtinKeys = ['usbDriveData', 'teachingData', 'onlineAIData', 'videoData', 'emailData', 'contactData'];
+        if (builtinKeys.indexOf(sk) >= 0) {
+            if (meta.cardIndex == null && meta.emailIndex == null) return null;
+            var p = [sk, meta.emailIndex != null ? meta.emailIndex : meta.cardIndex];
+            if (meta.subIndex != null) p.push('subCards', meta.subIndex);
+            return p;
+        }
+        return null;
+    }
+    var path;
+    if (meta.emailIndex != null) {
+        path = ['sections', sectionIdx, 'cards', meta.emailIndex];
+        return path;
+    }
+    if (meta.cardIndex == null) return null;
+    path = ['sections', sectionIdx, 'cards', meta.cardIndex];
+    if (meta.subIndex != null) path.push('subCards', meta.subIndex);
+    return path;
+}
+
 /** 工具：把字符串安全地嵌入到 HTML 属性里（仅针对 url / descUrl 等） */
 function __attr(s) {
     return String(s == null ? '' : s)
@@ -369,6 +438,7 @@ function renderIcon(item, extraAttrs) {
 function generateCardHTML(card, meta) {
     var cid = __registerCard(card, meta || {});
     var noteCls = __noteCls(card);
+    var pushedBadge = __renderPushedByBadge(card, cid);
 
     // ─── 类型 1：简单卡片 ──────────────────────────────────────────────
     if (card.type === 'simple') {
@@ -378,12 +448,14 @@ function generateCardHTML(card, meta) {
             return '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" class="link-card' + noteCls + '" ' +
                    'data-card-id="' + cid + '" ' +
                    'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+                pushedBadge +
                 renderIcon(card) +
                 '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
                 '<p class="link-desc">' + __txt(card.desc || '') + '</p></a>';
         }
         return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
+            pushedBadge +
             renderIcon(card) +
             '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
             '<p class="link-desc">' + __txt(card.desc || '') + '</p></div>';
@@ -398,12 +470,14 @@ function generateCardHTML(card, meta) {
             return '<a href="' + __attr(__safeUrl(card.url)) + '" target="_blank" rel="noopener noreferrer" class="link-card' + noteCls + '" ' +
                    'data-card-id="' + cid + '" ' +
                    'onclick="return __favLinkClick(\'' + cid + '\', event)">' +
+                pushedBadge +
                 renderIcon(card) +
                 '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
                 '<p class="link-desc-clickable"' + descUrlAttr + '>' + __txt(card.descClickable) + '</p></a>';
         }
         return '<div class="link-card' + noteCls + '" data-card-id="' + cid + '" ' +
                'onclick="__favCardOpen(\'' + cid + '\')">' +
+            pushedBadge +
             renderIcon(card) +
             '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
             '<p class="link-desc-clickable"' + descUrlAttr + '>' + __txt(card.descClickable) + '</p></div>';
@@ -439,6 +513,7 @@ function generateCardHTML(card, meta) {
                    'class="link-card link-card-with-expand' + noteCls + '" ' +
                    'data-card-id="' + cid + '" ' +
                    'onclick="handleCardClick(event, \'' + cid + '\', \'' + subcardsId + '\')">' +
+                pushedBadge +
                 renderIcon(card) +
                 '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
                 descHTML +
@@ -449,6 +524,7 @@ function generateCardHTML(card, meta) {
             '<div class="link-card link-card-with-expand' + noteCls + '" ' +
                  'data-card-id="' + cid + '" ' +
                  'onclick="handleCardClick(event, \'' + cid + '\', \'' + subcardsId + '\')">' +
+            pushedBadge +
             renderIcon(card) +
             '<h3 class="link-title">' + __txt(card.title) + '</h3>' +
             descHTML +

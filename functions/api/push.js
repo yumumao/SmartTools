@@ -1,25 +1,31 @@
-// A2-1 推送卡片端点(2026-05-19)
+// A2-1 推送卡片端点(2026-05-19,2026-05-23 §12 改造)
 //
 // POST /api/push  (仅 admin)
 //   body: {
 //     target_users: ['alice', 'bob'],    // 必须手选(D6=A,不接受 __all__)
-//     section_key:  'videoData' | null,  // null = 推到 custom_unclassified
+//     section_key:  'videoData' | null,  // null = 推到 custom_unclassified;接收方接受时可改
 //     cards: [{type, title, url, ...}],  // 字段白名单清洗
-//     mode: 'append'                     // 仅 append(D4=A)
+//     message:      'Markdown 留言',     // 可选,≤500 字符;走 markdown-sanitize
+//     mode:         'append' | 'force'   // append(默认):写对方 inbox 待审 / force(§13):直推 data.js
 //   }
 //
-// 流程:
+// 流程(append 默认 = inbox 待审):
 //   1. admin 鉴权 + 字段白名单清洗 + 合法性校验
 //   2. 对每个 target_user:
+//      - 验证用户存在 + 未禁用
+//      - 写 inbox:<uid>:<msgId> 单条 + inbox-list:<uid> 索引(unreadCount++)
+//   3. 返回 {ok, successes, failures}
+//
+// 流程(force = §13 强制推送,单卡限制):
+//   1. 加密大类禁止 force
+//   2. 对每个 target_user:
 //      - 读 user:<uid>:data_js(若 null 用新格式骨架)
-//      - 找 sectionKey 对应的 section:
-//        * 加密 section(encrypted:true)→ 跳过 + 记 skipped
-//        * cards 数组末尾插入新卡片
+//      - 找 sectionKey 对应的 section:加密 → 跳过 + 记 skipped
+//      - cards 数组末尾插入新卡片
 //      - 备份旧 data 到 user:<uid>:backup:<ts>
 //      - 写新 data + 标 hasData=true
-//   3. 返回 {ok, successes, failures, skipped}
 //
-// 支持的数据格式:
+// 支持的数据格式(force 路径):
 //   - 新格式:var sections = [{key, cards}, ...]
 //   - 老格式:var <sectionKey> = [...] (内置 6 个) + var customSections = [...]
 //   - null/空(EMPTY_STUB):自动生成新格式骨架
@@ -28,8 +34,10 @@ import {
     requireAdmin,
     jsonResponse,
     isValidUsername,
-    getUsername
+    getUsername,
+    getPayload
 } from '../_shared/auth.js';
+import { trySanitizeMarkdown } from '../_shared/markdown-sanitize.js';
 
 const USERS_KEY = 'users';
 const MAX_BACKUPS = 100;
@@ -39,11 +47,19 @@ const BUILTIN_KEYS = ['usbDriveData', 'teachingData', 'onlineAIData', 'videoData
 const UNCLASSIFIED_KEY = 'custom_unclassified';
 const ALLOWED_KEYS_FOR_PUSH = [...BUILTIN_KEYS, UNCLASSIFIED_KEY];
 
+// inbox(§12)KV 键
+const INBOX_PREFIX = 'inbox:';
+const INBOX_LIST_PREFIX = 'inbox-list:';
+const MAX_MESSAGE_LEN = 500; // 推送留言上限(§5.2 / §12)
+function inboxKey(uid, msgId) { return INBOX_PREFIX + uid + ':' + msgId; }
+function inboxListKey(uid)    { return INBOX_LIST_PREFIX + uid; }
+
 // 卡片字段白名单(防 admin 推脏字段污染用户数据)
 const ALLOWED_CARD_FIELDS = new Set([
     'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal',
     'descClickable', 'descUrl', 'content', 'address', 'mailto', 'note',
-    'comment', 'id', 'subCards'    // subCards 给 expandable 卡(从已有卡片选时会带过来)
+    'comment', 'id', 'subCards',    // subCards 给 expandable 卡(从已有卡片选时会带过来)
+    'pushedBy', 'pushedAt'          // §13 强制推送:管理员放置标注(2026-05-23)
 ]);
 
 const MAX_FIELD_LEN = 8000;
@@ -101,7 +117,7 @@ export async function onRequestPost({ request, env }) {
     try { body = await request.json(); }
     catch { return jsonResponse({ ok: false, error: '请求格式错误' }, 400); }
 
-    const { target_users, section_key, cards, mode = 'append' } = body || {};
+    const { target_users, section_key, cards, message: rawMessage, mode = 'append' } = body || {};
 
     if (!Array.isArray(target_users) || target_users.length === 0) {
         return jsonResponse({ ok: false, error: 'target_users 必须是非空数组' }, 400);
@@ -124,8 +140,26 @@ export async function onRequestPost({ request, env }) {
     if (cards.length > MAX_CARDS_PER_PUSH) {
         return jsonResponse({ ok: false, error: 'cards 数量上限 ' + MAX_CARDS_PER_PUSH }, 400);
     }
-    if (mode !== 'append') {
-        return jsonResponse({ ok: false, error: '当前只支持 mode=append (D4=A)' }, 400);
+    if (mode !== 'append' && mode !== 'force') {
+        return jsonResponse({ ok: false, error: '不支持的 mode: ' + mode }, 400);
+    }
+    // §13 强制推送:单卡限制(每次只能 1 张)
+    if (mode === 'force' && cards.length > 1) {
+        return jsonResponse({ ok: false, error: '强制推送一次只能 1 张卡' }, 400);
+    }
+    // §13 强制推送:不能推到加密大类(隐私边界)
+    // 注:单纯 section_key 命中 BUILTIN_KEYS 不能直接判断"加密",真正加密标在 section.encrypted
+    // 这里仅做 section_key 校验;运行时 force 路径会再次扫描 section.encrypted 兜底
+    // (不做提前拦截,因为 admin 不知道 user 的哪个 section 是加密)
+
+    // 留言 sanitize(可选字段;两条路径都用)
+    let cleanMessage = '';
+    if (rawMessage != null && rawMessage !== '') {
+        const sanRes = trySanitizeMarkdown(String(rawMessage), { maxLength: MAX_MESSAGE_LEN });
+        if (!sanRes.ok) {
+            return jsonResponse({ ok: false, error: '留言不合法: ' + sanRes.error, code: sanRes.code }, 400);
+        }
+        cleanMessage = sanRes.text;
     }
 
     const cleanCards = cards.map(c => {
@@ -135,9 +169,78 @@ export async function onRequestPost({ request, env }) {
     });
 
     const pushedBy = (await getUsername(request, env)) || '__unknown__';
+    const callerPayload = await getPayload(request, env);
+    const callerRole = (callerPayload && callerPayload.role) || 'admin';
+    const callerUid = (callerPayload && (callerPayload.uid != null ? callerPayload.uid : callerPayload.u)) || pushedBy;
 
     const usersRaw = await env.FAV_KV.get(USERS_KEY);
     const users = usersRaw ? JSON.parse(usersRaw) : {};
+
+    // ─────────────────────────────────────────────────────────────
+    // 分支 A:append(默认)— 写对方 inbox 待审
+    // ─────────────────────────────────────────────────────────────
+    if (mode === 'append') {
+        const successes = [];
+        const failures = [];
+
+        for (const target of target_users) {
+            if (!users[target]) {
+                failures.push({ user: target, reason: '用户不存在' });
+                continue;
+            }
+            if (users[target].status === 'disabled') {
+                failures.push({ user: target, reason: '用户已禁用' });
+                continue;
+            }
+            try {
+                const msgId = generateMsgId();
+                const message = {
+                    msgId,
+                    fromUid: callerUid,
+                    fromUsername: pushedBy,
+                    fromRole: callerRole,
+                    sentAt: timestamp(),
+                    section_key: targetSecKey,
+                    cards: cleanCards,
+                    message: cleanMessage,
+                    status: 'pending'
+                };
+                // 先写消息体
+                await env.FAV_KV.put(inboxKey(target, msgId), JSON.stringify(message));
+                // 后写索引(失败也不留孤儿:索引没加,GET 看不到那条 — 对用户透明)
+                const list = await readInboxList(env, target);
+                list.ids.unshift(msgId); // 时间倒序
+                list.unreadCount = (list.unreadCount || 0) + 1;
+                await env.FAV_KV.put(inboxListKey(target), JSON.stringify(list));
+                successes.push({ user: target, msgId, cardsInserted: cleanCards.length });
+            } catch (e) {
+                const msg = (e && (e.message || e.name)) || String(e);
+                console.warn('inbox push failed for', target, msg);
+                failures.push({ user: target, reason: msg });
+            }
+        }
+
+        return jsonResponse({
+            ok: true,
+            mode: 'inbox',
+            section: targetSecKey,
+            cardsCount: cleanCards.length,
+            pushedBy,
+            successes,
+            failures,
+            skipped: []
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // 分支 B:force(§13)— 直推 data.js,绕过 inbox
+    // ─────────────────────────────────────────────────────────────
+    // §13 标注(2026-05-23):force 推送的卡注入 pushedBy + pushedAt,前端渲染右上角 📌 徽章
+    const forceCards = cleanCards.map(c => ({
+        ...c,
+        pushedBy: pushedBy,
+        pushedAt: timestamp()
+    }));
 
     const successes = [];
     const failures = [];
@@ -164,8 +267,9 @@ export async function onRequestPost({ request, env }) {
                 isFirstWrite = true;
             }
 
-            const result = appendCardsToSection(userData, targetSecKey, cleanCards);
+            const result = appendCardsToSection(userData, targetSecKey, forceCards);
             if (result.skipped) {
+                // 加密大类被跳过 — force 模式下视为失败(强制不能穿透加密)
                 skipped.push({ user: target, reason: result.skippedReason });
                 continue;
             }
@@ -198,7 +302,7 @@ export async function onRequestPost({ request, env }) {
             });
         } catch (e) {
             const msg = (e && (e.message || e.name)) || String(e);
-            console.warn('push failed for', target, msg);
+            console.warn('force push failed for', target, msg);
             failures.push({ user: target, reason: msg });
         }
     }
@@ -210,6 +314,7 @@ export async function onRequestPost({ request, env }) {
 
     return jsonResponse({
         ok: true,
+        mode: 'force',
         section: targetSecKey,
         cardsCount: cleanCards.length,
         pushedBy,
@@ -217,6 +322,26 @@ export async function onRequestPost({ request, env }) {
         failures,
         skipped
     });
+}
+
+// 生成 inbox msgId:`<timestampMs>_<rand6>`,可字典序排序 = 时间序
+function generateMsgId() {
+    return Date.now().toString() + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+// 读 inbox-list 索引(同 inbox.js,本文件复用免循环引)
+async function readInboxList(env, uid) {
+    if (!env.FAV_KV) return { ids: [], unreadCount: 0 };
+    try {
+        const raw = await env.FAV_KV.get(inboxListKey(uid));
+        if (!raw) return { ids: [], unreadCount: 0 };
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.ids)) return { ids: [], unreadCount: 0 };
+        if (typeof obj.unreadCount !== 'number') obj.unreadCount = 0;
+        return obj;
+    } catch {
+        return { ids: [], unreadCount: 0 };
+    }
 }
 
 /* ==========================================================
