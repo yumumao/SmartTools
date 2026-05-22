@@ -179,3 +179,47 @@ export async function deleteSlugIndex(env, slug) {
         await env.FAV_KV.delete('slug:' + slug);
     } catch {}
 }
+
+// ─────────────────────────────────────────────────────────────
+// A1.5 增强 D(2026-05-23):slug 改名后,老 slug → 新 slug 的 30 天重定向。
+// KV:slug-old:<oldSlug> → <newSlug>(value 是新 slug 字符串,30 天 TTL)
+// 用途:用户改了公开链接后,旧分享出去的 /@old 仍能找到内容,前端显示 banner 告知改名。
+// 写入路径:public-slug POST,oldSlug && oldSlug !== newSlug && enabled 时触发。
+// 查询路径:data.js 在常规 slug 查找失败后,尝试一次 slug-old:<x> 兜底。
+// ─────────────────────────────────────────────────────────────
+const OLD_SLUG_TTL_SECONDS = 30 * 24 * 3600; // 30 天
+
+export async function writeOldSlugRedirect(env, oldSlug, newSlug) {
+    if (!env || !env.FAV_KV) return;
+    if (!oldSlug || !newSlug) return;
+    if (oldSlug === newSlug) return;
+    // 用 admin 规则校验(宽松)— 老 slug 可能是任意历史长度
+    if (!isValidSlug(oldSlug)) return;
+    if (!isValidSlug(newSlug)) return;
+    try {
+        await env.FAV_KV.put('slug-old:' + oldSlug, newSlug, {
+            expirationTtl: OLD_SLUG_TTL_SECONDS
+        });
+    } catch {}
+}
+
+// 查询老 slug → 新 slug。返回新 slug 字符串,不存在或非法返回 null。
+export async function lookupOldSlugRedirect(env, oldSlug) {
+    if (!isValidSlug(oldSlug)) return null;
+    if (!env || !env.FAV_KV) return null;
+    try {
+        const v = await env.FAV_KV.get('slug-old:' + oldSlug);
+        return v || null;
+    } catch {
+        return null;
+    }
+}
+
+// 删除老 slug 重定向(用于:① 新 slug 改回老 slug ② 用户被强删时清理)
+export async function deleteOldSlugRedirect(env, oldSlug) {
+    if (!oldSlug || typeof oldSlug !== 'string') return;
+    if (!env || !env.FAV_KV) return;
+    try {
+        await env.FAV_KV.delete('slug-old:' + oldSlug);
+    } catch {}
+}

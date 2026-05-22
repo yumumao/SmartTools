@@ -1952,10 +1952,52 @@ if (location.protocol === 'file:') {
 // 所以这段判断必须放下一个 script 块,确保执行时 window.__publicSlugInfo 已就绪。
 // 防御:除非明确 hit:true,否则一律撤销 data-public-mode(让 UI 回归正常 admin 视图)
 // 覆盖场景:slug 失败 / 限速 429 / 网络异常 / __publicSlugInfo 未注入
+//
+// A1.5 增强 D(2026-05-23):info.oldSlug 存在 → 顶部插入"链接改名"banner,仅提示不动 URL
 (function () {
     var info = window.__publicSlugInfo;
     if (!info || info.hit !== true) {
         document.documentElement.removeAttribute('data-public-mode');
+        return;
+    }
+    if (!info.oldSlug || info.oldSlug === info.slug) return;
+
+    var lang = (document.documentElement.lang || navigator.language || 'zh').toLowerCase();
+    var isZh = lang.indexOf('en') !== 0;
+    var msg = isZh
+        ? '您访问的旧链接 /@' + info.oldSlug + ' 已改名为 /@' + info.slug + ',数据正常显示。'
+        : 'The old link /@' + info.oldSlug + ' has been renamed to /@' + info.slug + '. Content loaded normally.';
+    var closeLabel = isZh ? '我知道了' : 'Got it';
+
+    function showBanner() {
+        if (document.getElementById('__renameBanner')) return;
+        var b = document.createElement('div');
+        b.id = '__renameBanner';
+        b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+            'background:linear-gradient(90deg,#fff7e6 0%,#fffaf0 100%);' +
+            'color:#7a5200;border-bottom:1px solid #f0c674;' +
+            'padding:10px 16px;font-size:14px;line-height:1.5;' +
+            'display:flex;align-items:center;justify-content:center;gap:16px;' +
+            'box-shadow:0 2px 6px rgba(0,0,0,0.08);' +
+            'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+        var text = document.createElement('span');
+        text.textContent = '🔗 ' + msg;
+        text.style.cssText = 'flex:1;text-align:center;max-width:900px;';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = closeLabel;
+        btn.style.cssText = 'background:#f0c674;color:#5c3d00;border:0;border-radius:4px;' +
+            'padding:5px 14px;cursor:pointer;font-size:13px;font-weight:500;flex-shrink:0;';
+        btn.onclick = function () { if (b.parentNode) b.parentNode.removeChild(b); };
+        b.appendChild(text);
+        b.appendChild(btn);
+        document.body.appendChild(b);
+    }
+
+    if (document.body) {
+        showBanner();
+    } else {
+        document.addEventListener('DOMContentLoaded', showBanner, { once: true });
     }
 })();
 </script>

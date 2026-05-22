@@ -20,7 +20,7 @@
 //   - 响应头 X-Public-Slug 标识当前模式（前端用它判断公开访问态）
 
 import { jsonResponse, getPayload } from '../_shared/auth.js';
-import { isValidSlug, getUserBySlug } from '../_shared/slug.js';
+import { isValidSlug, getUserBySlug, lookupOldSlugRedirect } from '../_shared/slug.js';
 
 const OLD_DATA_KEY    = 'data_js';
 const OLD_SOURCE_KEY  = 'data_source';
@@ -99,9 +99,10 @@ export async function onRequestGet({ request, env }) {
     const slugParam = url.searchParams.get('u');
 
     // ───── A1.5 公开访问 slug 解析(优先于 cookie)─────
-    let publicSlug = null;   // 命中的 slug
+    let publicSlug = null;   // 命中的 slug(改名场景下是 newSlug)
     let publicUid  = null;   // 命中的 uid
     let publicRole = null;   // 命中用户的角色(admin/user)— 决定 namespace
+    let publicOldSlug = null; // A1.5 增强 D:命中老 slug 重定向时,记录原始请求 slug
     let slugIp     = null;
 
     if (slugParam) {
@@ -114,9 +115,22 @@ export async function onRequestGet({ request, env }) {
                 publicUid  = found.uid;
                 publicRole = found.role || 'user';
                 await clearSlugFailure(env, slugIp);
+            } else {
+                // A1.5 增强 D:常规查找失败 → 试老 slug 重定向(30 天 TTL 内)
+                const newSlug = await lookupOldSlugRedirect(env, slugParam);
+                if (newSlug && newSlug !== slugParam) {
+                    const redirected = await getUserBySlug(env, newSlug);
+                    if (redirected) {
+                        publicSlug = newSlug;
+                        publicUid  = redirected.uid;
+                        publicRole = redirected.role || 'user';
+                        publicOldSlug = slugParam;  // 标记给前端显示 banner
+                        await clearSlugFailure(env, slugIp);
+                    }
+                }
             }
         }
-        // slug 未命中(无效格式 / 不存在 / 已禁用)→ 检查 lockout + 累加失败计数
+        // slug 未命中(无效格式 / 不存在 / 已禁用 / 老 slug 重定向也失败)→ 检查 lockout + 累加失败计数
         if (!publicSlug) {
             const lock = await readSlugLockout(env, slugIp);
             const nowSec = Math.floor(Date.now() / 1000);
@@ -227,11 +241,13 @@ export async function onRequestGet({ request, env }) {
 
     // A1.5 增强 A:在响应内容首行前置 window.__publicSlugInfo
     // 前端 indexN.html 据此撤销/保留 data-public-mode(slug 失败时显示正常 admin UI)
+    // A1.5 增强 D(2026-05-23):命中老 slug 重定向时,info.oldSlug 携带原始请求 slug,前端显示改名 banner
     let publicSlugInfoLine = '';
     if (slugParam) {
         // 只在请求带 ?u= 时才注入,正常加载不打扰
         const info = isPublicSlugMode
-            ? { hit: true, slug: publicSlug, uid: publicUid }
+            ? { hit: true, slug: publicSlug, uid: publicUid,
+                oldSlug: publicOldSlug || null }
             : { hit: false };
         publicSlugInfoLine = 'window.__publicSlugInfo = ' + JSON.stringify(info) + ';\n';
     }
@@ -245,7 +261,8 @@ export async function onRequestGet({ request, env }) {
             namespace: ns,
             uid: uid,
             publicSlug: isPublicSlugMode ? publicSlug : null,
-            publicSlugHit: isPublicSlugMode
+            publicSlugHit: isPublicSlugMode,
+            publicOldSlug: publicOldSlug || null
         });
     }
 
@@ -268,6 +285,9 @@ export async function onRequestGet({ request, env }) {
     };
     if (isPublicSlugMode) {
         headers['X-Public-Slug'] = publicSlug;
+        if (publicOldSlug) {
+            headers['X-Public-Old-Slug'] = publicOldSlug;
+        }
     }
 
     return new Response(finalContent, { headers });

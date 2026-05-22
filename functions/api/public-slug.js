@@ -32,7 +32,9 @@ import {
     isReservedSlug,
     lookupSlugUid,
     writeSlugIndex,
-    deleteSlugIndex
+    deleteSlugIndex,
+    writeOldSlugRedirect,
+    deleteOldSlugRedirect
 } from '../_shared/slug.js';
 
 const USERS_KEY = 'users';
@@ -162,8 +164,16 @@ export async function onRequestPost({ request, env }) {
         // 最后释放旧反向索引(只有在 slug 改名 或 enabled=false 时)
         if (oldSlug && oldSlug !== newSlug) {
             await deleteSlugIndex(env, oldSlug);
+            // A1.5 增强 D:slug 改名 且新 slug 仍启用 → 写老 slug → 新 slug 重定向(30 天 TTL)
+            // 让旧分享链接 /@oldSlug 仍能找到内容,前端显示改名 banner。
+            if (enabled && newSlug) {
+                await writeOldSlugRedirect(env, oldSlug, newSlug);
+            }
+            // 若新 slug 恰好等于某个历史老 slug(用户改回去了)→ 清掉那条重定向,避免无限重定向
+            await deleteOldSlugRedirect(env, newSlug);
         } else if (!enabled && oldSlug) {
             await deleteSlugIndex(env, oldSlug);
+            // 关闭公开访问时不写 old-redirect — 没有可重定向到的新 slug
         }
 
         return jsonResponse({
