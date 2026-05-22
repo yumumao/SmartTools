@@ -2252,20 +2252,95 @@ function mdTbImage(ta) {
     const urlStart = s + alt.length + 4;
     ta.setSelectionRange(urlStart, urlStart + url.length);
     ta.dispatchEvent(new Event('input', { bubbles: true }));
-    // 2026-05-23:首次插入图片标记时弹一次图床提示(per-session,避免每次都打扰)
-    __mdShowImgHostHintOnce();
+    // 2026-05-23 v3:点 🖼 后在 textarea 上方插入常驻图床提示条(同一编辑器只插一次)
+    __mdInsertImgHostHintBar(ta);
 }
 
-// 图床提示 — 每个 session 弹一次(用 sessionStorage 控制)。
-// 卡片注释、子卡注释、推送备注 共用同一套工具栏 → 共用此提示。
-function __mdShowImgHostHintOnce() {
+// 在 textarea 上方插入常驻图床提示条。重复点 🖼 不会重复插入。
+// 用户点 ✕ 关闭后,本 textarea 加 dataset.imgHostHintClosed,后续也不重新弹(除非刷新页面)。
+function __mdInsertImgHostHintBar(ta) {
+    if (!ta) return;
+    if (ta.dataset && ta.dataset.imgHostHintClosed === '1') return;
+    // 找到 .md-editor-wrap(attachMdToolbar 创建的包装)
+    const wrap = ta.closest('.md-editor-wrap') || ta.parentNode;
+    if (!wrap) return;
+    if (wrap.querySelector('.md-img-host-hint')) return; // 已存在不重复
+
+    const bar = document.createElement('div');
+    bar.className = 'md-img-host-hint';
+    bar.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;' +
+        'background:#fff7e6;border:1px solid #f0c674;border-radius:4px;' +
+        'padding:6px 10px;margin:4px 0;font-size:12px;color:#7a5200;line-height:1.6;';
+
+    const label = document.createElement('span');
+    label.textContent = t('mdImgHostHintText');
+    label.style.cssText = 'flex-shrink:0;';
+    bar.appendChild(label);
+
+    // imgchr.com / s.ee 各一组:链接(可点) + 复制按钮(复制 URL 到剪贴板)
+    [
+        { name: 'imgchr.com', url: 'https://imgchr.com/' },
+        { name: 's.ee',       url: 'https://s.ee/' }
+    ].forEach(it => {
+        const grp = document.createElement('span');
+        grp.style.cssText = 'display:inline-flex;align-items:center;gap:4px;';
+        const a = document.createElement('a');
+        a.href = it.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = it.name;
+        a.style.cssText = 'color:#7a5200;text-decoration:underline;';
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.textContent = '📋';
+        copyBtn.title = t('btnCopy') || '复制';
+        copyBtn.style.cssText = 'background:#f0c674;color:#5c3d00;border:0;border-radius:3px;' +
+            'padding:1px 6px;cursor:pointer;font-size:11px;line-height:1.4;';
+        copyBtn.onclick = function () {
+            __mdCopyText(it.url);
+            const old = copyBtn.textContent;
+            copyBtn.textContent = '✓';
+            setTimeout(() => { copyBtn.textContent = old; }, 1200);
+        };
+        grp.appendChild(a);
+        grp.appendChild(copyBtn);
+        bar.appendChild(grp);
+    });
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '✕';
+    close.title = t('btnClose') || '关闭';
+    close.style.cssText = 'margin-left:auto;background:transparent;color:#7a5200;border:0;' +
+        'cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;';
+    close.onclick = function () {
+        if (ta.dataset) ta.dataset.imgHostHintClosed = '1';
+        if (bar.parentNode) bar.parentNode.removeChild(bar);
+    };
+    bar.appendChild(close);
+
+    // 插到 textarea 前面(toolbar 之后)
+    wrap.insertBefore(bar, ta);
+}
+
+// 共用剪贴板复制(优先 navigator.clipboard,降级 execCommand)
+function __mdCopyText(text) {
     try {
-        if (sessionStorage.getItem('__mdImgHostHintShown') === '1') return;
-        sessionStorage.setItem('__mdImgHostHintShown', '1');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text);
+            return;
+        }
     } catch {}
-    if (typeof toast === 'function') {
-        toast(t('mdImgHostHintText') + '  imgchr.com  ·  s.ee', 6000);
-    }
+    try {
+        const t = document.createElement('textarea');
+        t.value = text;
+        t.style.position = 'fixed';
+        t.style.top = '-9999px';
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand('copy');
+        t.remove();
+    } catch {}
 }
 function mdTbHr(ta) {
     const s = ta.selectionStart, v = ta.value;
