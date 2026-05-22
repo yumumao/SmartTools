@@ -171,6 +171,17 @@
     <!-- ★ 跳转逻辑：带上 hash -->
 <script>
 (function() {
+    // 2026-05-22 客户端兜底:Pages 不识别 functions/@xxx.js,_redirects 的 /@:slug 200 rewrite
+    // 实测也未生效(/@alice 命中 SPA fallback 落到 index.html)。这里识别 /@<slug> 路径,
+    // 立即 location.replace 到 /u/<slug>,走 functions/u/[[slug]].js 老路由。URL 栏最终显示 /u/<slug>。
+    try {
+        var atMatch = (window.location.pathname || '').match(/^\/@([a-z0-9][a-z0-9_\-]{0,31})\/?$/i);
+        if (atMatch) {
+            window.location.replace('/u/' + atMatch[1].toLowerCase() + (window.location.search || '') + (window.location.hash || ''));
+            return;
+        }
+    } catch(e) {}
+
     var themeToPage = {
         'nebula': 'index1.html',
         'notion': 'index2.html',

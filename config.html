@@ -767,12 +767,14 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="form-row">
             <label data-i18n="slugFieldUrl">完整链接</label>
             <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
-                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlShortLabel">链接</span>
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlShortLabel">链接1</span>
                 <input type="text" id="slugModalFullUrl" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
                 <button class="btn btn-ghost btn-sm" id="btnSlugCopy" data-i18n="btnSlugCopy">📋 复制</button>
             </div>
-            <div id="slugModalAltHint" class="muted" style="font-size:11px; margin-top:4px; line-height:1.5;" data-i18n="slugAltHint">
-                兼容形式(老链接仍可用):<span id="slugModalAltUrl" style="font-family:monospace;"></span>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <span style="font-size:11px; color:#666; min-width:60px;" data-i18n="slugUrlQueryLabel">链接2</span>
+                <input type="text" id="slugModalFullUrl2" readonly style="flex:1; background:#f5f5f7; font-size:12px;">
+                <button class="btn btn-ghost btn-sm" id="btnSlugCopy2" data-i18n="btnSlugCopy">📋 复制</button>
             </div>
         </div>
         <div class="modal-footer">
@@ -1308,7 +1310,7 @@ const I18N = {
         slugRuleHintUser: '3-32 字符,首字符字母或数字,允许 a-z 0-9 _ -;推荐 ≥8 字符防扫描',
         slugFieldUrl: '完整链接',
         btnSlugCopy: '📋 复制',
-        slugUrlShortLabel: '链接',
+        slugUrlShortLabel: '链接1',
         slugUrlQueryLabel: '链接2',
         slugAltHint: '兼容形式(老链接仍可用):',
         btnSlugDisable: '禁用并清除',
@@ -1719,7 +1721,7 @@ const I18N = {
         slugRuleHintUser: '3-32 chars, first char must be letter/digit, allow a-z 0-9 _ -; recommended ≥8 chars to deter enumeration',
         slugFieldUrl: 'Full URL',
         btnSlugCopy: '📋 Copy',
-        slugUrlShortLabel: 'Link',
+        slugUrlShortLabel: 'Link 1',
         slugUrlQueryLabel: 'Link 2',
         slugAltHint: 'Legacy form (still works):',
         btnSlugDisable: 'Disable & Clear',
@@ -5063,18 +5065,15 @@ async function openSlugModal(targetUsername) {
 
 function updateSlugPreview(slug) {
     const out1 = $('slugModalFullUrl');
-    const altUrlSpan = $('slugModalAltUrl');
-    const altHintDiv = $('slugModalAltHint');
+    const out2 = $('slugModalFullUrl2');
     if (!slug) {
         if (out1) out1.value = '';
-        if (altUrlSpan) altUrlSpan.textContent = '';
-        if (altHintDiv) altHintDiv.style.display = 'none';
+        if (out2) out2.value = '';
         return;
     }
-    // 2026-05-22:主推 /@<slug> 短形式;/u/<slug> 作为兼容形式显示
+    // 链接1 = /@<slug>(主推短形式),链接2 = /u/<slug>(永久兼容老形式)
     if (out1) out1.value = location.origin + '/@' + encodeURIComponent(slug);
-    if (altUrlSpan) altUrlSpan.textContent = location.origin + '/u/' + slug;
-    if (altHintDiv) altHintDiv.style.display = '';
+    if (out2) out2.value = location.origin + '/u/' + slug;
 }
 
 function copyTextToClipboard(text, successToast) {
@@ -5380,23 +5379,18 @@ function applyPickedCards() {
         crossSecToast = t('toastPickCardCrossSection').replace('{n}', uniqSecs.length);
     }
 
-    // 第一张:若卡 1 完全空 → 替换;否则追加
+    // 2026-05-22 修订:为避免多次"从我的卡片选"残留空白卡,改为:
+    //   ① 先把容器里所有完全空的 row 全部 remove(包括首次时的默认空卡 1)
+    //   ② 然后按 items 顺序逐一追加
+    // 这样:首次选 → 默认空卡被清掉,选中卡从卡 1 开始;再选 → 仍只清空白卡,已填的保留,新选追加在后面。
+    const container = $('pushCardsContainer');
+    container.querySelectorAll('.push-card-row').forEach(row => {
+        if (isPushCardRowEmpty(row)) row.remove();
+    });
     let added = 0;
-    let replaced = false;
-    const firstRow = $('pushCardsContainer').querySelector('.push-card-row');
-    if (firstRow && isPushCardRowEmpty(firstRow)) {
-        replacePushCardRow(firstRow, items[0].card);
-        replaced = true;
-        added++;
-    } else {
-        addPushCardRow(items[0].card);
-        added++;
-    }
-    // 其余:追加
-    for (let i = 1; i < items.length; i++) {
-        addPushCardRow(items[i].card);
-        added++;
-    }
+    items.forEach(it => { addPushCardRow(it.card); added++; });
+    // 重排卡片编号(避免被删后编号断裂显示成"卡1 卡3")
+    renumberPushCardRows();
 
     hide('pickCardModal');
     // 组合 toast:基础"已添加 N 张" + 可选"已切目标分类" + 可选"跨多分类"
@@ -5407,6 +5401,15 @@ function applyPickedCards() {
     }
     if (crossSecToast) msg += ' · ' + crossSecToast;
     toast(msg);
+}
+
+// 重排所有 push-card-row 的"卡 N"编号(删行或多次追加后保证显示连续)
+function renumberPushCardRows() {
+    const rows = $('pushCardsContainer').querySelectorAll('.push-card-row');
+    rows.forEach((row, i) => {
+        const strong = row.querySelector('strong');
+        if (strong) strong.textContent = t('pushCardN').replace('{n}', i + 1);
+    });
 }
 
 // 判断一个 push-card-row 是否完全空(无标题/URL/描述/图标 + 无富字段预填)
@@ -6089,6 +6092,8 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnSlugSave').onclick = saveSlug;
     $('btnSlugDisable').onclick = disableAndClearSlug;
     $('btnSlugCopy').onclick = copySlugLink;
+    var btnCopy2 = $('btnSlugCopy2');
+    if (btnCopy2) btnCopy2.onclick = function() { copyTextToClipboard($('slugModalFullUrl2').value, t('toastSlugCopied')); };
     $('slugModalInput').addEventListener('input', () => {
         updateSlugPreview($('slugModalInput').value.trim().toLowerCase());
         $('slugModalError').textContent = '';
