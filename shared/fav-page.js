@@ -1051,15 +1051,22 @@ function renderAllSections(layout) {
         if (sec.visible === false) return;
         // ★ contactData 合并到 email section 中渲染，此处跳过
         if (sec.key === 'contactData') return;
-        // 2026-05-24:4 个内置 card 大类(usb/teaching/onlineAI/video)若无任何卡片就隐藏;
-        //   邮箱(emailData)/联系方式(contactData)保持原样不参与本规则
-        //   加密锁定态(EncUnlock.isLocked)不算空,仍要显示锁
-        if (sec.kind === 'card'
-            && (sec.key === 'usbDriveData' || sec.key === 'teachingData'
-                || sec.key === 'onlineAIData' || sec.key === 'videoData')
-            && (!sec.cards || sec.cards.length === 0)
-            && !(window.EncUnlock && EncUnlock.isLocked(sec))) {
-            return;
+        // 2026-05-24 修订:所有 card kind 大类(含自定义、含加密)统一规则 — 空白就隐藏。
+        //   邮箱(emailData)/联系方式(contactData)不参与本规则(永远显示,即使无卡)。
+        //   加密大类的特殊判定:
+        //     - 已解锁 + cards 数组为空 → 视为空,隐藏
+        //     - 未解锁 → 用密文 base64 长度估算(空 enc 约 24 字符,阈值 36)
+        //       密文非空 → 显示药丸;密文实质为空 → 也隐藏(连药丸都不出现)
+        if (sec.kind === 'card') {
+            if (window.EncUnlock && sec.encrypted && !sec.__unlocked) {
+                // 未解锁加密大类:用密文长度判断
+                var encEmpty = window.EncUnlock && typeof EncUnlock === 'object'
+                    && sec.enc && typeof sec.enc.data === 'string'
+                    && sec.enc.data.length <= 36;
+                if (encEmpty) return;
+            } else if (!sec.cards || sec.cards.length === 0) {
+                return;
+            }
         }
         var sectionEl = document.createElement('div');
         sectionEl.className = 'section';
@@ -1116,6 +1123,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (window.EncUnlock && EncUnlock.mountLockButton) {
         EncUnlock.mountLockButton();
+    }
+    // 2026-05-24:有加密大类未解锁 或 任一卡片有 comment → 显示解锁浮动按钮
+    // 公开访问模式 /@<slug> 与 admin 视图行为一致,统一显示(用户 2026-05-24 明确要求)
+    if (window.EncUnlock && EncUnlock.mountUnlockButton) {
+        EncUnlock.mountUnlockButton();
     }
 
     var ol = document.getElementById('overlay');

@@ -53,6 +53,13 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .card-type-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; margin-right: 6px; font-weight: 600; }
 .badge-simple { background: #e3f2fd; color: #1976d2; } .badge-desc { background: #fff3e0; color: #f57c00; } .badge-exp { background: #e8f5e9; color: #388e3c; }
 .card-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+/* §16-A.7(2026-05-24):字段图标常显行 — 推送 modal / 编辑后接受 modal 共用 */
+.field-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.field-row > input, .field-row > textarea { flex: 1 1 auto; min-width: 0; padding: 4px 6px; }
+.field-prefix { flex: 0 0 auto; font-size: 13px; line-height: 1; color: #555; min-width: 24px; text-align: center; user-select: none; }
+.req-star { color: #dc2626; font-weight: 700; margin-left: 1px; }
+/* §16-A.7(2026-05-24):form-row label 标 data-required="true" → 自动追加红星(隐藏行的不显示) */
+.form-row label[data-required="true"]::after { content: " *"; color: #dc2626; font-weight: 700; }
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
 .modal-box { background: #fff; border-radius: 12px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; padding: 24px; }
 .modal-box h2 { margin-bottom: 18px; }
@@ -268,7 +275,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     .card-item { flex-wrap: wrap; padding: 12px; gap: 10px; }
     .card-icon-preview { width: 42px; height: 42px; font-size: 20px; }
     .card-info .card-title { font-size: 14px; } .card-info .card-meta { font-size: 11px; }
-    .card-actions { width: 100%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .card-actions { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 4px; }
     .card-actions .btn { padding: 6px 2px; font-size: 12px; width: 100%; }
     .modal-mask { padding: 8px; }
     .modal-box { padding: 16px; max-height: 95vh; border-radius: 10px; }
@@ -278,7 +285,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
     .backup-item > div:last-child, .sec-row > div:last-child { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; }
     .backup-item > div:last-child .btn, .sec-row > div:last-child .btn { width: 100%; padding: 6px 2px; font-size: 12px; }
     .subcard-item { flex-wrap: wrap; }
-    .subcard-item .card-actions { grid-template-columns: repeat(6, 1fr); }
+    .subcard-item .card-actions { grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); }
     .lang-btn { top: 8px; right: 8px; padding: 5px 10px; font-size: 12px; }
     .emoji-picker-popup { width: calc(100vw - 20px); max-height: 70vh; }
     .emoji-picker-grid { grid-template-columns: repeat(7, 1fr); }
@@ -398,7 +405,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <label data-i18n="fldId">ID（唯一标识，可留空自动生成）</label>
             <input type="text" id="f_id" data-i18n-placeholder="idAutoPh" placeholder="留空将自动生成，如 card_xxx">
         </div>
-        <div class="form-row"><label data-i18n="fldTitle">标题 (title / content)</label><input type="text" id="f_title"></div>
+        <div class="form-row"><label data-i18n="fldTitle" data-required="true">标题 (title / content)</label><input type="text" id="f_title"></div>
         <div class="form-row">
             <label data-i18n="fldIcon">图标</label>
             <div class="icon-kind-tabs">
@@ -475,9 +482,9 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <textarea id="sf_icon_svg" class="hidden"></textarea>
             <div style="margin-top:8px; display:flex; align-items:center; gap:10px;"><span style="font-size:12px; color:#888;" data-i18n="iconPreviewLabel">预览：</span><div id="subIconPreview" class="card-icon-preview" style="width:36px;height:36px;font-size:18px;"></div></div>
         </div>
-        <div class="form-row" id="sf_titleRow"><label data-i18n="fldSubTitle">标题 title</label><input type="text" id="sf_title"></div>
+        <div class="form-row" id="sf_titleRow"><label data-i18n="fldSubTitle" data-required="true">标题 title</label><input type="text" id="sf_title"></div>
         <div class="form-row" id="sf_descRow"><label data-i18n="fldSubDesc">描述 desc</label><input type="text" id="sf_desc"></div>
-        <div class="form-row hidden" id="sf_contentRow"><label data-i18n="fldSubContent">内容 content</label><input type="text" id="sf_content"></div>
+        <div class="form-row hidden" id="sf_contentRow"><label data-i18n="fldSubContent" data-required="true">内容 content</label><input type="text" id="sf_content"></div>
         <div class="form-row"><label data-i18n="fldSubUrl">链接 url（可留空）</label><input type="url" id="sf_url"></div>
         <div class="form-row"><label><input type="checkbox" id="sf_isLocal"> <span data-i18n="fldIsLocalShort">本地跳转</span></label></div>
 
@@ -545,7 +552,7 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <label data-i18n="fldId">ID（唯一标识，可留空自动生成）</label>
             <input type="text" id="promote_id" data-i18n-placeholder="idAutoPh" placeholder="留空将自动生成，如 card_xxx">
         </div>
-        <div class="form-row"><label data-i18n="fldTitle">标题</label><input type="text" id="promote_title"></div>
+        <div class="form-row"><label data-i18n="fldTitle" data-required="true">标题</label><input type="text" id="promote_title"></div>
         <div class="form-row">
             <label data-i18n="fldIcon">图标</label>
             <div class="emoji-input-wrap">
@@ -889,6 +896,24 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnInboxAcceptEncCancel" data-i18n="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnInboxAcceptEncConfirm" data-i18n="btnConfirm">确定</button>
+        </div>
+    </div>
+</div>
+
+<!-- §16-A.4 编辑后接受 modal(2026-05-24)— 让用户改卡片字段 + 选目标大类后接受 -->
+<div id="inboxEditAcceptModal" class="modal-mask hidden">
+    <div class="modal-box" style="max-width:680px;">
+        <h2 data-i18n="inboxEditAcceptTitle">📝 编辑后接受</h2>
+        <p class="muted" style="font-size:12px; margin-bottom:8px;" data-i18n="inboxEditAcceptHint">可修改卡片字段后再接受。所有改动只影响落到你数据中的副本,不动原推送消息。</p>
+        <div class="form-row">
+            <label data-i18n="inboxEditAcceptTargetSection">落到大类</label>
+            <select id="inboxEditAcceptSection" style="width:100%; padding:6px;"></select>
+        </div>
+        <div id="inboxEditAcceptCards" style="margin-top:8px;"></div>
+        <div id="inboxEditAcceptError" style="color:#c62828; font-size:13px; min-height:18px; margin-top:6px;"></div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" id="btnInboxEditAcceptCancel" data-i18n="btnCancel">取消</button>
+            <button class="btn btn-primary" id="btnInboxEditAcceptConfirm" data-i18n="inboxEditAcceptConfirm">✅ 确认接受</button>
         </div>
     </div>
 </div>
@@ -1328,6 +1353,7 @@ const I18N = {
         // A1.5 公开访问 slug
         btnMySlug: '🔗 公开链接',
         btnPush: '📤 推送',
+        cardOpPushTitle: '推送这张卡片给用户',
         btnInbox: '📥 收件箱',
         btnRefresh: '🔄 刷新',
         btnConfirm: '确定',
@@ -1344,18 +1370,42 @@ const I18N = {
         inboxMessageLabel: '留言',
         inboxAcceptPublic: '✅ 接受到公开',
         inboxAcceptEncrypted: '🔒 接受到加密',
-        inboxAcceptDiscard: '🗑️ 已读但丢弃',
         inboxReject: '❌ 拒绝',
+        inboxReactivate: '🔄 重新接受',
+        inboxDeleteRejected: '🗑️ 彻底删除',
+        inboxDeleteAccepted: '🗑️ 删除记录',
+        inboxEditAccept: '📝 编辑后接受',
+        inboxEditAcceptTitle: '📝 编辑后接受',
+        inboxEditAcceptHint: '可修改卡片字段后再接受。所有改动只影响落到你数据中的副本,不动原推送消息。',
+        inboxEditAcceptTargetSection: '落到大类',
+        inboxEditAcceptConfirm: '✅ 确认接受',
+        inboxEditedBadge: '已编辑',
+        inboxFromEncBadge: '加密推送',
+        inboxFromEncTip: '此消息来自发件方的加密大类,只能接受到你自己的加密大类',
+        inboxBtnDisabledByEnc: '加密推送只能"接受到加密大类",不允许公开/编辑接受',
+        inboxAcceptedEncBadge: '加密保存',
+        pushCardFromEncBadge: '来自加密大类',
+        pushCardFromEncTip: '此卡来自你解锁的加密大类,推送后接收方只能接受到他/她的加密大类',
+        toastPushForceEncBlocked: '⚡ 强制推送不允许加密大类的卡片(只能默认推送让对方加密保存)',
         inboxAcceptEncTitle: '🔒 接受到加密大类',
         inboxAcceptEncSelectLabel: '选择已解锁的加密大类',
         inboxAcceptEncHint: '需先在主页面解锁目标加密大类。若下拉为空,请先回到收藏夹页解锁。',
         inboxAcceptEncNone: '没有已解锁的加密大类',
+        inboxAcceptEncNoneAtAll: '当前没有加密大类',
+        inboxAcceptEncCreateHint: '需先到顶栏 <b>🗂 大类管理</b> 中新建一个"🔐 加密存储"的自定义大类(使用当前登录密码加密)。建好后回主页解锁,再来这里接受。',
+        inboxAcceptEncLockedSep: '以下未解锁,请先回主页解锁',
+        inboxAcceptEncLockedTip: '未解锁',
+        inboxAcceptEncNoTarget: '请选择一个已解锁的加密大类',
+        inboxAcceptEncTargetLocked: '所选大类未解锁,请先回主页解锁',
+        inboxAcceptEncFetching: '正在获取明文卡片...',
+        inboxAcceptEncNoCards: '该消息没有可接受的卡片',
+        inboxAcceptEncMergedHint: '已合并到「{section}」(明文)。请点 💾 保存,自动加密回写。',
         inboxStatusPending: '⏳ 待审',
         inboxStatusAccepted: '✅ 已接受',
         inboxStatusRejected: '❌ 已拒绝',
         toastInboxAccepted: '已接受到 {section}',
         toastInboxRejected: '已拒绝',
-        toastInboxDiscarded: '已标记为已读(卡片已丢弃)',
+        toastInboxDeleted: '已彻底删除',
         toastInboxFail: '操作失败',
         toastInboxLoading: '加载中...',
         toastInboxNewArrival: '📥 收到 {n} 条新推送(共 {total} 条待审)— 点收件箱查看',
@@ -1366,7 +1416,9 @@ const I18N = {
         toastPushForceSingleCard: '⚠️ 强制推送一次只能 1 张卡,请删除多余卡片',
         confirmPushForce: '⚡ 确认强制推送?\n该卡片会直接写入对方数据,接收方看不到审核步骤。\n确定继续吗?',
         confirmInboxReject: '确定拒绝这条消息吗?',
-        confirmInboxDiscard: '确定接受但不导入卡片吗?(等于已读 + 删卡)',
+        confirmInboxReactivate: '确定重新接受这条已拒绝的消息?(将合并到推荐大类)',
+        confirmInboxDeleteRejected: '彻底删除这条已拒绝的消息?(不可撤销)',
+        confirmInboxDeleteAccepted: '删除这条已接受的记录?(不会影响主页已合并的卡片,只删 inbox 日志,不可撤销)',
         pushTitle: '📤 推送卡片给用户(进入对方待审收件箱)',
         pushTargetUsers: '目标用户(可多选)',
         pushTargetSection: '目标分类',
@@ -1539,7 +1591,7 @@ const I18N = {
         moveTgtNone: '(该大类无可选目标)',
         moveHintExpandable: '✓ 目标已是 <b>expandable</b>，将追加到其 subCards 末尾。',
         moveHintUpgrade: '⚠️ 目标类型为 <b>{type}</b>，移动后将自动升级为 <b>expandable</b>。',
-        cardMoveTitle: '📦 移动卡片到其他大类',
+        cardMoveTitle: '➡ 移动卡片到其他大类',
         cardMoveHint: '💡 卡片会原样转移，类型、子卡片、所有字段都保留。',
         cardMoveSrcHint: '将卡片 <b>{card}</b> 从 <b>{src}</b> 移动到：',
         promoteTitle: '🆙 升级子卡片为独立卡片',
@@ -1573,7 +1625,7 @@ const I18N = {
         secDynamicField: '启用展开/折叠',
         secDynamicHint: '勾选后效果与「视频聚合」一致：手机/平板默认只显示前 4/6 张卡片，其余可点击「展开」按钮查看；桌面端默认全部展开。',
         secEncryptedField: '🔐 加密存储（AES-GCM-256）',
-        secEncryptedHint: '🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>🔑 使用当前<b>登录密码</b>派生密钥（PBKDF2 300,000 轮）。只有登录后才能解密查看。<br>⚠️ <b>修改登录密码后需立即保存，否则原加密数据将无法解锁！</b>',
+        secEncryptedHint: '🔒 勾选后，此大类的所有卡片会以 AES-256-GCM 加密形式写入 data.js / KV。<br>🔑 加密密钥<b>复用当前登录密码</b>派生（PBKDF2 300,000 轮）；目前不支持为大类单独设置密码。<br>🔁 如需更换:在顶栏的"修改登录密码"中改密 → 立即点 💾 保存,旧加密会用旧密码解出后用新密码重新加密。<br>⚠️ <b>修改登录密码后未立即保存,原加密数据将无法解锁!</b>',
         unlockTitle: '🔓 解锁加密大类', unlockPwdLabel: '登录密码', unlockConfirm: '解锁',
         unlockDescOne: '大类「{label}」已加密，请输入登录密码解锁。',
         unlockDescAll: '当前有 <b>{n}</b> 个加密大类处于锁定状态。输入登录密码即可全部解锁。',
@@ -1784,6 +1836,7 @@ const I18N = {
         // A1.5 public access slug
         btnMySlug: '🔗 Public Link',
         btnPush: '📤 Push',
+        cardOpPushTitle: 'Push this card to users',
         btnInbox: '📥 Inbox',
         btnRefresh: '🔄 Refresh',
         btnConfirm: 'Confirm',
@@ -1800,18 +1853,42 @@ const I18N = {
         inboxMessageLabel: 'Message',
         inboxAcceptPublic: '✅ Accept (Public)',
         inboxAcceptEncrypted: '🔒 Accept (Encrypted)',
-        inboxAcceptDiscard: '🗑️ Mark Read (Discard)',
         inboxReject: '❌ Reject',
+        inboxReactivate: '🔄 Re-accept',
+        inboxDeleteRejected: '🗑️ Delete Permanently',
+        inboxDeleteAccepted: '🗑️ Delete Record',
+        inboxEditAccept: '📝 Edit & Accept',
+        inboxEditAcceptTitle: '📝 Edit & Accept',
+        inboxEditAcceptHint: 'Modify card fields before accepting. Changes only affect the copy added to your data; the original push message is not touched.',
+        inboxEditAcceptTargetSection: 'Target section',
+        inboxEditAcceptConfirm: '✅ Confirm Accept',
+        inboxEditedBadge: 'edited',
+        inboxFromEncBadge: 'encrypted push',
+        inboxFromEncTip: 'This message originated from the sender\'s encrypted section, and can only be accepted into your own encrypted section.',
+        inboxBtnDisabledByEnc: 'Encrypted push can only be "Accepted into Encrypted"; public/edit accept disabled',
+        inboxAcceptedEncBadge: 'encrypted',
+        pushCardFromEncBadge: 'from encrypted',
+        pushCardFromEncTip: 'This card is from your unlocked encrypted section. Recipients can only accept it into their own encrypted section.',
+        toastPushForceEncBlocked: '⚡ Force push not allowed for cards from encrypted sections (use default push so the recipient stores them encrypted)',
         inboxAcceptEncTitle: '🔒 Accept to Encrypted Section',
         inboxAcceptEncSelectLabel: 'Select an unlocked encrypted section',
         inboxAcceptEncHint: 'You must first unlock the target encrypted section on the main page.',
         inboxAcceptEncNone: 'No unlocked encrypted sections',
+        inboxAcceptEncNoneAtAll: 'No encrypted sections exist',
+        inboxAcceptEncCreateHint: 'Please first go to <b>🗂 Sections</b> in the top bar and create a custom section with "🔐 Encrypted storage" (encrypted with your current login password). Then unlock it on the main page and come back here.',
+        inboxAcceptEncLockedSep: 'Below are locked, please unlock on the main page first',
+        inboxAcceptEncLockedTip: 'locked',
+        inboxAcceptEncNoTarget: 'Please select an unlocked encrypted section',
+        inboxAcceptEncTargetLocked: 'Selected section is locked. Please unlock on the main page first',
+        inboxAcceptEncFetching: 'Fetching plaintext cards...',
+        inboxAcceptEncNoCards: 'This message has no cards to accept',
+        inboxAcceptEncMergedHint: 'Merged into "{section}" (plaintext). Click 💾 Save — it will be re-encrypted automatically.',
         inboxStatusPending: '⏳ Pending',
         inboxStatusAccepted: '✅ Accepted',
         inboxStatusRejected: '❌ Rejected',
         toastInboxAccepted: 'Accepted into {section}',
         toastInboxRejected: 'Rejected',
-        toastInboxDiscarded: 'Marked as read (cards discarded)',
+        toastInboxDeleted: 'Permanently deleted',
         toastInboxFail: 'Operation failed',
         toastInboxLoading: 'Loading...',
         toastInboxNewArrival: '📥 {n} new push(es) received ({total} pending) — open inbox to review',
@@ -1822,7 +1899,9 @@ const I18N = {
         toastPushForceSingleCard: '⚠️ Force push allows only 1 card — please remove extras',
         confirmPushForce: '⚡ Confirm force push?\nThis card will be written directly to the recipient data without their review.\nProceed?',
         confirmInboxReject: 'Reject this message?',
-        confirmInboxDiscard: 'Mark as read but discard the cards?',
+        confirmInboxReactivate: 'Re-accept this rejected message? (Will merge into the suggested section)',
+        confirmInboxDeleteRejected: 'Permanently delete this rejected message? (Cannot be undone)',
+        confirmInboxDeleteAccepted: 'Delete this accepted record? (Will NOT affect the cards already merged into your data; only the inbox log entry is removed.)',
         pushTitle: '📤 Push Cards to Users (Enters Recipient Inbox)',
         pushTargetUsers: 'Target users (multi-select)',
         pushTargetSection: 'Target section',
@@ -1995,7 +2074,7 @@ const I18N = {
         moveTgtNone: '(No available targets)',
         moveHintExpandable: '✓ Target is <b>expandable</b>; will be appended.',
         moveHintUpgrade: '⚠️ Target is <b>{type}</b>; will be auto-upgraded to <b>expandable</b>.',
-        cardMoveTitle: '📦 Move Card to Another Section',
+        cardMoveTitle: '➡ Move Card to Another Section',
         cardMoveHint: '💡 Card moved as-is; all fields preserved.',
         cardMoveSrcHint: 'Move card <b>{card}</b> from <b>{src}</b> to:',
         promoteTitle: '🆙 Promote Sub-card to Card',
@@ -2029,7 +2108,7 @@ const I18N = {
         secDynamicField: 'Enable expand/collapse',
         secDynamicHint: 'When checked, behaves like "Videos": first 4/6 cards shown on mobile/tablet, rest expandable. Desktop shows all.',
         secEncryptedField: '🔐 Encrypted storage (AES-GCM-256)',
-        secEncryptedHint: '🔒 When checked, all cards of this section are AES-256-GCM encrypted before writing to data.js / KV.<br>🔑 Key derived from your <b>login password</b> (PBKDF2 300,000 rounds). Only viewable after login.<br>⚠️ <b>After changing login password, save immediately, or the old encrypted data can no longer be unlocked!</b>',
+        secEncryptedHint: '🔒 When checked, all cards of this section are AES-256-GCM encrypted before writing to data.js / KV.<br>🔑 The encryption key is derived from your <b>current login password</b> (PBKDF2 300,000 rounds); separate passwords per section are not supported.<br>🔁 To rotate: change your login password in the top bar, then click 💾 Save immediately. The old data is decrypted with the old password and re-encrypted with the new one.<br>⚠️ <b>If you change the login password without saving immediately, the old encrypted data can no longer be unlocked!</b>',
         unlockTitle: '🔓 Unlock Encrypted Sections', unlockPwdLabel: 'Login password', unlockConfirm: 'Unlock',
         unlockDescOne: 'Section "{label}" is encrypted. Enter login password to unlock.',
         unlockDescAll: 'There are <b>{n}</b> locked encrypted section(s). Enter login password to unlock all.',
@@ -3117,6 +3196,9 @@ async function saveDataJs_online() {
         clearCommentOverrides();
         clearConfigDirty();   // 内部已会调用 refreshPendingBanner
 
+        // §12 步骤 4.5(2026-05-24):清算等待 ack 的加密 inbox 接受
+        await ackPendingEncInbox();
+
         await refreshBackupStatus_online(); await loadSourceStatus_online();
     } else toast((r.data && r.data.error) || t('toastSaveFail'));
 }
@@ -3858,10 +3940,15 @@ function renderCurrentSection() {
         info.innerHTML = '<div class="card-title">' + escapeHtml(title) + pushedByHtml + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
-        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move">📦</button>' : '';
+        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move">➡</button>' : '';
+        // §16-A.1(2026-05-24):admin 在卡片行右侧加 📤 推送按钮 — 点击预填该卡到 push modal
+        const pushBtn = (currentUser.role === 'admin')
+            ? '<button class="btn btn-info btn-sm" data-act="push" title="' + escapeHtml(t('cardOpPushTitle')) + '">📤</button>'
+            : '';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-act="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-act="down">⬇</button>' +
                        moveBtn +
+                       pushBtn +
                        '<button class="btn btn-primary btn-sm" data-act="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleCardAction(b.dataset.act, idx));
@@ -3879,6 +3966,14 @@ function handleCardAction(act, idx) {
     else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); markConfigDirty(); }
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
+    else if (act === 'push') {
+        // §16-A.1(2026-05-24)+ §16-B 修复(2026-05-24):若当前 section 是加密大类,标 prefillFromEncrypted
+        if (currentUser.role === 'admin') {
+            const meta = (customSectionsMeta || []).find(c => c.key === currentSection);
+            const fromEnc = !!(meta && meta.encrypted && !meta.locked);
+            openPushModal({ prefillCards: [arr[idx]], prefillFromEncrypted: fromEnc });
+        }
+    }
     else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); markConfigDirty(); toast(t('toastDeletedUnsaved')); } }
 }
 
@@ -4349,7 +4444,7 @@ function openCardModal(idx) {
     $('f_comment').value = item.comment || '';
     setIconFields(item, 'f_icon_emoji', 'f_icon_img', 'f_icon_svg', 'iconPreview');
     if (isEmail || isContact) hide('typeRow'); else { show('typeRow'); $('f_type').value = item.type || 'simple'; }
-    if (isEmail) { $('f_desc').value = item.address || ''; $('f_descLabel').textContent = t('fldAddress'); } else $('f_descLabel').textContent = t('fldDesc');
+    if (isEmail) { $('f_desc').value = item.address || ''; $('f_descLabel').textContent = t('fldAddress'); $('f_descLabel').setAttribute('data-required', 'true'); } else { $('f_descLabel').textContent = t('fldDesc'); $('f_descLabel').removeAttribute('data-required'); }
     $('f_id').parentElement.style.display = (isEmail || isContact) ? 'none' : 'block';
     // §13 强制推送标注(2026-05-23):pushedBy 存在 → 显示行 + 移除按钮
     if (item.pushedBy) {
@@ -4474,10 +4569,15 @@ function renderSubCardsList() {
         info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">' + escapeHtml(t('compactTag')) + '</span>' : '') + noteMark + '</div><div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
+        // §16-A.1(2026-05-24):admin 在子卡行右侧加 📤 推送按钮 — 把该子卡当独立主卡预填到 push modal
+        const subPushBtn = (currentUser.role === 'admin')
+            ? '<button class="btn btn-info btn-sm" data-sact="push" title="' + escapeHtml(t('cardOpPushTitle')) + '">📤</button>'
+            : '';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-sact="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-sact="down">⬇</button>' +
                        '<button class="btn btn-warn btn-sm" data-sact="move">➡</button>' +
                        '<button class="btn btn-success btn-sm" data-sact="promote" title="升级为独立卡片">🆙</button>' +
+                       subPushBtn +
                        '<button class="btn btn-primary btn-sm" data-sact="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-sact="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleSubAction(b.dataset.sact, i));
@@ -4492,6 +4592,25 @@ function handleSubAction(act, i) {
     else if (act === 'edit') openSubModal(i);
     else if (act === 'move') openMoveSubModal(i);
     else if (act === 'promote') openPromoteSubModal(i);
+    else if (act === 'push') {
+        // §16-A.1(2026-05-24):子卡推送 — 拍平成主卡格式(去掉父卡上下文 + subCards 嵌套)
+        // §16-B 修复(2026-05-24):若父卡所在 section 是加密大类,标 prefillFromEncrypted
+        if (currentUser.role !== 'admin') return;
+        const sub = subs[i] || {};
+        const flat = {
+            type: 'simple',
+            title: sub.title || sub.content || '',
+            url: sub.url || '',
+            desc: sub.desc || '',
+            icon: sub.icon || '',
+            iconImg: sub.iconImg || '',
+            isLocal: !!sub.isLocal,
+            comment: sub.comment || ''
+        };
+        const meta = (customSectionsMeta || []).find(c => c.key === currentSection);
+        const fromEnc = !!(meta && meta.encrypted && !meta.locked);
+        openPushModal({ prefillCards: [flat], prefillFromEncrypted: fromEnc });
+    }
     else if (act === 'del') { if (confirm(t('confirmDelSub'))) { subs.splice(i,1); renderSubCardsList(); } }
 }
 function openSubModal(idx) {
@@ -5516,7 +5635,7 @@ function copySlugLink() {
 
 let __pushCardIdx = 0;
 
-async function openPushModal() {
+async function openPushModal(opts) {
     if (currentUser.role !== 'admin') return;
     $('pushCardsContainer').innerHTML = '';
     $('pushResultArea').style.display = 'none';
@@ -5528,7 +5647,15 @@ async function openPushModal() {
         const addBtn = $('btnPushAddCard');
         if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.title = ''; }
     }
-    addPushCardRow();   // 默认 1 张空卡
+    // §16-A.1(2026-05-24):支持卡片列表行的 📤 按钮直接预填卡片
+    // §16-B 修复(2026-05-24):支持 prefillFromEncrypted 标记 — 来自加密大类时整批卡标 fromEncrypted=true
+    const prefill = (opts && Array.isArray(opts.prefillCards)) ? opts.prefillCards : null;
+    const prefillEnc = !!(opts && opts.prefillFromEncrypted);
+    if (prefill && prefill.length > 0) {
+        prefill.forEach(c => addPushCardRow(c, { fromEncrypted: prefillEnc }));
+    } else {
+        addPushCardRow();   // 默认 1 张空卡
+    }
     show('pushModal');
     await refreshPushUserList();
 }
@@ -5553,17 +5680,23 @@ async function refreshPushUserList() {
     </label>`).join('');
 }
 
-function addPushCardRow(prefillCard) {
+function addPushCardRow(prefillCard, opts) {
     const idx = __pushCardIdx++;
     const cmtId = 'push_card_cmt_' + idx;
     const iconId = 'push_card_icon_' + idx;
+    // §16-A.7(2026-05-24):必填红星 HTML(用 span 隔开避免被插入到 placeholder)
+    const reqStar = '<span class="req-star" aria-label="required">*</span>';
     const row = document.createElement('div');
     row.className = 'push-card-row';
     row.dataset.cardIdx = idx;
-    row.style.cssText = 'border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:6px;background:#fafafa;';
+    // §16-B(2026-05-24):标记来自加密大类的卡片 — 后端 push.js 会透传到 inbox 消息,接收方只允许接受到加密大类
+    const isFromEnc = !!(opts && opts.fromEncrypted);
+    if (isFromEnc) row.dataset.fromEncrypted = '1';
+    row.style.cssText = 'border:1px solid ' + (isFromEnc ? '#fbbf24' : '#eee') + ';border-radius:6px;padding:8px;margin-bottom:6px;background:' + (isFromEnc ? '#fffbeb' : '#fafafa') + ';';
     row.innerHTML = `
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
             <strong style="min-width:50px;">${escapeHtml(t('pushCardN').replace('{n}', idx + 1))}</strong>
+            ${isFromEnc ? '<span style="font-size:11px;padding:2px 6px;background:#fbbf24;color:#78350f;border-radius:8px;font-weight:600;" title="' + escapeHtml(t('pushCardFromEncTip')) + '">🔒 ' + escapeHtml(t('pushCardFromEncBadge')) + '</span>' : ''}
             <label style="font-size:12px;">
                 ${escapeHtml(t('pushCardTypeLabel'))}:
                 <select class="push-card-type" style="padding:2px 6px;font-size:12px;">
@@ -5574,13 +5707,10 @@ function addPushCardRow(prefillCard) {
             </label>
             <button type="button" class="btn btn-danger btn-sm push-card-del" style="margin-left:auto;">${escapeHtml(t('pushCardDelete'))}</button>
         </div>
-        <input type="text" class="push-card-title" placeholder="${escapeHtml(t('pushCardTitleHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
-        <input type="text" class="push-card-url" placeholder="${escapeHtml(t('pushCardUrlHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
-        <input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}" style="width:100%;margin-bottom:4px;padding:4px 6px;">
-        <div class="emoji-input-wrap" style="margin-bottom:4px;">
-            <input type="text" id="${iconId}" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}" style="width:100%;padding:4px 6px;">
-            <button type="button" class="emoji-picker-trigger" data-target="${iconId}" title="选择 emoji">😀</button>
-        </div>
+        <div class="field-row"><span class="field-prefix">📌${reqStar}</span><input type="text" class="push-card-title" placeholder="${escapeHtml(t('pushCardTitleHint'))}"></div>
+        <div class="field-row"><span class="field-prefix">🔗</span><input type="text" class="push-card-url" placeholder="${escapeHtml(t('pushCardUrlHint'))}"></div>
+        <div class="field-row"><span class="field-prefix">📝</span><input type="text" class="push-card-desc" placeholder="${escapeHtml(t('pushCardDescHint'))}"></div>
+        <div class="field-row emoji-input-wrap"><span class="field-prefix">🎨</span><input type="text" id="${iconId}" class="push-card-icon" placeholder="${escapeHtml(t('pushCardIconHint'))}"><button type="button" class="emoji-picker-trigger" data-target="${iconId}" title="选择 emoji">😀</button></div>
         <details class="push-card-comment-wrap" style="margin-top:4px;">
             <summary style="cursor:pointer;font-size:12px;color:#666;user-select:none;">📝 ${escapeHtml(t('pushCardCommentLabel'))}</summary>
             <textarea id="${cmtId}" class="push-card-comment" data-i18n-placeholder="commentPh"
@@ -5642,30 +5772,31 @@ async function openPickCardFromMineModal() {
     $('pickCardSearch').value = '';
     $('pickCardList').innerHTML = `<div class="muted" style="padding:12px;text-align:center;">${escapeHtml(t('pickCardLoading'))}</div>`;
 
-    let r;
-    try { r = await api('/api/data?format=json', { method: 'GET' }); }
-    catch {
-        $('pickCardList').innerHTML = `<div style="color:#c00;padding:12px;">${escapeHtml(t('pickCardLoadFail'))}</div>`;
-        return;
-    }
-    if (!r.ok || !r.data || !r.data.ok || !r.data.content) {
-        $('pickCardList').innerHTML = `<div style="color:#c00;padding:12px;">${escapeHtml(t('pickCardLoadFail'))}</div>`;
-        return;
-    }
-    let secList = [];
-    try { secList = __parseDataJsForCsv(r.data.content) || []; }
-    catch { secList = []; }
-
+    // §16-B(2026-05-24):改用当前 store(明文) + customSectionsMeta,这样已解锁的加密大类也能选
+    //   优势:不依赖网络;加密大类的明文不出 admin 浏览器;能给加密卡片标 __fromEncrypted 透传
+    //   边界:未解锁的加密大类自动被 store[key]=[] 排除(parseSectionsArray 里如此)
     __pickedCards = [];
-    secList.forEach(sec => {
-        if (sec && sec.encrypted) return;   // 跳过加密 section
-        const cards = Array.isArray(sec.cards) ? sec.cards : [];
+    // 内置 sections(BUILTIN_SECTIONS 在文件顶部定义)
+    BUILTIN_SECTIONS.forEach(b => {
+        const cards = Array.isArray(store[b.key]) ? store[b.key] : [];
         cards.forEach((card, idx) => {
             __pickedCards.push({
-                sectionKey: sec.key,
-                sectionLabel: sec.label || sec.key,
-                idx,
-                card
+                sectionKey: b.key,
+                sectionLabel: t(b.labelKey) || b.key,
+                idx, card, fromEncrypted: false
+            });
+        });
+    });
+    // 自定义 sections — 已解锁的加密大类标 fromEncrypted=true
+    (customSectionsMeta || []).forEach(c => {
+        if (c.locked) return;  // 未解锁的加密大类没有明文,跳过
+        const cards = Array.isArray(store[c.key]) ? store[c.key] : [];
+        cards.forEach((card, idx) => {
+            __pickedCards.push({
+                sectionKey: c.key,
+                sectionLabel: (c.encrypted ? '🔒 ' : '') + (c.label || c.key),
+                idx, card,
+                fromEncrypted: !!c.encrypted
             });
         });
     });
@@ -5769,7 +5900,11 @@ function applyPickedCards() {
         if (isPushCardRowEmpty(row)) row.remove();
     });
     let added = 0;
-    items.forEach(it => { addPushCardRow(it.card); added++; });
+    items.forEach(it => {
+        // §16-B(2026-05-24):透传 fromEncrypted 标记,保证后端能识别加密来源
+        addPushCardRow(it.card, { fromEncrypted: !!it.fromEncrypted });
+        added++;
+    });
     // 重排卡片编号(避免被删后编号断裂显示成"卡1 卡3")
     renumberPushCardRows();
 
@@ -5844,6 +5979,8 @@ function collectPushCards() {
         if (desc) c.desc = desc;
         if (icon) c.icon = icon;
         if (comment) c.comment = comment;     // 2026-05-23:备注作为 comment 字段透传(后端白名单已含)
+        // §16-B(2026-05-24):来自加密大类的卡片打 __fromEncrypted 透传给后端
+        if (row.dataset.fromEncrypted === '1') c.__fromEncrypted = true;
         // A2 后续增强 2:合并来自"从我的卡片选"预填时挂在 row 上的额外字段
         if (row.__prefillExtra) {
             for (const k of Object.keys(row.__prefillExtra)) {
@@ -5868,6 +6005,11 @@ async function submitPush() {
     if (isForce) {
         if (cards.length > 1) {
             toast(t('toastPushForceSingleCard'));
+            return;
+        }
+        // §16-B 修复(2026-05-24):force + 加密来源卡 → 前端立即拦截,不发请求
+        if (cards.some(c => c && c.__fromEncrypted === true)) {
+            toast(t('toastPushForceEncBlocked'));
             return;
         }
         if (!confirm(t('confirmPushForce'))) return;
@@ -6052,7 +6194,9 @@ function renderInboxItem(msg) {
                       : t('inboxStatusRejected');
     const cardCount = (msg.cards || []).length;
     const cardTitles = (msg.cards || []).map(c => c.title || '(无标题)').join('、');
-    const showActions = msg.status === 'pending';
+    // §16-A.3(2026-05-24):pending 显示 3 个按钮(去掉丢弃);rejected 显示重新接受 + 彻底删除
+    const isPending = msg.status === 'pending';
+    const isRejected = msg.status === 'rejected';
     const fromBadge = msg.fromRole === 'admin' ? '👑 admin' : '👤';
     const sectionLabelMap = {
         usbDriveData: '☁️ 在线U盘',
@@ -6065,9 +6209,9 @@ function renderInboxItem(msg) {
     };
     const sectionLabel = sectionLabelMap[msg.section_key] || msg.section_key || '(未指定)';
 
-    let html = '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px;background:#fff;">';
+    let html = '<div style="border:1px solid ' + (msg.fromEncrypted ? '#fbbf24' : '#e5e7eb') + ';border-radius:8px;padding:10px;margin-bottom:8px;background:' + (msg.fromEncrypted ? '#fffbeb' : '#fff') + ';">';
     html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">`;
-    html += `<span style="font-size:13px;color:#666;">${fromBadge} <strong>${escapeHtml(msg.fromUsername || '?')}</strong> · ${escapeHtml(msg.sentAt || '')}</span>`;
+    html += `<span style="font-size:13px;color:#666;">${fromBadge} <strong>${escapeHtml(msg.fromUsername || '?')}</strong> · ${escapeHtml(msg.sentAt || '')}${msg.fromEncrypted ? ' <span style="font-size:11px;padding:1px 6px;background:#fbbf24;color:#78350f;border-radius:8px;margin-left:4px;" title="' + escapeHtml(t('inboxFromEncTip')) + '">🔒 ' + escapeHtml(t('inboxFromEncBadge')) + '</span>' : ''}</span>`;
     html += `<span style="font-size:11px;padding:2px 8px;background:#f5f5f5;border-radius:10px;">${escapeHtml(statusBadge)}</span>`;
     html += `</div>`;
     html += `<div style="font-size:12px;color:#666;margin-bottom:4px;">${escapeHtml(t('inboxToSectionLabel'))}: <strong>${escapeHtml(sectionLabel)}</strong> · ${escapeHtml(t('inboxCardsLabel'))}: ${cardCount} 张 (${escapeHtml(cardTitles)})</div>`;
@@ -6075,19 +6219,47 @@ function renderInboxItem(msg) {
         html += `<div style="font-size:13px;color:#333;background:#fafafa;border-left:3px solid #ddd;padding:6px 10px;margin:6px 0;line-height:1.6;" class="inbox-msg-md" data-md="${escapeHtml(msg.message)}"></div>`;
     }
     if (msg.acceptedSection) {
-        html += `<div style="font-size:11px;color:#16a34a;">→ ${escapeHtml(t('inboxStatusAccepted'))}: ${escapeHtml(msg.acceptedSection)}</div>`;
+        const editedTag = msg.editedBeforeAccept
+            ? ` <span style="font-size:10px;padding:1px 6px;background:#fef3c7;color:#92400e;border-radius:8px;margin-left:4px;">${escapeHtml(t('inboxEditedBadge'))}</span>`
+            : '';
+        // §16-B(2026-05-24):加密接受角标
+        const encTag = msg.acceptKind === 'encrypted'
+            ? ` <span style="font-size:10px;padding:1px 6px;background:#dbeafe;color:#1e40af;border-radius:8px;margin-left:4px;">🔒 ${escapeHtml(t('inboxAcceptedEncBadge'))}</span>`
+            : '';
+        // §16-A.5(2026-05-24):落地分类显示与"推荐到"行统一,优先内置 label;custom_* 显示原 key
+        // §16-A.6(2026-05-24):删除记录按钮缩小并 inline 放在本行末端(不再单独占一行)
+        const acceptedLabel = sectionLabelMap[msg.acceptedSection] || msg.acceptedSection;
+        const delBtnHtml = `<button type="button" class="inbox-del-accepted-btn" data-act="delete-accepted" data-msgid="${escapeHtml(msg.msgId)}" title="${escapeHtml(t('confirmInboxDeleteAccepted'))}" style="margin-left:8px;background:transparent;border:1px solid #fca5a5;color:#dc2626;border-radius:4px;padding:0 6px;font-size:10px;line-height:1.6;cursor:pointer;">${escapeHtml(t('inboxDeleteAccepted'))}</button>`;
+        html += `<div style="font-size:11px;color:#16a34a;display:flex;align-items:center;flex-wrap:wrap;gap:2px;">→ ${escapeHtml(t('inboxStatusAccepted'))}: ${escapeHtml(acceptedLabel)}${editedTag}${encTag}${delBtnHtml}</div>`;
     }
     if (msg.rejectReason) {
         html += `<div style="font-size:11px;color:#c00;">→ ${escapeHtml(msg.rejectReason)}</div>`;
     }
-    if (showActions) {
+    if (isPending) {
+        const encOnly = msg.fromEncrypted === true;
+        // §16-B 修订(2026-05-24):加密推送时,公开接受/编辑后接受按钮**变灰不可点**(而非隐藏)— 让用户清楚知道有这两个选项但被加密语义禁用
+        const disabledAttr = encOnly ? 'disabled style="opacity:0.5;cursor:not-allowed;" title="' + escapeHtml(t('inboxBtnDisabledByEnc')) + '"' : `data-act="accept-public" data-msgid="${escapeHtml(msg.msgId)}"`;
+        const disabledEditAttr = encOnly ? 'disabled style="opacity:0.5;cursor:not-allowed;" title="' + escapeHtml(t('inboxBtnDisabledByEnc')) + '"' : `data-act="edit-accept" data-msgid="${escapeHtml(msg.msgId)}"`;
         html += `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">`;
-        html += `<button type="button" class="btn btn-success btn-sm" data-act="accept-public" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptPublic'))}</button>`;
+        html += `<button type="button" class="btn btn-success btn-sm" ${disabledAttr}>${escapeHtml(t('inboxAcceptPublic'))}</button>`;
+        html += `<button type="button" class="btn btn-warn btn-sm" ${disabledEditAttr}>${escapeHtml(t('inboxEditAccept'))}</button>`;
         html += `<button type="button" class="btn btn-info btn-sm" data-act="accept-encrypted" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptEncrypted'))}</button>`;
-        html += `<button type="button" class="btn btn-ghost btn-sm" data-act="accept-discard" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptDiscard'))}</button>`;
         html += `<button type="button" class="btn btn-danger btn-sm" data-act="reject" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxReject'))}</button>`;
         html += `</div>`;
+    } else if (isRejected) {
+        const encOnly = msg.fromEncrypted === true;
+        const disabledReactAttr = encOnly ? 'disabled style="opacity:0.5;cursor:not-allowed;" title="' + escapeHtml(t('inboxBtnDisabledByEnc')) + '"' : `data-act="reactivate" data-msgid="${escapeHtml(msg.msgId)}"`;
+        const disabledEditAttr = encOnly ? 'disabled style="opacity:0.5;cursor:not-allowed;" title="' + escapeHtml(t('inboxBtnDisabledByEnc')) + '"' : `data-act="edit-accept" data-msgid="${escapeHtml(msg.msgId)}"`;
+        html += `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">`;
+        html += `<button type="button" class="btn btn-success btn-sm" ${disabledReactAttr}>${escapeHtml(t('inboxReactivate'))}</button>`;
+        html += `<button type="button" class="btn btn-warn btn-sm" ${disabledEditAttr}>${escapeHtml(t('inboxEditAccept'))}</button>`;
+        if (encOnly) {
+            html += `<button type="button" class="btn btn-info btn-sm" data-act="accept-encrypted" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxAcceptEncrypted'))}</button>`;
+        }
+        html += `<button type="button" class="btn btn-danger btn-sm" data-act="delete-rejected" data-msgid="${escapeHtml(msg.msgId)}">${escapeHtml(t('inboxDeleteRejected'))}</button>`;
+        html += `</div>`;
     }
+    // §16-A.6(2026-05-24):已接受状态的删除按钮已 inline 到"→ 已接受: xxx"行末端,这里不再单独占行
     html += '</div>';
     return html;
 }
@@ -6111,11 +6283,32 @@ async function handleInboxAction(act, msgId) {
             try { await loadData_online(); } catch {}
         }
     } else if (act === 'accept-encrypted') {
-        toast('⚠️ 接受到加密大类:暂未实现完整流程,请用"接受到公开"或下版本');
-        // TODO 步骤 4.5:接受到加密大类的完整链路
-    } else if (act === 'accept-discard') {
-        if (!confirm(t('confirmInboxDiscard'))) return;
-        const r = await api('/api/inbox?action=accept-discard', {
+        // §12 步骤 4.5(2026-05-24):接受到加密大类完整流程
+        const msg = __inboxMessages.find(m => m.msgId === msgId);
+        if (!msg) { toast(t('toastInboxFail')); return; }
+        openInboxAcceptEncModal(msg);
+    } else if (act === 'reactivate') {
+        // §16-A.3(2026-05-24):已拒绝列表的"重新接受" — 直接复用 accept-public 路径(后端已允许 rejected → accepted)
+        if (!confirm(t('confirmInboxReactivate'))) return;
+        const msg = __inboxMessages.find(m => m.msgId === msgId);
+        const targetKey = (msg && msg.section_key) || 'custom_unclassified';
+        const r = await api('/api/inbox?action=accept-public', {
+            method: 'POST',
+            body: JSON.stringify({ msgId, target_section_key: targetKey })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxAccepted').replace('{section}', targetKey));
+        await loadInbox();
+        if (typeof loadData_online === 'function') {
+            try { await loadData_online(); } catch {}
+        }
+    } else if (act === 'delete-rejected') {
+        // §16-A.3(2026-05-24):已拒绝列表的"彻底删除" — 后端从 KV 移除消息
+        if (!confirm(t('confirmInboxDeleteRejected'))) return;
+        const r = await api('/api/inbox?action=delete-rejected', {
             method: 'POST',
             body: JSON.stringify({ msgId })
         });
@@ -6123,7 +6316,20 @@ async function handleInboxAction(act, msgId) {
             toast((r.data && r.data.error) || t('toastInboxFail'));
             return;
         }
-        toast(t('toastInboxDiscarded'));
+        toast(t('toastInboxDeleted'));
+        await loadInbox();
+    } else if (act === 'delete-accepted') {
+        // §16-A.5(2026-05-24):删除已接受的历史记录 — 不动 user data.js 中已合并的卡片,仅删 inbox 索引
+        if (!confirm(t('confirmInboxDeleteAccepted'))) return;
+        const r = await api('/api/inbox?action=delete-accepted', {
+            method: 'POST',
+            body: JSON.stringify({ msgId })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxDeleted'));
         await loadInbox();
     } else if (act === 'reject') {
         if (!confirm(t('confirmInboxReject'))) return;
@@ -6137,6 +6343,290 @@ async function handleInboxAction(act, msgId) {
         }
         toast(t('toastInboxRejected'));
         await loadInbox();
+    } else if (act === 'edit-accept') {
+        // §16-A.4(2026-05-24):打开编辑后接受 modal
+        const msg = __inboxMessages.find(m => m.msgId === msgId);
+        if (!msg) { toast(t('toastInboxFail')); return; }
+        openInboxEditAcceptModal(msg);
+    }
+}
+
+/* ================================================================
+ * §16-A.4(2026-05-24):编辑后接受
+ * 显示一个紧凑编辑器,允许改 type / title / url / desc / icon / comment
+ * 并选目标大类。提交时 POST accept-public 带 edited_cards + target_section_key。
+ * 不动原 inbox 消息 cards 字段(后端 sanitize 后写入 acceptedCards 留作日志)。
+ * ================================================================ */
+let __inboxEditingMsgId = null;
+
+function openInboxEditAcceptModal(msg) {
+    __inboxEditingMsgId = msg.msgId;
+    // 1. 渲染目标大类下拉
+    const sel = $('inboxEditAcceptSection');
+    sel.innerHTML = '';
+    // 6 个内置 + 未分类(与后端 ALLOWED_PUBLIC_KEYS 一致)
+    const opts = [
+        ['usbDriveData', '☁️ 在线U盘'],
+        ['teachingData', '📚 授课资料'],
+        ['onlineAIData', '🌐 网络资源'],
+        ['videoData', '🎬 视频聚合'],
+        ['emailData', '📧 邮箱'],
+        ['contactData', '📱 联系方式'],
+        ['custom_unclassified', '📥 未分类']
+    ];
+    const suggested = msg.section_key || 'custom_unclassified';
+    opts.forEach(([key, label]) => {
+        const o = document.createElement('option');
+        o.value = key; o.textContent = label + (key === suggested ? ' (推荐)' : '');
+        sel.appendChild(o);
+    });
+    sel.value = suggested;
+    // 2. 渲染卡片编辑行(每张一个紧凑表单)
+    const wrap = $('inboxEditAcceptCards');
+    wrap.innerHTML = '';
+    (msg.cards || []).forEach((card, idx) => {
+        const row = document.createElement('div');
+        row.className = 'inbox-edit-card-row';
+        row.dataset.cardIdx = idx;
+        row.style.cssText = 'border:1px solid #eee;border-radius:6px;padding:8px;margin-bottom:6px;background:#fafafa;';
+        const allowedTypes = ['simple', 'desc-clickable', 'expandable'];
+        const curType = allowedTypes.includes(card.type) ? card.type : 'simple';
+        // §16-A.7(2026-05-24):字段图标常显 + 必填红星
+        const reqStar = '<span class="req-star" aria-label="required">*</span>';
+        row.innerHTML = `
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;">
+                <strong style="min-width:50px;">#${idx + 1}</strong>
+                <label style="font-size:12px;">
+                    类型:
+                    <select class="iea-type" style="padding:2px 6px;font-size:12px;">
+                        <option value="simple">simple</option>
+                        <option value="desc-clickable">desc-clickable</option>
+                        <option value="expandable">expandable</option>
+                    </select>
+                </label>
+            </div>
+            <div class="field-row"><span class="field-prefix">📌${reqStar}</span><input type="text" class="iea-title" placeholder="标题"></div>
+            <div class="field-row"><span class="field-prefix">🔗</span><input type="text" class="iea-url" placeholder="URL"></div>
+            <div class="field-row"><span class="field-prefix">📝</span><input type="text" class="iea-desc" placeholder="描述"></div>
+            <div class="field-row"><span class="field-prefix">🎨</span><input type="text" class="iea-icon" placeholder="图标(emoji 或图片 URL)"></div>
+            <details style="margin-top:4px;">
+                <summary style="cursor:pointer;font-size:12px;color:#666;">📝 注释</summary>
+                <textarea class="iea-comment" placeholder="可选注释(Markdown)" style="width:100%;min-height:80px;margin-top:4px;padding:4px 6px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+            </details>
+        `;
+        row.querySelector('.iea-type').value = curType;
+        row.querySelector('.iea-title').value = card.title || card.content || card.address || '';
+        row.querySelector('.iea-url').value = card.url || '';
+        row.querySelector('.iea-desc').value = card.desc || card.descClickable || '';
+        row.querySelector('.iea-icon').value = card.icon || card.iconImg || '';
+        if (card.comment) {
+            row.querySelector('.iea-comment').value = card.comment;
+            row.querySelector('details').open = true;
+        }
+        // 保留原卡片其它富字段(subCards / iconImg / address / mailto / 等)
+        row.__originalCard = card;
+        wrap.appendChild(row);
+    });
+    $('inboxEditAcceptError').textContent = '';
+    show('inboxEditAcceptModal');
+}
+
+function collectInboxEditedCards() {
+    const wrap = $('inboxEditAcceptCards');
+    const rows = wrap.querySelectorAll('.inbox-edit-card-row');
+    const out = [];
+    rows.forEach(row => {
+        const orig = row.__originalCard || {};
+        // 以原卡为基底,只覆盖编辑过的字段(保留 subCards / address / mailto 等富字段)
+        const merged = Object.assign({}, orig);
+        merged.type = row.querySelector('.iea-type').value;
+        const title = row.querySelector('.iea-title').value.trim();
+        const url = row.querySelector('.iea-url').value.trim();
+        const desc = row.querySelector('.iea-desc').value.trim();
+        const icon = row.querySelector('.iea-icon').value.trim();
+        const comment = row.querySelector('.iea-comment').value;
+        if (title) merged.title = title; else delete merged.title;
+        if (url) merged.url = url; else delete merged.url;
+        if (desc) merged.desc = desc; else delete merged.desc;
+        // icon vs iconImg:URL 形式归 iconImg,emoji/SVG 归 icon
+        if (icon) {
+            if (/^https?:\/\//i.test(icon)) { merged.iconImg = icon; delete merged.icon; }
+            else { merged.icon = icon; delete merged.iconImg; }
+        } else { delete merged.icon; delete merged.iconImg; }
+        if (comment) merged.comment = comment; else delete merged.comment;
+        out.push(merged);
+    });
+    return out;
+}
+
+async function submitInboxEditAccept() {
+    const msgId = __inboxEditingMsgId;
+    if (!msgId) return;
+    const targetKey = $('inboxEditAcceptSection').value;
+    const editedCards = collectInboxEditedCards();
+    if (!editedCards.length) {
+        $('inboxEditAcceptError').textContent = '至少要保留 1 张卡片';
+        return;
+    }
+    // 至少 1 张卡有标题/内容
+    const hasContent = editedCards.some(c => (c.title || c.content || c.address || '').trim());
+    if (!hasContent) {
+        $('inboxEditAcceptError').textContent = '至少 1 张卡片需要标题/内容';
+        return;
+    }
+    const r = await api('/api/inbox?action=accept-public', {
+        method: 'POST',
+        body: JSON.stringify({
+            msgId,
+            target_section_key: targetKey,
+            edited_cards: editedCards
+        })
+    });
+    if (!r.ok || !r.data || !r.data.ok) {
+        $('inboxEditAcceptError').textContent = (r.data && r.data.error) || t('toastInboxFail');
+        return;
+    }
+    hide('inboxEditAcceptModal');
+    __inboxEditingMsgId = null;
+    toast(t('toastInboxAccepted').replace('{section}', targetKey));
+    await loadInbox();
+    if (typeof loadData_online === 'function') {
+        try { await loadData_online(); } catch {}
+    }
+}
+
+/* ================================================================
+ * §12 步骤 4.5(2026-05-24):接受到加密大类
+ *   后端加密 section 在 KV 里是 AES-GCM 密文 blob,后端没密码无法合并。
+ *   方案:前端拿明文 cards → push 进解锁后的 store[targetKey] → markConfigDirty →
+ *        保存时 generateDataJs 会用 sessionStorage 密码重新加密回密文 → /api/save 写回。
+ *        保存成功后调 mark-encrypted-done 把 msg 标 accepted + 减 unreadCount。
+ *
+ *   关键前置:目标加密大类必须"当前会话已解锁"(customSectionsMeta 里 locked=false)。
+ *   未解锁的大类:列表灰掉 + 提示用户先回主页解锁。
+ * ================================================================ */
+let __inboxEncAcceptingMsgId = null;
+let __pendingEncInboxAck = []; // 等待保存成功后 mark-done 的队列
+
+function openInboxAcceptEncModal(msg) {
+    __inboxEncAcceptingMsgId = msg.msgId;
+    const sel = $('inboxAcceptEncSelect');
+    const err = $('inboxAcceptEncError');
+    err.textContent = '';
+    sel.innerHTML = '';
+    // 列出 customSectionsMeta 中所有 encrypted=true 的 section,locked=false 的可选,locked=true 的禁用
+    const unlocked = [];
+    const locked = [];
+    (customSectionsMeta || []).forEach(c => {
+        if (!c || !c.encrypted) return;
+        if (c.locked) locked.push(c); else unlocked.push(c);
+    });
+    // §16-A.8(2026-05-24):区分"完全没建过加密大类"和"建过但都未解锁",分别引导
+    if (unlocked.length === 0 && locked.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = ''; opt.textContent = t('inboxAcceptEncNoneAtAll'); opt.disabled = true;
+        sel.appendChild(opt);
+        err.innerHTML = t('inboxAcceptEncCreateHint');
+    } else if (unlocked.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = ''; opt.textContent = t('inboxAcceptEncNone'); opt.disabled = true;
+        sel.appendChild(opt);
+        err.textContent = t('inboxAcceptEncHint');
+        // 列出锁定的(只显示不能选)
+        locked.forEach(c => {
+            const o = document.createElement('option');
+            o.value = ''; o.disabled = true;
+            o.textContent = '🔒 ' + c.label + ' (' + t('inboxAcceptEncLockedTip') + ')';
+            sel.appendChild(o);
+        });
+    } else {
+        unlocked.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.key;
+            opt.textContent = c.label + ' (' + c.key + ')';
+            sel.appendChild(opt);
+        });
+        if (locked.length > 0) {
+            const sep = document.createElement('option');
+            sep.disabled = true; sep.textContent = '—— ' + t('inboxAcceptEncLockedSep') + ' ——';
+            sel.appendChild(sep);
+            locked.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = ''; opt.disabled = true;
+                opt.textContent = '🔒 ' + c.label + ' (' + t('inboxAcceptEncLockedTip') + ')';
+                sel.appendChild(opt);
+            });
+        }
+    }
+    show('inboxAcceptEncModal');
+}
+
+async function submitInboxAcceptEncrypted() {
+    const msgId = __inboxEncAcceptingMsgId;
+    if (!msgId) return;
+    const sel = $('inboxAcceptEncSelect');
+    const err = $('inboxAcceptEncError');
+    const targetKey = sel.value;
+    if (!targetKey) { err.textContent = t('inboxAcceptEncNoTarget'); return; }
+    // 二次校验:目标 section 当前确实已解锁
+    const meta = (customSectionsMeta || []).find(c => c.key === targetKey);
+    if (!meta || !meta.encrypted || meta.locked) {
+        err.textContent = t('inboxAcceptEncTargetLocked');
+        return;
+    }
+    if (!getEncPassword()) {
+        err.textContent = t('toastEncNoSessionPwd');
+        return;
+    }
+
+    // 1. 从后端取明文 cards
+    err.textContent = t('inboxAcceptEncFetching');
+    const r = await api('/api/inbox?action=fetch-for-encrypt', {
+        method: 'POST',
+        body: JSON.stringify({ msgId })
+    });
+    if (!r.ok || !r.data || !r.data.ok) {
+        err.textContent = (r.data && r.data.error) || t('toastInboxFail');
+        return;
+    }
+    const fetchedCards = Array.isArray(r.data.cards) ? r.data.cards : [];
+    if (fetchedCards.length === 0) {
+        err.textContent = t('inboxAcceptEncNoCards');
+        return;
+    }
+
+    // 2. 合并到 store(明文层) — 保存时 serializeSourceFromStore 会自动加密
+    if (!Array.isArray(store[targetKey])) store[targetKey] = [];
+    store[targetKey].push(...fetchedCards);
+
+    // 3. 标 dirty + 入队等保存
+    markConfigDirty();
+    __pendingEncInboxAck.push({ msgId, targetKey });
+
+    hide('inboxAcceptEncModal');
+    __inboxEncAcceptingMsgId = null;
+
+    // 4. 切到目标 section 让用户能看到合并结果 + 提示保存
+    currentSection = targetKey;
+    renderSectionTabs();
+    renderCurrentSection();
+    toast(t('inboxAcceptEncMergedHint').replace('{section}', meta.label));
+}
+
+// §12 步骤 4.5 的最后一步:保存成功后 ack pending 队列
+async function ackPendingEncInbox() {
+    if (!__pendingEncInboxAck.length) return;
+    const queue = __pendingEncInboxAck.splice(0); // 取空整个队列
+    for (const item of queue) {
+        try {
+            await api('/api/inbox?action=mark-encrypted-done', {
+                method: 'POST',
+                body: JSON.stringify({ msgId: item.msgId, target_section_key: item.targetKey })
+            });
+        } catch (e) {
+            // ack 失败 → 重新入队,下次保存再试(失败原因可能是 msg 已被别处处理,无需用户感知)
+            __pendingEncInboxAck.push(item);
+        }
     }
 }
 
@@ -6744,6 +7234,13 @@ window.addEventListener('DOMContentLoaded', () => {
                 // 进入 force 模式 → 若已有多卡,toast 提示
                 const cnt = $('pushCardsContainer').querySelectorAll('.push-card-row').length;
                 if (cnt > 1) toast(t('toastPushForceSingleCard'));
+                // §16-B 修复(2026-05-24):若已有加密来源卡,toast 提示并撤销勾选
+                const hasEnc = $('pushCardsContainer').querySelector('.push-card-row[data-from-encrypted="1"]');
+                if (hasEnc) {
+                    toast(t('toastPushForceEncBlocked'));
+                    $('pushForceCheckbox').checked = false;
+                    if (addBtn) { addBtn.disabled = false; addBtn.style.opacity = ''; addBtn.title = ''; }
+                }
             }
         });
     }
@@ -6755,7 +7252,11 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[name="inboxFilter"]').forEach(r => {
         r.addEventListener('change', loadInbox);
     });
-    $('btnInboxAcceptEncCancel').onclick = () => hide('inboxAcceptEncModal');
+    $('btnInboxAcceptEncCancel').onclick = () => { hide('inboxAcceptEncModal'); __inboxEncAcceptingMsgId = null; };
+    $('btnInboxAcceptEncConfirm').onclick = submitInboxAcceptEncrypted;
+    // §16-A.4(2026-05-24):编辑后接受 modal 绑定
+    $('btnInboxEditAcceptCancel').onclick = () => { hide('inboxEditAcceptModal'); __inboxEditingMsgId = null; };
+    $('btnInboxEditAcceptConfirm').onclick = submitInboxEditAccept;
 
     // A2 后续增强 2:从我的卡片选 事件
     $('btnPushPickFromMine').onclick = openPickCardFromMineModal;

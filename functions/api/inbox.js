@@ -6,11 +6,19 @@
 //
 // 端点:
 //   GET    /api/inbox                              列出自己所有 inbox(支持 ?status=pending)
-//   POST   /api/inbox?action=accept-public         body: { msgId, target_section_key }  → 合并到非加密大类
-//   POST   /api/inbox?action=accept-discard        body: { msgId }                       → 接受但不入数据(用作"已读")
+//   POST   /api/inbox?action=accept-public         body: { msgId, target_section_key }  → 合并到非加密大类(允许 pending / rejected → accepted)
 //   POST   /api/inbox?action=reject                body: { msgId, reason? }
+//   POST   /api/inbox?action=delete-rejected       body: { msgId }                       → 彻底删除已拒绝的消息(2026-05-24 §16-A.3 新增)
+//   POST   /api/inbox?action=delete-accepted       body: { msgId }                       → 删除已接受的历史记录(2026-05-24 §16-A.5 新增;不动 data.js 中已合并的卡)
 //   POST   /api/inbox?action=fetch-for-encrypt     body: { msgId }                       → 返回明文 cards,供前端加密合并;不删消息
 //   POST   /api/inbox?action=mark-encrypted-done   body: { msgId }                       → 前端加密合并完成后调,标 accepted + 减 unread
+//
+// 状态机(2026-05-24 §16-A.3 简化):
+//   pending → accepted(public/encrypted)
+//   pending → rejected
+//   rejected → accepted(重新激活;unreadCount 不再减)
+//   rejected → 彻底删除(KV 移除)
+//   旧版 acceptKind='discarded' 的历史消息保留,纯只读不再产生
 //
 // 加密大类合并的特殊性(2026-05-23 设计):
 //   后端读不到用户解锁密码 → 不能直接把卡片合并到加密 section。
@@ -30,6 +38,24 @@ const INBOX_LIST_PREFIX = 'inbox-list:';
 const BUILTIN_KEYS = ['usbDriveData', 'teachingData', 'onlineAIData', 'videoData', 'emailData', 'contactData'];
 const UNCLASSIFIED_KEY = 'custom_unclassified';
 const ALLOWED_PUBLIC_KEYS = [...BUILTIN_KEYS, UNCLASSIFIED_KEY];
+
+// §16-A.4(2026-05-24):"编辑后接受"用 — 字段白名单 + 长度上限,与 push.js 的 sanitizeCard 行为一致
+const ALLOWED_CARD_FIELDS = new Set([
+    'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal',
+    'descClickable', 'descUrl', 'content', 'address', 'mailto', 'note',
+    'comment', 'id', 'subCards', 'pushedBy', 'pushedAt'
+]);
+const MAX_FIELD_LEN = 8000;
+function sanitizeCardField(card) {
+    const clean = {};
+    for (const k of Object.keys(card || {})) {
+        if (!ALLOWED_CARD_FIELDS.has(k)) continue;
+        let v = card[k];
+        if (typeof v === 'string' && v.length > MAX_FIELD_LEN) v = v.slice(0, MAX_FIELD_LEN);
+        clean[k] = v;
+    }
+    return clean;
+}
 
 function inboxKey(uid, msgId) { return INBOX_PREFIX + uid + ':' + msgId; }
 function inboxListKey(uid)    { return INBOX_LIST_PREFIX + uid; }
@@ -128,14 +154,27 @@ export async function onRequestPost({ request, env }) {
     catch { return jsonResponse({ ok: false, error: '消息数据损坏' }, 500); }
 
     if (action === 'accept-public') {
-        if (msg.status !== 'pending') {
+        // §16-A.3(2026-05-24):允许从 rejected 重新激活到 accepted(用户在已拒绝列表点"重新接受")
+        if (msg.status !== 'pending' && msg.status !== 'rejected') {
             return jsonResponse({ ok: false, error: '该消息状态不可接受: ' + msg.status }, 409);
+        }
+        // §16-B(2026-05-24):加密来源的消息只能接受到加密大类,不能走 accept-public
+        if (msg.fromEncrypted === true) {
+            return jsonResponse({ ok: false, error: '该消息含加密来源卡片,只能"接受到加密大类"' }, 403);
         }
         const targetKey = body.target_section_key || msg.section_key || UNCLASSIFIED_KEY;
         if (!ALLOWED_PUBLIC_KEYS.includes(targetKey)) {
             return jsonResponse({ ok: false, error: '不允许的目标 section: ' + targetKey }, 400);
         }
-        return await acceptPublic(env, uid, msg, targetKey);
+        // §16-A.4(2026-05-24):支持"编辑后接受" — 用 edited_cards 替换原 msg.cards
+        //   仅校验是数组 + 字段白名单(防止用户写入未知字段污染 data.js)
+        let cardsToWrite = msg.cards;
+        let edited = false;
+        if (Array.isArray(body.edited_cards) && body.edited_cards.length > 0) {
+            cardsToWrite = body.edited_cards.map(sanitizeCardField);
+            edited = true;
+        }
+        return await acceptPublic(env, uid, msg, targetKey, cardsToWrite, edited);
     }
 
     if (action === 'fetch-for-encrypt') {
@@ -161,12 +200,29 @@ export async function onRequestPost({ request, env }) {
         return await markAcceptedAndCleanup(env, uid, msg, msgId, targetEncKey, 'encrypted');
     }
 
-    if (action === 'accept-discard') {
-        // 用户选"接受但不入数据"= 已读但丢弃 cards
-        if (msg.status !== 'pending') {
-            return jsonResponse({ ok: false, error: '该消息状态不可接受: ' + msg.status }, 409);
+    if (action === 'delete-rejected') {
+        // §16-A.3(2026-05-24):仅 rejected 消息可被彻底删除(代替原 accept-discard 的"已读丢弃"语义)
+        if (msg.status !== 'rejected') {
+            return jsonResponse({ ok: false, error: '只有已拒绝的消息能彻底删除: ' + msg.status }, 409);
         }
-        return await markAcceptedAndCleanup(env, uid, msg, msgId, null, 'discarded');
+        await env.FAV_KV.delete(inboxKey(uid, msgId));
+        const list = await readInboxList(env, uid);
+        removeFromList(list, msgId);
+        await writeInboxList(env, uid, list);
+        return jsonResponse({ ok: true, msgId, status: 'deleted' });
+    }
+
+    if (action === 'delete-accepted') {
+        // §16-A.5(2026-05-24):删除已接受的历史记录(只删 inbox 索引中的消息记录,不动 user data.js 中已合并的卡片)
+        // 注:force 推送不走 inbox,所以这里永远不会涉及 force 推送的"标注"
+        if (msg.status !== 'accepted') {
+            return jsonResponse({ ok: false, error: '只有已接受的消息能删除记录: ' + msg.status }, 409);
+        }
+        await env.FAV_KV.delete(inboxKey(uid, msgId));
+        const list = await readInboxList(env, uid);
+        removeFromList(list, msgId);
+        await writeInboxList(env, uid, list);
+        return jsonResponse({ ok: true, msgId, status: 'deleted' });
     }
 
     if (action === 'reject') {
@@ -189,7 +245,9 @@ export async function onRequestPost({ request, env }) {
 }
 
 // 接受到公开/未分类 section:后端读 user data.js + 合并 cards + 写回
-async function acceptPublic(env, uid, msg, targetKey) {
+// §16-A.4(2026-05-24):新增 cardsToWrite + edited 参数,支持"编辑后接受"
+async function acceptPublic(env, uid, msg, targetKey, cardsToWrite, edited) {
+    cardsToWrite = cardsToWrite || msg.cards;
     const dataKey = 'user:' + uid + ':data_js';
     let userData = await env.FAV_KV.get(dataKey);
     let isFirstWrite = false;
@@ -198,7 +256,7 @@ async function acceptPublic(env, uid, msg, targetKey) {
         isFirstWrite = true;
     }
 
-    const result = appendCardsToSection(userData, targetKey, msg.cards);
+    const result = appendCardsToSection(userData, targetKey, cardsToWrite);
     if (result.skipped) {
         return jsonResponse({ ok: false, error: '目标 section 是加密大类,请用 accept-encrypted 流程' }, 400);
     }
@@ -226,19 +284,30 @@ async function acceptPublic(env, uid, msg, targetKey) {
         }
     } catch {}
 
+    // §16-A.4:edited=true 时把 acceptedCards 落到消息里供后续审查
+    if (edited) {
+        msg.editedBeforeAccept = true;
+        msg.acceptedCards = cardsToWrite;
+    }
     return await markAcceptedAndCleanup(env, uid, msg, msg.msgId, targetKey, 'public');
 }
 
 // 标 msg 为 accepted + 更新 inbox-list.unreadCount
 async function markAcceptedAndCleanup(env, uid, msg, msgId, acceptedSection, acceptKind) {
+    // §16-A.3(2026-05-24):若从 rejected → accepted(重新激活),unreadCount 已在 reject 时减过,不再减
+    const wasFromPending = msg.status === 'pending';
     msg.status = 'accepted';
     msg.acceptedAt = timestamp();
     if (acceptedSection) msg.acceptedSection = acceptedSection;
-    msg.acceptKind = acceptKind; // 'public' | 'encrypted' | 'discarded'
+    msg.acceptKind = acceptKind; // 'public' | 'encrypted'(2026-05-24 起不再有 'discarded')
+    delete msg.rejectedAt;       // 重新激活时清掉旧拒绝时间戳
+    delete msg.rejectReason;
     await env.FAV_KV.put(inboxKey(uid, msgId), JSON.stringify(msg));
-    const list = await readInboxList(env, uid);
-    if (list.unreadCount > 0) list.unreadCount -= 1;
-    await writeInboxList(env, uid, list);
+    if (wasFromPending) {
+        const list = await readInboxList(env, uid);
+        if (list.unreadCount > 0) list.unreadCount -= 1;
+        await writeInboxList(env, uid, list);
+    }
     return jsonResponse({ ok: true, msgId, status: 'accepted', acceptKind, acceptedSection: acceptedSection || null });
 }
 

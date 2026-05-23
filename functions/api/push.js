@@ -147,6 +147,10 @@ export async function onRequestPost({ request, env }) {
     if (mode === 'force' && cards.length > 1) {
         return jsonResponse({ ok: false, error: '强制推送一次只能 1 张卡' }, 400);
     }
+    // §16-B(2026-05-24):force 模式禁止推送加密来源卡片(隐私边界 — 加密卡只能走 inbox 让接收方加密保存)
+    if (mode === 'force' && cards.some(c => c && c.__fromEncrypted === true)) {
+        return jsonResponse({ ok: false, error: '加密大类的卡片不能强制推送,只能走默认推送让对方接受到加密大类' }, 400);
+    }
     // §13 强制推送:不能推到加密大类(隐私边界)
     // 注:单纯 section_key 命中 BUILTIN_KEYS 不能直接判断"加密",真正加密标在 section.encrypted
     // 这里仅做 section_key 校验;运行时 force 路径会再次扫描 section.encrypted 兜底
@@ -162,6 +166,9 @@ export async function onRequestPost({ request, env }) {
         cleanMessage = sanRes.text;
     }
 
+    // §16-B(2026-05-24):任一张卡片标 __fromEncrypted=true → 整个消息打加密标记
+    //   接收方 inbox 看到 fromEncrypted=true 的消息只允许"接受到加密大类",隐藏公开接受/编辑接受
+    const fromEncrypted = cards.some(c => c && c.__fromEncrypted === true);
     const cleanCards = cards.map(c => {
         const clean = sanitizeCard(c);
         if (!clean.id) clean.id = generateCardId();
@@ -203,7 +210,9 @@ export async function onRequestPost({ request, env }) {
                     section_key: targetSecKey,
                     cards: cleanCards,
                     message: cleanMessage,
-                    status: 'pending'
+                    status: 'pending',
+                    // §16-B(2026-05-24):加密来源标记 — 接收方 inbox 据此限制只能接受到加密大类
+                    fromEncrypted: !!fromEncrypted
                 };
                 // 先写消息体
                 await env.FAV_KV.put(inboxKey(target, msgId), JSON.stringify(message));
