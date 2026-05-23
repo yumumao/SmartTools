@@ -48,6 +48,8 @@
     </script>
     <style id="public-mode-hide-css">
         html[data-public-mode] .back-link { display: none !important; }
+        /* 2026-05-24:默认隐藏,等 /api/data 注入 __viewerInfo 后,admin 视图(无 slug)才 setAttribute('data-admin-view') 显示 — 避免普通用户/公开访问下按钮闪一下消失 */
+        html:not([data-admin-view]) .back-link { display: none !important; }
     </style>
 
     <style>

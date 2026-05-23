@@ -2190,7 +2190,7 @@ const MODE_ONLINE = 'online', MODE_LOCAL = 'local';
 let currentMode = null;
 let onlineAvailable = false;
 // A1-a: 当前在线用户（仅 MODE_ONLINE 下有意义）；boot/login/logout 都要维护
-let currentUser = { username: null, uid: null, role: null };
+let currentUser = { username: null, uid: null, role: null, publicSlug: null, publicEnabled: false };
 // A1-d: 是否需要迁移（admin 视角，本地 KV 无 legacy 数据时永远 false）
 let currentMigrationNeeded = false;
 const LS_MODE = 'bm_cfg_mode';
@@ -2898,9 +2898,15 @@ async function checkOnlineAvailable() {
         if (!j || !j.ok) return { available: false };
         // A1-a: 同时回填 currentUser（loggedIn 才填，否则清空）
         if (j.loggedIn) {
-            currentUser = { username: j.username || null, uid: j.uid || null, role: j.role || null };
+            currentUser = {
+                username: j.username || null,
+                uid: j.uid || null,
+                role: j.role || null,
+                publicSlug: j.publicSlug || null,
+                publicEnabled: j.publicEnabled === true
+            };
         } else {
-            currentUser = { username: null, uid: null, role: null };
+            currentUser = { username: null, uid: null, role: null, publicSlug: null, publicEnabled: false };
         }
         // A1-d: 迁移需求标志（仅 admin 后续会消费；非 admin 写了也没用）
         currentMigrationNeeded = !!j.migrationNeeded;
@@ -3389,7 +3395,7 @@ async function doHistory() { if (currentMode === MODE_ONLINE) await openHistoryM
 async function doLogout() {
     clearEncPassword();
     // A1-c: 清空 currentUser 防 stale
-    currentUser = { username: null, uid: null, role: null };
+    currentUser = { username: null, uid: null, role: null, publicSlug: null, publicEnabled: false };
     // A1-d: 清迁移标志
     currentMigrationNeeded = false;
     // §12: 停 inbox 轮询(避免 logout 后还在拉 inbox 报 401)

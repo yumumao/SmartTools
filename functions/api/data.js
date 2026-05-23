@@ -252,6 +252,38 @@ export async function onRequestGet({ request, env }) {
         publicSlugInfoLine = 'window.__publicSlugInfo = ' + JSON.stringify(info) + ';\n';
     }
 
+    // 2026-05-24:viewerInfo 给前端水印用 — 标识当前响应"展示的是谁的数据"
+    //   admin namespace → isAdminView=true,前端不显示水印
+    //   user namespace  → 携带 slug(优先) / username,前端在主页右下角显示浅灰 @<slug>
+    let viewerInfoLine = '';
+    {
+        let viewerUsername = null;
+        let viewerSlug = null;
+        if (isPublicSlugMode) {
+            viewerSlug = publicSlug;
+            // username 不重要(slug 已够用),省去额外查询
+        } else if (ns === 'user' && uid && env.FAV_KV) {
+            try {
+                const usersRaw = await env.FAV_KV.get('users');
+                if (usersRaw) {
+                    const usersTab = JSON.parse(usersRaw) || {};
+                    // uid 在当前 schema 里就是 username
+                    const me = usersTab[uid];
+                    if (me) {
+                        viewerUsername = uid;
+                        if (me.publicEnabled && me.publicSlug) viewerSlug = me.publicSlug;
+                    }
+                }
+            } catch {}
+        }
+        const viewerInfo = {
+            isAdminView: ns === 'admin',
+            slug: viewerSlug || null,
+            username: viewerUsername || null
+        };
+        viewerInfoLine = 'window.__viewerInfo = ' + JSON.stringify(viewerInfo) + ';\n';
+    }
+
     if (format === 'json') {
         return jsonResponse({
             ok: true,
@@ -266,8 +298,8 @@ export async function onRequestGet({ request, env }) {
         });
     }
 
-    // 前置 __publicSlugInfo(仅 JS 路径)
-    const finalContent = publicSlugInfoLine + content;
+    // 前置 __publicSlugInfo + __viewerInfo(仅 JS 路径)
+    const finalContent = publicSlugInfoLine + viewerInfoLine + content;
 
     // 缓存策略:
     //   登录态(非 slug 模式) → 严格 no-store

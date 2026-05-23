@@ -16,6 +16,25 @@
 
 
 /* ════════════════════════════════════════════════════════════════════════════════
+ * 【区块 0】视图态早期标记 — 防"前往小工具"按钮闪现
+ *   CSS 默认 `html:not([data-admin-view]) .back-link {display:none}`,
+ *   只有 admin 视图(viewerInfo.isAdminView 且无 slug)才在这里设上 attribute → 显示按钮。
+ *   本块同步执行,在 DOMContentLoaded 之前完成,避免渲染闪烁。
+ * ════════════════════════════════════════════════════════════════════════════════ */
+(function () {
+    try {
+        var vi = window.__viewerInfo;
+        // viewerInfo 未注入(罕见:静态 data.js 兜底)→ 保守显示按钮,与未登录默认行为一致
+        if (!vi || (vi.isAdminView && !vi.slug)) {
+            document.documentElement.setAttribute('data-admin-view', '');
+        }
+    } catch (e) {
+        document.documentElement.setAttribute('data-admin-view', '');
+    }
+})();
+
+
+/* ════════════════════════════════════════════════════════════════════════════════
  * 【区块 1】风格持久化
  * ════════════════════════════════════════════════════════════════════════════════ */
 try {
@@ -1032,6 +1051,16 @@ function renderAllSections(layout) {
         if (sec.visible === false) return;
         // ★ contactData 合并到 email section 中渲染，此处跳过
         if (sec.key === 'contactData') return;
+        // 2026-05-24:4 个内置 card 大类(usb/teaching/onlineAI/video)若无任何卡片就隐藏;
+        //   邮箱(emailData)/联系方式(contactData)保持原样不参与本规则
+        //   加密锁定态(EncUnlock.isLocked)不算空,仍要显示锁
+        if (sec.kind === 'card'
+            && (sec.key === 'usbDriveData' || sec.key === 'teachingData'
+                || sec.key === 'onlineAIData' || sec.key === 'videoData')
+            && (!sec.cards || sec.cards.length === 0)
+            && !(window.EncUnlock && EncUnlock.isLocked(sec))) {
+            return;
+        }
         var sectionEl = document.createElement('div');
         sectionEl.className = 'section';
         if (sec.builtin === false) sectionEl.dataset.customKey = sec.key;
@@ -1106,6 +1135,32 @@ document.addEventListener('DOMContentLoaded', async function() {
             this.classList.remove('active');
         });
     }
+
+    // 2026-05-24:用户身份水印 — 左下角浅灰显示 slug,告诉用户当前显示的是谁的收藏
+    // 规则(v2):
+    //   - 只要响应里有 slug(无论 admin 还是 user 的公开 slug,或 user cookie 模式)→ 显示
+    //   - 仅 admin cookie 登录后访问 /index.html(无 slug)→ 不显示
+    //   - 显示的是 slug 内容本身,不带 @ 前缀
+    // 数据来源:functions/api/data.js 在响应头部注入的 window.__viewerInfo
+    try {
+        var vi = window.__viewerInfo;
+        var label = vi && (vi.slug || vi.username);
+        if (label) {
+            var wm = document.getElementById('__viewerWatermark');
+            if (!wm) {
+                wm = document.createElement('div');
+                wm.id = '__viewerWatermark';
+                wm.style.cssText = 'position:fixed;left:14px;bottom:10px;z-index:1;' +
+                    'color:rgba(120,120,120,0.5);font-size:11px;line-height:1;font-weight:600;' +
+                    'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;' +
+                    'letter-spacing:0.4px;pointer-events:none;user-select:none;' +
+                    'text-shadow:0 0 1px rgba(255,255,255,0.6);';
+                document.body.appendChild(wm);
+            }
+            wm.textContent = label;
+        }
+        // 注:"← 前往小工具"按钮的显隐已由区块 0 + indexN.html 的 CSS 协同处理(防闪烁),此处不再做
+    } catch (e) {}
 });
 
 
