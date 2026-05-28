@@ -29,11 +29,23 @@
 
 import {
     jsonResponse,
-    getPayload
+    getPayload,
+    isValidUsername
 } from '../_shared/auth.js';
+import { trySanitizeMarkdown } from '../_shared/markdown-sanitize.js';
 
 const INBOX_PREFIX = 'inbox:';
 const INBOX_LIST_PREFIX = 'inbox-list:';
+// §14 P2P(2026-05-29):sent 副本走发件方 user namespace,users.js DELETE 已按 user:<target>:* 前缀清理
+const SENT_PREFIX = 'user:';            // user:<senderUid>:sent:<msgId>
+const SENT_LIST_PREFIX = 'user:';       // user:<senderUid>:sent-list
+// §14 P2P 速率限制 KV key 前缀(UTC+8 时区,与项目其他时间戳一致;接受 ±1-2 条 race 误差)
+const RATE_PREFIX = 'inbox-rate:';      // inbox-rate:<sender>:<YYYYMMDD> 86400s TTL / inbox-rate:<sender>:<recipient>:<YYYYMMDDHH> 3600s TTL
+const RATE_DAILY_LIMIT = 100;
+const RATE_PER_RECIPIENT_HOURLY = 10;
+const MAX_CARDS_PER_SEND = 20;          // §14 单次推送上限(与 §11.5 决策一致)
+const MAX_MESSAGE_LEN = 500;            // §14 留言长度上限(与 push.js 一致)
+const USERS_KEY = 'users';
 
 const BUILTIN_KEYS = ['usbDriveData', 'teachingData', 'onlineAIData', 'videoData', 'emailData', 'contactData'];
 const UNCLASSIFIED_KEY = 'custom_unclassified';
@@ -59,6 +71,25 @@ function sanitizeCardField(card) {
 
 function inboxKey(uid, msgId) { return INBOX_PREFIX + uid + ':' + msgId; }
 function inboxListKey(uid)    { return INBOX_LIST_PREFIX + uid; }
+// §14 P2P:sent 副本 key(放发件方 user namespace 下,删除用户时自动随 user:<uid>:* 清理)
+function sentKey(uid, msgId)  { return SENT_PREFIX + uid + ':sent:' + msgId; }
+function sentListKey(uid)     { return SENT_LIST_PREFIX + uid + ':sent-list'; }
+// §14 P2P:速率限制 key(UTC+8)
+function dateKeyCN() {
+    const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const p = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate());
+}
+function hourKeyCN() {
+    const d = new Date(Date.now() + 8 * 60 * 60 * 1000);
+    const p = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + p(d.getUTCHours());
+}
+function rateDayKey(senderUid)             { return RATE_PREFIX + senderUid + ':' + dateKeyCN(); }
+function rateHourKey(senderUid, recipient) { return RATE_PREFIX + senderUid + ':' + recipient + ':' + hourKeyCN(); }
+function generateMsgId() {
+    return Date.now().toString() + '_' + Math.random().toString(36).slice(2, 8);
+}
 
 // 读取 inbox 索引;不存在则返回空 { ids:[], unreadCount:0 }
 async function readInboxList(env, uid) {
@@ -85,6 +116,56 @@ function removeFromList(list, msgId) {
     if (i >= 0) list.ids.splice(i, 1);
 }
 
+// ─────────────────────────────────────────────────────────────
+// §14 P2P 工具函数(sent 副本索引读写 / 限速检查)
+// ─────────────────────────────────────────────────────────────
+async function readSentList(env, uid) {
+    if (!env.FAV_KV) return { ids: [] };
+    try {
+        const raw = await env.FAV_KV.get(sentListKey(uid));
+        if (!raw) return { ids: [] };
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.ids)) return { ids: [] };
+        return obj;
+    } catch {
+        return { ids: [] };
+    }
+}
+
+async function writeSentList(env, uid, list) {
+    await env.FAV_KV.put(sentListKey(uid), JSON.stringify(list));
+}
+
+// 限速检查 + 计数:接受 ±1-2 race 误差(用户决策 Q3=A,无 atomic CAS)
+// 返回 { ok:true, dayUsed, hourUsed } 或 { ok:false, code:'RATE_LIMIT_DAILY'|'RATE_LIMIT_PER_RECIPIENT', limit, retryAfter }
+async function checkAndIncrementRate(env, fromUid, toUsername) {
+    const dKey = rateDayKey(fromUid);
+    const hKey = rateHourKey(fromUid, toUsername);
+    const [dayRaw, hourRaw] = await Promise.all([
+        env.FAV_KV.get(dKey),
+        env.FAV_KV.get(hKey)
+    ]);
+    const dayN  = parseInt(dayRaw  || '0', 10) || 0;
+    const hourN = parseInt(hourRaw || '0', 10) || 0;
+    if (dayN >= RATE_DAILY_LIMIT) {
+        return { ok: false, code: 'RATE_LIMIT_DAILY', limit: RATE_DAILY_LIMIT, retryAfter: 86400 };
+    }
+    if (hourN >= RATE_PER_RECIPIENT_HOURLY) {
+        return { ok: false, code: 'RATE_LIMIT_PER_RECIPIENT', limit: RATE_PER_RECIPIENT_HOURLY, retryAfter: 3600 };
+    }
+    // 写入(race 接受误差;不做 CAS)
+    try {
+        await Promise.all([
+            env.FAV_KV.put(dKey, String(dayN + 1),  { expirationTtl: 86400 }),
+            env.FAV_KV.put(hKey, String(hourN + 1), { expirationTtl: 3600  })
+        ]);
+    } catch (e) {
+        // 写失败不阻断主流程(限速失效优于发送失败)
+        console.warn('rate counter put failed:', e && e.message);
+    }
+    return { ok: true, dayUsed: dayN + 1, hourUsed: hourN + 1 };
+}
+
 // 鉴权 + 返回 { uid, payload }
 async function authUser(request, env) {
     const payload = await getPayload(request, env);
@@ -103,7 +184,31 @@ export async function onRequestGet({ request, env }) {
 
     const url = new URL(request.url);
     const statusFilter = url.searchParams.get('status'); // pending / accepted / rejected / null
+    const type = url.searchParams.get('type');           // §14 P2P(2026-05-29):'sent' = 我发出的;不传/其它 = 我收到的(默认 inbox)
 
+    // §14 P2P:发件箱视图 — 列出自己 send 过的 P2P 消息(只有走 /api/inbox?action=send 才有 sent 副本;admin /api/push 路径不在此)
+    if (type === 'sent') {
+        const sentList = await readSentList(env, uid);
+        const messages = [];
+        for (const msgId of sentList.ids) {
+            try {
+                const raw = await env.FAV_KV.get(sentKey(uid, msgId));
+                if (!raw) continue;
+                const msg = JSON.parse(raw);
+                if (statusFilter && msg.status !== statusFilter) continue;
+                messages.push(msg);
+            } catch {}
+        }
+        return jsonResponse({
+            ok: true,
+            type: 'sent',
+            uid,
+            total: sentList.ids.length,
+            messages
+        });
+    }
+
+    // 默认:收件箱视图
     const list = await readInboxList(env, uid);
 
     const messages = [];
@@ -140,6 +245,15 @@ export async function onRequestPost({ request, env }) {
     let body;
     try { body = await request.json(); }
     catch { return jsonResponse({ ok: false, error: '请求格式错误' }, 400); }
+
+    // §14 P2P send action 没有 msgId 输入(后端生成),独立分流
+    if (action === 'send') {
+        return await handleSend(env, body, uid, auth.payload);
+    }
+    // §14 P2P set-policy action 没有 msgId 输入(改自己的 inboxPolicy)
+    if (action === 'set-policy') {
+        return await handleSetPolicy(env, body, uid);
+    }
 
     const msgId = body && body.msgId;
     if (!msgId || typeof msgId !== 'string') {
@@ -238,10 +352,174 @@ export async function onRequestPost({ request, env }) {
         const list = await readInboxList(env, uid);
         if (list.unreadCount > 0) list.unreadCount -= 1;
         await writeInboxList(env, uid, list);
+        // §14 P2P(2026-05-29):同步发件方 sent 副本状态
+        await syncSentStatus(env, msg, {
+            status: 'rejected',
+            rejectedAt: msg.rejectedAt,
+            rejectReason: reason || undefined
+        });
         return jsonResponse({ ok: true, msgId, status: 'rejected' });
     }
 
     return jsonResponse({ ok: false, error: '未知 action: ' + action }, 400);
+}
+
+// ─────────────────────────────────────────────────────────────
+// §14 P2P send action(2026-05-29)
+// 任意登录用户 → 推送卡片到指定 recipient 的 inbox + 写发件方 sent 副本
+// 防爆破:recipient 不存在 / disabled / inboxPolicy=closed → 静默 200(不写 inbox 也不写 sent)
+// 速率限:全日 50 / 同收件人 1h 5(超 → 429,不静默,告诉发件方触发自己限速)
+// 加密卡:fromEncrypted 透传(复用 §16-B 机制,接收方只能加密接受)
+// ─────────────────────────────────────────────────────────────
+async function handleSend(env, body, fromUid, payload) {
+    // 1. body 字段校验(cheap first)
+    const toUsername    = body && body.toUsername;
+    const cards         = body && body.cards;
+    const rawMessage    = body && body.message;
+    const rawSectionKey = body && body.section_key;
+
+    if (!toUsername || typeof toUsername !== 'string' || !isValidUsername(toUsername)) {
+        return jsonResponse({ ok: false, error: '收件人用户名不合法' }, 400);
+    }
+    if (!Array.isArray(cards) || cards.length === 0) {
+        return jsonResponse({ ok: false, error: 'cards 必须是非空数组' }, 400);
+    }
+    if (cards.length > MAX_CARDS_PER_SEND) {
+        return jsonResponse({ ok: false, error: '单次最多 ' + MAX_CARDS_PER_SEND + ' 张卡片' }, 400);
+    }
+
+    // 2. self-send 拒绝(Q6)
+    if (toUsername === fromUid) {
+        return jsonResponse({ ok: false, error: '不能给自己发送' }, 400);
+    }
+
+    // 3. section_key:可选;为空 = 推到未分类
+    const targetSecKey = rawSectionKey || UNCLASSIFIED_KEY;
+    if (!ALLOWED_PUBLIC_KEYS.includes(targetSecKey)) {
+        return jsonResponse({ ok: false, error: '不允许的目标 section: ' + targetSecKey }, 400);
+    }
+
+    // 4. 限速检查(发件方自己的限速 → 失败 429 不静默)
+    //    放在用户检查之前 → 攻击者扫描收件人也消耗自己配额
+    const rate = await checkAndIncrementRate(env, fromUid, toUsername);
+    if (!rate.ok) {
+        return jsonResponse({
+            ok: false,
+            error: rate.code === 'RATE_LIMIT_DAILY'
+                ? '今日推送已达上限 (' + rate.limit + ' 条/天),请明日再试'
+                : '同收件人 1 小时内最多发送 ' + rate.limit + ' 条',
+            code: rate.code,
+            retryAfter: rate.retryAfter
+        }, 429);
+    }
+
+    // 5. 静默检查:recipient 不存在 / disabled / inboxPolicy=closed → 200 但不写
+    const usersRaw = await env.FAV_KV.get(USERS_KEY);
+    const users = usersRaw ? JSON.parse(usersRaw) : {};
+    const target = users[toUsername];
+    if (!target || target.status === 'disabled') {
+        // 防爆破:返回与成功相同的 shape,但 msgId=null 表明实际未写
+        return jsonResponse({ ok: true, sentTo: toUsername, msgId: null, silent: true });
+    }
+    if (target.inboxPolicy === 'closed') {
+        return jsonResponse({ ok: true, sentTo: toUsername, msgId: null, silent: true });
+    }
+
+    // 6. sanitize message(Markdown 黑名单 + 长度上限)
+    let cleanMessage = '';
+    if (rawMessage != null && rawMessage !== '') {
+        const sanRes = trySanitizeMarkdown(String(rawMessage), { maxLength: MAX_MESSAGE_LEN });
+        if (!sanRes.ok) {
+            return jsonResponse({ ok: false, error: '留言不合法: ' + sanRes.error, code: sanRes.code }, 400);
+        }
+        cleanMessage = sanRes.text;
+    }
+
+    // 7. fromEncrypted 检测(复用 §16-B 机制):任一张卡 __fromEncrypted=true → 整个消息标加密来源
+    const fromEncrypted = cards.some(c => c && c.__fromEncrypted === true);
+
+    // 8. sanitize cards(白名单 + 长度截断 + 自动补 id)
+    const cleanCards = cards.map(c => {
+        const clean = sanitizeCardField(c);
+        if (!clean.id) clean.id = 'card_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        return clean;
+    });
+
+    // 9. 构造消息体(与 push.js append 路径完全一致的 shape)
+    const msgId = generateMsgId();
+    const fromUsername = (payload && payload.u) || fromUid;
+    const fromRole = (payload && payload.role) || 'user';
+    const message = {
+        msgId,
+        fromUid,
+        fromUsername,
+        fromRole,
+        sentAt: timestamp(),
+        section_key: targetSecKey,
+        cards: cleanCards,
+        message: cleanMessage,
+        status: 'pending',
+        fromEncrypted: !!fromEncrypted
+    };
+
+    // 10. 写入(顺序:inbox → inbox-list → sent → sent-list;任一步失败留着,不回滚)
+    try {
+        await env.FAV_KV.put(inboxKey(toUsername, msgId), JSON.stringify(message));
+        const inList = await readInboxList(env, toUsername);
+        inList.ids.unshift(msgId);
+        inList.unreadCount = (inList.unreadCount || 0) + 1;
+        await writeInboxList(env, toUsername, inList);
+
+        // sent 副本(用于发件方查"对方接受没")— 多存 toUsername 字段,inbox 副本不存(接收方自己知道是自己)
+        const sentMessage = Object.assign({}, message, { toUsername });
+        await env.FAV_KV.put(sentKey(fromUid, msgId), JSON.stringify(sentMessage));
+        const sentList = await readSentList(env, fromUid);
+        sentList.ids.unshift(msgId);
+        await writeSentList(env, fromUid, sentList);
+    } catch (e) {
+        const msg = (e && (e.message || e.name)) || String(e);
+        console.warn('inbox send write failed:', msg);
+        return jsonResponse({ ok: false, error: '写入失败: ' + msg }, 500);
+    }
+
+    return jsonResponse({
+        ok: true,
+        sentTo: toUsername,
+        msgId,
+        cardsCount: cleanCards.length,
+        fromEncrypted: !!fromEncrypted,
+        rate: { dayUsed: rate.dayUsed, hourUsed: rate.hourUsed }
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// §14 P2P set-policy(2026-05-29)
+// 用户改自己的 inboxPolicy('open' / 'closed')
+// admin 也只能改自己(V1 简化;管理他人 policy 留到 V2)
+// 不存在/老用户(无 inboxPolicy 字段)视为 'open',此 action 写入后即固化
+// ─────────────────────────────────────────────────────────────
+async function handleSetPolicy(env, body, uid) {
+    const policy = body && body.policy;
+    if (policy !== 'open' && policy !== 'closed') {
+        return jsonResponse({ ok: false, error: 'policy 必须是 open 或 closed' }, 400);
+    }
+    try {
+        const usersRaw = await env.FAV_KV.get(USERS_KEY);
+        if (!usersRaw) {
+            return jsonResponse({ ok: false, error: '用户表不存在' }, 500);
+        }
+        const users = JSON.parse(usersRaw);
+        if (!users[uid]) {
+            return jsonResponse({ ok: false, error: '用户不存在' }, 404);
+        }
+        users[uid].inboxPolicy = policy;
+        await env.FAV_KV.put(USERS_KEY, JSON.stringify(users));
+        return jsonResponse({ ok: true, policy });
+    } catch (e) {
+        const msg = (e && (e.message || e.name)) || String(e);
+        console.warn('set-policy failed:', msg);
+        return jsonResponse({ ok: false, error: '保存失败: ' + msg }, 500);
+    }
 }
 
 // 接受到公开/未分类 section:后端读 user data.js + 合并 cards + 写回
@@ -308,7 +586,50 @@ async function markAcceptedAndCleanup(env, uid, msg, msgId, acceptedSection, acc
         if (list.unreadCount > 0) list.unreadCount -= 1;
         await writeInboxList(env, uid, list);
     }
+    // §14 P2P(2026-05-29):同步发件方 sent 副本状态(P2P 路径才有 sent;admin /api/push 路径无 sent 副本会被 syncSentStatus 跳过)
+    await syncSentStatus(env, msg, {
+        status: 'accepted',
+        acceptedAt: msg.acceptedAt,
+        acceptedSection: acceptedSection || null,
+        acceptKind,
+        editedBeforeAccept: msg.editedBeforeAccept === true ? true : undefined,
+        acceptedCards: msg.acceptedCards || undefined
+    });
     return jsonResponse({ ok: true, msgId, status: 'accepted', acceptKind, acceptedSection: acceptedSection || null });
+}
+
+// §14 P2P(2026-05-29):把接收方的 msg 状态变化同步到发件方的 sent 副本
+//   发件方 sent KV key:user:<fromUid>:sent:<msgId>(放发件方 user namespace 下,删用户时自动清理)
+//   只有 send action 写过 sent 副本时此函数才有目标;admin /api/push 路径无 sent → sent 副本读取 null → 直接 return
+//   失败 try/catch 不阻断主路径(接收方 inbox 状态优先)
+async function syncSentStatus(env, msg, updates) {
+    if (!env.FAV_KV) return;
+    const fromUid = msg && msg.fromUid;
+    const msgId   = msg && msg.msgId;
+    if (!fromUid || !msgId) return;
+    try {
+        const sentRaw = await env.FAV_KV.get(sentKey(fromUid, msgId));
+        if (!sentRaw) return;  // 发件方走 /api/push (admin) 而非 send action → 无 sent 副本,跳过
+        const sent = JSON.parse(sentRaw);
+        // merge 非 undefined 字段(undefined 不覆盖现有值)
+        for (const k of Object.keys(updates || {})) {
+            if (updates[k] !== undefined) sent[k] = updates[k];
+        }
+        // 状态切换时清掉互斥字段
+        if (updates && updates.status === 'accepted') {
+            delete sent.rejectedAt;
+            delete sent.rejectReason;
+        } else if (updates && updates.status === 'rejected') {
+            delete sent.acceptedAt;
+            delete sent.acceptedSection;
+            delete sent.acceptKind;
+            delete sent.editedBeforeAccept;
+            delete sent.acceptedCards;
+        }
+        await env.FAV_KV.put(sentKey(fromUid, msgId), JSON.stringify(sent));
+    } catch (e) {
+        console.warn('syncSentStatus failed:', e && e.message);
+    }
 }
 
 function timestamp() {

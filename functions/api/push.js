@@ -53,6 +53,11 @@ const INBOX_LIST_PREFIX = 'inbox-list:';
 const MAX_MESSAGE_LEN = 500; // 推送留言上限(§5.2 / §12)
 function inboxKey(uid, msgId) { return INBOX_PREFIX + uid + ':' + msgId; }
 function inboxListKey(uid)    { return INBOX_LIST_PREFIX + uid; }
+// §14 P2P Hotfix(2026-05-29):sent 副本 — 与 inbox.js 完全对齐
+//   admin /api/push (append) 也写 sent 副本,让 admin 在"我发出的"看到推送历史
+//   force 分支不写(force 不走 inbox,非 P2P 语义)
+function sentKey(uid, msgId) { return 'user:' + uid + ':sent:' + msgId; }
+function sentListKey(uid)    { return 'user:' + uid + ':sent-list'; }
 
 // 卡片字段白名单(防 admin 推脏字段污染用户数据)
 const ALLOWED_CARD_FIELDS = new Set([
@@ -189,6 +194,8 @@ export async function onRequestPost({ request, env }) {
     if (mode === 'append') {
         const successes = [];
         const failures = [];
+        // §14 P2P Hotfix(2026-05-29):收集 successful msgIds + sentMessages,循环结束后一次性写 sent-list(避免 N 次 KV 读写竞争)
+        const sentMsgIdsToAdd = [];
 
         for (const target of target_users) {
             if (!users[target]) {
@@ -197,6 +204,13 @@ export async function onRequestPost({ request, env }) {
             }
             if (users[target].status === 'disabled') {
                 failures.push({ user: target, reason: '用户已禁用' });
+                continue;
+            }
+            // §14 P2P Hotfix(2026-05-29):尊重 inboxPolicy=closed
+            //   admin 是管理员,从 /api/users 本来就能看到 inboxPolicy,不需要防爆破语义,透明告知 failures
+            //   (P2P /api/inbox?action=send 是 silent,因为防普通用户扫描)
+            if (users[target].inboxPolicy === 'closed') {
+                failures.push({ user: target, reason: '收件人已关闭收件' });
                 continue;
             }
             try {
@@ -221,11 +235,42 @@ export async function onRequestPost({ request, env }) {
                 list.ids.unshift(msgId); // 时间倒序
                 list.unreadCount = (list.unreadCount || 0) + 1;
                 await env.FAV_KV.put(inboxListKey(target), JSON.stringify(list));
+                // §14 P2P Hotfix(2026-05-29):写 sent 副本(每个 target 独立一条),sent-list 循环外批量写
+                //   sent 副本字段与 inbox.js handleSend 一致 — 多存 toUsername 字段,inbox 副本不存
+                try {
+                    const sentMessage = Object.assign({}, message, { toUsername: target });
+                    await env.FAV_KV.put(sentKey(callerUid, msgId), JSON.stringify(sentMessage));
+                    sentMsgIdsToAdd.push(msgId);
+                } catch (sentErr) {
+                    // sent 副本写失败不阻断主路径(inbox 已写成功)
+                    console.warn('push sent copy failed for', target, msgId, sentErr && sentErr.message);
+                }
                 successes.push({ user: target, msgId, cardsInserted: cleanCards.length });
             } catch (e) {
                 const msg = (e && (e.message || e.name)) || String(e);
                 console.warn('inbox push failed for', target, msg);
                 failures.push({ user: target, reason: msg });
+            }
+        }
+
+        // §14 P2P Hotfix(2026-05-29):循环结束后一次性更新发件方 sent-list(避免 N 次 KV 读写竞争)
+        if (sentMsgIdsToAdd.length > 0) {
+            try {
+                const sentListRaw = await env.FAV_KV.get(sentListKey(callerUid));
+                let sentList = { ids: [] };
+                if (sentListRaw) {
+                    try {
+                        const parsed = JSON.parse(sentListRaw);
+                        if (parsed && Array.isArray(parsed.ids)) sentList = parsed;
+                    } catch {}
+                }
+                // 新 msgId 时间倒序在前(unshift 反向遍历保持顺序)
+                for (let i = sentMsgIdsToAdd.length - 1; i >= 0; i--) {
+                    sentList.ids.unshift(sentMsgIdsToAdd[i]);
+                }
+                await env.FAV_KV.put(sentListKey(callerUid), JSON.stringify(sentList));
+            } catch (e) {
+                console.warn('push sent-list update failed:', e && e.message);
             }
         }
 

@@ -35,7 +35,12 @@ export async function onRequestGet({ request, env }) {
     // 迁移检测：仅在 KV 绑定时判断
     //   migrationNeeded = true 当且仅当 老 data_js 存在 && migration:v2:done 缺失
     //   只读两个 key,不影响登录路径性能
+    // §14 P2P / A1.5(2026-05-29):顺手返回当前用户的 inboxPolicy / publicSlug / publicEnabled
+    //   前端 currentUser shape 已经预留这些字段,now 真正填充
     let migrationNeeded = false;
+    let inboxPolicy = 'open';   // 老用户/无字段默认 open
+    let publicSlug = null;
+    let publicEnabled = false;
     if (env.FAV_KV) {
         try {
             const [done, oldData] = await Promise.all([
@@ -45,6 +50,21 @@ export async function onRequestGet({ request, env }) {
             migrationNeeded = !done && !!oldData;
         } catch {
             // KV 异常时静默,不阻断 check 主响应
+        }
+        // 读自己的 users 条目拿 inboxPolicy / publicSlug / publicEnabled
+        if (payload && uid) {
+            try {
+                const usersRaw = await env.FAV_KV.get('users');
+                if (usersRaw) {
+                    const users = JSON.parse(usersRaw);
+                    const me = users[uid];
+                    if (me) {
+                        if (me.inboxPolicy === 'closed') inboxPolicy = 'closed';
+                        publicSlug = me.publicSlug || null;
+                        publicEnabled = me.publicEnabled === true;
+                    }
+                }
+            } catch {}
         }
     }
 
@@ -56,6 +76,9 @@ export async function onRequestGet({ request, env }) {
         role,
         hasKV: !!env.FAV_KV,
         hasAdmin: !!(env.ADMIN_USER && env.ADMIN_PASS),
-        migrationNeeded
+        migrationNeeded,
+        inboxPolicy,
+        publicSlug,
+        publicEnabled
     });
 }
