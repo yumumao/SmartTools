@@ -6,127 +6,45 @@
     <meta name="referrer" content="origin">
     <script>
     (function () {
-        if (window.__originReferrerBridgeInstalled) return;
-        window.__originReferrerBridgeInstalled = true;
-
-        function isHttpUrl(url) {
-            return url && (url.protocol === 'http:' || url.protocol === 'https:');
-        }
-
-        function cleanRel(value) {
-            return (value || '')
-                .split(/\s+/)
-                .filter(function (v) { return v && v.toLowerCase() !== 'noreferrer'; })
-                .join(' ');
-        }
-
-        function cleanFeatures(value) {
-            if (typeof value !== 'string') return value;
-            return value
-                .split(',')
-                .map(function (v) { return v.trim(); })
-                .filter(function (v) { return v && v.toLowerCase() !== 'noreferrer'; })
-                .join(',');
-        }
+        var patched = false;
 
         function patchLink(a) {
             if (!a || !a.getAttribute) return;
             var href = a.getAttribute('href') || '';
             try {
-                var url = new URL(href, location.href);
-                if (!isHttpUrl(url)) return;
+                var u = new URL(href, location.href);
+                if (u.protocol !== 'http:' && u.protocol !== 'https:') return;
             } catch (e) {
                 return;
             }
-            a.setAttribute('referrerpolicy', 'origin');
-            var rel = cleanRel(a.getAttribute('rel') || '');
-            if (rel) {
-                a.setAttribute('rel', rel);
-            } else {
-                a.removeAttribute('rel');
+            if (a.getAttribute('referrerpolicy') !== 'origin') {
+                a.setAttribute('referrerpolicy', 'origin');
+            }
+            var rel = a.getAttribute('rel') || '';
+            if (/\bnoreferrer\b/i.test(rel)) {
+                rel = rel.split(/\s+/).filter(function (v) {
+                    return v && v.toLowerCase() !== 'noreferrer';
+                }).join(' ');
+                if (rel) a.setAttribute('rel', rel);
+                else a.removeAttribute('rel');
             }
         }
 
-        function openByCleanAnchor(url, target, rel) {
-            var a = document.createElement('a');
-            a.href = url.href;
-            a.referrerPolicy = 'origin';
-            a.setAttribute('data-origin-referrer-bridge', '1');
-            if (target) a.target = target;
-            rel = cleanRel(rel || '');
-            if (rel) a.rel = rel;
-            (document.body || document.documentElement).appendChild(a);
-            a.click();
-            setTimeout(function () {
-                if (a.parentNode) a.parentNode.removeChild(a);
-            }, 0);
+        function patchAll() {
+            if (patched) return;
+            patched = true;
+            document.querySelectorAll('a[href]').forEach(patchLink);
         }
 
-        function shouldSkipClick(e) {
-            var t = e.target;
-            return t && t.closest && t.closest('.expand-zone, .expand-btn');
-        }
-
-        function handleNavigationClick(e) {
-            if (e.defaultPrevented || shouldSkipClick(e)) return;
-            var t = e.target;
-            var a = t && t.closest ? t.closest('a[href]') : null;
-            if (!a || a.getAttribute('data-origin-referrer-bridge') === '1') return;
+        document.addEventListener('DOMContentLoaded', patchAll, { once: true });
+        document.addEventListener('pointerdown', function (e) {
+            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
             patchLink(a);
-
-            var url;
-            try {
-                url = new URL(a.href, location.href);
-            } catch (err) {
-                return;
-            }
-            if (!isHttpUrl(url) || url.origin === location.origin || a.hasAttribute('download')) return;
-
-            var newTab = e.type === 'auxclick' || e.button === 1 || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank';
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            openByCleanAnchor(url, newTab ? '_blank' : (a.target || '_self'), a.getAttribute('rel') || '');
-        }
-
-        var nativeOpen = window.open;
-        window.open = function (url, target, features) {
-            return nativeOpen.call(window, url, target, cleanFeatures(features));
-        };
-
-        document.addEventListener('click', handleNavigationClick, true);
-        document.addEventListener('auxclick', function (e) {
-            if (e.button === 1) handleNavigationClick(e);
         }, true);
-
-        function patchLinks(root) {
-            if (!root || !root.querySelectorAll) return;
-            root.querySelectorAll('a[href]').forEach(patchLink);
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function () { patchLinks(document); }, { once: true });
-        } else {
-            patchLinks(document);
-        }
-
-        new MutationObserver(function (mutations) {
-            mutations.forEach(function (m) {
-                if (m.type === 'attributes') {
-                    patchLink(m.target);
-                    return;
-                }
-                m.addedNodes.forEach(function (node) {
-                    if (node.nodeType !== 1) return;
-                    if (node.matches && node.matches('a[href]')) patchLink(node);
-                    patchLinks(node);
-                });
-            });
-        }).observe(document.documentElement, {
-            subtree: true,
-            childList: true,
-            attributes: true,
-            attributeFilter: ['href', 'rel', 'referrerpolicy']
-        });
+        document.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+            patchLink(a);
+        }, true);
     })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
