@@ -10,6 +10,7 @@
 //   POST   /api/inbox?action=reject                body: { msgId, reason? }
 //   POST   /api/inbox?action=delete-rejected       body: { msgId }                       → 彻底删除已拒绝的消息(2026-05-24 §16-A.3 新增)
 //   POST   /api/inbox?action=delete-accepted       body: { msgId }                       → 删除已接受的历史记录(2026-05-24 §16-A.5 新增;不动 data.js 中已合并的卡)
+//   POST   /api/inbox?action=delete-sent           body: { msgId }                       → 发件方删除自己的 sent 历史(不动收件方 inbox)
 //   POST   /api/inbox?action=fetch-for-encrypt     body: { msgId }                       → 返回明文 cards,供前端加密合并;不删消息
 //   POST   /api/inbox?action=mark-encrypted-done   body: { msgId }                       → 前端加密合并完成后调,标 accepted + 减 unread
 //
@@ -258,6 +259,17 @@ export async function onRequestPost({ request, env }) {
     const msgId = body && body.msgId;
     if (!msgId || typeof msgId !== 'string') {
         return jsonResponse({ ok: false, error: 'msgId 必传' }, 400);
+    }
+
+    // §14 候选 A(2026-06-08):发件方只删除自己的 sent 历史副本,不读取/修改接收方 inbox。
+    if (action === 'delete-sent') {
+        const sentRaw = await env.FAV_KV.get(sentKey(uid, msgId));
+        if (!sentRaw) return jsonResponse({ ok: false, error: '发件记录不存在或已删除' }, 404);
+        await env.FAV_KV.delete(sentKey(uid, msgId));
+        const sentList = await readSentList(env, uid);
+        removeFromList(sentList, msgId);
+        await writeSentList(env, uid, sentList);
+        return jsonResponse({ ok: true, msgId, status: 'deleted' });
     }
 
     // 读消息(必须存在 + 必须 pending,除了 fetch-for-encrypt 允许 pending)

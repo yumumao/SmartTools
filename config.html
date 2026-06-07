@@ -70,6 +70,12 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .subcard-info { flex: 1; min-width: 0; }
 .subcard-info .sc-title { font-weight: 600; font-size: 13px; }
 .subcard-info .sc-meta { font-size: 11px; color: #999; }
+.drag-handle { cursor: grab; color: #888; user-select: none; font-size: 18px; line-height: 1; padding: 4px 2px; flex-shrink: 0; }
+.drag-handle:active { cursor: grabbing; }
+.card-item.dragging, .subcard-item.dragging { opacity: .55; box-shadow: 0 4px 16px rgba(102,126,234,.18); }
+.card-item.drag-over, .subcard-item.drag-over { outline: 2px solid #667eea; outline-offset: 2px; }
+.section-direct-link-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:6px; }
+.section-direct-link-row input { flex:1; min-width:220px; background:#f5f5f7; font-size:12px; }
 .icon-kind-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
 .icon-kind-tabs .k { padding: 5px 12px; border-radius: 4px; cursor: pointer; background: #f0f0f0; font-size: 12px; font-weight: 600; color: #666; }
 .icon-kind-tabs .k.active { background: #667eea; color: #fff; }
@@ -608,6 +614,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
             <label>短锚点 / anchor（用于 URL hash，可空）</label>
             <input type="text" id="se_anchor" placeholder="如：video / ai（留空则用默认 key）" maxlength="32" autocomplete="off">
             <p class="muted" style="font-size:11px; margin-top:6px; line-height:1.5;">仅允许字母、数字、下划线、连字符。设置后可用 <code>#你的anchor</code> 直接跳转到该分类。留空使用默认（内置项的 key 或自定义项的内部 key）。</p>
+            <div class="section-direct-link-row" id="sectionDirectLinkRow">
+                <input type="text" id="se_direct_link" readonly>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnSectionLinkCopy" data-i18n="btnSlugCopy">📋 复制</button>
+            </div>
         </div>
         <div class="form-row">
             <label><input type="checkbox" id="se_dynamic"> <span data-i18n="secDynamicField">启用展开/折叠</span></label>
@@ -1448,6 +1458,8 @@ const I18N = {
         inboxViewReceived: '📥 我收到的',
         inboxViewSent: '📤 我发出的',
         inboxSentToLabel: '推送给',
+        inboxDeleteSent: '删除记录',
+        confirmInboxDeleteSent: '确定删除这条发件记录吗？只会从“我发出的”列表移除，不影响对方收件箱或已接受的卡片。',
         btnInboxPolicy: '⚙️ 收件偏好',
         inboxPolicyTitle: '⚙️ 收件偏好',
         inboxPolicyOpenLabel: '📬 接受所有人推送(默认)',
@@ -1725,6 +1737,10 @@ const I18N = {
         sectionsAddBtn: '➕ 新增大类',
         sectionsDeleteHint: '💡 删除自定义大类时，其下所有卡片会自动移动到「📦 未分类」中（不会丢失）。「📦 未分类」也是自定义大类，可以再次删除（确认后将彻底删除其中卡片）。',
         sectionsClose: '关闭', sectionsNoCustom: '暂无自定义大类。点击下方「➕ 新增大类」创建。',
+        sectionDirectLinkNewKey: '保存后自动生成key',
+        toastSectionLinkCopied: '大类直达链接已复制',
+        toastSectionLinkUnavailable: '请先保存新大类后再复制直达链接',
+        dragReorderTitle: '拖动调整顺序',
         /* ★ 内置大类管理 */
         sectionEditBuiltinTitle: '✏️ 编辑内置大类',
         sectionBuiltinHide: '隐藏（首页不显示此大类）',
@@ -1966,6 +1982,8 @@ const I18N = {
         inboxViewReceived: '📥 Received',
         inboxViewSent: '📤 Sent',
         inboxSentToLabel: 'Sent to',
+        inboxDeleteSent: 'Delete record',
+        confirmInboxDeleteSent: 'Delete this sent record? This only removes it from your Sent list and will not affect the recipient inbox or accepted cards.',
         btnInboxPolicy: '⚙️ Inbox Policy',
         inboxPolicyTitle: '⚙️ Inbox Policy',
         inboxPolicyOpenLabel: '📬 Accept pushes from anyone (default)',
@@ -2243,6 +2261,10 @@ const I18N = {
         sectionsAddBtn: '➕ Add Section',
         sectionsDeleteHint: '💡 Deleting a custom section moves its cards to "📦 Unclassified" (not lost). "Unclassified" can also be deleted (permanent).',
         sectionsClose: 'Close', sectionsNoCustom: 'No custom sections. Click "➕ Add Section" below.',
+        sectionDirectLinkNewKey: 'key-generated-after-save',
+        toastSectionLinkCopied: 'Section direct link copied',
+        toastSectionLinkUnavailable: 'Save this new section before copying its direct link',
+        dragReorderTitle: 'Drag to reorder',
         /* ★ Built-in section management */
         sectionEditBuiltinTitle: '✏️ Edit Built-in Section',
         sectionBuiltinHide: 'Hide (do not show on home pages)',
@@ -2451,7 +2473,8 @@ function getSections() {
             label: m.label || t(s.labelKey),
             kind: s.kind, builtin: true,
             visible: m.visible !== false,
-            customLabel: !!m.label
+            customLabel: !!m.label,
+            anchor: m.anchor || ''
         };
     });
     const otherB = BUILTIN_SECTIONS.filter(s => s.kind !== 'card').map(s => {
@@ -2461,7 +2484,8 @@ function getSections() {
             label: m.label || t(s.labelKey),
             kind: s.kind, builtin: true,
             visible: m.visible !== false,
-            customLabel: !!m.label
+            customLabel: !!m.label,
+            anchor: m.anchor || ''
         };
     });
     const customs = customSectionsMeta.map(c => ({
@@ -2483,6 +2507,50 @@ function ensureUnclassifiedSection() {
 }
 function getCustomMeta(key) { return customSectionsMeta.find(c => c.key === key); }
 function isLockedKey(key) { const m = getCustomMeta(key); return !!(m && m.locked); }
+
+function setupDragReorder(container, itemSelector, onMove) {
+    if (!container || typeof onMove !== 'function') return;
+    let dragged = null;
+    container.querySelectorAll(itemSelector).forEach(item => {
+        const handle = item.querySelector('.drag-handle') || item;
+        handle.draggable = true;
+        handle.addEventListener('dragstart', e => {
+            dragged = item;
+            item.classList.add('dragging');
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', item.dataset.idx || '');
+            }
+        });
+        handle.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            container.querySelectorAll(itemSelector).forEach(x => x.classList.remove('drag-over'));
+            dragged = null;
+        });
+        item.addEventListener('dragover', e => {
+            if (!dragged || dragged === item) return;
+            e.preventDefault();
+            item.classList.add('drag-over');
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        });
+        item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+        item.addEventListener('drop', e => {
+            if (!dragged || dragged === item) return;
+            e.preventDefault();
+            item.classList.remove('drag-over');
+            const from = parseInt(dragged.dataset.idx, 10);
+            const to = parseInt(item.dataset.idx, 10);
+            if (!Number.isInteger(from) || !Number.isInteger(to) || from === to) return;
+            onMove(from, to);
+        });
+    });
+}
+function moveArrayItem(arr, from, to) {
+    if (!Array.isArray(arr) || from < 0 || to < 0 || from >= arr.length || to >= arr.length || from === to) return false;
+    const item = arr.splice(from, 1)[0];
+    arr.splice(to, 0, item);
+    return true;
+}
 
 const store = { usbDriveData: [], teachingData: [], onlineAIData: [], videoData: [], emailData: [], contactData: [] };
 let currentSection = BUILTIN_SECTIONS[0].key;
@@ -4064,6 +4132,12 @@ function renderCurrentSection() {
     const isCardKind = sec.kind === 'card';
     arr.forEach((item, idx) => {
         const el = document.createElement('div'); el.className = 'card-item';
+        el.dataset.idx = idx;
+        const drag = document.createElement('div');
+        drag.className = 'drag-handle';
+        drag.title = t('dragReorderTitle');
+        drag.textContent = '☰';
+        el.appendChild(drag);
         const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, item); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'card-info';
         const title = item.title || item.content || t('noTitle');
@@ -4116,6 +4190,13 @@ function renderCurrentSection() {
         const pushedDel = info.querySelector('.card-pushed-del');
         if (pushedDel) {
             pushedDel.onclick = (e) => { e.stopPropagation(); handlePushedByDelete(idx); };
+        }
+    });
+    setupDragReorder(list, '.card-item', (from, to) => {
+        if (moveArrayItem(arr, from, to)) {
+            renderCurrentSection();
+            markConfigDirty();
+            toast(t('toastUpdatedUnsaved'));
         }
     });
 }
@@ -4422,6 +4503,42 @@ function deleteCustomSection(idx) {
     markConfigDirty();
     toast(t('toastDeletedSectionUnsaved'));
 }
+
+function getSectionHashValue(sectionKey, anchorValue) {
+    const raw = (anchorValue || '').trim();
+    return raw || sectionKey || '';
+}
+function buildSectionDirectLink(sectionKey, anchorValue) {
+    if (!sectionKey) return '';
+    const hash = getSectionHashValue(sectionKey, anchorValue);
+    const root = location.protocol === 'file:'
+        ? location.href.replace(/config\.html(?:[?#].*)?$/i, 'index.html').replace(/[?#].*$/, '')
+        : (location.origin + '/');
+    return root + (hash ? ('#' + encodeURIComponent(hash)) : '');
+}
+function updateSectionDirectLinkPreview() {
+    const input = $('se_direct_link');
+    if (!input) return;
+    let sectionKey = '';
+    if (editingBuiltinKey) {
+        sectionKey = editingBuiltinKey;
+    } else if (editingCustomSectionIdx >= 0 && customSectionsMeta[editingCustomSectionIdx]) {
+        sectionKey = customSectionsMeta[editingCustomSectionIdx].key;
+    }
+    input.value = sectionKey
+        ? buildSectionDirectLink(sectionKey, $('se_anchor').value.trim())
+        : t('sectionDirectLinkNewKey');
+}
+function copySectionDirectLink() {
+    updateSectionDirectLinkPreview();
+    const val = $('se_direct_link').value;
+    if (!/^https?:\/\//i.test(val) && !/^file:/i.test(val)) {
+        toast(t('toastSectionLinkUnavailable'));
+        return;
+    }
+    copyTextToClipboard(val, t('toastSectionLinkCopied'));
+}
+
 function openSectionEditModal(target) {
     // ★ target 兼容三种入参：
     //   number              → 编辑指定 idx 的自定义大类
@@ -4465,6 +4582,7 @@ function openSectionEditModal(target) {
         $('se_dynamic').checked = !!c.dynamic;
         $('se_encrypted').checked = !!c.encrypted;
     }
+    updateSectionDirectLinkPreview();
     show('sectionEditModal');
 }
 
@@ -4724,6 +4842,12 @@ function renderSubCardsList() {
     if (!subs.length) { wrap.innerHTML = '<div class="empty-hint" style="padding:10px;">—</div>'; return; }
     subs.forEach((sc, i) => {
         const el = document.createElement('div'); el.className = 'subcard-item';
+        el.dataset.idx = i;
+        const drag = document.createElement('div');
+        drag.className = 'drag-handle';
+        drag.title = t('dragReorderTitle');
+        drag.textContent = '☰';
+        el.appendChild(drag);
         const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, sc); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'subcard-info';
         const title = sc.title || sc.content || t('noTitle');
@@ -4745,6 +4869,9 @@ function renderSubCardsList() {
                        '<button class="btn btn-danger btn-sm" data-sact="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleSubAction(b.dataset.sact, i));
         el.appendChild(act); wrap.appendChild(el);
+    });
+    setupDragReorder(wrap, '.subcard-item', (from, to) => {
+        if (moveArrayItem(subs, from, to)) renderSubCardsList();
     });
 }
 function handleSubAction(act, i) {
@@ -6570,7 +6697,7 @@ function renderInboxItem(msg) {
     const cardCount = (msg.cards || []).length;
     const cardTitles = (msg.cards || []).map(c => c.title || '(无标题)').join('、');
     // §16-A.3(2026-05-24):pending 显示 3 个按钮(去掉丢弃);rejected 显示重新接受 + 彻底删除
-    // §14 P2P:发件视图下 isSent=true,所有 action 按钮不渲染(发件方不能操作接收方 inbox)
+    // §14 P2P:发件视图下 isSent=true,只允许删除自己的 sent 历史,不能操作接收方 inbox
     const isPending = !isSent && msg.status === 'pending';
     const isRejected = !isSent && msg.status === 'rejected';
     const fromBadge = msg.fromRole === 'admin' ? '👑 admin' : '👤';
@@ -6593,7 +6720,12 @@ function renderInboxItem(msg) {
     } else {
         html += `<span style="font-size:13px;color:#666;">${fromBadge} <strong>${escapeHtml(msg.fromUsername || '?')}</strong> · ${escapeHtml(msg.sentAt || '')}${msg.fromEncrypted ? ' <span style="font-size:11px;padding:1px 6px;background:#fbbf24;color:#78350f;border-radius:8px;margin-left:4px;" title="' + escapeHtml(t('inboxFromEncTip')) + '">🔒 ' + escapeHtml(t('inboxFromEncBadge')) + '</span>' : ''}</span>`;
     }
+    html += '<span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
     html += `<span style="font-size:11px;padding:2px 8px;background:#f5f5f5;border-radius:10px;">${escapeHtml(statusBadge)}</span>`;
+    if (isSent) {
+        html += `<button type="button" data-act="delete-sent" data-msgid="${escapeHtml(msg.msgId)}" title="${escapeHtml(t('confirmInboxDeleteSent'))}" style="background:transparent;border:1px solid #d1d5db;color:#6b7280;border-radius:4px;padding:1px 7px;font-size:10px;line-height:1.6;cursor:pointer;">${escapeHtml(t('inboxDeleteSent'))}</button>`;
+    }
+    html += '</span>';
     html += `</div>`;
     html += `<div style="font-size:12px;color:#666;margin-bottom:4px;">${escapeHtml(t('inboxToSectionLabel'))}: <strong>${escapeHtml(sectionLabel)}</strong> · ${escapeHtml(t('inboxCardsLabel'))}: ${cardCount} 张 (${escapeHtml(cardTitles)})</div>`;
     if (msg.message) {
@@ -6704,6 +6836,19 @@ async function handleInboxAction(act, msgId) {
         // §16-A.5(2026-05-24):删除已接受的历史记录 — 不动 user data.js 中已合并的卡片,仅删 inbox 索引
         if (!confirm(t('confirmInboxDeleteAccepted'))) return;
         const r = await api('/api/inbox?action=delete-accepted', {
+            method: 'POST',
+            body: JSON.stringify({ msgId })
+        });
+        if (!r.ok || !r.data || !r.data.ok) {
+            toast((r.data && r.data.error) || t('toastInboxFail'));
+            return;
+        }
+        toast(t('toastInboxDeleted'));
+        await loadInbox();
+    } else if (act === 'delete-sent') {
+        // §14 候选 A(2026-06-08):发件方删除自己的 sent 历史;不影响收件方 inbox / 已接受卡片
+        if (!confirm(t('confirmInboxDeleteSent'))) return;
+        const r = await api('/api/inbox?action=delete-sent', {
             method: 'POST',
             body: JSON.stringify({ msgId })
         });
@@ -7808,6 +7953,8 @@ window.addEventListener('DOMContentLoaded', () => {
     $('btnAddCustomSection').onclick = () => openSectionEditModal(null);
     $('btnSectionEditCancel').onclick = () => hide('sectionEditModal');
     $('btnSectionEditSave').onclick = saveSectionEdit;
+    $('se_anchor').addEventListener('input', updateSectionDirectLinkPreview);
+    $('btnSectionLinkCopy').onclick = copySectionDirectLink;
 
     $('btnUnlockCancel').onclick = () => hide('unlockModal');
     $('btnUnlockConfirm').onclick = confirmUnlock;
