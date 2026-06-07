@@ -48,8 +48,8 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-05-28-001',
-    updatedAt: '2026-05-28T22:57:41.029Z',
+    version:   '2026-06-07-001',
+    updatedAt: '2026-06-07T20:33:28.871Z',
     source:    'github'
 };
 /* __META_END__ */
@@ -94,13 +94,13 @@ var sections = [
                     {
                         icon: '📤',
                         title: '临时上传分享',
-                        desc: 'f66.fun/fun(密码：zz1001)',
+                        desc: 'f66.fun/fun mrr.cc/cc(密码：zz1001)',
                         url: 'https://www.jianguoyun.com/p/DemLEOwQpYHpBRiwtscFIAA'
                     },
                     {
                         icon: '📥',
                         title: '临时加密上传',
-                        desc: 'n29.net/net (密码：临时ZZ)',
+                        desc: 'n29.net/net (密码：临时ZZ67)',
                         url: 'https://www.jianguoyun.com/p/Das4Xf8QpYHpBRj68J8GIAA'
                     },
                     {
@@ -441,12 +441,12 @@ var sections = [
                 ]
             },
             {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1368 1368"><path fill="#F6821F" d="M0 932c0-132 93-231 201-241-22-100 54-181 137-181 37 0 67 9 92 28 47-132 170-219 304-219 153 0 278 103 321 258-27 75-55 150-82 225-24 66-82 129-179 159H9c-5 0-9-4-9-9v-20z"/><path fill="#FDBA3D" d="M1077 589c149 0 291 109 291 267 0 29-5 56-13 81H969c-5 0-8-5-6-10l72-197c16-45 22-89 42-141z"/><path fill="#fff" d="M379 771h487c88 0 146-51 173-127l20-56c2-6 9-8 14-4 8 6 23 7 45 6-24 71-49 142-72 213-10 31 8 62 40 66l143 16c6 1 10 5 10 11s-5 10-11 10l-141 8c-39 2-73 26-88 63l-77 184c-3 7-14 5-12-3l54-236c8-35-19-69-55-69H379c-6 0-11-5-11-11v-6c0-6 5-11 11-11z" transform="translate(0 25) scale(1 .9)"/></svg>',
                 id: 'cloudflare',
-                icon: '🌩️',
                 title: 'Cloudflare',
-                desc: 'Cloudflare',
                 url: 'https://www.cloudflare.com/',
-                type: 'simple'
+                type: 'simple',
+                desc: 'Cloudflare'
             },
             {
                 id: 'freedidi',
@@ -562,12 +562,12 @@ var sections = [
                 ]
             },
             {
-                id: 'guanying',
                 icon: '🎥',
-                title: '七味',
-                desc: '影视大全',
+                id: 'guanying',
+                title: '七味观影',
                 url: 'https://www.gmp4.com/',
                 type: 'expandable',
+                desc: '影视大全',
                 subCards: [
                     {
                         icon: '🎬',
@@ -575,7 +575,7 @@ var sections = [
                         url: 'https://www.qn63.com'
                     },
                     {
-                        icon: '🍿',
+                        icon: '👻',
                         content: '观影网址发布(fq)',
                         url: 'https://www.挂了.com/'
                     },
@@ -600,15 +600,6 @@ var sections = [
                 type: 'simple'
             },
             {
-                id: 'cilixiong',
-                icon: '🐻',
-                title: '磁力熊',
-                descClickable: 'cilixiong.cc（备用）',
-                descUrl: 'https://www.cilixiong.cc/',
-                url: 'https://www.cilixiong.org/',
-                type: 'desc-clickable'
-            },
-            {
                 id: 'maitianyingshi',
                 icon: '‍🌾',
                 title: '麦田影院',
@@ -626,44 +617,46 @@ var sections = [
                 type: 'simple'
             },
             {
-                id: 'seedhub',
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="18" fill="#4682B4"/><text x="50" y="93" text-anchor="middle" font-family="Arial Narrow, Helvetica Neue, Arial, sans-serif" font-size="108" font-stretch="condensed" font-weight="700" fill="#fff" transform="scale(.78 1) translate(14 0)">dd</text></svg>',
+                id: 'card_mq1d6eo1_l6xh',
+                title: '低端影视',
+                url: 'https://ddys.app/',
+                type: 'simple',
+                desc: '高清、品质'
+            },
+            {
                 icon: '🍃',
+                id: 'seedhub',
                 title: 'SeedHub(下载站)',
-                desc: '网盘下载',
-                url: 'https://www.seedhub.cc/',
-                type: 'simple'
+                url: 'https://seeduck.cc/',
+                type: 'desc-clickable',
+                descClickable: '网址发布页',
+                descUrl: 'https://seeduck.cc/zuixin-di-zhi/'
             },
             {
-                id: 'butailing',
                 icon: '🔻',
+                id: 'butailing',
                 title: '不太灵(下载站)',
-                desc: '小众影视下载',
                 url: 'https://www.6bt0.com/',
-                type: 'simple'
+                type: 'desc-clickable',
+                descClickable: '网址发布页',
+                descUrl: 'https://www.butailing.com/'
             },
             {
-                id: '4kyingshi',
-                icon: '🎬',
-                title: '4K影视',
-                desc: '高清在线影视',
-                url: 'https://www.4kvm.tv/',
-                type: 'simple'
-            },
-            {
-                id: 'dianyingtiantang',
                 icon: '🏰',
+                id: 'dianyingtiantang',
                 title: '电影天堂',
-                desc: '经典影视下载',
-                url: 'https://www.dygod.net/',
-                type: 'simple'
+                url: 'https://www.dygod.vip/',
+                type: 'simple',
+                desc: '经典影视下载'
             },
             {
-                id: 'moovie',
                 icon: '📺',
-                title: '修罗影视',
-                desc: '资源丰富',
-                url: 'https://xlys.me/',
-                type: 'simple'
+                id: 'moovie',
+                title: '雪落影视',
+                url: 'https://v.xl01.eu.cc/',
+                type: 'simple',
+                desc: '资源丰富'
             },
             {
                 id: '7080wang',
@@ -674,13 +667,34 @@ var sections = [
                 type: 'simple'
             },
             {
-                id: 'fantaiying',
+                icon: '🐻',
+                id: 'cilixiong',
+                title: '磁力熊',
+                url: 'https://www.cilixiong.org/',
+                type: 'desc-clickable',
+                descClickable: 'cilixiong.cc（备用）',
+                descUrl: 'https://www.cilixiong.cc/',
+                comment: 'F'
+            },
+            {
+                icon: '🎬',
+                id: '4kyingshi',
+                title: '4K影视',
+                url: 'https://www.4kvm.tv/',
+                type: 'desc-clickable',
+                descClickable: '网址发布页',
+                descUrl: 'https://4kvm.site/',
+                comment: 'F'
+            },
+            {
                 icon: '🍚',
+                id: 'fantaiying',
                 title: '饭太硬(导航)',
+                url: 'https://www.饭太硬.com/',
+                type: 'desc-clickable',
                 descClickable: '备用网址',
                 descUrl: 'https://tvboxconf.clbug.com/',
-                url: 'https://www.饭太硬.com/',
-                type: 'desc-clickable'
+                comment: 'F'
             }
         ]
     },
@@ -763,9 +777,9 @@ var sections = [
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 300000,
-            salt: 'NwvQe9SU0IfVl3UJ6rpdcg==',
-            iv: 'd4W+CagjvlnvjWP2',
-            data: '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'
+            salt: 't1C3Ile2V4q6D54R5RWXpg==',
+            iv: '2UjhlSZfQxXcCJu0',
+            data: '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'
         },
         cards: []
     }
