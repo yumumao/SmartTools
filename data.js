@@ -48,9 +48,9 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-06-07-001',
-    updatedAt: '2026-06-07T20:33:28.871Z',
-    source:    'github'
+    version:   '2026-06-22-002',
+    updatedAt: '2026-06-22T19:25:02.529Z',
+    source:    'kv'
 };
 /* __META_END__ */
 
@@ -481,14 +481,6 @@ var sections = [
                 type: 'simple'
             },
             {
-                id: 'vaultwarden',
-                icon: '🛡',
-                title: 'Vaultwarden',
-                desc: 'Bitwarden密码管理',
-                url: 'https://vbw.n29.net/',
-                type: 'simple'
-            },
-            {
                 id: 'AddressGeneratorFe',
                 icon: '🗺️',
                 title: 'AddressGenerator',
@@ -777,9 +769,9 @@ var sections = [
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 300000,
-            salt: 't1C3Ile2V4q6D54R5RWXpg==',
-            iv: '2UjhlSZfQxXcCJu0',
-            data: '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'
+            salt: 'CwDhP/6QYgO63YdijenM5A==',
+            iv: 'sJw0fKoqxGDb/NqK',
+            data: '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'
         },
         cards: []
     }
