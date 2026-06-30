@@ -105,10 +105,10 @@
 .enc-lock-fab {
     position: fixed;
     bottom: 72px;          /* 主页按钮在 bottom:33px，上方错开 */
-    left: 10px;
+    left: 12px;
     z-index: 10000;
-    padding: 4px 10px;
-    background-color: rgba(198, 40, 40, 0.35);
+    padding: 6px 10px;
+    background-color: rgba(198, 40, 40, 0.2);
     color: #fff5f5;
     border: none;
     border-radius: 8px;
@@ -167,7 +167,7 @@
 @media (max-width: 480px) {
     .enc-lock-fab {
         bottom: 64px;
-        padding: 3px 8px;
+        padding: 5px 8px;
         font-size: 12px;
     }
     .enc-lock-fab .lf-icon {
