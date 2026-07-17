@@ -512,8 +512,9 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 子卡片移动 -->
 <div id="moveModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:520px;">
-        <h2 data-i18n="moveModalTitle">➡ 移动子卡片</h2>
+        <h2 data-i18n="moveModalTitle">↔ 移动 / 复制子卡片</h2>
         <p class="muted" id="moveSrcHint"></p>
+        <div class="form-row"><label data-i18n="moveOperation">操作</label><select id="move_operation"><option value="move" data-i18n="opMove">移动</option><option value="copy" data-i18n="opCopy">复制</option></select></div>
         <div class="form-row"><label data-i18n="moveTargetSection">目标大类</label><select id="move_section"></select></div>
         <div class="form-row"><label data-i18n="moveTargetCard">目标卡片</label><select id="move_target" size="8" style="height:auto;"></select></div>
         <div class="move-hint" id="moveTypeHint"></div>
@@ -527,10 +528,11 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
 <!-- 主卡片移动 -->
 <div id="cardMoveModal" class="modal-mask hidden">
     <div class="modal-box" style="max-width:520px;">
-        <h2 data-i18n="cardMoveTitle">📦 移动卡片到其他大类</h2>
+        <h2 data-i18n="cardMoveTitle">↔ 移动 / 复制卡片</h2>
         <p class="muted" id="cardMoveSrcHint"></p>
+        <div class="form-row"><label data-i18n="moveOperation">操作</label><select id="cardMove_operation"><option value="move" data-i18n="opMove">移动</option><option value="copy" data-i18n="opCopy">复制</option></select></div>
         <div class="form-row"><label data-i18n="moveTargetSection">目标大类</label><select id="cardMove_section"></select></div>
-        <div class="move-hint" data-i18n="cardMoveHint">💡 卡片会原样转移，类型、子卡片、所有字段都保留。</div>
+        <div class="move-hint" id="cardMoveHint" data-i18n="cardMoveHintMove">💡 卡片会原样转移，类型、子卡片、所有字段都保留。</div>
         <div class="modal-footer">
             <button class="btn btn-ghost" id="btnCardMoveCancel" data-i18n="btnCancel">取消</button>
             <button class="btn btn-primary" id="btnCardMoveConfirm" data-i18n="moveConfirm">确认移动</button>
@@ -1709,21 +1711,25 @@ const I18N = {
         fldComment: '📝 注释 comment（点击卡片时弹出，支持 Markdown；加密分类内会随卡片一起加密）',
         commentPh: '支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用',
         fldSubCards: '子卡片（subCards）', btnAddSub: '➕ 添加子卡片',
-        subCardMoveHint: '💡 子卡片上的 <b>➡</b> 按钮可将其移动到其他卡片（包括跨大类）。若目标不是 expandable，会自动升级为 expandable。<b>🆙</b> 按钮可把子卡片升级为一个独立的主卡片。',
+        subCardMoveHint: '💡 子卡片上的 <b>⇄</b> 按钮可选择移动或复制到当前/其他卡片（包括跨大类）。若目标不是 expandable，会自动升级。<b>🆙</b> 按钮可把子卡片升级为一个独立的主卡片。',
         btnCancel: '取消', btnOk: '确定', btnClose: '关闭',
         subModalEditTitle: '编辑子卡片', subModalNewTitle: '新增子卡片',
         fldSubStyle: '样式', subStyleTwo: '两行式（icon + title + desc）',
         subStyleCompact: '紧凑式（icon + content）',
         fldSubTitle: '标题 title', fldSubDesc: '描述 desc', fldSubContent: '内容 content',
         fldSubUrl: '链接 url（可留空）', compactTag: '[紧凑]',
-        moveModalTitle: '➡ 移动子卡片', moveTargetSection: '目标大类', moveTargetCard: '目标卡片',
-        moveConfirm: '确认移动', moveSrcHint: '将子卡片 <b>{sub}</b> 从 <b>{src}</b> 移动到：',
-        moveTgtNone: '(该大类无可选目标)',
-        moveHintExpandable: '✓ 目标已是 <b>expandable</b>，将追加到其 subCards 末尾。',
+        moveModalTitle: '↔ 移动 / 复制子卡片', moveOperation: '操作', opMove: '移动', opCopy: '复制', moveTargetSection: '目标大类', moveTargetCard: '目标卡片',
+        moveConfirm: '确认移动', copyConfirm: '确认复制', moveSrcHint: '对子卡片 <b>{sub}</b>（母卡片：<b>{src}</b>）执行操作：',
+        moveTgtNone: '(该大类无可选目标)', moveCurrentParentLabel: '📁 当前母卡片（复制到这里）',
+        moveHintExpandable: '✓ 目标已是 <b>expandable</b>，移动后将追加到其 subCards 末尾。',
+        moveHintExpandableCopy: '✓ 目标已是 <b>expandable</b>，副本将追加到其 subCards 末尾。',
         moveHintUpgrade: '⚠️ 目标类型为 <b>{type}</b>，移动后将自动升级为 <b>expandable</b>。',
-        cardMoveTitle: '➡ 移动卡片到其他大类',
-        cardMoveHint: '💡 卡片会原样转移，类型、子卡片、所有字段都保留。',
-        cardMoveSrcHint: '将卡片 <b>{card}</b> 从 <b>{src}</b> 移动到：',
+        moveHintUpgradeCopy: '⚠️ 目标类型为 <b>{type}</b>，复制后将自动升级为 <b>expandable</b>。',
+        moveHintSameParentCopy: '✓ 将在当前母卡片中创建副本，并插入到原子卡片后面。',
+        cardMoveTitle: '↔ 移动 / 复制卡片',
+        cardMoveHintMove: '💡 卡片会原样转移，类型、子卡片、所有字段都保留。',
+        cardMoveHintCopy: '💡 将深度复制整张卡片及全部子卡片；可见标题保持不变，内部 ID 自动更新。',
+        cardMoveSrcHint: '对卡片 <b>{card}</b>（当前大类：<b>{src}</b>）执行操作：',
         promoteTitle: '🆙 升级子卡片为独立卡片',
         promoteSrcHint: '将子卡片 <b>{sub}</b> 从母卡片 <b>{src}</b> 升级为独立卡片：',
         promoteHint: '💡 字段已从子卡片预填，你可以修改样式、ID、标题等。升级后子卡片会从原母卡片移除。',
@@ -1740,7 +1746,7 @@ const I18N = {
         sectionDirectLinkNewKey: '保存后自动生成key',
         toastSectionLinkCopied: '大类直达链接已复制',
         toastSectionLinkUnavailable: '请先保存新大类后再复制直达链接',
-        dragReorderTitle: '拖动调整顺序',
+        dragReorderTitle: '拖动调整顺序', cardMoveActionTitle: '移动或复制卡片', emailCopyActionTitle: '复制到本类别', subMoveActionTitle: '移动或复制子卡片',
         /* ★ 内置大类管理 */
         sectionEditBuiltinTitle: '✏️ 编辑内置大类',
         sectionBuiltinHide: '隐藏（首页不显示此大类）',
@@ -1805,6 +1811,8 @@ const I18N = {
         toastSwitchSame: '当前已是「{mode}」', toastSwitchedTo: '已切换为：{mode}',
         toastSwitchFail: '切换失败', toastBkLoadFail: '加载备份失败',
         toastUpdatedUnsaved: '已更新（未保存）',
+        toastEmailCardMin: '邮箱卡片至少保留 1 张',
+        toastEmailCardMax: '邮箱卡片最多只能有 10 张',
         cardPushedByLabel: '管理员放置:',
         cardPushedByRemoveBtn: '🗑 移除标注',
         confirmRemovePushedBy: '确定移除该卡片上的"管理员推送"标注吗?\n该卡片本身会保留,只是不再显示 📌 徽章。',
@@ -1821,8 +1829,11 @@ const I18N = {
         toastNeedTarget: '请选择目标卡片', toastCantMoveSelf: '不能移动到当前卡片自身',
         toastTargetNotExist: '目标卡片不存在',
         toastMovedToUnsaved: '已移动到 「{tgt}」（未保存）',
+        toastCopiedToUnsaved: '已复制到 「{tgt}」，内部 ID 已更新为 {id}（未保存）',
+        toastCopiedWithinUnsaved: '已在当前类别中创建副本（未保存）',
         toastMovedSubToUnsaved: '已移动到 「{sec} / {card}」（未保存）',
-        toastNeedTargetSec: '请选择目标大类', toastNoMoveTargets: '没有可移动的目标大类',
+        toastCopiedSubToUnsaved: '已复制到 「{sec} / {card}」（未保存）',
+        toastNeedTargetSec: '请选择目标大类', toastNoMoveTargets: '没有可移动的目标大类', toastInvalidMoveOperation: '无效的移动/复制操作',
         toastNeedSecLabel: '请输入大类名称', toastSecLabelTooLong: '名称过长',
         toastPwdNeed: '请填写完整', toastPwdOldWrong: '原密码错误', toastPwdUpdated: '密码已更新',
         toastReadFail: '读取失败',
@@ -2233,21 +2244,25 @@ const I18N = {
         fldComment: '📝 Comment (shown when card is clicked, Markdown; auto-encrypted inside encrypted sections)',
         commentPh: 'Markdown: # heading | **bold** *italic* | `code` | [text](url) | - list | > quote',
         fldSubCards: 'Sub-cards', btnAddSub: '➕ Add Sub-card',
-        subCardMoveHint: '💡 The <b>➡</b> button moves a sub-card to another card (even across sections). Non-expandable targets auto-upgrade. The <b>🆙</b> button promotes a sub-card to a standalone top-level card.',
+        subCardMoveHint: '💡 The <b>⇄</b> button moves or copies a sub-card to the current/another card (even across sections). Non-expandable targets auto-upgrade. The <b>🆙</b> button promotes a sub-card to a standalone top-level card.',
         btnCancel: 'Cancel', btnOk: 'OK', btnClose: 'Close',
         subModalEditTitle: 'Edit Sub-card', subModalNewTitle: 'New Sub-card',
         fldSubStyle: 'Style', subStyleTwo: 'Two-line (icon + title + desc)',
         subStyleCompact: 'Compact (icon + content)',
         fldSubTitle: 'Title', fldSubDesc: 'Description', fldSubContent: 'Content',
         fldSubUrl: 'URL (optional)', compactTag: '[compact]',
-        moveModalTitle: '➡ Move Sub-card', moveTargetSection: 'Target section', moveTargetCard: 'Target card',
-        moveConfirm: 'Confirm', moveSrcHint: 'Move sub-card <b>{sub}</b> from <b>{src}</b> to:',
-        moveTgtNone: '(No available targets)',
-        moveHintExpandable: '✓ Target is <b>expandable</b>; will be appended.',
-        moveHintUpgrade: '⚠️ Target is <b>{type}</b>; will be auto-upgraded to <b>expandable</b>.',
-        cardMoveTitle: '➡ Move Card to Another Section',
-        cardMoveHint: '💡 Card moved as-is; all fields preserved.',
-        cardMoveSrcHint: 'Move card <b>{card}</b> from <b>{src}</b> to:',
+        moveModalTitle: '↔ Move / Copy Sub-card', moveOperation: 'Operation', opMove: 'Move', opCopy: 'Copy', moveTargetSection: 'Target section', moveTargetCard: 'Target card',
+        moveConfirm: 'Confirm Move', copyConfirm: 'Confirm Copy', moveSrcHint: 'Choose an operation for sub-card <b>{sub}</b> (parent: <b>{src}</b>):',
+        moveTgtNone: '(No available targets)', moveCurrentParentLabel: '📁 Current parent (copy here)',
+        moveHintExpandable: '✓ Target is <b>expandable</b>; the sub-card will be appended.',
+        moveHintExpandableCopy: '✓ Target is <b>expandable</b>; the copy will be appended.',
+        moveHintUpgrade: '⚠️ Target is <b>{type}</b>; moving will auto-upgrade it to <b>expandable</b>.',
+        moveHintUpgradeCopy: '⚠️ Target is <b>{type}</b>; copying will auto-upgrade it to <b>expandable</b>.',
+        moveHintSameParentCopy: '✓ A copy will be inserted immediately after the original sub-card.',
+        cardMoveTitle: '↔ Move / Copy Card',
+        cardMoveHintMove: '💡 The card will be moved as-is; its type, sub-cards and all fields are preserved.',
+        cardMoveHintCopy: '💡 Deep-copies the card and all sub-cards; the visible title stays unchanged and the internal ID is regenerated.',
+        cardMoveSrcHint: 'Choose an operation for card <b>{card}</b> (current section: <b>{src}</b>):',
         promoteTitle: '🆙 Promote Sub-card to Card',
         promoteSrcHint: 'Promote sub-card <b>{sub}</b> from parent <b>{src}</b> to a standalone card:',
         promoteHint: '💡 Fields prefilled from the sub-card; you can edit the style, ID, title, etc. The sub-card will be removed from its parent.',
@@ -2264,7 +2279,7 @@ const I18N = {
         sectionDirectLinkNewKey: 'key-generated-after-save',
         toastSectionLinkCopied: 'Section direct link copied',
         toastSectionLinkUnavailable: 'Save this new section before copying its direct link',
-        dragReorderTitle: 'Drag to reorder',
+        dragReorderTitle: 'Drag to reorder', cardMoveActionTitle: 'Move or copy card', emailCopyActionTitle: 'Copy within this section', subMoveActionTitle: 'Move or copy sub-card',
         /* ★ Built-in section management */
         sectionEditBuiltinTitle: '✏️ Edit Built-in Section',
         sectionBuiltinHide: 'Hide (do not show on home pages)',
@@ -2329,6 +2344,8 @@ const I18N = {
         toastSwitchSame: 'Already in "{mode}"', toastSwitchedTo: 'Switched to: {mode}',
         toastSwitchFail: 'Switch failed', toastBkLoadFail: 'Failed to load backups',
         toastUpdatedUnsaved: 'Updated (unsaved)',
+        toastEmailCardMin: 'Keep at least 1 email card',
+        toastEmailCardMax: 'Email cards are limited to 10',
         cardPushedByLabel: 'Pushed by admin:',
         cardPushedByRemoveBtn: '🗑 Remove tag',
         confirmRemovePushedBy: 'Remove the "admin push" tag from this card?\nThe card itself stays; only the 📌 badge will disappear.',
@@ -2345,8 +2362,11 @@ const I18N = {
         toastNeedTarget: 'Select a target card', toastCantMoveSelf: 'Cannot move to the same card',
         toastTargetNotExist: 'Target card not found',
         toastMovedToUnsaved: 'Moved to "{tgt}" (unsaved)',
+        toastCopiedToUnsaved: 'Copied to "{tgt}" with new internal ID {id} (unsaved)',
+        toastCopiedWithinUnsaved: 'Copy created in the current section (unsaved)',
         toastMovedSubToUnsaved: 'Moved to "{sec} / {card}" (unsaved)',
-        toastNeedTargetSec: 'Select a target section', toastNoMoveTargets: 'No target sections available',
+        toastCopiedSubToUnsaved: 'Copied to "{sec} / {card}" (unsaved)',
+        toastNeedTargetSec: 'Select a target section', toastNoMoveTargets: 'No target sections available', toastInvalidMoveOperation: 'Invalid move/copy operation',
         toastNeedSecLabel: 'Please enter section name', toastSecLabelTooLong: 'Name too long',
         toastPwdNeed: 'Fill in all fields', toastPwdOldWrong: 'Wrong current password',
         toastPwdUpdated: 'Password updated', toastReadFail: 'Read failed',
@@ -2632,6 +2652,57 @@ function generateUniqueCardId(arr, excludeIndex) {
         id = generateCardId(); guard++;
     }
     return id;
+}
+
+/* 在两个大类之间移动/复制主卡片；复制时始终生成新的内部 ID。 */
+function transferCardBetweenSections(storeObj, sourceSection, sourceIndex, targetSection, operation) {
+    const data = storeObj || {};
+    const srcArr = data[sourceSection];
+    if (!Array.isArray(srcArr) || !srcArr[sourceIndex]) return { ok: false, reason: 'source' };
+    if (operation !== 'move' && operation !== 'copy') return { ok: false, reason: 'operation' };
+    if (operation === 'move' && targetSection === sourceSection) return { ok: false, reason: 'same-section' };
+    if (!Array.isArray(data[targetSection])) data[targetSection] = [];
+    const targetArr = data[targetSection];
+    const card = deepClone(srcArr[sourceIndex]);
+
+    if (operation === 'copy') {
+        card.id = generateUniqueCardId(targetArr, -1);
+        if (targetArr === srcArr) targetArr.splice(sourceIndex + 1, 0, card);
+        else targetArr.push(card);
+    } else {
+        targetArr.push(card);
+        srcArr.splice(sourceIndex, 1);
+    }
+    return { ok: true, operation, card };
+}
+
+/* 在当前大类内深度复制不使用内部 ID 的卡片（目前用于邮箱联系方式）。 */
+function copyCardWithinSection(storeObj, sectionKey, sourceIndex, maxCount) {
+    const arr = (storeObj || {})[sectionKey];
+    if (!Array.isArray(arr) || !arr[sourceIndex]) return { ok: false, reason: 'source' };
+    if (Number.isInteger(maxCount) && maxCount > 0 && arr.length >= maxCount) return { ok: false, reason: 'max' };
+    const card = deepClone(arr[sourceIndex]);
+    arr.splice(sourceIndex + 1, 0, card);
+    return { ok: true, card };
+}
+
+/* 在两个母卡片之间移动/复制子卡片；复制到当前母卡片时插在原项之后。 */
+function transferSubCardBetweenParents(sourceSubs, sourceIndex, targetCard, operation, isSameParent) {
+    if (!Array.isArray(sourceSubs) || !sourceSubs[sourceIndex]) return { ok: false, reason: 'source' };
+    if (!targetCard) return { ok: false, reason: 'target' };
+    if (operation !== 'move' && operation !== 'copy') return { ok: false, reason: 'operation' };
+    if (isSameParent && operation === 'move') return { ok: false, reason: 'same-parent' };
+    const sub = deepClone(sourceSubs[sourceIndex]);
+
+    if (isSameParent) {
+        sourceSubs.splice(sourceIndex + 1, 0, sub);
+    } else {
+        if (targetCard.type !== 'expandable') targetCard.type = 'expandable';
+        if (!Array.isArray(targetCard.subCards)) targetCard.subCards = [];
+        targetCard.subCards.push(sub);
+        if (operation === 'move') sourceSubs.splice(sourceIndex, 1);
+    }
+    return { ok: true, operation, sub };
 }
 
 function updateEncKeyStatus() {
@@ -3882,6 +3953,10 @@ async function parseSectionsArray(rawSections) {
        ];
 ================================================================ */
 async function generateDataJs() {
+    const emailCountError = getEmailCardCountError((store.emailData || []).length);
+    if (emailCountError === 'min') throw new Error(t('toastEmailCardMin'));
+    if (emailCountError === 'max') throw new Error(t('toastEmailCardMax'));
+
     // ★ 内置兜底 header：在线部署/KV 加载场景下 preservedComments.header 为空时使用
     //   这样无论数据来源是本地 data.js 还是远端 KV，导出文件的顶部说明都不会丢
     const FALLBACK_HEADER = [
@@ -4172,7 +4247,8 @@ function renderCurrentSection() {
         info.innerHTML = '<div class="card-title">' + escapeHtml(title) + pushedByHtml + '</div><div class="card-meta">' + metaParts.join('　') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
-        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move">➡</button>' : '';
+        const moveBtn = isCardKind ? '<button class="btn btn-warn btn-sm" data-act="move" title="' + escapeHtml(t('cardMoveActionTitle')) + '">⇄</button>' : '';
+        const copyBtn = sec.kind === 'email' ? '<button class="btn btn-warn btn-sm" data-act="copy" title="' + escapeHtml(t('emailCopyActionTitle')) + '">⧉</button>' : '';
         // §16-A.1(2026-05-24):卡片行右侧 📤 推送按钮 — 点击预填该卡到 push modal
         // §14 P2P(2026-05-29):普通用户也显示 → 点击走 P2P;admin 仍走 admin pushModal(顶栏另有"📤 推送给好友"入口)
         const pushBtn = (currentUser.username)
@@ -4181,6 +4257,7 @@ function renderCurrentSection() {
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-act="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-act="down">⬇</button>' +
                        moveBtn +
+                       copyBtn +
                        pushBtn +
                        '<button class="btn btn-primary btn-sm" data-act="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
@@ -4200,12 +4277,32 @@ function renderCurrentSection() {
         }
     });
 }
+function getEmailCardCountConstraint(count) {
+    count = Number(count) || 0;
+    return { canAdd: count < 10, canDelete: count > 1 };
+}
+
+function getEmailCardCountError(count) {
+    count = Number(count) || 0;
+    if (count < 1) return 'min';
+    if (count > 10) return 'max';
+    return null;
+}
 function handleCardAction(act, idx) {
     const arr = store[currentSection];
     if (act === 'up' && idx > 0) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; renderCurrentSection(); markConfigDirty(); }
     else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); markConfigDirty(); }
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
+    else if (act === 'copy') {
+        const sec = getSections().find(x => x.key === currentSection);
+        if (!sec || sec.kind !== 'email') return;
+        const result = copyCardWithinSection(store, currentSection, idx, 10);
+        if (!result.ok) { toast(t(result.reason === 'max' ? 'toastEmailCardMax' : 'toastCardNotExist')); return; }
+        renderCurrentSection();
+        markConfigDirty();
+        toast(t('toastCopiedWithinUnsaved'));
+    }
     else if (act === 'push') {
         // §16-A.1(2026-05-24)+ §16-B 修复(2026-05-24):若当前 section 是加密大类,标 prefillFromEncrypted
         // §14 P2P(2026-05-29):admin → openPushModal(批量推所有用户);普通用户 → openP2pPushModal(单收件人)
@@ -4217,7 +4314,14 @@ function handleCardAction(act, idx) {
             openP2pPushModal({ prefillCards: [arr[idx]], prefillFromEncrypted: fromEnc });
         }
     }
-    else if (act === 'del') { if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); markConfigDirty(); toast(t('toastDeletedUnsaved')); } }
+    else if (act === 'del') {
+        const sec = getSections().find(x => x.key === currentSection);
+        if (sec && sec.kind === 'email' && !getEmailCardCountConstraint(arr.length).canDelete) {
+            toast(t('toastEmailCardMin'));
+            return;
+        }
+        if (confirm(t('confirmDelCard'))) { arr.splice(idx, 1); renderCurrentSection(); markConfigDirty(); toast(t('toastDeletedUnsaved')); }
+    }
 }
 
 // §13:移除 pushedBy/pushedAt 标注(2026-05-23)— 仅本地 store 清字段,等用户点 💾 保存才写回
@@ -4235,7 +4339,7 @@ function handlePushedByDelete(idx) {
 }
 
 /* ================================================================
-   Move card cross-section
+   Move / copy card cross-section
 ================================================================ */
 function openMoveCardModal(sectionKey, cardIdx) {
     if (isLockedKey(sectionKey)) { toast(t('toastEncCantEditLocked')); return; }
@@ -4245,8 +4349,17 @@ function openMoveCardModal(sectionKey, cardIdx) {
     const srcLabel = (srcSec || {}).label || sectionKey;
     const cardName = card.title || card.id || card.content || t('noTitle');
     $('cardMoveSrcHint').innerHTML = t('cardMoveSrcHint', { card: escapeHtml(cardName), src: escapeHtml(srcLabel) });
-    const sel = $('cardMove_section'); sel.innerHTML = '';
-    getSections().filter(s => s.kind === 'card' && s.key !== sectionKey && !s.locked).forEach(s => {
+    const hasMoveTarget = getSections().some(s => s.kind === 'card' && s.key !== sectionKey && !s.locked);
+    $('cardMove_operation').value = hasMoveTarget ? 'move' : 'copy';
+    syncCardMoveOperation();
+    show('cardMoveModal');
+}
+function renderCardMoveSectionOptions() {
+    const operation = $('cardMove_operation').value === 'copy' ? 'copy' : 'move';
+    const sel = $('cardMove_section');
+    const oldValue = sel.value;
+    sel.innerHTML = '';
+    getSections().filter(s => s.kind === 'card' && !s.locked && (operation === 'copy' || s.key !== movingCardSourceSection)).forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.key;
         let lbl = s.label + (s.builtin ? '' : t('customSuffix'));
@@ -4254,24 +4367,36 @@ function openMoveCardModal(sectionKey, cardIdx) {
         opt.textContent = lbl;
         sel.appendChild(opt);
     });
-    if (!sel.options.length) { toast(t('toastNoMoveTargets')); return; }
-    show('cardMoveModal');
+    const preferred = operation === 'copy' ? movingCardSourceSection : oldValue;
+    if (preferred && Array.from(sel.options).some(opt => opt.value === preferred)) sel.value = preferred;
+    else if (sel.options.length) sel.selectedIndex = 0;
+    $('btnCardMoveConfirm').disabled = !sel.options.length;
+}
+function syncCardMoveOperation() {
+    const operation = $('cardMove_operation').value === 'copy' ? 'copy' : 'move';
+    renderCardMoveSectionOptions();
+    $('btnCardMoveConfirm').textContent = t(operation === 'copy' ? 'copyConfirm' : 'moveConfirm');
+    $('cardMoveHint').innerHTML = t(operation === 'copy' ? 'cardMoveHintCopy' : 'cardMoveHintMove');
 }
 function confirmMoveCard() {
     if (!movingCardSourceSection || movingCardSourceIndex < 0) return;
     const srcArr = store[movingCardSourceSection];
     if (!srcArr || !srcArr[movingCardSourceIndex]) { toast(t('toastCardNotExist')); return; }
+    const operation = $('cardMove_operation').value;
+    if (operation !== 'move' && operation !== 'copy') { toast(t('toastInvalidMoveOperation')); return; }
     const targetSection = $('cardMove_section').value;
-    if (!targetSection || targetSection === movingCardSourceSection) { toast(t('toastNeedTargetSec')); return; }
+    if (!targetSection) { toast(t('toastNeedTargetSec')); return; }
+    if (operation === 'move' && targetSection === movingCardSourceSection) { toast(t('toastNeedTargetSec')); return; }
     if (isLockedKey(targetSection)) { toast(t('toastLockedSkippedInMove')); return; }
-    const card = deepClone(srcArr[movingCardSourceIndex]);
-    if (!Array.isArray(store[targetSection])) store[targetSection] = [];
-    store[targetSection].push(card);
-    srcArr.splice(movingCardSourceIndex, 1);
+
+    const result = transferCardBetweenSections(store, movingCardSourceSection, movingCardSourceIndex, targetSection, operation);
+    if (!result.ok) { toast(t(result.reason === 'source' ? 'toastCardNotExist' : 'toastInvalidMoveOperation')); return; }
+
     hide('cardMoveModal');
     renderCurrentSection();
     const tgtLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
-    toast(t('toastMovedToUnsaved', { tgt: tgtLabel }));
+    if (operation === 'copy') toast(t('toastCopiedToUnsaved', { tgt: tgtLabel, id: result.card.id }));
+    else toast(t('toastMovedToUnsaved', { tgt: tgtLabel }));
     markConfigDirty();
     movingCardSourceSection = null; movingCardSourceIndex = -1;
 }
@@ -4711,8 +4836,13 @@ function autoPromptUnlockIfNeeded() {
 ================================================================ */
 function openCardModal(idx) {
     if (isLockedKey(currentSection)) { toast(t('toastEncCantEditLocked')); return; }
-    editingCardIndex = idx;
     const sec = getSections().find(x => x.key === currentSection);
+    if (!sec) return;
+    if (idx < 0 && sec.kind === 'email' && !getEmailCardCountConstraint((store[currentSection] || []).length).canAdd) {
+        toast(t('toastEmailCardMax'));
+        return;
+    }
+    editingCardIndex = idx;
     const item = idx >= 0 ? deepClone(store[currentSection][idx]) : {};
     editingCardDraft = item;
     $('cardModalTitle').textContent = (idx >= 0 ? t('cardModalEditInSec', { sec: sec.label }) : t('cardModalNewInSec', { sec: sec.label }));
@@ -4781,6 +4911,10 @@ function saveCardFromModal() {
     const cmt = $('f_comment').value;
 
     if (sec.kind === 'email') {
+        if (editingCardIndex < 0 && !getEmailCardCountConstraint((store[currentSection] || []).length).canAdd) {
+            toast(t('toastEmailCardMax'));
+            return;
+        }
         obj.title = $('f_title').value.trim(); obj.address = $('f_desc').value.trim(); obj.url = $('f_url').value.trim(); obj.mailto = obj.url;
         if (!obj.title) { toast(t('toastNeedTitle')); return; }
     } else if (sec.kind === 'contact') {
@@ -4862,7 +4996,7 @@ function renderSubCardsList() {
             : '';
         act.innerHTML = '<button class="btn btn-ghost btn-sm" data-sact="up">⬆</button>' +
                        '<button class="btn btn-ghost btn-sm" data-sact="down">⬇</button>' +
-                       '<button class="btn btn-warn btn-sm" data-sact="move">➡</button>' +
+                       '<button class="btn btn-warn btn-sm" data-sact="move" title="' + escapeHtml(t('subMoveActionTitle')) + '">⇄</button>' +
                        '<button class="btn btn-success btn-sm" data-sact="promote" title="升级为独立卡片">🆙</button>' +
                        subPushBtn +
                        '<button class="btn btn-primary btn-sm" data-sact="edit">✏️</button>' +
@@ -4951,13 +5085,29 @@ function openMoveSubModal(subIdx) {
         selSec.appendChild(opt);
     });
     selSec.value = currentSection;
+    $('move_operation').value = 'move';
     selSec.onchange = renderMoveTargetList;
-    renderMoveTargetList();
+    syncSubMoveOperation();
     show('moveModal');
 }
+function syncSubMoveOperation() {
+    const operation = $('move_operation').value === 'copy' ? 'copy' : 'move';
+    $('btnMoveConfirm').textContent = t(operation === 'copy' ? 'copyConfirm' : 'moveConfirm');
+    renderMoveTargetList();
+}
 function renderMoveTargetList() {
-    const key = $('move_section').value; const tgt = $('move_target'); tgt.innerHTML = '';
+    const key = $('move_section').value;
+    const operation = $('move_operation').value === 'copy' ? 'copy' : 'move';
+    const tgt = $('move_target'); tgt.innerHTML = '';
     const arr = store[key] || []; let count = 0;
+
+    if (operation === 'copy' && key === currentSection) {
+        const currentOpt = document.createElement('option');
+        currentOpt.value = '__current__';
+        currentOpt.textContent = t('moveCurrentParentLabel');
+        tgt.appendChild(currentOpt); count++;
+    }
+
     arr.forEach((c, i) => {
         if (key === currentSection && i === editingCardIndex) return;
         const opt = document.createElement('option'); opt.value = i;
@@ -4969,26 +5119,42 @@ function renderMoveTargetList() {
     if (count === 0) { const opt = document.createElement('option'); opt.value = ''; opt.textContent = t('moveTgtNone'); opt.disabled = true; tgt.appendChild(opt); }
     tgt.onchange = updateMoveTypeHint;
     if (tgt.options.length) { tgt.selectedIndex = 0; updateMoveTypeHint(); } else $('moveTypeHint').textContent = '';
+    $('btnMoveConfirm').disabled = count === 0;
 }
 function updateMoveTypeHint() {
-    const key = $('move_section').value; const idx = parseInt($('move_target').value, 10);
+    const key = $('move_section').value;
+    const targetValue = $('move_target').value;
+    const operation = $('move_operation').value === 'copy' ? 'copy' : 'move';
     const hint = $('moveTypeHint');
+    if (targetValue === '__current__') {
+        hint.innerHTML = operation === 'copy' ? t('moveHintSameParentCopy') : '';
+        return;
+    }
+    const idx = parseInt(targetValue, 10);
     if (isNaN(idx)) { hint.textContent = ''; return; }
-    const tgt = store[key][idx]; if (!tgt) { hint.textContent = ''; return; }
-    if (tgt.type === 'expandable') hint.innerHTML = t('moveHintExpandable');
-    else hint.innerHTML = t('moveHintUpgrade', { type: tgt.type || 'simple' });
+    const tgt = (store[key] || [])[idx]; if (!tgt) { hint.textContent = ''; return; }
+    if (tgt.type === 'expandable') hint.innerHTML = t(operation === 'copy' ? 'moveHintExpandableCopy' : 'moveHintExpandable');
+    else hint.innerHTML = t(operation === 'copy' ? 'moveHintUpgradeCopy' : 'moveHintUpgrade', { type: tgt.type || 'simple' });
 }
 function confirmMoveSubCard() {
     const sub = editingCardDraft && editingCardDraft.subCards && editingCardDraft.subCards[moveFromIndex];
     if (!sub) { toast(t('toastSubNotExist')); return; }
-    const targetSection = $('move_section').value; const targetIndex = parseInt($('move_target').value, 10);
-    if (isNaN(targetIndex)) { toast(t('toastNeedTarget')); return; }
-    if (editingCardIndex >= 0 && targetSection === currentSection && targetIndex === editingCardIndex) { toast(t('toastCantMoveSelf')); return; }
-    const tgtCard = store[targetSection][targetIndex]; if (!tgtCard) { toast(t('toastTargetNotExist')); return; }
-    if (tgtCard.type !== 'expandable') tgtCard.type = 'expandable';
-    if (!Array.isArray(tgtCard.subCards)) tgtCard.subCards = [];
-    tgtCard.subCards.push(deepClone(sub));
-    editingCardDraft.subCards.splice(moveFromIndex, 1);
+    const operation = $('move_operation').value;
+    if (operation !== 'move' && operation !== 'copy') { toast(t('toastInvalidMoveOperation')); return; }
+    const targetSection = $('move_section').value;
+    const targetValue = $('move_target').value;
+    if (!targetSection || targetValue === '') { toast(t('toastNeedTarget')); return; }
+
+    const isSameParent = targetSection === currentSection && targetValue === '__current__';
+    if (isSameParent && operation === 'move') { toast(t('toastCantMoveSelf')); return; }
+    const targetIndex = isSameParent ? -1 : parseInt(targetValue, 10);
+    if (!isSameParent && isNaN(targetIndex)) { toast(t('toastNeedTarget')); return; }
+    const tgtCard = isSameParent ? editingCardDraft : (store[targetSection] || [])[targetIndex];
+    if (!tgtCard) { toast(t('toastTargetNotExist')); return; }
+
+    const result = transferSubCardBetweenParents(editingCardDraft.subCards, moveFromIndex, tgtCard, operation, isSameParent);
+    if (!result.ok) { toast(t(result.reason === 'source' ? 'toastSubNotExist' : 'toastInvalidMoveOperation')); return; }
+
     if (editingCardIndex >= 0) {
         const src = store[currentSection][editingCardIndex];
         if (src) { if (!Array.isArray(src.subCards)) src.subCards = []; src.subCards = deepClone(editingCardDraft.subCards); }
@@ -4996,7 +5162,8 @@ function confirmMoveSubCard() {
     hide('moveModal'); renderSubCardsList(); renderCurrentSection();
     const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     const tgtCardLabel = tgtCard.title || tgtCard.id || t('noTitle');
-    toast(t('toastMovedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
+    if (operation === 'copy') toast(t('toastCopiedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
+    else toast(t('toastMovedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
     markConfigDirty();
 }
 
@@ -7942,8 +8109,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     $('btnMoveCancel').onclick = () => hide('moveModal');
     $('btnMoveConfirm').onclick = confirmMoveSubCard;
+    $('move_operation').onchange = syncSubMoveOperation;
     $('btnCardMoveCancel').onclick = () => hide('cardMoveModal');
     $('btnCardMoveConfirm').onclick = confirmMoveCard;
+    $('cardMove_operation').onchange = syncCardMoveOperation;
 
     $('btnPromoteCancel').onclick = () => hide('promoteSubModal');
     $('btnPromoteConfirm').onclick = confirmPromoteSub;
@@ -7993,3 +8162,5 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+

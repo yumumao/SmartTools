@@ -671,13 +671,57 @@ function generateDynamicGrid(prefix, data, layout, encrypted) {
  * 【区块 7】联系方式 / 邮箱卡片
  * ════════════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * 邮箱 Tab 布局规则（支持 1～10 张）：
+ *   1. 当前激活项排在最左；
+ *   2. 其余项保持原始下标顺序；
+ *   3. 所有 Tab 按实际数量等宽分布。
+ * 五张时计算结果与原 CSS 的 active-0～4 / 20% 完全一致。
+ */
+function getEmailTabLayout(cardCount, tabIndex, activeIndex) {
+    cardCount = Math.max(1, Number(cardCount) || 1);
+    activeIndex = Number(activeIndex);
+    if (activeIndex < 0 || activeIndex >= cardCount) activeIndex = 0;
+
+    var order = [activeIndex];
+    for (var i = 0; i < cardCount; i++) {
+        if (i !== activeIndex) order.push(i);
+    }
+    var slot = order.indexOf(tabIndex);
+    if (slot < 0) slot = tabIndex;
+
+    var width = 100 / cardCount;
+    return {
+        right: (cardCount - slot - 1) * width,
+        width: width,
+        zIndex: tabIndex === activeIndex ? cardCount + 10 : cardCount + 9 - slot
+    };
+}
+
+function getEmailTabStyle(cardCount, tabIndex, activeIndex) {
+    var layout = getEmailTabLayout(cardCount, tabIndex, activeIndex);
+    return 'right:' + layout.right + '%;width:' + layout.width + '%;z-index:' + layout.zIndex + ';';
+}
+
+function layoutEmailTabs(activeIndex) {
+    var root = document.getElementById('email-tabs');
+    if (!root) return;
+    var tabs = root.querySelectorAll('.email-tab');
+    var count = tabs.length;
+    tabs.forEach(function(tab, tabIndex) {
+        var layout = getEmailTabLayout(count, tabIndex, activeIndex);
+        tab.style.right = layout.right + '%';
+        tab.style.width = layout.width + '%';
+        tab.style.zIndex = String(layout.zIndex);
+    });
+}
 function generateEmailCardHTML(cards) {
     cards = cards || [];
     var tabsHTML = '';
     cards.forEach(function(em, i) {
         var cls = i === 0 ? ' active' : '';
         // tab 内联 onclick 加 preventDefault,防止触发外层 <a> 的默认跳转
-        tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); event.preventDefault(); switchEmail(' + i + ')" data-email="' + i + '">' + (i + 1) + '</div>';
+        tabsHTML += '<div class="email-tab' + cls + '" onclick="event.stopPropagation(); event.preventDefault(); switchEmail(' + i + ')" data-email="' + i + '" style="' + getEmailTabStyle(cards.length, i, 0) + '">' + (i + 1) + '</div>';
     });
     var first = cards[0] || {};
     var noteCls = __noteCls(first);
@@ -695,7 +739,7 @@ function generateEmailCardHTML(cards) {
         '</div>' +
         '<p class="email-contact-desc" id="email-address">' + __txt(first.address || '') + '</p>' +
         '</div>' +
-        '<div class="email-tabs active-0" id="email-tabs">' + tabsHTML + '</div>' +
+        '<div class="email-tabs active-0" id="email-tabs"' + (cards.length <= 1 ? ' style="display:none;"' : '') + '>' + tabsHTML + '</div>' +
         '</a></div>';
 }
 
@@ -918,7 +962,9 @@ function switchEmail(index) {
         if (i === index) tab.classList.add('active');
         else tab.classList.remove('active');
     });
-    document.getElementById('email-tabs').className = 'email-tabs active-' + index;
+    var emailTabs = document.getElementById('email-tabs');
+    if (emailTabs) emailTabs.className = 'email-tabs active-' + index;
+    layoutEmailTabs(index);
 }
 
 function openEmail(url) {
@@ -1266,3 +1312,4 @@ window.addEventListener('resize', function() {
         }, { passive: true });
     }
 })();
+
