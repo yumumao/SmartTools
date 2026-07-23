@@ -2654,18 +2654,23 @@ function generateUniqueCardId(arr, excludeIndex) {
     return id;
 }
 
+/* 移动到来源位置等价于复制，避免同一数组内先追加再删除导致原项消失。 */
+function normalizeTransferOperation(operation, isSameTarget) {
+    return operation === 'move' && isSameTarget ? 'copy' : operation;
+}
+
 /* 在两个大类之间移动/复制主卡片；复制时始终生成新的内部 ID。 */
 function transferCardBetweenSections(storeObj, sourceSection, sourceIndex, targetSection, operation) {
     const data = storeObj || {};
     const srcArr = data[sourceSection];
     if (!Array.isArray(srcArr) || !srcArr[sourceIndex]) return { ok: false, reason: 'source' };
     if (operation !== 'move' && operation !== 'copy') return { ok: false, reason: 'operation' };
-    if (operation === 'move' && targetSection === sourceSection) return { ok: false, reason: 'same-section' };
+    const actualOperation = normalizeTransferOperation(operation, targetSection === sourceSection);
     if (!Array.isArray(data[targetSection])) data[targetSection] = [];
     const targetArr = data[targetSection];
     const card = deepClone(srcArr[sourceIndex]);
 
-    if (operation === 'copy') {
+    if (actualOperation === 'copy') {
         card.id = generateUniqueCardId(targetArr, -1);
         if (targetArr === srcArr) targetArr.splice(sourceIndex + 1, 0, card);
         else targetArr.push(card);
@@ -2673,7 +2678,7 @@ function transferCardBetweenSections(storeObj, sourceSection, sourceIndex, targe
         targetArr.push(card);
         srcArr.splice(sourceIndex, 1);
     }
-    return { ok: true, operation, card };
+    return { ok: true, operation: actualOperation, card };
 }
 
 /* 在当前大类内深度复制不使用内部 ID 的卡片（目前用于邮箱联系方式）。 */
@@ -2691,18 +2696,19 @@ function transferSubCardBetweenParents(sourceSubs, sourceIndex, targetCard, oper
     if (!Array.isArray(sourceSubs) || !sourceSubs[sourceIndex]) return { ok: false, reason: 'source' };
     if (!targetCard) return { ok: false, reason: 'target' };
     if (operation !== 'move' && operation !== 'copy') return { ok: false, reason: 'operation' };
-    if (isSameParent && operation === 'move') return { ok: false, reason: 'same-parent' };
+    const sameParent = !!isSameParent || targetCard.subCards === sourceSubs;
+    const actualOperation = normalizeTransferOperation(operation, sameParent);
     const sub = deepClone(sourceSubs[sourceIndex]);
 
-    if (isSameParent) {
+    if (sameParent) {
         sourceSubs.splice(sourceIndex + 1, 0, sub);
     } else {
         if (targetCard.type !== 'expandable') targetCard.type = 'expandable';
         if (!Array.isArray(targetCard.subCards)) targetCard.subCards = [];
         targetCard.subCards.push(sub);
-        if (operation === 'move') sourceSubs.splice(sourceIndex, 1);
+        if (actualOperation === 'move') sourceSubs.splice(sourceIndex, 1);
     }
-    return { ok: true, operation, sub };
+    return { ok: true, operation: actualOperation, sub };
 }
 
 function updateEncKeyStatus() {
@@ -4359,7 +4365,7 @@ function renderCardMoveSectionOptions() {
     const sel = $('cardMove_section');
     const oldValue = sel.value;
     sel.innerHTML = '';
-    getSections().filter(s => s.kind === 'card' && !s.locked && (operation === 'copy' || s.key !== movingCardSourceSection)).forEach(s => {
+    getSections().filter(s => s.kind === 'card' && !s.locked).forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.key;
         let lbl = s.label + (s.builtin ? '' : t('customSuffix'));
@@ -4367,16 +4373,28 @@ function renderCardMoveSectionOptions() {
         opt.textContent = lbl;
         sel.appendChild(opt);
     });
-    const preferred = operation === 'copy' ? movingCardSourceSection : oldValue;
+    let preferred = operation === 'copy' ? movingCardSourceSection : oldValue;
+    if (operation === 'move' && preferred === movingCardSourceSection) preferred = '';
     if (preferred && Array.from(sel.options).some(opt => opt.value === preferred)) sel.value = preferred;
-    else if (sel.options.length) sel.selectedIndex = 0;
+    else if (sel.options.length) {
+        const firstOther = Array.from(sel.options).findIndex(opt => opt.value !== movingCardSourceSection);
+        sel.selectedIndex = firstOther >= 0 ? firstOther : 0;
+    }
     $('btnCardMoveConfirm').disabled = !sel.options.length;
+    sel.onchange = syncCardMoveTargetOperation;
 }
-function syncCardMoveOperation() {
-    const operation = $('cardMove_operation').value === 'copy' ? 'copy' : 'move';
-    renderCardMoveSectionOptions();
+function syncCardMoveTargetOperation() {
+    const operation = normalizeTransferOperation(
+        $('cardMove_operation').value === 'copy' ? 'copy' : 'move',
+        $('cardMove_section').value === movingCardSourceSection
+    );
+    $('cardMove_operation').value = operation;
     $('btnCardMoveConfirm').textContent = t(operation === 'copy' ? 'copyConfirm' : 'moveConfirm');
     $('cardMoveHint').innerHTML = t(operation === 'copy' ? 'cardMoveHintCopy' : 'cardMoveHintMove');
+}
+function syncCardMoveOperation() {
+    renderCardMoveSectionOptions();
+    syncCardMoveTargetOperation();
 }
 function confirmMoveCard() {
     if (!movingCardSourceSection || movingCardSourceIndex < 0) return;
@@ -4386,7 +4404,6 @@ function confirmMoveCard() {
     if (operation !== 'move' && operation !== 'copy') { toast(t('toastInvalidMoveOperation')); return; }
     const targetSection = $('cardMove_section').value;
     if (!targetSection) { toast(t('toastNeedTargetSec')); return; }
-    if (operation === 'move' && targetSection === movingCardSourceSection) { toast(t('toastNeedTargetSec')); return; }
     if (isLockedKey(targetSection)) { toast(t('toastLockedSkippedInMove')); return; }
 
     const result = transferCardBetweenSections(store, movingCardSourceSection, movingCardSourceIndex, targetSection, operation);
@@ -4395,7 +4412,7 @@ function confirmMoveCard() {
     hide('cardMoveModal');
     renderCurrentSection();
     const tgtLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
-    if (operation === 'copy') toast(t('toastCopiedToUnsaved', { tgt: tgtLabel, id: result.card.id }));
+    if (result.operation === 'copy') toast(t('toastCopiedToUnsaved', { tgt: tgtLabel, id: result.card.id }));
     else toast(t('toastMovedToUnsaved', { tgt: tgtLabel }));
     markConfigDirty();
     movingCardSourceSection = null; movingCardSourceIndex = -1;
@@ -5101,7 +5118,7 @@ function renderMoveTargetList() {
     const tgt = $('move_target'); tgt.innerHTML = '';
     const arr = store[key] || []; let count = 0;
 
-    if (operation === 'copy' && key === currentSection) {
+    if (key === currentSection) {
         const currentOpt = document.createElement('option');
         currentOpt.value = '__current__';
         currentOpt.textContent = t('moveCurrentParentLabel');
@@ -5117,9 +5134,26 @@ function renderMoveTargetList() {
         tgt.appendChild(opt); count++;
     });
     if (count === 0) { const opt = document.createElement('option'); opt.value = ''; opt.textContent = t('moveTgtNone'); opt.disabled = true; tgt.appendChild(opt); }
-    tgt.onchange = updateMoveTypeHint;
-    if (tgt.options.length) { tgt.selectedIndex = 0; updateMoveTypeHint(); } else $('moveTypeHint').textContent = '';
+    tgt.onchange = syncSubMoveTargetOperation;
+    if (tgt.options.length) {
+        if (operation === 'move') {
+            const firstOther = Array.from(tgt.options).findIndex(opt => opt.value !== '__current__' && !opt.disabled);
+            tgt.selectedIndex = firstOther >= 0 ? firstOther : 0;
+        } else {
+            tgt.selectedIndex = 0;
+        }
+        syncSubMoveTargetOperation();
+    } else $('moveTypeHint').textContent = '';
     $('btnMoveConfirm').disabled = count === 0;
+}
+function syncSubMoveTargetOperation() {
+    const operation = normalizeTransferOperation(
+        $('move_operation').value === 'copy' ? 'copy' : 'move',
+        $('move_section').value === currentSection && $('move_target').value === '__current__'
+    );
+    $('move_operation').value = operation;
+    $('btnMoveConfirm').textContent = t(operation === 'copy' ? 'copyConfirm' : 'moveConfirm');
+    updateMoveTypeHint();
 }
 function updateMoveTypeHint() {
     const key = $('move_section').value;
@@ -5146,7 +5180,6 @@ function confirmMoveSubCard() {
     if (!targetSection || targetValue === '') { toast(t('toastNeedTarget')); return; }
 
     const isSameParent = targetSection === currentSection && targetValue === '__current__';
-    if (isSameParent && operation === 'move') { toast(t('toastCantMoveSelf')); return; }
     const targetIndex = isSameParent ? -1 : parseInt(targetValue, 10);
     if (!isSameParent && isNaN(targetIndex)) { toast(t('toastNeedTarget')); return; }
     const tgtCard = isSameParent ? editingCardDraft : (store[targetSection] || [])[targetIndex];
@@ -5162,7 +5195,7 @@ function confirmMoveSubCard() {
     hide('moveModal'); renderSubCardsList(); renderCurrentSection();
     const tgtSecLabel = (getSections().find(s => s.key === targetSection) || {}).label || targetSection;
     const tgtCardLabel = tgtCard.title || tgtCard.id || t('noTitle');
-    if (operation === 'copy') toast(t('toastCopiedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
+    if (result.operation === 'copy') toast(t('toastCopiedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
     else toast(t('toastMovedSubToUnsaved', { sec: tgtSecLabel, card: tgtCardLabel }));
     markConfigDirty();
 }

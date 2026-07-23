@@ -48,9 +48,9 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-07-17-002',
-    updatedAt: '2026-07-17T21:25:20.944Z',
-    source:    'github'
+    version:   '2026-07-23-002',
+    updatedAt: '2026-07-23T20:11:37.625Z',
+    source:    'kv'
 };
 /* __META_END__ */
 
@@ -345,12 +345,12 @@ var sections = [
         visible: true,
         cards: [
             {
-                id: 'qwen',
                 icon: '🧞',
+                id: 'qwen',
                 title: 'Qwen',
-                desc: '阿里千问等集合',
                 url: 'https://chat.qwen.ai/',
                 type: 'expandable',
+                desc: '阿里千问等集合',
                 subCards: [
                     {
                         icon: '🤿',
@@ -359,10 +359,17 @@ var sections = [
                         url: 'https://www.deepseek.com/'
                     },
                     {
-                        icon: '🍏',
-                        title: '腾讯元宝',
+                        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#897EFF"/><stop offset="100%" stop-color="#5A42F2"/></linearGradient></defs><rect x="1" y="1" width="126" height="126" rx="28" fill="url(#g)" stroke="#FFF" stroke-width="1"/><g transform="translate(64 66) rotate(-22) scale(1.28)"><path fill="#FCFCFF" d="M-29-18L-40-37C-43-42-35-47-28-43L-12-33C-5-35 5-35 12-33L28-43C35-47 43-42 40-37L29-18C36-12 39-2 39 10C39 29 24 42 0 42C-24 42-39 29-39 10C-39-2-36-12-29-18Z"/><rect x="-16" y="-2" width="7" height="17" rx="3.5" fill="#6B58FF" transform="rotate(-12 -12 6)"/><rect x="9" y="-2" width="7" height="17" rx="3.5" fill="#6B58FF" transform="rotate(-12 13 6)"/></g></svg>',
+                        title: 'WorkBuddy',
                         desc: '腾讯AI助手',
-                        url: 'https://yuanbao.tencent.com/'
+                        url: 'https://www.codebuddy.cn/home/'
+                    },
+                    {
+                        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect x="1" y="1" width="126" height="126" rx="28" fill="#000" stroke="#fff" stroke-width="1"/><text x="69.5" y="93" text-anchor="middle" font-family="Inter,\'SF Pro Display\',\'Helvetica Neue\',Helvetica,Arial,sans-serif" font-size="92" font-weight="500" transform="translate(-5.8 0) scale(0.92 1)" fill="#fff">K</text><circle cx="92" cy="34" r="4.2" fill="#2EA8FF"/></svg>',
+                        title: 'kimi',
+                        desc: 'Kimi AI',
+                        url: 'https://www.kimi.com/',
+                        comment: '[KIMI API 开放平台](https://platform.kimi.com/)'
                     },
                     {
                         icon: '💁‍',
