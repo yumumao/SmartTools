@@ -8,6 +8,7 @@
  *     被 append 到 .note-mask,position: fixed 覆盖整个视口,从点击点扩散。
  *     按钮波纹仍保留本地波纹(.note-ripple)。
  *   - 悬停提示文字:"点击跳转:<具体URL>"(带上 URL)。
+ *   - 备注内的链接悬停提示显示链接自身 href(不再继承 body 的卡片 URL 提示)。
  *   - 未持久化保存的状态提示常驻:
  *       · 查看模式下:若 overrides 里存在该卡记录 → footer 里常驻显示提示
  *       · 编辑模式下:status 元素初始就预填这个提示(编辑一进来就能看到)
@@ -700,6 +701,14 @@
                     md.className = 'note-md';
                     md.innerHTML = renderMarkdown(comment);
                     body.appendChild(md);
+
+                    // ★ <a> 没有自身 title 时会继承 body 的"点击跳转:卡片URL"提示,
+                    //   而点击 <a> 实际打开的是它自己的 href(下方 onclick 对 <a> 放行)。
+                    //   故给备注内每个链接设自身地址提示;白名单拒绝的 '#' 置空 title 阻断继承。
+                    md.querySelectorAll('a[href]').forEach(function(a) {
+                        var href = a.getAttribute('href');
+                        a.title = (href && href !== '#') ? ('点击跳转:' + href) : '';
+                    });
 
                     if (url) {
                         body.classList.add('clickable');
