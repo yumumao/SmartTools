@@ -48,9 +48,9 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-07-23-003',
-    updatedAt: '2026-07-23T21:32:24.166Z',
-    source:    'github'
+    version:   '2026-07-28-010',
+    updatedAt: '2026-07-28T15:52:35.556Z',
+    source:    'kv'
 };
 /* __META_END__ */
 
@@ -321,6 +321,22 @@ var sections = [
                         title: '转换文件格式',
                         desc: '全格式转换',
                         url: 'https://www.aconvert.com/cn/'
+                    }
+                ]
+            },
+            {
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2FBFE"/><stop offset=".5" stop-color="#EAF8FC"/><stop offset=".5" stop-color="#D8EFF8"/><stop offset="1" stop-color="#CFEAF5"/></linearGradient><linearGradient id="laser" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1E88C8" stop-opacity=".15"/><stop offset=".5" stop-color="#6BE7FF"/><stop offset="1" stop-color="#1E88C8" stop-opacity=".15"/></linearGradient></defs><g fill="none" stroke="#1E88C8" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"><path d="M44 176V104c0-33 27-60 60-60h78"/><path d="M330 44h78c33 0 60 27 60 60v78"/><path d="M468 330v78c0 33-27 60-60 60h-78"/><path d="M182 468h-78c-33 0-60-27-60-60v-78"/></g><rect x="132" y="112" width="248" height="288" rx="44" fill="url(#bg)"/><rect x="132" y="112" width="248" height="288" rx="44" fill="none" stroke="#1E88C8" stroke-width="20"/><rect x="72" y="241" width="368" height="30" rx="15" fill="#1E88C8"/><line x1="72" y1="249" x2="440" y2="249" stroke="url(#laser)" stroke-width="8" stroke-linecap="round"/><rect x="192" y="170" width="128" height="8" rx="4" fill="#1E88C8" opacity=".18"/><rect x="192" y="334" width="128" height="8" rx="4" fill="#1E88C8" opacity=".15"/></svg>',
+                id: 'card_ms3cwpc1_2duf',
+                title: 'ScanDex',
+                url: 'https://scandex.n29.net',
+                type: 'expandable',
+                desc: '扫描图片管理',
+                subCards: [
+                    {
+                        icon: '📇',
+                        title: 'ImgToDoc',
+                        desc: 'ImgToDoc服务（仅内网）',
+                        url: 'http://192.168.2.166.:8787'
                     }
                 ]
             },
