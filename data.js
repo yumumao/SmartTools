@@ -48,8 +48,8 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-07-28-010',
-    updatedAt: '2026-07-28T15:52:35.556Z',
+    version:   '2026-08-05-006',
+    updatedAt: '2026-08-05T06:26:12.473Z',
     source:    'kv'
 };
 /* __META_END__ */
@@ -291,10 +291,10 @@ var sections = [
                 ]
             },
             {
-                id: 'ohthercalc-tools',
                 icon: '👨🏻‍🔧',
+                id: 'ohthercalc-tools',
                 title: '在线工具',
-                url: 'https://ol.woobx.cn/',
+                url: '/toolsindex.html',
                 type: 'expandable',
                 desc: '在线小工具',
                 subCards: [
@@ -337,17 +337,14 @@ var sections = [
                         title: 'ImgToDoc',
                         desc: 'ImgToDoc服务（仅内网）',
                         url: 'http://192.168.2.166.:8787'
+                    },
+                    {
+                        icon: '📓',
+                        title: 'AI错题本',
+                        desc: 'wn.n29.net',
+                        url: 'https://wn.n29.net/'
                     }
                 ]
-            },
-            {
-                id: 'wrongbook',
-                icon: '🗳',
-                title: 'AI错题本',
-                url: 'https://wn.n29.net/',
-                type: 'desc-clickable',
-                descClickable: 'wn.n29.net',
-                descUrl: 'https://wn.n29.net/'
             }
         ]
     },
@@ -792,9 +789,9 @@ var sections = [
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 300000,
-            salt: 'qb/arL+AGSkC/6hte9oTmA==',
-            iv: '/oPRW0V4X4MLDZ8W',
-            data: 'TF5WyFfbsfVWBDMkPpzuPn83Bv4wFlRnWEJ/fu7h3NiGe2c1cfc+gDtLeZjMhJdukPTphO7rRpNrF3g9t8tKpp4bMSdMc+lwdU2UhkThlWlVvMpALtbcalfc2srWnzmYfK18fuviW0EM3eL/I35df4vJrpA4qTzL9zpkQZifEbaq8nN+2PbEN2YV+u/EtKv6EvAnjescu37wxfYit3vNg+ZMqMw6a2Z/utzGOudtGMO12ReukiEcEy8x7U0xXgU9t8nqUq4HksDmvzCvON+w8p5H+IQp85n9fspYcbMovzM46clLjniJtiZ5/3JohoKTzlRUfRYjrSwG3Cp8Z4NeTslozlPehKtQelapiMNzOx7GiRnvWOSO0A33GrisIs0t4gL7rgDp432bAYaZi9BS8fIeLCjOLqa3kgeRXm8AL57aODOiVZyI6hNXVNeqf+vpsLnVmKi5od28ZncCNlPQyfci412HlPY5GO7zmg2xDHIhMh/Ni0tNUbdEQYFX5g2Vqd2fpxd6ScO+f3CSD6qVyMiLmxg6VnGBY/B6ekwyaSe7IDSxx52tQP38ZYf/Er2ICi2SaF9Co+8l0m37KJUB8kzDHvfekpOhFdzUGRmSFn+h4YGI7GMp6dMjyqnERlz7z2/xxXeKJexXnGFenOI9hAQyiML5n8icz+1MceX/EUcE+9CghAAELPiLlmHSVSeANXTC/nvCRaLSZW9qfVB515t1+T3AmkL+S9ADkFSCPzuDKMAsIN7zBs7vSok0HloNkSnZN7vxUstZjKaN3E0XDNlqVjcjdMKZu3GdHqZ2r8eP8kY1xHcVSrub9HFTZUqowEo1FW/wmqNeVbkOMr56zuxQ6ln6EezpS/L3ePxIV2EEayz50q0CfPEMjZFjT8tq3LHaecqjlsKU32J+QWlIiSMkTHBvEyzl3tlwAv4XgZd5Z/chY2gnST7KmnQPXRMa+8G7KzJjZ9wU/SkOjuPWbgpyoFbCuzLWlcS9dF2DHhJ66qqraSzM4uJLIaij5nky+8wfzDNxP5jXcUdZgf5hTcUeAAYVmD83shZgt6t3TjEgXmHsaVi/bku82aY1mlqO84l8eQ71TuRw4QD2dfGAbi4VDauLC1cDLld9tjV7iAuRkzRsj7ZcztZKCvbrgbXut2tP2dzAVVLoJlkBEMGSeB0B1FZM1CPV8jNiU+jtjGHyiGcrmXk91yO40DXv8ICGHfVbVGzxlFP5Krj+TpvCvbIu+GLtvWnh703lJtBTJojboDktWrK4mC/GnhqQoq13AzXgmWYLrVNG/QQeRvGKoQSJjkrI0FcaWyYOvFRT8Ua747ODYUFP3rCZHDs1qV+HPVfGTOSAUd50PA3XHFxeebpQgOfcf9Af+BtcGzhvMJ/CIuMKsTpu8b8cbrEJwZjAEojoTe9sHOUvWy7MHF4NIaiK5wJLzlr3wBWak9TU1cR5Gjmbg7cIhd9Nh5NTNQsgVcdAbRSFQvlwKi7lIA/sPu1vUqpJs3ar/4SxlvRkD/e8hfw+zc4c2zOdzP0HaiS3hdHH/b7uKakcErzxQYOOPQvmVUE7M9sOqz6iwmzJMdVKlxcMzut0V+Ge3mkb1UgqPstCVz+ULuC9v0abSFQNWDoEEtjMCN/RSM7Y/C+1g3Q7wgnjBBmM8KC3NG38WhXiq22YDsO7xK34e1MRopAOnqNhaRasype3tnEbG4orYqlUoX4TCOyyVSu1beqNyVbvwPsOhkFqGiWr09eAKM69KLuCE0hz9KOZY3fzNnzPWjs5MUrA8TLVdT6uevKrlvETfV/uDbpD9h41seJSGClsOUnk1dOGXZIwpjo3+uyhtdf4YeGUzUTt'
+            salt: 'L69VpYy9bsuioLab+07Y2g==',
+            iv: 'tVO7r3MIHl1W70TZ',
+            data: 'AvazivIfpan0jBCDHYSVzSuFbk5oqRyv/S55NezP2IHBplx1AfNDUKE47RmQeq2n7OL3dgevwaK7lc8pIJevy51Xfp1KtlFPdj0AxBRUfs6V7fBuXDjpBtVU2Eqs3TP8hEE0/5oZy/TwXgA14B3UnB6h6xe9FkSbtC84j+vU5zTQJPVOdTHNBr0Y7NSZxsL9Wx46Xaq4RIDDQeWUJb2NwpcoLWt4+jVvvrnMasxN6yGRyQal/YXgzajyLj/EtYvD1IOkcm6OxjzPtQY6UELSQVunZ8UVtGQPTKoR7Z1qHjjtHxkADwS8KCMdMw/XycneCoZ9U1h++nVd0TJ2AYLQ56+X2N4mx6Rr3AU4HMjEXPcoGlyFVKVgnKq/KD4G/2qmVQkT50ncx0DR13go/EA/Gchngt/zeH54+hIHgA7bI0JsdE4rwpKnduVVfbr+EXUBeJ4F59xiaSbcSJGMzmjEj3KQCrHk3MF40Vc9SlwVw1GEytBZ2Kzpg2ekM/MpOyeWeSoRpsBkpn281KHZTsO3+/U08yDfkXaxvKWT6dOcS9hB2pw4kipKjXfH20/h16cmPXiCBSzytifiso1TKqulJB3S6nGHotgXo1OcMK90wGKRH8SIB4IBrLNEOY1uVA1RIvGjQePvoIxe29T0Ic+U0QFtOd1eU9E/zmrpeWIlz+e0rqNdVdBlT5lyKiNfZnJzSgzH00hAvObtIaPYWvARriHiVlsriHofl+unjVP3gU476lif2C0iLV/Wyz/uWZnrco0vX2kp4G2AxM9y4fFPSCk522wMRtUFuzsMqdxPTcyA0u1GdbZ1PITcb+/5rypsqR5JpwugyoSknBzYxrD/RTB+S/HMMlqU9L13ldKsmgsYXDTJaJ/bYEmv6FlijMxIM5W0J8q+RCDoBll+F8/Dtwa2fPZg2TzkUmSArUtBz8zZJxa+Ov/F9O/X+AnX6ZbHQqyibFYTeJwRYKFMtPAH6uwUj+zdIV54u3AWnbKlY/pN3N3oG+mbgriy3XtitOXCXInWyCOAjHhVYlSRxjEajAA/NFTFxgcJVY0XW/dyNpNvAJEhr2uDDh3jGonlg8M5ZXu7N7PcH0HgIQjWgvSvDHkM+AhzMsYrp+pqFyQFNpzXyiaGJo6kWLcL5H4nVgOWl2GXvKTdOjnBQGm2+gUBTDDXHQnTeI6AGYl10A64cVKu7L6Ol2Hn82ZPIvpyMKvetHIT8Nzdm9fNRb8RXVJMwWBe+s+TWbkbBfgsas4h7v73lqUefzws5tOyBVpuAFTsAJ+8x0PkAfWnvIaiDoD1y3qnXlOaRGS/PqMBtb/MaSXhZTvaHxxvD1U3KM/OrqQsZRINjZ3Qld0o2NuH1fqE+N4SKq7XaZco/E5BRAj47F8PZB9w33HQT2RP+bwzTJJYls+g1Z5vBi3klIiI3bscDQ9xzPOlQOawbKhkxGucBEMDPUgz2SGUa7mjzr4GXyhJ3eXBI/gc+aONJVotxEAlXkO5eusc1sF2aYzsGH1eTgqWq6f6O5OKTEW15nJKdeFthuXAsWgOsMaFZFIxAz8HUokBv5RXYD3fnXYJIL2q9X6wYxX248GKepdt7StV9uEM9XEMZo6dRXK1lLQcyPUDNwY6NRqYVW47xeAKzL25NjCrfNs6NIDEZibNiO82caj7SSixAMaq8jTJup7qzvjcN4pfAeRyO4ojPDiy/IX1a+9HXQiufuUREqsGh1MCdzGdChuQiiAslGdiP/e7Pc9n0o9tWkepAbCRj/CyPlLe80/OHUfMlKwznHYQ3HWyG7j1F+yOQFYFqZS4tPlL7FjA6z2B/SswUj+lxnMYLtydS5Pdow9MdwJx'
         },
         cards: []
     }
