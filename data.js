@@ -48,9 +48,9 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-07-28-010',
-    updatedAt: '2026-07-28T15:52:35.556Z',
-    source:    'kv'
+    version:   '2026-08-05-001',
+    updatedAt: '2026-08-05T05:40:47.281Z',
+    source:    'github'
 };
 /* __META_END__ */
 
