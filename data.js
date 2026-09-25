@@ -48,9 +48,9 @@
 
 /* __META_START__ */
 window.APP_DATA_META = {
-    version:   '2026-08-05-007',
-    updatedAt: '2026-08-05T06:38:20.805Z',
-    source:    'github'
+    version:   '2026-09-25-002',
+    updatedAt: '2026-09-25T18:39:06.127Z',
+    source:    'kv'
 };
 /* __META_END__ */
 
@@ -469,22 +469,6 @@ var sections = [
                 desc: 'Cloudflare'
             },
             {
-                id: 'freedidi',
-                icon: '👫🏻',
-                title: '零度博客',
-                desc: '零度博客',
-                url: 'https://www.freedidi.com/',
-                type: 'simple'
-            },
-            {
-                id: 'vercel',
-                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><circle cx="64" cy="64" r="56" fill="#333333" stroke="#FFFFFF" stroke-width="4"/><polygon points="64,33 91,80 37,80" fill="#FFFFFF"/></svg>',
-                title: 'Vercel',
-                desc: 'vercel',
-                url: 'https://vercel.com/',
-                type: 'simple'
-            },
-            {
                 id: 'zeabur',
                 icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><line x1="84" y1="45" x2="22" y2="83" stroke="#FFFFFF" stroke-width="16" stroke-linecap="butt"/><polygon points="18,26 94,26 88,50 12,50" fill="#000000" stroke="#FFFFFF" stroke-width="4"/><polygon points="18,78 94,78 88,102 12,102" fill="#000000" stroke="#FFFFFF" stroke-width="4"/><polygon points="18,26 74,26 68,50 12,50" fill="#6B3FA0"/><polygon points="74,26 94,26 88,50 68,50" fill="#333333"/><line x1="84" y1="45" x2="22" y2="83" stroke="#333333" stroke-width="12" stroke-linecap="butt"/><polygon points="38,78 94,78 88,102 32,102" fill="#E8632B"/><polygon points="18,78 38,78 32,102 12,102" fill="#333333"/></svg>',
                 title: 'Zeabur',
@@ -501,12 +485,12 @@ var sections = [
                 type: 'simple'
             },
             {
-                id: 'AddressGeneratorFe',
                 icon: '🗺️',
+                id: 'AddressGeneratorFe',
                 title: 'AddressGenerator',
-                desc: '地址生成器',
-                url: 'https://addr.f66.fun/',
-                type: 'simple'
+                url: 'https://addr.toofyer.ccwu.cc',
+                type: 'simple',
+                desc: '地址生成器'
             }
         ]
     },
@@ -789,9 +773,9 @@ var sections = [
             v: 1,
             alg: 'AES-GCM-256/PBKDF2-SHA256',
             iter: 300000,
-            salt: 'L69VpYy9bsuioLab+07Y2g==',
-            iv: 'tVO7r3MIHl1W70TZ',
-            data: 'AvazivIfpan0jBCDHYSVzSuFbk5oqRyv/S55NezP2IHBplx1AfNDUKE47RmQeq2n7OL3dgevwaK7lc8pIJevy51Xfp1KtlFPdj0AxBRUfs6V7fBuXDjpBtVU2Eqs3TP8hEE0/5oZy/TwXgA14B3UnB6h6xe9FkSbtC84j+vU5zTQJPVOdTHNBr0Y7NSZxsL9Wx46Xaq4RIDDQeWUJb2NwpcoLWt4+jVvvrnMasxN6yGRyQal/YXgzajyLj/EtYvD1IOkcm6OxjzPtQY6UELSQVunZ8UVtGQPTKoR7Z1qHjjtHxkADwS8KCMdMw/XycneCoZ9U1h++nVd0TJ2AYLQ56+X2N4mx6Rr3AU4HMjEXPcoGlyFVKVgnKq/KD4G/2qmVQkT50ncx0DR13go/EA/Gchngt/zeH54+hIHgA7bI0JsdE4rwpKnduVVfbr+EXUBeJ4F59xiaSbcSJGMzmjEj3KQCrHk3MF40Vc9SlwVw1GEytBZ2Kzpg2ekM/MpOyeWeSoRpsBkpn281KHZTsO3+/U08yDfkXaxvKWT6dOcS9hB2pw4kipKjXfH20/h16cmPXiCBSzytifiso1TKqulJB3S6nGHotgXo1OcMK90wGKRH8SIB4IBrLNEOY1uVA1RIvGjQePvoIxe29T0Ic+U0QFtOd1eU9E/zmrpeWIlz+e0rqNdVdBlT5lyKiNfZnJzSgzH00hAvObtIaPYWvARriHiVlsriHofl+unjVP3gU476lif2C0iLV/Wyz/uWZnrco0vX2kp4G2AxM9y4fFPSCk522wMRtUFuzsMqdxPTcyA0u1GdbZ1PITcb+/5rypsqR5JpwugyoSknBzYxrD/RTB+S/HMMlqU9L13ldKsmgsYXDTJaJ/bYEmv6FlijMxIM5W0J8q+RCDoBll+F8/Dtwa2fPZg2TzkUmSArUtBz8zZJxa+Ov/F9O/X+AnX6ZbHQqyibFYTeJwRYKFMtPAH6uwUj+zdIV54u3AWnbKlY/pN3N3oG+mbgriy3XtitOXCXInWyCOAjHhVYlSRxjEajAA/NFTFxgcJVY0XW/dyNpNvAJEhr2uDDh3jGonlg8M5ZXu7N7PcH0HgIQjWgvSvDHkM+AhzMsYrp+pqFyQFNpzXyiaGJo6kWLcL5H4nVgOWl2GXvKTdOjnBQGm2+gUBTDDXHQnTeI6AGYl10A64cVKu7L6Ol2Hn82ZPIvpyMKvetHIT8Nzdm9fNRb8RXVJMwWBe+s+TWbkbBfgsas4h7v73lqUefzws5tOyBVpuAFTsAJ+8x0PkAfWnvIaiDoD1y3qnXlOaRGS/PqMBtb/MaSXhZTvaHxxvD1U3KM/OrqQsZRINjZ3Qld0o2NuH1fqE+N4SKq7XaZco/E5BRAj47F8PZB9w33HQT2RP+bwzTJJYls+g1Z5vBi3klIiI3bscDQ9xzPOlQOawbKhkxGucBEMDPUgz2SGUa7mjzr4GXyhJ3eXBI/gc+aONJVotxEAlXkO5eusc1sF2aYzsGH1eTgqWq6f6O5OKTEW15nJKdeFthuXAsWgOsMaFZFIxAz8HUokBv5RXYD3fnXYJIL2q9X6wYxX248GKepdt7StV9uEM9XEMZo6dRXK1lLQcyPUDNwY6NRqYVW47xeAKzL25NjCrfNs6NIDEZibNiO82caj7SSixAMaq8jTJup7qzvjcN4pfAeRyO4ojPDiy/IX1a+9HXQiufuUREqsGh1MCdzGdChuQiiAslGdiP/e7Pc9n0o9tWkepAbCRj/CyPlLe80/OHUfMlKwznHYQ3HWyG7j1F+yOQFYFqZS4tPlL7FjA6z2B/SswUj+lxnMYLtydS5Pdow9MdwJx'
+            salt: 'PbyaGqjBA2PY4DFerUKtHg==',
+            iv: 'nIC6QM+d5C87MgwR',
+            data: '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'
         },
         cards: []
     }
