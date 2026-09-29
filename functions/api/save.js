@@ -17,12 +17,6 @@ function nsKeys(ns) {
     };
 }
 
-/**
- * 模块作用域 flag：按 namespace 维护。同一 isolate 内每个 namespace 首次保存时
- * 检查/写入 SOURCE_KEY；之后跳过。新 isolate 启动会重置。
- */
-const _sourceConfirmedKv = new Set();
-
 export async function onRequestPost({ request, env }) {
     const fail = await requireAuth(request, env);
     if (fail) return fail;
@@ -58,19 +52,17 @@ export async function onRequestPost({ request, env }) {
         }
     }
 
-    // 主数据写入 + SOURCE_KEY 自动激活 → 并行
-    const writes = [];
+    // 先确认主数据写入成功，再激活KV；写入失败时保留原数据源。
     if (contentChanged) {
-        writes.push(env.FAV_KV.put(KEYS.data, content));
+        await env.FAV_KV.put(KEYS.data, content);
     }
-    if (!_sourceConfirmedKv.has(ns)) {
-        const currentSource = await env.FAV_KV.get(KEYS.source);
-        if (currentSource !== 'kv') {
-            writes.push(env.FAV_KV.put(KEYS.source, 'kv'));
-        }
-        _sourceConfirmedKv.add(ns);
+
+    // 数据源可由/api/source随时切换，不能用isolate内缓存跳过检查。
+    // 即使内容未变，每次保存也应恢复KV模式；失败后重试仍会检查。
+    const currentSource = await env.FAV_KV.get(KEYS.source);
+    if (currentSource !== 'kv') {
+        await env.FAV_KV.put(KEYS.source, 'kv');
     }
-    if (writes.length) await Promise.all(writes);
 
     // user 路径：标记 hasData=true（best-effort）
     //   - 已经是 true 时跳过写,省 KV 操作
