@@ -4280,7 +4280,7 @@ function renderCurrentSection() {
                        moveBtn +
                        copyBtn +
                        pushBtn +
-                       '<button class="btn btn-ghost btn-sm" data-act="visibility" aria-pressed="' + (item.hidden === true) + '" title="' + escapeHtml(t('cardHideHint')) + '">' + escapeHtml(t(item.hidden === true ? 'cardShow' : 'cardHide')) + '</button>' +
+                       renderCardVisibilityButton(item, 'data-act') +
                        '<button class="btn btn-primary btn-sm" data-act="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleCardAction(b.dataset.act, idx));
@@ -4309,6 +4309,13 @@ function getEmailCardCountError(count) {
     if (count < 1) return 'min';
     if (count > 10) return 'max';
     return null;
+}
+function renderCardVisibilityButton(card, actionAttribute) {
+    const hidden = card.hidden === true;
+    const label = t(hidden ? 'cardShow' : 'cardHide');
+    return '<button class="btn btn-ghost btn-sm" ' + actionAttribute + '="visibility" aria-pressed="' + hidden +
+        '" aria-label="' + escapeHtml(label) + '" title="' + escapeHtml(label + '：' + t('cardHideHint')) + '">' +
+        (hidden ? '👁️' : '🙈') + '</button>';
 }
 function toggleCardHidden(card) {
     if (card.hidden === true) delete card.hidden;
@@ -5040,7 +5047,7 @@ function renderSubCardsList() {
                        '<button class="btn btn-warn btn-sm" data-sact="move" title="' + escapeHtml(t('subMoveActionTitle')) + '">⇄</button>' +
                        '<button class="btn btn-success btn-sm" data-sact="promote" title="升级为独立卡片">🆙</button>' +
                        subPushBtn +
-                       '<button class="btn btn-ghost btn-sm" data-sact="visibility" aria-pressed="' + (sc.hidden === true) + '" title="' + escapeHtml(t('cardHideHint')) + '">' + escapeHtml(t(sc.hidden === true ? 'cardShow' : 'cardHide')) + '</button>' +
+                       renderCardVisibilityButton(sc, 'data-sact') +
                        '<button class="btn btn-primary btn-sm" data-sact="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-sact="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleSubAction(b.dataset.sact, i));
