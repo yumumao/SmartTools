@@ -61,7 +61,7 @@ function sentListKey(uid)    { return 'user:' + uid + ':sent-list'; }
 
 // 卡片字段白名单(防 admin 推脏字段污染用户数据)
 const ALLOWED_CARD_FIELDS = new Set([
-    'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal',
+    'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal', 'hidden',
     'descClickable', 'descUrl', 'content', 'address', 'mailto', 'note',
     'comment', 'id', 'subCards',    // subCards 给 expandable 卡(从已有卡片选时会带过来)
     'pushedBy', 'pushedAt'          // §13 强制推送:管理员放置标注(2026-05-23)

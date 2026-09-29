@@ -192,8 +192,10 @@ window.__favEmailClick = function(event) {
     var cd = currentEmailData;
     if (!cd) return;
     if (cd.comment && window.NoteModal) {
-        var cards = getEmailCards();
-        var idx = cards.indexOf(cd);
+        // Tab使用可见序号，注释必须使用原始邮箱数组序号。
+        var emailSec = __allSections.find(function(s) { return s.kind === 'email' && s.visible !== false; });
+        var idx = emailSec && emailSec.cards ? emailSec.cards.indexOf(cd) : -1;
+        if (idx < 0) return;
         var cid = __registerCard(cd, {
             sectionKey: 'emailData',
             emailIndex: idx,
@@ -455,6 +457,7 @@ function renderIcon(item, extraAttrs) {
  * ════════════════════════════════════════════════════════════════════════════════ */
 
 function generateCardHTML(card, meta) {
+    if (card.hidden === true) return ''; // 普通隐藏不加密；保持原始数据及注释索引。
     var cid = __registerCard(card, meta || {});
     var noteCls = __noteCls(card);
     var pushedBadge = __renderPushedByBadge(card, cid);
@@ -563,6 +566,7 @@ function generateCardHTML(card, meta) {
  * 无 sc.url 时仍用 <div>(没东西可开,保持现状)。
  */
 function generateSubCardHTML(sc, meta) {
+    if (sc.hidden === true) return ''; // 普通隐藏不加密；保持原始数据及注释索引。
     var cid      = __registerCard(sc, meta || {});
     var iconHTML = renderIcon(sc);
     var noteCls  = __noteCls(sc);
@@ -635,14 +639,17 @@ function getVisibleCount(prefix, layout) {
 
 function generateDynamicGrid(prefix, data, layout, encrypted) {
     var count   = getVisibleCount(prefix, layout);
-    var visible = data.slice(0, count);
-    var hidden  = data.slice(count);
+    // 先记录原下标，再过滤展示项；折叠数量不能被隐藏卡占用。
+    var entries = data.map(function(card, idx) { return { card: card, index: idx }; })
+        .filter(function(entry) { return entry.card.hidden !== true; });
+    var visible = entries.slice(0, count);
+    var hidden  = entries.slice(count);
 
     var html = '<div class="links-grid">';
-    visible.forEach(function(card, idx) {
-        html += generateCardHTML(card, {
+    visible.forEach(function(entry) {
+        html += generateCardHTML(entry.card, {
             sectionKey: prefix,
-            cardIndex:  idx,
+            cardIndex:  entry.index,
             encrypted:  !!encrypted
         });
     });
@@ -652,10 +659,10 @@ function generateDynamicGrid(prefix, data, layout, encrypted) {
         html += '<button class="expand-section-btn" data-section-key="' + __attr(prefix) + '" id="' + __attr(prefix) + '-expand-btn">' +
             '<span>展开卡片</span><span class="arrow">▼</span></button>';
         html += '<div class="hidden-cards" id="' + __attr(prefix) + '-hidden-cards">';
-        hidden.forEach(function(card, idx) {
-            html += generateCardHTML(card, {
+        hidden.forEach(function(entry) {
+            html += generateCardHTML(entry.card, {
                 sectionKey: prefix,
-                cardIndex:  count + idx,
+                cardIndex:  entry.index,
                 encrypted:  !!encrypted
             });
         });
@@ -716,7 +723,8 @@ function layoutEmailTabs(activeIndex) {
     });
 }
 function generateEmailCardHTML(cards) {
-    cards = cards || [];
+    cards = (cards || []).filter(function(card) { return card.hidden !== true; });
+    if (!cards.length) return '';
     var tabsHTML = '';
     cards.forEach(function(em, i) {
         var cls = i === 0 ? ' active' : '';
@@ -744,6 +752,7 @@ function generateEmailCardHTML(cards) {
 }
 
 function generateContactCardHTML(card, meta) {
+    if (card.hidden === true) return ''; // 普通隐藏不加密；保持原始数据及注释索引。
     var cid = __registerCard(card, meta || {});
     var noteCls = __noteCls(card);
     var descUrlAttr = card.descUrl ? ' data-desc-url="' + __attr(__safeUrl(card.descUrl)) + '"' : '';
@@ -887,7 +896,7 @@ function autoExpandSection(prefix) {
 // ★ 从 sections 中获取 email 数据
 function getEmailCards() {
     var emailSec = __allSections.find(function(s) { return s.kind === 'email' && s.visible !== false; });
-    return (emailSec && emailSec.cards) ? emailSec.cards : [];
+    return ((emailSec && emailSec.cards) || []).filter(function(card) { return card.hidden !== true; });
 }
 
 function switchEmail(index) {
@@ -1050,7 +1059,7 @@ function renderOneSection(sec, layout) {
 
     if (sec.kind === 'email') {
         // ★ 邮箱 + 联系方式合并在一行（桌面端并排，小屏上下）
-        if (!currentEmailData) currentEmailData = cards[0];
+        if (!currentEmailData || currentEmailData.hidden === true) currentEmailData = getEmailCards()[0] || null;
         var html = '<div class="links-grid contact-row">';
         html += generateEmailCardHTML(cards);
         // 找到 contactData section，把它的卡片也渲染进来
@@ -1157,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // ★ 初始化第一个 email section 的 currentEmailData
     var emailSec = __allSections.find(function(s) { return s.kind === 'email' && s.visible !== false; });
-    if (emailSec && emailSec.cards && emailSec.cards.length) currentEmailData = emailSec.cards[0];
+    currentEmailData = getEmailCards()[0] || null;
 
     renderAllSections(currentLayout);
 

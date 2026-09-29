@@ -54,7 +54,7 @@ const ALLOWED_PUBLIC_KEYS = [...BUILTIN_KEYS, UNCLASSIFIED_KEY];
 
 // §16-A.4(2026-05-24):"编辑后接受"用 — 字段白名单 + 长度上限,与 push.js 的 sanitizeCard 行为一致
 const ALLOWED_CARD_FIELDS = new Set([
-    'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal',
+    'type', 'title', 'url', 'desc', 'icon', 'iconImg', 'isLocal', 'hidden',
     'descClickable', 'descUrl', 'content', 'address', 'mailto', 'note',
     'comment', 'id', 'subCards', 'pushedBy', 'pushedAt'
 ]);

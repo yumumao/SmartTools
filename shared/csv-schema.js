@@ -46,7 +46,8 @@
         { col: 'address',        required: false, desc: '邮箱卡专用：显示用邮箱地址（如 aabb(AT)cc.cc）' },
         { col: 'mailto',         required: false, desc: '邮箱卡专用：点击行为目标（可以是 http(s) 或 mailto:）' },
         { col: 'comment',        required: false, desc: 'Markdown 注释（多行用 RFC4180 转义）' },
-        { col: 'note',           required: false, desc: '子卡专用，compact-card 的额外小字' }
+        { col: 'note',           required: false, desc: '子卡专用，compact-card 的额外小字' },
+        { col: 'hidden',         required: false, desc: 'true / 空；仅隐藏展示，不加密，适用于主卡和子卡' }
     ];
 
     var COL_NAMES = COLUMNS.map(function(c) { return c.col; });
@@ -192,7 +193,8 @@
             valOrEmpty(card.address),
             valOrEmpty(card.mailto),
             valOrEmpty(card.comment),
-            ''                                   // note (主卡不用)
+            '',                                  // note (主卡不用)
+            card.hidden === true ? 'true' : ''
         ];
     }
 
@@ -215,7 +217,8 @@
             '',                                  // address (子卡不用)
             '',                                  // mailto (子卡不用)
             valOrEmpty(sc.comment),
-            valOrEmpty(sc.note)
+            valOrEmpty(sc.note),
+            sc.hidden === true ? 'true' : ''
         ];
     }
 
@@ -442,6 +445,7 @@
             }
 
             obj.isLocal = parseBool(obj.isLocal);
+            obj.hidden = parseBool(obj.hidden);
 
             // 多余字段剪枝
             var kind;

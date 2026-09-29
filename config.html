@@ -50,6 +50,8 @@ textarea { min-height: 80px; resize: vertical; font-family: Consolas, Monaco, mo
 .card-info { flex: 1; min-width: 0; }
 .card-info .card-title { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
 .card-info .card-meta { font-size: 12px; color: #888; word-break: break-all; }
+.card-item.card-is-hidden, .subcard-item.card-is-hidden { background: #f1f5f9; border-style: dashed; }
+.card-hidden-badge { color: #475569; font-size: 12px; margin-left: 8px; }
 .card-type-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; margin-right: 6px; font-weight: 600; }
 .badge-simple { background: #e3f2fd; color: #1976d2; } .badge-desc { background: #fff3e0; color: #f57c00; } .badge-exp { background: #e8f5e9; color: #388e3c; }
 .card-actions { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -445,6 +447,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="form-row hidden" id="isLocalRow"><label><input type="checkbox" id="f_isLocal"> <span data-i18n="fldIsLocal">本地跳转（isLocal: true）</span></label></div>
 
         <!-- ★★★ 注释字段（支持 Markdown；加密分类中会随卡片一起被 AES-GCM 加密） -->
+        <div class="form-row">
+            <label><input type="checkbox" id="f_hidden"> <span data-i18n="fldCardHidden">隐藏卡片</span></label>
+            <div class="move-hint" data-i18n="cardHideHint">仅控制网页展示，不加密。可在设置中取消隐藏；敏感内容请放入加密分类。</div>
+        </div>
         <div class="form-row" id="commentRow">
             <label data-i18n="fldComment">📝 注释 comment（点击卡片时弹出，支持 Markdown；加密分类内会随卡片一起加密）</label>
             <textarea id="f_comment" style="min-height:120px;" data-i18n-placeholder="commentPh"
@@ -493,6 +499,10 @@ pre.export-pre { background: #2d2d2d; color: #f8f8f2; padding: 16px; border-radi
         <div class="form-row" id="sf_descRow"><label data-i18n="fldSubDesc">描述 desc</label><input type="text" id="sf_desc"></div>
         <div class="form-row hidden" id="sf_contentRow"><label data-i18n="fldSubContent" data-required="true">内容 content</label><input type="text" id="sf_content"></div>
         <div class="form-row"><label data-i18n="fldSubUrl">链接 url（可留空）</label><input type="url" id="sf_url"></div>
+        <div class="form-row">
+            <label><input type="checkbox" id="sf_hidden"> <span data-i18n="fldCardHidden">隐藏卡片</span></label>
+            <div class="move-hint" data-i18n="cardHideHint">仅控制网页展示，不加密。可在设置中取消隐藏；敏感内容请放入加密分类。</div>
+        </div>
         <div class="form-row"><label><input type="checkbox" id="sf_isLocal"> <span data-i18n="fldIsLocalShort">本地跳转</span></label></div>
 
         <!-- ★★★ 子卡片注释 -->
@@ -1707,6 +1717,8 @@ const I18N = {
         typeDescClickable: 'desc-clickable（描述可点击）', typeExpandable: 'expandable（带子菜单）',
         fldUrl: '主网址 URL（可留空）', fldDesc: '描述 desc（纯文本）', fldAddress: '邮箱地址 address',
         fldDescClickable: '描述文字 descClickable', fldDescUrl: '描述链接 descUrl',
+        fldCardHidden: '隐藏卡片', cardHide: '隐藏', cardShow: '取消隐藏', cardHiddenBadge: '已隐藏',
+        cardHideHint: '仅控制网页展示，不加密。可在设置中取消隐藏；敏感内容请放入加密分类。',
         fldIsLocal: '本地跳转（isLocal: true）', fldIsLocalShort: '本地跳转',
         fldComment: '📝 注释 comment（点击卡片时弹出，支持 Markdown；加密分类内会随卡片一起加密）',
         commentPh: '支持 Markdown：# 标题 | **粗** *斜* | `code` | [文字](url) | - 列表 | > 引用',
@@ -2240,6 +2252,8 @@ const I18N = {
         typeDescClickable: 'desc-clickable', typeExpandable: 'expandable (with sub-cards)',
         fldUrl: 'URL (optional)', fldDesc: 'Description', fldAddress: 'Email address',
         fldDescClickable: 'Description text', fldDescUrl: 'Description URL',
+        fldCardHidden: 'Hide card', cardHide: 'Hide', cardShow: 'Unhide', cardHiddenBadge: 'Hidden',
+        cardHideHint: 'Display only, not encryption. Unhide in settings; use an encrypted category for sensitive content.',
         fldIsLocal: 'Local link (isLocal: true)', fldIsLocalShort: 'Local link',
         fldComment: '📝 Comment (shown when card is clicked, Markdown; auto-encrypted inside encrypted sections)',
         commentPh: 'Markdown: # heading | **bold** *italic* | `code` | [text](url) | - list | > quote',
@@ -4212,7 +4226,7 @@ function renderCurrentSection() {
     if (!arr.length) { list.innerHTML = '<div class="empty-hint">' + escapeHtml(t('emptyCards')) + '</div>'; return; }
     const isCardKind = sec.kind === 'card';
     arr.forEach((item, idx) => {
-        const el = document.createElement('div'); el.className = 'card-item';
+        const el = document.createElement('div'); el.className = 'card-item' + (item.hidden === true ? ' card-is-hidden' : '');
         el.dataset.idx = idx;
         const drag = document.createElement('div');
         drag.className = 'drag-handle';
@@ -4234,6 +4248,7 @@ function renderCurrentSection() {
             metaParts.push(tb + '🔗 ' + escapeHtml(item.url || ''));
             if (item.type === 'expandable' && item.subCards) metaParts.push('📁 ' + escapeHtml(t('subCardCount', { n: item.subCards.length })));
         }
+        if (item.hidden === true) metaParts.push('<span class="card-hidden-badge">' + escapeHtml(t('cardHiddenBadge')) + '</span>');
         if (item.comment) metaParts.push('📝');
         // §13 标注(2026-05-23):卡片列表行显示 📌 by + 标题 + 删除按钮
         let pushedByHtml = '';
@@ -4265,6 +4280,7 @@ function renderCurrentSection() {
                        moveBtn +
                        copyBtn +
                        pushBtn +
+                       '<button class="btn btn-ghost btn-sm" data-act="visibility" aria-pressed="' + (item.hidden === true) + '" title="' + escapeHtml(t('cardHideHint')) + '">' + escapeHtml(t(item.hidden === true ? 'cardShow' : 'cardHide')) + '</button>' +
                        '<button class="btn btn-primary btn-sm" data-act="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-act="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleCardAction(b.dataset.act, idx));
@@ -4294,10 +4310,15 @@ function getEmailCardCountError(count) {
     if (count > 10) return 'max';
     return null;
 }
+function toggleCardHidden(card) {
+    if (card.hidden === true) delete card.hidden;
+    else card.hidden = true;
+}
 function handleCardAction(act, idx) {
     const arr = store[currentSection];
     if (act === 'up' && idx > 0) { [arr[idx-1],arr[idx]]=[arr[idx],arr[idx-1]]; renderCurrentSection(); markConfigDirty(); }
     else if (act === 'down' && idx < arr.length - 1) { [arr[idx+1],arr[idx]]=[arr[idx],arr[idx+1]]; renderCurrentSection(); markConfigDirty(); }
+    else if (act === 'visibility') { toggleCardHidden(arr[idx]); renderCurrentSection(); markConfigDirty(); toast(t('toastUpdatedUnsaved')); }
     else if (act === 'edit') openCardModal(idx);
     else if (act === 'move') openMoveCardModal(currentSection, idx);
     else if (act === 'copy') {
@@ -4494,6 +4515,7 @@ function confirmPromoteSub() {
     }
 
     const newCard = { id, title, url, type };
+    if (sub.hidden === true) newCard.hidden = true;
     const emoji = $('promote_icon_emoji').value.trim();
     if (emoji) newCard.icon = emoji;
 
@@ -4868,6 +4890,7 @@ function openCardModal(idx) {
     $('f_url').value = item.url || ''; $('f_desc').value = item.desc || '';
     $('f_descClickable').value = item.descClickable || ''; $('f_descUrl').value = item.descUrl || '';
     $('f_isLocal').checked = !!item.isLocal;
+    $('f_hidden').checked = item.hidden === true;
     $('f_comment').value = item.comment || '';
     setIconFields(item, 'f_icon_emoji', 'f_icon_img', 'f_icon_svg', 'iconPreview');
     if (isEmail || isContact) hide('typeRow'); else { show('typeRow'); $('f_type').value = item.type || 'simple'; }
@@ -4926,6 +4949,7 @@ function saveCardFromModal() {
     let obj = {};
     Object.assign(obj, getIconFromFields('f_icon_emoji','f_icon_img','f_icon_svg'));
     const cmt = $('f_comment').value;
+    if ($('f_hidden').checked) obj.hidden = true;
 
     if (sec.kind === 'email') {
         if (editingCardIndex < 0 && !getEmailCardCountConstraint((store[currentSection] || []).length).canAdd) {
@@ -4992,7 +5016,7 @@ function renderSubCardsList() {
     const subs = (editingCardDraft && editingCardDraft.subCards) || [];
     if (!subs.length) { wrap.innerHTML = '<div class="empty-hint" style="padding:10px;">—</div>'; return; }
     subs.forEach((sc, i) => {
-        const el = document.createElement('div'); el.className = 'subcard-item';
+        const el = document.createElement('div'); el.className = 'subcard-item' + (sc.hidden === true ? ' card-is-hidden' : '');
         el.dataset.idx = i;
         const drag = document.createElement('div');
         drag.className = 'drag-handle';
@@ -5002,7 +5026,7 @@ function renderSubCardsList() {
         const ic = document.createElement('div'); ic.className = 'card-icon-preview'; renderIconTo(ic, sc); el.appendChild(ic);
         const info = document.createElement('div'); info.className = 'subcard-info';
         const title = sc.title || sc.content || t('noTitle');
-        const noteMark = sc.comment ? ' <span style="color:#c62828;font-size:11px;">📝</span>' : '';
+        const noteMark = (sc.hidden === true ? ' <span class="card-hidden-badge">' + escapeHtml(t('cardHiddenBadge')) + '</span>' : '') + (sc.comment ? ' <span style="color:#c62828;font-size:11px;">📝</span>' : '');
         info.innerHTML = '<div class="sc-title">' + escapeHtml(title) + (sc.content ? ' <span style="color:#999;font-size:11px;">' + escapeHtml(t('compactTag')) + '</span>' : '') + noteMark + '</div><div class="sc-meta">' + escapeHtml(sc.desc || '') + ' · ' + escapeHtml(sc.url || '') + '</div>';
         el.appendChild(info);
         const act = document.createElement('div'); act.className = 'card-actions';
@@ -5016,6 +5040,7 @@ function renderSubCardsList() {
                        '<button class="btn btn-warn btn-sm" data-sact="move" title="' + escapeHtml(t('subMoveActionTitle')) + '">⇄</button>' +
                        '<button class="btn btn-success btn-sm" data-sact="promote" title="升级为独立卡片">🆙</button>' +
                        subPushBtn +
+                       '<button class="btn btn-ghost btn-sm" data-sact="visibility" aria-pressed="' + (sc.hidden === true) + '" title="' + escapeHtml(t('cardHideHint')) + '">' + escapeHtml(t(sc.hidden === true ? 'cardShow' : 'cardHide')) + '</button>' +
                        '<button class="btn btn-primary btn-sm" data-sact="edit">✏️</button>' +
                        '<button class="btn btn-danger btn-sm" data-sact="del">🗑</button>';
         act.querySelectorAll('button').forEach(b => b.onclick = () => handleSubAction(b.dataset.sact, i));
@@ -5030,6 +5055,7 @@ function handleSubAction(act, i) {
     const subs = editingCardDraft.subCards;
     if (act === 'up' && i > 0) { [subs[i-1],subs[i]]=[subs[i],subs[i-1]]; renderSubCardsList(); }
     else if (act === 'down' && i < subs.length - 1) { [subs[i+1],subs[i]]=[subs[i],subs[i+1]]; renderSubCardsList(); }
+    else if (act === 'visibility') { toggleCardHidden(subs[i]); renderSubCardsList(); }
     else if (act === 'edit') openSubModal(i);
     else if (act === 'move') openMoveSubModal(i);
     else if (act === 'promote') openPromoteSubModal(i);
@@ -5046,6 +5072,7 @@ function handleSubAction(act, i) {
             desc: sub.desc || '',
             icon: sub.icon || '',
             iconImg: sub.iconImg || '',
+            hidden: sub.hidden === true,
             isLocal: !!sub.isLocal,
             comment: sub.comment || ''
         };
@@ -5067,6 +5094,7 @@ function openSubModal(idx) {
     $('sf_title').value = sub.title || ''; $('sf_desc').value = sub.desc || '';
     $('sf_content').value = sub.content || ''; $('sf_url').value = sub.url || '';
     $('sf_isLocal').checked = !!sub.isLocal;
+    $('sf_hidden').checked = sub.hidden === true;
     $('sf_comment').value = sub.comment || '';
     setIconFields(sub, 'sf_icon_emoji', 'sf_icon_img', 'sf_icon_svg', 'subIconPreview');
     syncSubStyle(); show('subModal');
@@ -5074,6 +5102,7 @@ function openSubModal(idx) {
 function syncSubStyle() { const s = $('sf_style').value; if (s === 'compact') { hide('sf_titleRow'); hide('sf_descRow'); show('sf_contentRow'); } else { show('sf_titleRow'); show('sf_descRow'); hide('sf_contentRow'); } }
 function saveSubFromModal() {
     const s = $('sf_style').value, obj = {};
+    if ($('sf_hidden').checked) obj.hidden = true;
     Object.assign(obj, getIconFromFields('sf_icon_emoji','sf_icon_img','sf_icon_svg'));
     if (s === 'compact') { obj.content = $('sf_content').value.trim(); if (!obj.content) { toast(t('toastNeedContent')); return; } }
     else { obj.title = $('sf_title').value.trim(); obj.desc = $('sf_desc').value.trim(); if (!obj.title) { toast(t('toastNeedSubTitle')); return; } }
@@ -5548,6 +5577,7 @@ function rowToCard(r) {
     if (r.icon)           card.icon = r.icon;
     if (r.iconImg)        card.iconImg = r.iconImg;
     if (r.isLocal === true) card.isLocal = true;
+    if (r.hidden === true) card.hidden = true;
     if (r.address)        card.address = r.address;
     if (r.mailto)         card.mailto = r.mailto;
     if (r.comment)        card.comment = r.comment;
@@ -5562,6 +5592,7 @@ function rowToSubCard(r) {
     if (r.icon)    sc.icon = r.icon;
     if (r.iconImg) sc.iconImg = r.iconImg;
     if (r.isLocal === true) sc.isLocal = true;
+    if (r.hidden === true) sc.hidden = true;
     if (r.comment) sc.comment = r.comment;
     if (r.note)    sc.note = r.note;
     return sc;
@@ -6247,7 +6278,7 @@ function addPushCardRow(prefillCard, opts) {
         }
         // 富字段:comment / descClickable / descUrl 已被独立 input 接管,不再放进 __prefillExtra
         row.__prefillExtra = {};
-        ['subCards', 'iconImg', 'content', 'address', 'mailto', 'note', 'isLocal']
+        ['subCards', 'iconImg', 'content', 'address', 'mailto', 'note', 'isLocal', 'hidden']
             .forEach(k => { if (c[k] != null) row.__prefillExtra[k] = c[k]; });
     }
     $(containerId).appendChild(row);
@@ -6511,7 +6542,7 @@ function replacePushCardRow(row, card) {
         if (det) det.open = !!card.comment;
     }
     row.__prefillExtra = {};
-    ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal']
+    ['subCards', 'iconImg', 'descUrl', 'content', 'address', 'mailto', 'note', 'isLocal', 'hidden']
         .forEach(k => { if (card[k] != null) row.__prefillExtra[k] = card[k]; });
 }
 
